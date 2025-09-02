@@ -1,0 +1,22 @@
+﻿{
+   "ConnectionStringName": "dab-connection-string",
+   "Dacpac": null,
+   "DatabaseType": 3,
+   "MergeDacpacs": false,
+   "Optional": false,
+   "ProjectPath": "C:\\Repos\\Budget\\Budget.DB",
+   "Tables": [
+      {
+         "Name": "[dbo].[Envelopes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Transactions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Users]",
+         "ObjectType": 0
+      }
+   ]
+}

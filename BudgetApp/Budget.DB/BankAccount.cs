@@ -1,0 +1,32 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Budget.DB
+{
+  public class BankAccount
+  {
+    public enum AccountTypes {Checking, Credit}
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public decimal Balance { get; set; } = 0;
+    public AccountTypes AccountType { get; set; } = AccountTypes.Checking;
+
+    public class BankAccountConfiguration : IEntityTypeConfiguration<BankAccount>
+    {
+      public void Configure(EntityTypeBuilder<BankAccount> entity)
+      {
+        entity.Property(u => u.Name)
+          .HasMaxLength(50);
+
+        entity.HasData(new BankAccount(){Id = 1, Name = "Citizens",  AccountType = AccountTypes.Checking},
+          new BankAccount{Id = 2, Name = "Discover", AccountType = AccountTypes.Credit}
+
+        );
+      }
+    }
+  }
+}
