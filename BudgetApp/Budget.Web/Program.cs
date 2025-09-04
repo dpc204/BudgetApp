@@ -1,6 +1,10 @@
-using Microsoft.EntityFrameworkCore;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Budget.Web.Components;
 using Budget.Web.Components.Account;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,10 +16,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
 
-builder.Services.AddServerSideBlazor().AddCircuitOptions(options => 
-   {
-       options.DetailedErrors = true;
-   });
+
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -28,9 +29,32 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("IdentityConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Configuration.AddJsonFile("appsettings.json")
+  .AddUserSecrets<Program>()
+  .AddEnvironmentVariables();
+
+//var connectionString = builder.Configuration["sqlbudgetconnection"]?? throw new InvalidOperationException("Connection string 'BudgetConnection' not found.");
+var connectionString = "Data Source=fantumsqlserver.database.windows.net;Initial Catalog=BudgetDB;User ID=dpc;Password=fantum204!;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False";
+
+
+Debug.WriteLine("DEBUG"  +connectionString);
+Console.WriteLine("Console "+connectionString);
+
+builder.Configuration.AddAzureKeyVault(
+  new Uri($"https://fantumkeyvault.vault.azure.net/"),
+  new DefaultAzureCredential());
+
+connectionString = builder.Configuration["budgetconnection"]?? throw new InvalidOperationException("Connection string 'BudgetConnection' not found.");
+
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+  options.UseSqlServer(connectionString)
+    .EnableSensitiveDataLogging() // Optional: logs parameter values
+    .LogTo(
+      Console.WriteLine,
+      LogLevel.Debug // Or LogLevel.Debug for more detail
+    ));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -65,7 +89,7 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForErrors: true);
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
-
+app.UseDeveloperExceptionPage();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
@@ -75,4 +99,7 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
+
+
 app.Run();
+
