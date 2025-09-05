@@ -38,13 +38,13 @@ var connectionString = "Data Source=fantumsqlserver.database.windows.net;Initial
 
 
 Debug.WriteLine("DEBUG"  +connectionString);
-Console.WriteLine("Console "+connectionString);
 
 builder.Configuration.AddAzureKeyVault(
   new Uri($"https://fantumkeyvault.vault.azure.net/"),
   new DefaultAzureCredential());
 
 connectionString = builder.Configuration["budgetconnection"]?? throw new InvalidOperationException("Connection string 'BudgetConnection' not found.");
+
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -65,6 +65,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
@@ -96,9 +97,9 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Budget.Client._Imports).Assembly);
 
+
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
-
 
 
 app.Run();
