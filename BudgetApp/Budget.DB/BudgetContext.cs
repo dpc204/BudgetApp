@@ -7,14 +7,21 @@ namespace Budget.DB
 {
   public class BudgetContext : DbContext
   {
+    public BudgetContext(DbContextOptions<BudgetContext> options)
+      : base(options)
+    {
+    }
+    
     public DbSet<Envelope> Envelopes { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
 
+    public DbSet<Category> Categories { get; set; } 
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-      optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=BudgetDb;Trusted_Connection=True;");
+      
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,6 +32,7 @@ namespace Budget.DB
       modelBuilder.ApplyConfiguration(new Transaction.TransactionConfiguration());
       modelBuilder.ApplyConfiguration(new TransactionDetail.TransactionDetailConfiguration());
       modelBuilder.ApplyConfiguration(new Envelope.EnvelopeConfiguration());
+      modelBuilder.ApplyConfiguration(new Category.CategoryConfiguration());
       modelBuilder.ApplyConfiguration(new BankAccount.BankAccountConfiguration());
     }
   }

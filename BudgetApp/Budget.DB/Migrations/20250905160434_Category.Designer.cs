@@ -4,6 +4,7 @@ using Budget.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    partial class BudgetContextModelSnapshot : ModelSnapshot
+    [Migration("20250905160434_Category")]
+    partial class Category
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "10.0.0-preview.7.25380.108")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -62,6 +65,43 @@ namespace Budget.DB.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Budget.DB.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "",
+                            Name = "Frequent"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "",
+                            Name = "Regular"
+                        });
+                });
+
             modelBuilder.Entity("Budget.DB.Envelope", b =>
                 {
                     b.Property<int>("Id")
@@ -76,6 +116,9 @@ namespace Budget.DB.Migrations
                     b.Property<decimal>("Budget")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -88,6 +131,8 @@ namespace Budget.DB.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("Envelopes");
 
                     b.HasData(
@@ -96,6 +141,7 @@ namespace Budget.DB.Migrations
                             Id = 1,
                             Balance = 0m,
                             Budget = 0m,
+                            CategoryId = 1,
                             Description = "",
                             Name = "Dining Out"
                         },
@@ -104,6 +150,7 @@ namespace Budget.DB.Migrations
                             Id = 2,
                             Balance = 0m,
                             Budget = 0m,
+                            CategoryId = 1,
                             Description = "",
                             Name = "Groceries"
                         },
@@ -112,6 +159,7 @@ namespace Budget.DB.Migrations
                             Id = 3,
                             Balance = 0m,
                             Budget = 0m,
+                            CategoryId = 2,
                             Description = "",
                             Name = "Gas"
                         });
@@ -214,6 +262,17 @@ namespace Budget.DB.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Budget.DB.Envelope", b =>
+                {
+                    b.HasOne("Budget.DB.Category", "Category")
+                        .WithMany("Envelopes")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("Budget.DB.Transaction", b =>
                 {
                     b.HasOne("Budget.DB.User", null)
@@ -238,6 +297,11 @@ namespace Budget.DB.Migrations
                     b.Navigation("Envelope");
 
                     b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("Budget.DB.Category", b =>
+                {
+                    b.Navigation("Envelopes");
                 });
 
             modelBuilder.Entity("Budget.DB.Envelope", b =>

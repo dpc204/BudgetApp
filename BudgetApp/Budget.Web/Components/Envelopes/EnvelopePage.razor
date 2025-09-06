@@ -1,0 +1,31 @@
+﻿@page "/envelopes"
+@using Budget.DB
+@using Microsoft.EntityFrameworkCore
+@using Syncfusion.Blazor.Grids
+@inject BudgetContext Db
+
+@rendermode InteractiveServer
+<h1>Envelopes</h1>
+<div class="col-lg-12 control-section">
+  <div class="content-wrapper">
+    <div class="row">
+             <SfGrid DataSource="@GridData" AllowPaging="true" aria-label="Order Details Table">
+        <GridColumns>
+          <GridColumn Field=@nameof(Envelope.Category) HeaderText="Order Date" Format="d"  TextAlign="TextAlign.Left"  Width="130"></GridColumn>
+          <GridColumn Field=@nameof(Envelope.Name) HeaderText="Envelope" TextAlign="TextAlign.Right"  Width="120"></GridColumn>
+          <GridColumn Field=@nameof(Envelope.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
+        </GridColumns>
+      </SfGrid> 
+      
+      <SfGrid DataSource="@GridData"/>
+    </div>
+  </div>
+</div>
+@code{
+  public List<Envelope>? GridData { get; set; }
+  protected override void OnInitialized()
+  {
+    
+    GridData = Db.Envelopes.AsNoTracking().ToList();
+  }
+}

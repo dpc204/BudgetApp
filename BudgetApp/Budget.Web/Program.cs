@@ -1,22 +1,20 @@
 using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+using Budget.DB;
 using Budget.Web.Components;
 using Budget.Web.Components.Account;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Syncfusion.Blazor;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
-
-
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -33,27 +31,33 @@ builder.Configuration.AddJsonFile("appsettings.json")
   .AddUserSecrets<Program>()
   .AddEnvironmentVariables();
 
-//var connectionString = builder.Configuration["sqlbudgetconnection"]?? throw new InvalidOperationException("Connection string 'BudgetConnection' not found.");
-var connectionString = "Data Source=fantumsqlserver.database.windows.net;Initial Catalog=BudgetDB;User ID=dpc;Password=fantum204!;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False";
-
-
-Debug.WriteLine("DEBUG"  +connectionString);
-
 builder.Configuration.AddAzureKeyVault(
-  new Uri($"https://fantumkeyvault.vault.azure.net/"),
+  new Uri("https://fantumkeyvault.vault.azure.net/"),
   new DefaultAzureCredential());
 
-connectionString = builder.Configuration["budgetconnection"]?? throw new InvalidOperationException("Connection string 'BudgetConnection' not found.");
+var connectionString = builder.Configuration["budgetconnection"] ?? throw new InvalidOperationException("Connection string 'BudgetConnection' not found.");
 
+Debug.WriteLine("DEBUG " + connectionString);
+Console.WriteLine("Console " + connectionString);
 
+// DbContexts with ILogger-based EF Core logging (flows to Aspire via OpenTelemetry)
+builder.Services.AddDbContext<BudgetContext>((sp, options) =>
+{
+    var logger = sp.GetRequiredService<ILogger<BudgetContext>>();
+    options
+        .UseSqlServer(connectionString)
+        .EnableSensitiveDataLogging()
+        .LogTo(message => logger.LogInformation("EFCore(BudgetContext): {Message}", message), LogLevel.Information);
+});
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-  options.UseSqlServer(connectionString)
-    .EnableSensitiveDataLogging() // Optional: logs parameter values
-    .LogTo(
-      Console.WriteLine,
-      LogLevel.Debug // Or LogLevel.Debug for more detail
-    ));
+builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
+{
+    var logger = sp.GetRequiredService<ILogger<ApplicationDbContext>>();
+    options
+        .UseSqlServer(connectionString)
+        .EnableSensitiveDataLogging()
+        .LogTo(message => logger.LogInformation("EFCore(ApplicationDbContext): {Message}", message), LogLevel.Information);
+});
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -66,14 +70,17 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+builder.Services.AddSyncfusionBlazor();
 
 var app = builder.Build();
 
+var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
+startupLogger.LogInformation("Application starting at {UtcTime} with DB host parsed from connection string: {DataSource}", DateTime.UtcNow, ParseDataSource(connectionString));
+
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -82,25 +89,36 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForErrors: true);
-
 app.UseHttpsRedirection();
-
 app.UseAntiforgery();
 app.UseDeveloperExceptionPage();
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Budget.Client._Imports).Assembly);
 
-
-// Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-
 app.Run();
+
+static string? ParseDataSource(string cs)
+{
+    if (string.IsNullOrEmpty(cs)) return null;
+    foreach (var part in cs.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+        if (part.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) || part.StartsWith("Server=", StringComparison.OrdinalIgnoreCase))
+        {
+            var idx = part.IndexOf('=');
+            if (idx > -1 && idx < part.Length - 1)
+                return part[(idx + 1)..];
+        }
+    }
+    return null;
+}
 
