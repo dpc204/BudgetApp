@@ -11,6 +11,7 @@ namespace Budget.DB
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public int SortOrder { get; set; }
     public List<Envelope> Envelopes { get; set; } = new();
 
     public class CategoryConfiguration : IEntityTypeConfiguration<Category>
@@ -22,8 +23,8 @@ namespace Budget.DB
         entity.Property(a => a.Description)
           .HasMaxLength(500);
 
-        entity.HasData(new Category() { Id = 1, Name = "Frequent", },
-          new Category() { Id = 2, Name = "Regular" }
+        entity.HasData(new Category() { Id = 1, Name = "Frequent",SortOrder = 1},
+          new Category() { Id = 2, Name = "Regular" , SortOrder = 2}
         );
       }
     }

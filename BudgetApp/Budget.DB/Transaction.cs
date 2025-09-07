@@ -13,7 +13,8 @@ namespace Budget.DB
     public DateTime Date { get; set; }
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; } 
+    public User User { get; set; } = null!;
     public List<TransactionDetail> Details { get; set; } = new();
 
     public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
@@ -24,6 +25,8 @@ namespace Budget.DB
               .HasMaxLength(200);
         entity.Property(t => t.UserId)
               .HasMaxLength(50);
+        entity.Property(t => t.TotalAmount)
+          .HasPrecision(18, 2);
       }
     }
   }
@@ -45,6 +48,8 @@ namespace Budget.DB
         entity.Property(td => td.Notes)
               .HasMaxLength(500);
         entity.HasKey(c => new { c.TransactionId, c.LineId });
+        entity.Property(t => t.Amount)
+          .HasPrecision(18, 2);
       }
     }
   }

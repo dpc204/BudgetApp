@@ -9,23 +9,44 @@
 <div class="col-lg-12 control-section">
   <div class="content-wrapper">
     <div class="row">
-             <SfGrid DataSource="@GridData" AllowPaging="true" aria-label="Order Details Table">
+      <SfGrid DataSource="@GridData" AllowPaging="true" aria-label="Order Details Table">
         <GridColumns>
-          <GridColumn Field=@nameof(Envelope.Category) HeaderText="Order Date" Format="d"  TextAlign="TextAlign.Left"  Width="130"></GridColumn>
-          <GridColumn Field=@nameof(Envelope.Name) HeaderText="Envelope" TextAlign="TextAlign.Right"  Width="120"></GridColumn>
-          <GridColumn Field=@nameof(Envelope.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
+          <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130"></GridColumn>
+          <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+          <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
         </GridColumns>
       </SfGrid> 
       
-      <SfGrid DataSource="@GridData"/>
     </div>
   </div>
 </div>
 @code{
-  public List<Envelope>? GridData { get; set; }
+  internal List<EnvelopeResult>? GridData { get; set; }
   protected override void OnInitialized()
   {
-    
-    GridData = Db.Envelopes.AsNoTracking().ToList();
+
+    var data = from env in Db.Envelopes
+               join cat in Db.Categories on env.CategoryId equals cat.Id
+               orderby cat.SortOrder, env.SortOrder
+               select new EnvelopeResult
+      {
+        CategoryId = cat.Id, CategoryName = cat.Name, EnvelopeId = env.Id, EnvelopeName = env.Name,
+        Balance = env.Balance, Budget = env.Budget
+      };
+
+    GridData = data.ToList();
   }
+
+  internal sealed record EnvelopeResult
+  {
+    public int CategoryId { get; init; }
+    public string CategoryName { get; init; } = string.Empty;
+    public int EnvelopeId { get; init; }
+    public string EnvelopeName { get; init; } = string.Empty;
+    public decimal Balance { get; init; }
+    public decimal Budget { get; init; }
+  }
+  }
+
+}
 }

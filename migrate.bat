@@ -1,0 +1,1 @@
+dotnet ef migrations %1 %2 --project BudgetApp/Budget.DB --startup-project BudgetApp/Budget.Web --context BudgetContext

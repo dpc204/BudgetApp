@@ -23,7 +23,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Syncfusion.Blazor.Grid" Version="31.1.17" />
-          </ItemGroup>
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.17" />
+  </ItemGroup>
 
 </Project>

@@ -9,10 +9,10 @@ namespace Budget.DB
 {
   public class BankAccount
   {
-    public enum AccountTypes {Checking, Credit}
+    public enum AccountTypes { Checking, Credit }
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public decimal Balance { get; set; } = 0;
+    public decimal Balance { get; set; } = 0m;
     public AccountTypes AccountType { get; set; } = AccountTypes.Checking;
 
     public class BankAccountConfiguration : IEntityTypeConfiguration<BankAccount>
@@ -20,11 +20,15 @@ namespace Budget.DB
       public void Configure(EntityTypeBuilder<BankAccount> entity)
       {
         entity.Property(u => u.Name)
-          .HasMaxLength(50);
+              .HasMaxLength(50);
 
-        entity.HasData(new BankAccount(){Id = 1, Name = "Citizens",  AccountType = AccountTypes.Checking},
-          new BankAccount{Id = 2, Name = "Discover", AccountType = AccountTypes.Credit}
+        // Ensure SQL column type can hold your money values (SQL Server)
+        entity.Property(u => u.Balance)
+              .HasPrecision(18, 2); // translates to decimal(18,2)
 
+        entity.HasData(
+          new BankAccount() { Id = 1, Name = "Citizens", AccountType = AccountTypes.Checking },
+          new BankAccount() { Id = 2, Name = "Discover", AccountType = AccountTypes.Credit }
         );
       }
     }

@@ -45,18 +45,19 @@ builder.Services.AddDbContext<BudgetContext>((sp, options) =>
 {
     var logger = sp.GetRequiredService<ILogger<BudgetContext>>();
     options
-        .UseSqlServer(connectionString)
-        .EnableSensitiveDataLogging()
-        .LogTo(message => logger.LogInformation("EFCore(BudgetContext): {Message}", message), LogLevel.Information);
+      .UseSqlServer(connectionString)
+      .EnableSensitiveDataLogging();
+
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
 {
     var logger = sp.GetRequiredService<ILogger<ApplicationDbContext>>();
     options
-        .UseSqlServer(connectionString)
-        .EnableSensitiveDataLogging()
-        .LogTo(message => logger.LogInformation("EFCore(ApplicationDbContext): {Message}", message), LogLevel.Information);
+      .UseSqlServer(connectionString)
+      .EnableSensitiveDataLogging();
+    //.LogTo(message => logger.LogInformation("EFCore(ApplicationDbContext): {Message}", message), LogLevel.Debug)
+    //.LogTo(Console.WriteLine);
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

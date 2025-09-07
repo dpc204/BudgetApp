@@ -1,0 +1,1 @@
+dotnet ef database update %1 %2 --project BudgetApp/Budget.DB --startup-project BudgetApp/Budget.Web --context BudgetContext
