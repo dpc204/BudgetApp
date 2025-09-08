@@ -13,11 +13,18 @@ public partial class EnvelopePage
 
   protected override void OnInitialized()
   {
-    // Load from state (loads once per session/tab)
-    State.EnsureLoaded(Db);
-    SelectedEnvelopeData = AllEnvelopeData;
+    // Defer JS/localStorage access to OnAfterRenderAsync (firstRender)
   }
 
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await State.EnsureLoadedAsync(Db);
+      SelectedEnvelopeData = AllEnvelopeData;
+      StateHasChanged();
+    }
+  }
 
   internal List<Cat> Cats => State.Cats;
 
@@ -44,7 +51,7 @@ public partial class EnvelopePage
   }
 
 
-  private void CatChanged(ChangeEventArgs<int?, Cat> args)
+  private async void CatChanged(ChangeEventArgs<int?, Cat> args)
   {
     var selected = args.Value ?? 0;
     SelectedCategoryId = selected;
@@ -53,6 +60,8 @@ public partial class EnvelopePage
       SelectedEnvelopeData = AllEnvelopeData;
     else
       SelectedEnvelopeData = AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList();
+
+    await State.SaveAsync();
 
     Console.WriteLine($"Value: {args.Value}");
   }
