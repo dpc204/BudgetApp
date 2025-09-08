@@ -2,51 +2,34 @@
 @using Budget.DB
 @using Microsoft.EntityFrameworkCore
 @using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.DropDowns
+
 @inject BudgetContext Db
 
 @rendermode InteractiveServer
 <h1>Envelopes</h1>
 <div class="col-lg-12 control-section">
   <div class="content-wrapper">
+    <div class="col-lg-8 control-section sb-property-border">
+      <div class="control-wrapper">
+        <label class="example-label">Select a game</label>
+        <SfDropDownList TItem="Cat" TValue="int?" PopupHeight="230px"  @bind-Value="@SelectedCategoryId" DataSource="@Cats" >
+          <DropDownListFieldSettings Text="CategoryName" Value="CategoryId"/> 
+          <DropDownListEvents TItem="Cat" TValue="int?" ValueChange="@CatChanged"></DropDownListEvents>
+        </SfDropDownList>
+      </div>
+    </div>
+    <p/>
     <div class="row">
-      <SfGrid DataSource="@GridData" AllowPaging="true" aria-label="Order Details Table">
+      <SfGrid DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Order Details Table">
         <GridColumns>
           <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130"></GridColumn>
           <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
           <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
         </GridColumns>
-      </SfGrid> 
-      
+      </SfGrid>
+
     </div>
   </div>
 </div>
-@code{
-  internal List<EnvelopeResult>? GridData { get; set; }
-  protected override void OnInitialized()
-  {
 
-    var data = from env in Db.Envelopes
-               join cat in Db.Categories on env.CategoryId equals cat.Id
-               orderby cat.SortOrder, env.SortOrder
-               select new EnvelopeResult
-      {
-        CategoryId = cat.Id, CategoryName = cat.Name, EnvelopeId = env.Id, EnvelopeName = env.Name,
-        Balance = env.Balance, Budget = env.Budget
-      };
-
-    GridData = data.ToList();
-  }
-
-  internal sealed record EnvelopeResult
-  {
-    public int CategoryId { get; init; }
-    public string CategoryName { get; init; } = string.Empty;
-    public int EnvelopeId { get; init; }
-    public string EnvelopeName { get; init; } = string.Empty;
-    public decimal Balance { get; init; }
-    public decimal Budget { get; init; }
-  }
-  }
-
-}
-}
