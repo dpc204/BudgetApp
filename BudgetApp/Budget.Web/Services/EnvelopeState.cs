@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Budget.DB;
 using Budget.Web.Components.Envelopes;
@@ -22,6 +23,7 @@ internal sealed class EnvelopeState
 
   internal bool IsLoaded => AllEnvelopeData != null;
 
+  // Step 1: Load fast from localStorage if present; fall back to DB, then persist
   internal async Task EnsureLoadedAsync(BudgetContext db)
   {
     if (IsLoaded)
@@ -39,7 +41,7 @@ internal sealed class EnvelopeState
           AllEnvelopeData = snapshot.AllEnvelopeData;
           Cats = snapshot.Cats ?? new();
           SelectedCategoryId = snapshot.SelectedCategoryId;
-          return;
+          return; // Defer fresh data to RefreshFromDbAsync
         }
       }
     }
@@ -48,7 +50,12 @@ internal sealed class EnvelopeState
       // ignore storage errors and fall back to DB
     }
 
-    // Load from DB
+    await RefreshFromDbAsync(db);
+  }
+
+  // Step 2: Refresh from DB (can be called in background) and persist to localStorage
+  internal async Task RefreshFromDbAsync(BudgetContext db)
+  {
     var data = from env in db.Envelopes
                join cat in db.Categories on env.CategoryId equals cat.Id
                orderby cat.SortOrder, env.SortOrder

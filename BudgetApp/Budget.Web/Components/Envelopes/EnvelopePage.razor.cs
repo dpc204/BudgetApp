@@ -13,17 +13,31 @@ public partial class EnvelopePage
 
   protected override void OnInitialized()
   {
-    // Defer JS/localStorage access to OnAfterRenderAsync (firstRender)
+    // Initial render shows nothing; we load in OnAfterRenderAsync to allow JS interop
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender)
     {
+      // 1) Fast path: load from localStorage and render
       await State.EnsureLoadedAsync(Db);
-      SelectedEnvelopeData = AllEnvelopeData;
+      ApplySelection();
+      StateHasChanged();
+
+      // 2) Then refresh in background from DB and re-render when done
+      await State.RefreshFromDbAsync(Db);
+      ApplySelection();
       StateHasChanged();
     }
+  }
+
+  private void ApplySelection()
+  {
+    var selected = SelectedCategoryId ?? 0;
+    SelectedEnvelopeData = selected == 0
+      ? AllEnvelopeData
+      : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList();
   }
 
   internal List<Cat> Cats => State.Cats;
@@ -51,15 +65,12 @@ public partial class EnvelopePage
   }
 
 
-  private async void CatChanged(ChangeEventArgs<int?, Cat> args)
+  private async Task CatChanged(ChangeEventArgs<int?, Cat> args)
   {
     var selected = args.Value ?? 0;
     SelectedCategoryId = selected;
 
-    if (selected == 0)
-      SelectedEnvelopeData = AllEnvelopeData;
-    else
-      SelectedEnvelopeData = AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList();
+    ApplySelection();
 
     await State.SaveAsync();
 
