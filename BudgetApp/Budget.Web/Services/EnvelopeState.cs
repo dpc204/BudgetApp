@@ -6,16 +6,10 @@ using Microsoft.JSInterop;
 
 namespace Budget.Web.Services;
 
-internal sealed class EnvelopeState
+internal sealed class EnvelopeState(IJSRuntime js)
 {
-  private readonly IJSRuntime _js;
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
   private const string StorageKey = "EnvelopeState_v1";
-
-  public EnvelopeState(IJSRuntime js)
-  {
-    _js = js;
-  }
 
   internal List<EnvelopePage.EnvelopeResult>? AllEnvelopeData { get; private set; }
   internal List<EnvelopePage.Cat> Cats { get; private set; } = new();
@@ -32,7 +26,7 @@ internal sealed class EnvelopeState
     // Try load from localStorage
     try
     {
-      var json = await _js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+      var json = await js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
       if (!string.IsNullOrWhiteSpace(json))
       {
         var snapshot = JsonSerializer.Deserialize<StateSnapshot>(json, _jsonOptions);
@@ -92,7 +86,7 @@ internal sealed class EnvelopeState
         SelectedCategoryId = SelectedCategoryId,
       };
       var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
-      await _js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+      await js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
     }
     catch
     {
