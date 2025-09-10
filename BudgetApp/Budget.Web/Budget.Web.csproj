@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Budget.Shared\Budget.Shared.csproj" />
     <ProjectReference Include="..\..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Budget.Client\Budget.Client.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />

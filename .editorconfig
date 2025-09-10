@@ -1,0 +1,10 @@
+root = true
+
+[BudgetApp/Budget.DB/Migrations/**.cs]
+# Disable all analyzer diagnostics (IDE*, CA*, etc.) in this folder
+# Note: This does not disable CSxxxx compiler warnings. Use <NoWarn> in the csproj if needed.
+dotnet_analyzer_diagnostic.severity = none
+
+# Silence specific compiler warnings in this folder
+# CS8981: The type name only contains lower-cased ascii characters
+dotnet_diagnostic.CS8981.severity = none

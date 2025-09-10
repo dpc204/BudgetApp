@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetApp.ServiceDefaults",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.DB", "BudgetApp\Budget.DB\Budget.DB.csproj", "{7273D0A8-7D9F-EF35-0967-4EB6004D56FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Api", "BudgetApp\Budget.Api\Budget.Api.csproj", "{B187FD0E-2562-341B-7E60-97F435B8FC43}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Shared", "Budget.Shared\Budget.Shared.csproj", "{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{7273D0A8-7D9F-EF35-0967-4EB6004D56FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7273D0A8-7D9F-EF35-0967-4EB6004D56FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7273D0A8-7D9F-EF35-0967-4EB6004D56FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B187FD0E-2562-341B-7E60-97F435B8FC43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B187FD0E-2562-341B-7E60-97F435B8FC43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B187FD0E-2562-341B-7E60-97F435B8FC43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B187FD0E-2562-341B-7E60-97F435B8FC43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

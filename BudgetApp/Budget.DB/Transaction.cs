@@ -27,6 +27,12 @@ namespace Budget.DB
               .HasMaxLength(50);
         entity.Property(t => t.TotalAmount)
           .HasPrecision(18, 2);
+
+        entity.HasData(
+          new Transaction  {Id = 1, Date = new DateTime(2023, 1, 1), Description = "New Year's Dinner", TotalAmount = 100.00m, UserId = 1 },
+          new Transaction {Id = 2, Date = new DateTime(2023, 1, 2), Description = "Groceries", TotalAmount = 50.00m, UserId = 1 },
+          new Transaction {Id = 3, Date = new DateTime(2023, 1, 3), Description = "Gas", TotalAmount = 30.00m, UserId = 2 }
+        );
       }
     }
   }
@@ -50,6 +56,14 @@ namespace Budget.DB
         entity.HasKey(c => new { c.TransactionId, c.LineId });
         entity.Property(t => t.Amount)
           .HasPrecision(18, 2);
+
+        entity.HasData(
+          new TransactionDetail {Amount = 52m , LineId = 1, TransactionId =1, EnvelopeId = 1},
+          new TransactionDetail {Amount = 48m , LineId = 2, TransactionId =1, EnvelopeId = 2},
+          new TransactionDetail { Amount = 50m, LineId = 1, TransactionId = 2, EnvelopeId = 3 },
+          new TransactionDetail { Amount = 27m, LineId = 1, TransactionId = 3, EnvelopeId = 3 },
+          new TransactionDetail { Amount = 3m, LineId = 2, TransactionId = 3, EnvelopeId = 2 }
+        );
       }
     }
   }
