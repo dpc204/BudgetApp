@@ -12,7 +12,7 @@ internal sealed class EnvelopeState(IJSRuntime js)
   private const string StorageKey = "EnvelopeState_v1";
 
   internal List<EnvelopePage.EnvelopeResult>? AllEnvelopeData { get; private set; }
-  internal List<EnvelopePage.Cat> Cats { get; private set; } = new();
+  internal List<EnvelopePage.Cat> Cats { get; private set; } = [];
   internal int? SelectedCategoryId { get; set; } = 0;
 
   internal bool IsLoaded => AllEnvelopeData != null;
@@ -33,7 +33,7 @@ internal sealed class EnvelopeState(IJSRuntime js)
         if (snapshot is not null && snapshot.AllEnvelopeData is not null)
         {
           AllEnvelopeData = snapshot.AllEnvelopeData;
-          Cats = snapshot.Cats ?? new();
+          Cats = snapshot.Cats ?? [];
           SelectedCategoryId = snapshot.SelectedCategoryId;
           return; // Defer fresh data to RefreshFromDbAsync
         }
@@ -63,14 +63,14 @@ internal sealed class EnvelopeState(IJSRuntime js)
                  Budget = env.Budget
                };
 
-    Cats = db.Categories
-      .OrderBy(a => a.SortOrder)
-      .Select(a => new EnvelopePage.Cat { CategoryId = a.Id, CategoryName = a.Name })
-      .ToList();
+    Cats = [
+      new EnvelopePage.Cat { CategoryId = 0, CategoryName = "All" },
+      .. db.Categories
+        .OrderBy(a => a.SortOrder)
+        .Select(a => new EnvelopePage.Cat { CategoryId = a.Id, CategoryName = a.Name })
+    ];
 
-    Cats.Insert(0, new EnvelopePage.Cat { CategoryId = 0, CategoryName = "All" });
-
-    AllEnvelopeData = data.ToList();
+    AllEnvelopeData = [.. data];
 
     await SaveAsync();
   }

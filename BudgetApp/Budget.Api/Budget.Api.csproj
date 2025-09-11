@@ -9,11 +9,11 @@
 
   <ItemGroup>
     <PackageReference Include="Carter" Version="9.0.0" />
-    <PackageReference Include="FastEndpoints" Version="7.1.0-beta.10" />
+    <PackageReference Include="FastEndpoints" Version="7.1.0-beta.11" />
     <PackageReference Include="MediatR" Version="13.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-preview.7.25380.108" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-preview.7.25380.108" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.7.4" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.8.1" />
   </ItemGroup>
 
   <ItemGroup>

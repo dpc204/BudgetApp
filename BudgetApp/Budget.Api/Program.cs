@@ -15,7 +15,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddCarter();
 
 // MediatR for CQRS/handlers
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllEnvelopes).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
 
 var connectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly);
 

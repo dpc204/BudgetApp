@@ -8,3 +8,4 @@ dotnet_analyzer_diagnostic.severity = none
 # Silence specific compiler warnings in this folder
 # CS8981: The type name only contains lower-cased ascii characters
 dotnet_diagnostic.CS8981.severity = none
+dotnet_diagnostic.IDE0079.severity = none

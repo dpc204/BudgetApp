@@ -5,13 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Budget.DB
 {
-  public class BudgetContext : DbContext
+  public class BudgetContext(DbContextOptions<BudgetContext> options) : DbContext(options)
   {
-    public BudgetContext(DbContextOptions<BudgetContext> options)
-      : base(options)
-    {
-    }
-    
     public DbSet<Envelope> Envelopes { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<User> Users { get; set; }

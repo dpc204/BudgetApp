@@ -12,7 +12,7 @@ namespace Budget.DB
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public int SortOrder { get; set; }
-    public List<Envelope> Envelopes { get; set; } = new();
+    public List<Envelope> Envelopes { get; set; } = [];
 
     public class CategoryConfiguration : IEntityTypeConfiguration<Category>
     {

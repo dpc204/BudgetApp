@@ -12,7 +12,7 @@ namespace Budget.DB
     public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    public List<Transaction> Transactions { get; set; } = new();
+    public List<Transaction> Transactions { get; set; } = [];
 
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {

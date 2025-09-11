@@ -19,7 +19,7 @@ namespace Budget.DB
     public int SortOrder { get; set; }
     
     
-    public List<TransactionDetail> Details { get; set; } = new();
+    public List<TransactionDetail> Details { get; set; } = [];
 
     public class EnvelopeConfiguration : IEntityTypeConfiguration<Envelope>
     {
