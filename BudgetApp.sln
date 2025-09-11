@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11005.162 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Web", "BudgetApp\Budget.Web\Budget.Web.csproj", "{B1541E1E-FB40-66F7-E620-046340D3B051}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Api", "BudgetApp\Budget.Api\Budget.Api.csproj", "{B187FD0E-2562-341B-7E60-97F435B8FC43}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Shared", "Budget.Shared\Budget.Shared.csproj", "{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.DTO", "Budget.DTO\Budget.DTO.csproj", "{50674BA8-9B22-48EB-9A45-84811FB2D733}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50674BA8-9B22-48EB-9A45-84811FB2D733}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50674BA8-9B22-48EB-9A45-84811FB2D733}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50674BA8-9B22-48EB-9A45-84811FB2D733}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50674BA8-9B22-48EB-9A45-84811FB2D733}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

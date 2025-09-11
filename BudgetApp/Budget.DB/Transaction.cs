@@ -15,6 +15,7 @@ namespace Budget.DB
     public decimal TotalAmount { get; set; }
     public int UserId { get; set; } 
     public User User { get; set; } = null!;
+    public decimal BalanceAfterTransaction { get; set; }
     public List<TransactionDetail> Details { get; set; } = [];
 
     public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>

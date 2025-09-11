@@ -53,6 +53,8 @@ public partial class EnvelopePage
     set => State.SelectedCategoryId = value;
   }
 
+ 
+  //TODO1 move EnvelopeResult to Budget.DTO (and others)
   public sealed record EnvelopeResult
   {
     public int CategoryId { get; init; }
