@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.Transactions;
 
-public static class GetTransactionsByEnvelope
+public static class GetByEnvelopeId
 {
   public sealed record Query(int EnvelopeId) : IRequest<IEnumerable<Response>>;
   public sealed record Response(int TransactionId, int LineId, string Description, decimal Amount, DateTime Date);
