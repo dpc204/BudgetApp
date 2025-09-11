@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Blazor;
 using System.Diagnostics;
-using Budget.Web.Services;
 using Budget.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,9 +70,6 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 builder.Services.AddSyncfusionBlazor();
-
-// Register state container for session persistence
-builder.Services.AddScoped<EnvelopeState>();
 
 var app = builder.Build();
 

@@ -1,11 +1,10 @@
-using System.Diagnostics;
 using System.Text.Json;
-using Budget.DB;
-using Budget.Web.Components.Envelopes;
 using Microsoft.JSInterop;
+using Budget.Client.Components.Envelopes;
 
-namespace Budget.Web.Services;
+namespace Budget.Client.Services;
 
+// Client-side version: replaces DbContext with HttpClient/localStorage. Keep TODOs where BudgetContext was used.
 internal sealed class EnvelopeState(IJSRuntime js)
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
@@ -17,13 +16,12 @@ internal sealed class EnvelopeState(IJSRuntime js)
 
   internal bool IsLoaded => AllEnvelopeData != null;
 
-  // Step 1: Load fast from localStorage if present; fall back to DB, then persist
-  internal async Task EnsureLoadedAsync(BudgetContext db)
+  // TODO: Previously EnsureLoadedAsync(BudgetContext db)
+  internal async Task EnsureLoadedAsync()
   {
     if (IsLoaded)
       return;
 
-    // Try load from localStorage
     try
     {
       var json = await js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
@@ -35,42 +33,25 @@ internal sealed class EnvelopeState(IJSRuntime js)
           AllEnvelopeData = snapshot.AllEnvelopeData;
           Cats = snapshot.Cats ?? [];
           SelectedCategoryId = snapshot.SelectedCategoryId;
-          return; // Defer fresh data to RefreshFromDbAsync
+          return; // Defer fresh data to RefreshAsync
         }
       }
     }
     catch
     {
-      // ignore storage errors and fall back to DB
+      // ignore storage errors
     }
 
-    await RefreshFromDbAsync(db);
+    await RefreshAsync();
   }
 
-  // Step 2: Refresh from DB (can be called in background) and persist to localStorage
-  internal async Task RefreshFromDbAsync(BudgetContext db)
+  // TODO: Previously RefreshFromDbAsync(BudgetContext db)
+  internal async Task RefreshAsync()
   {
-    var data = from env in db.Envelopes
-               join cat in db.Categories on env.CategoryId equals cat.Id
-               orderby cat.SortOrder, env.SortOrder
-               select new EnvelopePage.EnvelopeResult
-               {
-                 CategoryId = cat.Id,
-                 CategoryName = cat.Name,
-                 EnvelopeId = env.Id,
-                 EnvelopeName = env.Name,
-                 Balance = env.Balance,
-                 Budget = env.Budget
-               };
-
-    Cats = [
-      new EnvelopePage.Cat { CategoryId = 0, CategoryName = "All" },
-      .. db.Categories
-        .OrderBy(a => a.SortOrder)
-        .Select(a => new EnvelopePage.Cat { CategoryId = a.Id, CategoryName = a.Name })
-    ];
-
-    AllEnvelopeData = [.. data];
+    // TODO: Replace with API call to Budget.Api for envelopes + categories
+    // For now, keep empty lists so page renders.
+    Cats = Cats.Count == 0 ? [ new EnvelopePage.Cat { CategoryId = 0, CategoryName = "All" } ] : Cats;
+    AllEnvelopeData ??= [];
 
     await SaveAsync();
   }

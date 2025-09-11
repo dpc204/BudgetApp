@@ -1,19 +1,17 @@
-﻿@page "/envelopes"
-@using Budget.DB
-@using Microsoft.EntityFrameworkCore
+@page "/envelopes"
 @using Syncfusion.Blazor.Grids
 @using Syncfusion.Blazor.DropDowns
 
-@inject BudgetContext Db
+<!-- TODO: Previously injected BudgetContext Db on server. In WASM, replace with API calls via HttpClient. -->
+
 <h1>Envelopes</h1>
 <div class="col-lg-12 control-section">
   <div class="content-wrapper">
     <div class="col-lg-8 control-section sb-property-border">
       <div class="control-wrapper">
         <label class="example-label">Select a game</label>
-        <SfDropDownList TItem="Cat" TValue="int?" PopupHeight="230px"  @bind-Value="@SelectedCategoryId" DataSource="@Cats" >
+        <SfDropDownList TItem="Cat" TValue="int?" PopupHeight="230px" Value="@SelectedCategoryId" ValueChanged="@CatChanged" DataSource="@Cats" >
           <DropDownListFieldSettings Text="CategoryName" Value="CategoryId"/> 
-          <DropDownListEvents TItem="Cat" TValue="int?" ValueChange="@CatChanged"></DropDownListEvents>
         </SfDropDownList>
       </div>
     </div>
@@ -30,4 +28,3 @@
     </div>
   </div>
 </div>
-

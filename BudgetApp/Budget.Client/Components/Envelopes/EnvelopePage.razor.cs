@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
-using Syncfusion.Blazor.DropDowns;
-using Budget.Web.Services;
+using Microsoft.AspNetCore.Components;
+using Budget.Client.Services;
 
-namespace Budget.Web.Components.Envelopes;
+namespace Budget.Client.Components.Envelopes;
 
 public partial class EnvelopePage
 {
@@ -21,12 +20,12 @@ public partial class EnvelopePage
     if (firstRender)
     {
       // 1) Fast path: load from localStorage and render
-      await State.EnsureLoadedAsync(Db);
+      await State.EnsureLoadedAsync(); // TODO: previously EnsureLoadedAsync(BudgetContext db)
       ApplySelection();
       StateHasChanged();
 
-      // 2) Then refresh in background from DB and re-render when done
-      await State.RefreshFromDbAsync(Db);
+      // 2) Then refresh in background from API and re-render when done
+      await State.RefreshAsync(); // TODO: previously RefreshFromDbAsync(BudgetContext db)
       ApplySelection();
       StateHasChanged();
     }
@@ -65,15 +64,15 @@ public partial class EnvelopePage
   }
 
 
-  private async Task CatChanged(ChangeEventArgs<int?, Cat> args)
+  private async Task CatChanged(int? value)
   {
-    var selected = args.Value ?? 0;
+    var selected = value ?? 0;
     SelectedCategoryId = selected;
 
     ApplySelection();
 
     await State.SaveAsync();
 
-    Console.WriteLine($"Value: {args.Value}");
+    Console.WriteLine($"Value: {value}");
   }
 }
