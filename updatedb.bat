@@ -1,7 +1,7 @@
 if %1 == local goto local
 if %1 == azure goto azure
 echo Use update local|azure
-goto end
+goto eof
 
 :local 
 set LocalBudgetConnection=Data Source=(localdb)\MSSQLLocalDB;Database=BudgetDB;Trusted_Connection=True;TrustServerCertificate=True
@@ -12,8 +12,6 @@ set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Initi
 
 :run
 dotnet ef database update   --project BudgetApp/Budget.DB   --startup-project BudgetApp/Budget.Web   --context Budget.DB.BudgetContext
-
-:end
 
 
 set LocalBudgetConnection=Data Source=(localdb)\MSSQLLocalDB;Database=BudgetDB;Trusted_Connection=True;TrustServerCertificate=True

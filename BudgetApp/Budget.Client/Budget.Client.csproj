@@ -18,4 +18,12 @@
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.17" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Budget.Shared\Budget.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,23 +1,26 @@
-using System.Text.Json;
-using Microsoft.JSInterop;
-using Budget.Client.Components.Envelopes;
+// Ensure you have the following NuGet package installed in your project:
+// Microsoft.JSInterop
 
-namespace Budget.Client.Services;
+using Microsoft.JSInterop;
+using System.Text.Json;
+using Budget.Shared.Models;
+
+namespace Budget.Shared.Services;
 
 // Client-side version: replaces DbContext with HttpClient/localStorage. Keep TODOs where BudgetContext was used.
-internal sealed class EnvelopeState(IJSRuntime js)
+public sealed class EnvelopeState(IJSRuntime js)
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
   private const string StorageKey = "EnvelopeState_v1";
 
-  internal List<EnvelopePage.EnvelopeResult>? AllEnvelopeData { get; private set; }
-  internal List<EnvelopePage.Cat> Cats { get; private set; } = [];
-  internal int? SelectedCategoryId { get; set; } = 0;
+  public List<EnvelopeResult>? AllEnvelopeData { get; private set; }
+  public List<Cat> Cats { get; private set; } = [];
+  public int? SelectedCategoryId { get; set; } = 0;
 
-  internal bool IsLoaded => AllEnvelopeData != null;
+  public bool IsLoaded => AllEnvelopeData != null;
 
   // TODO: Previously EnsureLoadedAsync(BudgetContext db)
-  internal async Task EnsureLoadedAsync()
+  public async Task EnsureLoadedAsync()
   {
     if (IsLoaded)
       return;
@@ -46,17 +49,17 @@ internal sealed class EnvelopeState(IJSRuntime js)
   }
 
   // TODO: Previously RefreshFromDbAsync(BudgetContext db)
-  internal async Task RefreshAsync()
+  public async Task RefreshAsync()
   {
     // TODO: Replace with API call to Budget.Api for envelopes + categories
     // For now, keep empty lists so page renders.
-    Cats = Cats.Count == 0 ? [ new EnvelopePage.Cat { CategoryId = 0, CategoryName = "All" } ] : Cats;
+    Cats = Cats.Count == 0 ? [ new Cat { CategoryId = 0, CategoryName = "All" } ] : Cats;
     AllEnvelopeData ??= [];
 
     await SaveAsync();
   }
 
-  internal async Task SaveAsync()
+  public async Task SaveAsync()
   {
     try
     {
@@ -77,8 +80,8 @@ internal sealed class EnvelopeState(IJSRuntime js)
 
   private sealed class StateSnapshot
   {
-    public List<EnvelopePage.EnvelopeResult>? AllEnvelopeData { get; set; }
-    public List<EnvelopePage.Cat>? Cats { get; set; }
+    public List<EnvelopeResult>? AllEnvelopeData { get; set; }
+    public List<Cat>? Cats { get; set; }
     public int? SelectedCategoryId { get; set; }
   }
 }

@@ -1,14 +1,16 @@
 using Microsoft.AspNetCore.Components;
-using Budget.Client.Services;
+using Budget.Shared.Models;
+using Budget.Shared.Services;
+
 
 namespace Budget.Client.Components.Envelopes;
 
-public partial class EnvelopePage
+public partial class EnvelopePage(EnvelopeState State) : ComponentBase
 {
-  [Inject] internal EnvelopeState State { get; set; } = default!;
 
-  internal List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
-  internal List<EnvelopeResult>? SelectedEnvelopeData { get; set; }
+
+  public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
+  public List<EnvelopeResult>? SelectedEnvelopeData { get; set; }
 
   protected override void OnInitialized()
   {
@@ -41,28 +43,10 @@ public partial class EnvelopePage
 
   internal List<Cat> Cats => State.Cats;
 
-  public class Cat
-  {
-    public int CategoryId { get; init; }
-    public string CategoryName { get; init; } = string.Empty;
-  }
-
   public int? SelectedCategoryId
   {
     get => State.SelectedCategoryId;
     set => State.SelectedCategoryId = value;
-  }
-
- 
-  //TODO1 move EnvelopeResult to Budget.DTO (and others)
-  public sealed record EnvelopeResult
-  {
-    public int CategoryId { get; init; }
-    public string CategoryName { get; init; } = string.Empty;
-    public int EnvelopeId { get; init; }
-    public string EnvelopeName { get; init; } = string.Empty;
-    public decimal Balance { get; init; }
-    public decimal Budget { get; init; }
   }
 
 

@@ -28,6 +28,8 @@ namespace Budget.DB
               .HasMaxLength(50);
         entity.Property(t => t.TotalAmount)
           .HasPrecision(18, 2);
+        entity.Property(t => t.BalanceAfterTransaction)
+                  .HasPrecision(18, 2);
 
         entity.HasData(
           new Transaction  {Id = 1, Date = new DateTime(2023, 1, 1), Description = "New Year's Dinner", TotalAmount = 100.00m, UserId = 1 },
