@@ -1,6 +1,7 @@
-@echo 
-
+%1  %2  %3
 if "%2" == "" goto paramerror
+if "%3" == "" goto paramerror
+
 
 if %1 == local goto local
 if %1 == azure goto azure
@@ -15,16 +16,15 @@ goto run
 set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Initial Catalog=shisaDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
 
 :run
-dotnet ef migrations add %2  --project BudgetApp/Budget.DB   --startup-project BudgetApp/Budget.Web   --context Budget.DB.BudgetContext
+dotnet ef migrations %2 %3   --project BudgetApp/Budget.DB   --startup-project BudgetApp/Budget.Web   --context Budget.DB.BudgetContext
 
-:end
-goto eof
 
 :paramerror
 Echo !!!!!!!!!!!!!! You must use the ADD parameter and give the migration a name
+echo 
+echo Example: migrate db local add "migration name"
 
-
-
+:end
 
 
 

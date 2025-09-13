@@ -8,11 +8,7 @@ set LocalBudgetConnection=Data Source=(localdb)\MSSQLLocalDB;Database=BudgetDB;T
 goto run
 
 :azure
-set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Initial Catalog=shisaDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Database=BudgetDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30
 
 :run
 dotnet ef database update   --project BudgetApp/Budget.DB   --startup-project BudgetApp/Budget.Web   --context Budget.DB.BudgetContext
-
-
-set LocalBudgetConnection=Data Source=(localdb)\MSSQLLocalDB;Database=BudgetDB;Trusted_Connection=True;TrustServerCertificate=True
-dotnet ef database update   --project BudgetApp/Budget.DB   --startup-project BudgetApp/Budget.Web   --context Budget.DB.BudgetContext   

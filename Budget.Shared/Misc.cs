@@ -11,9 +11,9 @@ public static class Misc
 {
     public static string? SetupConfigurationSources(IConfigurationBuilder configBuilder, IConfiguration configuration, Assembly assembly)
     {
-        configBuilder.AddJsonFile("appsettings.json")
-            .AddUserSecrets(assembly)
-            .AddEnvironmentVariables();
+    configBuilder.AddJsonFile("appsettings.json");
+    configBuilder.AddUserSecrets(assembly);
+        configBuilder.AddEnvironmentVariables();
 
         configBuilder.AddAzureKeyVault(
             new Uri("https://fantumkeyvault.vault.azure.net/"),
