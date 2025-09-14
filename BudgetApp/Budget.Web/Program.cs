@@ -8,6 +8,8 @@ using Syncfusion.Blazor;
 using System.Diagnostics;
 using Budget.Shared;
 using Budget.Shared.Services;
+using Budget.DTO; // interface & DTOs
+using Budget.Client.Services; // implementation
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,13 +23,24 @@ builder.Services.AddRazorComponents()
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+var apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
+             ?? builder.Configuration["ApiBaseUrl"]
+             ?? builder.Configuration["Api:BaseUrl"]
+             ?? builder.Configuration["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
+             ?? "https://localhost:5001"; // final fallback
+
+builder.Services.AddHttpClient<Budget.DTO.IBudgetApiClient, Budget.Client.Services.BudgetApiClient>(client =>
+{
+  if (!apiBase.EndsWith('/')) apiBase += "/";
+  client.BaseAddress = new Uri(apiBase);
+});
+
 builder.Services.AddScoped<EnvelopeState>();
-//Register Syncfusion license
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
   "Ngo9BigBOggjGyl/Vkd+XU9FcVRDX3xKf0x/TGpQb19xflBPallYVBYiSV9jS3tTf0VkW35ecHFcRGdeUk91Xg==");
-// move everything related to Identity to after AddRazorComponents to avoid issues with Blazor WebAssembly
-builder.Services.AddAuthorization(options => { options.AddPolicy("Admin", policy => policy.RequireRole("Admin")); });
 
+builder.Services.AddAuthorization(options => { options.AddPolicy("Admin", policy => policy.RequireRole("Admin")); });
 
 builder.Services.AddAuthentication(options =>
   {
@@ -38,23 +51,16 @@ builder.Services.AddAuthentication(options =>
 
 var connectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly);
 
-// DbContexts with ILogger-based EF Core logging (flows to Aspire via OpenTelemetry)
 builder.Services.AddDbContext<BudgetContext>((sp, options) =>
 {
   var logger = sp.GetRequiredService<ILogger<BudgetContext>>();
-  options
-    .UseSqlServer(connectionString)
-    .EnableSensitiveDataLogging();
+  options.UseSqlServer(connectionString).EnableSensitiveDataLogging();
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
 {
   var logger = sp.GetRequiredService<ILogger<ApplicationDbContext>>();
-  options
-    .UseSqlServer(connectionString)
-    .EnableSensitiveDataLogging();
-  //.LogTo(message => logger.LogInformation("EFCore(ApplicationDbContext): {Message}", message), LogLevel.Debug)
-  //.LogTo(Console.WriteLine);
+  options.UseSqlServer(connectionString).EnableSensitiveDataLogging();
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -120,7 +126,6 @@ static string? ParseDataSource(string cs)
         return part[(idx + 1)..];
     }
   }
-
   return null;
 }
 

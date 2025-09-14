@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Budget.Shared.Services;
 using Budget.Client.Services;
+using Budget.DTO;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -11,10 +12,16 @@ builder.Services.AddAuthenticationStateDeserialization();
 // Shared state container
 builder.Services.AddScoped<EnvelopeState>();
 
-// HttpClient configured for API calls (adjust BaseAddress if API hosted elsewhere)
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+// Resolve API base URL from configuration/environment (injected by Aspire AppHost)
+var apiBase = builder.Configuration["BUDGET_API_BASE_URL"];
+if (string.IsNullOrWhiteSpace(apiBase))
+{
+    apiBase = builder.HostEnvironment.BaseAddress; // fallback
+}
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBase) });
 
 // API client abstraction
-builder.Services.AddScoped<IBudgetApiClient, BudgetApiClient>();
+builder.Services.AddScoped<Budget.DTO.IBudgetApiClient, Budget.Client.Services.BudgetApiClient>();
 
 await builder.Build().RunAsync();

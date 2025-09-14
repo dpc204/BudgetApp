@@ -4,17 +4,16 @@
 using Microsoft.JSInterop;
 using System.Text.Json;
 using Budget.Shared.Models;
-using System.Net.Http;
-using System.Net.Http.Json;
+using Budget.DTO;
 
 namespace Budget.Shared.Services;
 
-// Client-side version: replaces DbContext with HttpClient/localStorage. Keep TODOs where BudgetContext was used.
-public sealed class EnvelopeState(IJSRuntime js, HttpClient http)
+// Client-side version using API client + localStorage
+public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api)
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
   private const string StorageKey = "EnvelopeState_v1";
-  private readonly HttpClient _http = http;
+  private readonly IBudgetApiClient _api = api;
 
   public List<EnvelopeResult>? AllEnvelopeData { get; private set; }
   public List<Cat> Cats { get; private set; } = [];
@@ -22,7 +21,6 @@ public sealed class EnvelopeState(IJSRuntime js, HttpClient http)
 
   public bool IsLoaded => AllEnvelopeData != null;
 
-  // TODO: Previously EnsureLoadedAsync(BudgetContext db)
   public async Task EnsureLoadedAsync()
   {
     if (IsLoaded)
@@ -37,39 +35,30 @@ public sealed class EnvelopeState(IJSRuntime js, HttpClient http)
         if (snapshot is not null && snapshot.AllEnvelopeData is not null)
         {
           AllEnvelopeData = snapshot.AllEnvelopeData;
-          Cats = snapshot.Cats ?? [];
-          SelectedCategoryId = snapshot.SelectedCategoryId;
-          return; // Defer fresh data to RefreshAsync
+            Cats = snapshot.Cats ?? [];
+            SelectedCategoryId = snapshot.SelectedCategoryId;
+            return; // defer to refresh later
         }
       }
     }
-    catch
-    {
-      // ignore storage errors
-    }
+    catch { }
 
     await RefreshAsync();
   }
 
-  // TODO: Previously RefreshFromDbAsync(BudgetContext db)
   public async Task RefreshAsync()
   {
     try
     {
-      // Fetch categories and envelopes from API
-      var categories = await _http.GetFromJsonAsync<List<CategoryDto>>("categories/getbyenvelopeid");
-      var envelopes = await _http.GetFromJsonAsync<List<EnvelopeDto>>("envelopes/getall");
+      var categories = await _api.GetCategoriesAsync();
+      var envelopes = await _api.GetEnvelopesAsync();
 
-      // Build category list with synthetic "All" category
       Cats = [ new Cat { CategoryId = 0, CategoryName = "All" } ];
-      if (categories is not null)
-      {
-        Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.Id, CategoryName = c.Name }));
-      }
+      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.Id, CategoryName = c.Name }));
 
-      var categoryNameLookup = (categories ?? []).ToDictionary(c => c.Id, c => c.Name);
+      var categoryNameLookup = categories.ToDictionary(c => c.Id, c => c.Name);
 
-      AllEnvelopeData = (envelopes ?? [])
+      AllEnvelopeData = envelopes
         .Select(e => new EnvelopeResult
         {
           CategoryId = e.CategoryId,
@@ -85,7 +74,6 @@ public sealed class EnvelopeState(IJSRuntime js, HttpClient http)
     }
     catch
     {
-      // On failure keep existing data but ensure non-null collections
       Cats = Cats.Count == 0 ? [ new Cat { CategoryId = 0, CategoryName = "All" } ] : Cats;
       AllEnvelopeData ??= [];
     }
@@ -106,10 +94,7 @@ public sealed class EnvelopeState(IJSRuntime js, HttpClient http)
       var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
       await js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
     }
-    catch
-    {
-      // ignore storage errors
-    }
+    catch { }
   }
 
   private sealed class StateSnapshot
@@ -118,8 +103,4 @@ public sealed class EnvelopeState(IJSRuntime js, HttpClient http)
     public List<Cat>? Cats { get; set; }
     public int? SelectedCategoryId { get; set; }
   }
-
-  // Local DTOs matching API responses (avoid direct dependency on client service layer)
-  private sealed record EnvelopeDto(int Id, string Name, decimal Balance, decimal Budget, int CategoryId, int SortOrder);
-  private sealed record CategoryDto(int Id, string Name, string Description, int SortOrder);
 }
