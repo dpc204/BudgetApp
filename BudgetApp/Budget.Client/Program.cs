@@ -1,17 +1,20 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Budget.Shared.Services;
+using Budget.Client.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
+
+// Shared state container
 builder.Services.AddScoped<EnvelopeState>();
 
-// TODO: Add HttpClient for API calls when wiring up EnvelopeState.RefreshAsync()
-builder.Services.AddScoped(sp => new HttpClient (){ BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+// HttpClient configured for API calls (adjust BaseAddress if API hosted elsewhere)
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-// Envelope state container for WASM
-builder.Services.AddScoped<EnvelopeState>();
+// API client abstraction
+builder.Services.AddScoped<IBudgetApiClient, BudgetApiClient>();
 
 await builder.Build().RunAsync();

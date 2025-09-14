@@ -1,3 +1,6 @@
+echo %1
+
+
 if %1 == local goto local
 if %1 == azure goto azure
 echo Use update local|azure
