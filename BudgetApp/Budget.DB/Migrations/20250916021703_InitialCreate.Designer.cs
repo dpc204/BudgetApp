@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    [Migration("20250915172855_second")]
-    partial class second
+    [Migration("20250916021703_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -183,7 +183,7 @@ namespace Budget.DB.Migrations
                             Id = 4,
                             Balance = 0m,
                             Budget = 0m,
-                            CategoryId = 1,
+                            CategoryId = 2,
                             Description = "",
                             Name = "Car Maint",
                             SortOrder = 4
@@ -193,7 +193,7 @@ namespace Budget.DB.Migrations
                             Id = 5,
                             Balance = 0m,
                             Budget = 0m,
-                            CategoryId = 1,
+                            CategoryId = 2,
                             Description = "",
                             Name = "House Maint",
                             SortOrder = 5
@@ -203,7 +203,7 @@ namespace Budget.DB.Migrations
                             Id = 6,
                             Balance = 0m,
                             Budget = 0m,
-                            CategoryId = 1,
+                            CategoryId = 2,
                             Description = "",
                             Name = "Medical",
                             SortOrder = 5

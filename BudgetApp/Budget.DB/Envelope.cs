@@ -39,9 +39,9 @@ namespace Budget.DB
           new Envelope { Id = 1, Name = "Dining Out", CategoryId = 1, SortOrder = 1 },
           new Envelope { Id = 2, Name = "Groceries", CategoryId = 1, SortOrder = 2 },
           new Envelope { Id = 3, Name = "Gas", CategoryId = 1, SortOrder = 3 },
-          new Envelope { Id = 4, Name = "Car Maint", CategoryId = 1, SortOrder = 4 },
-          new Envelope { Id = 5, Name = "House Maint", CategoryId = 1, SortOrder = 5 },                                                                     
-          new Envelope { Id = 6, Name = "Medical", CategoryId = 1, SortOrder = 5 } 
+          new Envelope { Id = 4, Name = "Car Maint", CategoryId = 2, SortOrder = 4 },
+          new Envelope { Id = 5, Name = "House Maint", CategoryId = 2, SortOrder = 5 },                                                                     
+          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5 } 
         );
       }
     }

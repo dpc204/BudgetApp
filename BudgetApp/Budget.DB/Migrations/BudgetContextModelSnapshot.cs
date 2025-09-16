@@ -180,7 +180,7 @@ namespace Budget.DB.Migrations
                             Id = 4,
                             Balance = 0m,
                             Budget = 0m,
-                            CategoryId = 1,
+                            CategoryId = 2,
                             Description = "",
                             Name = "Car Maint",
                             SortOrder = 4
@@ -190,7 +190,7 @@ namespace Budget.DB.Migrations
                             Id = 5,
                             Balance = 0m,
                             Budget = 0m,
-                            CategoryId = 1,
+                            CategoryId = 2,
                             Description = "",
                             Name = "House Maint",
                             SortOrder = 5
@@ -200,7 +200,7 @@ namespace Budget.DB.Migrations
                             Id = 6,
                             Balance = 0m,
                             Budget = 0m,
-                            CategoryId = 1,
+                            CategoryId = 2,
                             Description = "",
                             Name = "Medical",
                             SortOrder = 5

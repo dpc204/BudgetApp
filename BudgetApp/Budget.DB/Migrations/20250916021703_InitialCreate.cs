@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Budget.DB.Migrations
 {
     /// <inheritdoc />
-    public partial class second : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -183,9 +183,9 @@ namespace Budget.DB.Migrations
                     { 1, 0m, 0m, 1, "", "Dining Out", 1 },
                     { 2, 0m, 0m, 1, "", "Groceries", 2 },
                     { 3, 0m, 0m, 1, "", "Gas", 3 },
-                    { 4, 0m, 0m, 1, "", "Car Maint", 4 },
-                    { 5, 0m, 0m, 1, "", "House Maint", 5 },
-                    { 6, 0m, 0m, 1, "", "Medical", 5 }
+                    { 4, 0m, 0m, 2, "", "Car Maint", 4 },
+                    { 5, 0m, 0m, 2, "", "House Maint", 5 },
+                    { 6, 0m, 0m, 2, "", "Medical", 5 }
                 });
 
             migrationBuilder.InsertData(
