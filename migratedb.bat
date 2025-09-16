@@ -1,7 +1,11 @@
 %1  %2  %3
 if "%2" == "" goto paramerror
+
+if /i "%2" == "remove" goto next
+
 if "%3" == "" goto paramerror
 
+:next
 
 if %1 == local goto local
 if %1 == azure goto azure
@@ -18,11 +22,11 @@ set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Initi
 :run
 dotnet ef migrations %2 %3   --project BudgetApp/Budget.DB   --startup-project BudgetApp/Budget.Web   --context Budget.DB.BudgetContext
 
-
+goto end
 :paramerror
 Echo !!!!!!!!!!!!!! You must use the ADD parameter and give the migration a name
 echo 
-echo Example: migrate db local add "migration name"
+echo Example: migratedb local add "migration name"
 
 :end
 

@@ -16,7 +16,7 @@ public static class GetAll
 
 
     public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken) =>
-      await db.Envelopes
+      await db.Envelopes.AsNoTracking().Join(db.Categories, e => e.CategoryId, c => c.Id, (e, c) => e)
         .Select(e => new Response(e.Id, e.Name, e.Balance, e.Budget, e.CategoryId, e.SortOrder))
         .ToListAsync(cancellationToken);
   }
