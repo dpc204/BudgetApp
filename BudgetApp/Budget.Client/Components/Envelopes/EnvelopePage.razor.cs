@@ -1,16 +1,19 @@
-using Microsoft.AspNetCore.Components;
+using Budget.DTO;
 using Budget.Shared.Models;
 using Budget.Shared.Services;
-
+using Microsoft.AspNetCore.Components;
+using Syncfusion.Blazor.Grids;
 
 namespace Budget.Client.Components.Envelopes;
 
-public partial class EnvelopePage(EnvelopeState State) : ComponentBase
+public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : ComponentBase
 {
-
-
   public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
-  public List<EnvelopeResult>? SelectedEnvelopeData { get; set; }
+  public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
+  public List<TransactionDto>? TransactionData { get; set; } = [];
+
+  private bool ShowTransactionDialog { get; set; }
+  private TransactionDto? SelectedTransaction { get; set; }
 
   protected override void OnInitialized()
   {
@@ -21,13 +24,11 @@ public partial class EnvelopePage(EnvelopeState State) : ComponentBase
   {
     if (firstRender)
     {
-      // 1) Fast path: load from localStorage and render
-      await State.EnsureLoadedAsync(); // TODO: previously EnsureLoadedAsync(BudgetContext db)
+      await State.EnsureLoadedAsync();
       ApplySelection();
       StateHasChanged();
 
-      // 2) Then refresh in background from API and re-render when done
-      await State.RefreshAsync(); // TODO: previously RefreshFromDbAsync(BudgetContext db)
+      await State.RefreshAsync();
       ApplySelection();
       StateHasChanged();
     }
@@ -37,8 +38,8 @@ public partial class EnvelopePage(EnvelopeState State) : ComponentBase
   {
     var selected = SelectedCategoryId ?? 0;
     SelectedEnvelopeData = selected == 0
-      ? AllEnvelopeData
-      : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList();
+      ? AllEnvelopeData?.ToList() ?? []
+      : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList() ?? [];
   }
 
   internal List<Cat> Cats => State.Cats;
@@ -49,16 +50,37 @@ public partial class EnvelopePage(EnvelopeState State) : ComponentBase
     set => State.SelectedCategoryId = value;
   }
 
-
   private async Task CatChanged(int? value)
   {
     var selected = value ?? 0;
     SelectedCategoryId = selected;
-
     ApplySelection();
-
     await State.SaveAsync();
-
     Console.WriteLine($"Value: {value}");
+  }
+
+  public void RecordDoubleClickHandler(RecordDoubleClickEventArgs<TransactionDto> args)
+  {
+    if (args?.RowData is null)
+      return;
+
+    SelectedTransaction = args.RowData;
+    ShowTransactionDialog = true;
+    StateHasChanged();
+  }
+
+  private async Task RowSelectHandler(RowSelectEventArgs<EnvelopeResult> args)
+  {
+    if (args?.Data is null)
+      return;
+
+    var rslt = await api.GetTransactionsByEnvelopeAsync(args.Data.EnvelopeId);
+    TransactionData = rslt.ToList();
+    StateHasChanged();
+  }
+
+  private void CloseTransactionDialog(Microsoft.AspNetCore.Components.Web.MouseEventArgs _)
+  {
+    ShowTransactionDialog = false;
   }
 }

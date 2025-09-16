@@ -5,15 +5,17 @@ using Microsoft.JSInterop;
 using System.Text.Json;
 using Budget.Shared.Models;
 using Budget.DTO;
+using Microsoft.Extensions.Logging;
 
 namespace Budget.Shared.Services;
 
 // Client-side version using API client + localStorage
-public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api)
+public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<EnvelopeState> logger)
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
   private const string StorageKey = "EnvelopeState_v1";
   private readonly IBudgetApiClient _api = api;
+  private readonly ILogger<EnvelopeState> _logger = logger;
 
   public List<EnvelopeResult>? AllEnvelopeData { get; private set; }
   public List<Cat> Cats { get; private set; } = [];
@@ -35,13 +37,17 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api)
         if (snapshot is not null && snapshot.AllEnvelopeData is not null)
         {
           AllEnvelopeData = snapshot.AllEnvelopeData;
-            Cats = snapshot.Cats ?? [];
-            SelectedCategoryId = snapshot.SelectedCategoryId;
-            return; // defer to refresh later
+          Cats = snapshot.Cats ?? [];
+          SelectedCategoryId = snapshot.SelectedCategoryId;
+          return; // defer to refresh later
         }
       }
     }
-    catch { }
+    catch (Exception ex)
+    {
+      _logger.LogWarning(ex, "Failed loading cached EnvelopeState from localStorage key {StorageKey}", StorageKey);
+      // continue to refresh
+    }
 
     await RefreshAsync();
   }
@@ -72,8 +78,9 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api)
         .ThenBy(e => e.EnvelopeName)
         .ToList();
     }
-    catch
+    catch (Exception ex)
     {
+      _logger.LogError(ex, "Failed refreshing envelope data from API");
       Cats = Cats.Count == 0 ? [ new Cat { CategoryId = 0, CategoryName = "All" } ] : Cats;
       AllEnvelopeData ??= [];
     }
@@ -94,7 +101,21 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api)
       var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
       await js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
     }
-    catch { }
+    catch (TaskCanceledException ex)
+    {
+      _logger.LogWarning(ex, "JS interop canceled saving EnvelopeState (likely circuit disposed) for key {StorageKey}", StorageKey);
+      throw;
+    }
+    catch (JSException ex)
+    {
+      _logger.LogError(ex, "JS exception saving EnvelopeState to localStorage key {StorageKey}", StorageKey);
+      throw;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Unexpected error saving EnvelopeState to localStorage key {StorageKey}", StorageKey);
+      throw;
+    }
   }
 
   private sealed class StateSnapshot

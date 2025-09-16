@@ -1,9 +1,10 @@
 @page "/envelopes"
+@using Budget.DTO
 @using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor
 @using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Popups
 @using Budget.Shared.Models
-
-<!-- TODO: Previously injected BudgetContext Db on server. In WASM, replace with API calls via HttpClient. -->
 
 <h1>Envelopes</h1>
 <div class="col-lg-12 control-section">
@@ -18,14 +19,47 @@
     </div>
     <p/>
     <div class="row">
-      <SfGrid DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Order Details Table">
+      <SfGrid TItem="EnvelopeResult" AllowEditing="false" DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Order Details Table">
+        <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler" />
         <GridColumns>
           <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130"></GridColumn>
           <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
           <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
         </GridColumns>
       </SfGrid>
-
+    </div>
+    <div class="row">
+      <SfGrid TItem="TransactionDto" AllowEditing="false" DataSource="@TransactionData" AllowPaging="true" aria-label="Order Details Table">
+        <GridEvents TValue="TransactionDto" OnRecordDoubleClick="RecordDoubleClickHandler" />
+        <GridColumns>
+          <GridColumn Field=@nameof(TransactionDto.Date) HeaderText="Date" Width="70" Type="ColumnType.Date" TextAlign="TextAlign.Left" ></GridColumn>
+          <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
+          <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
+          <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
+        </GridColumns>
+      </SfGrid>
     </div>
   </div>
 </div>
+
+<SfDialog @bind-Visible="ShowTransactionDialog" IsModal="true" ShowCloseIcon="true" Width="480px" Header="Transaction Details">
+  <DialogContent>
+    @if (SelectedTransaction is null)
+    {
+      <p>No transaction selected.</p>
+    }
+    else
+    {
+      <ul class="list-unstyled">
+        <li><strong>Transaction Id:</strong> @SelectedTransaction.TransactionId</li>
+        <li><strong>Line:</strong> @SelectedTransaction.LineId</li>
+        <li><strong>Date:</strong> @SelectedTransaction.Date</li>
+        <li><strong>Description:</strong> @SelectedTransaction.Description</li>
+        <li><strong>Amount:</strong> @SelectedTransaction.Amount</li>
+      </ul>
+    }
+  </DialogContent>
+  <DialogButtons>
+    <DialogButton Content="Close" IsPrimary="true" OnClick="CloseTransactionDialog" />
+  </DialogButtons>
+</SfDialog>
