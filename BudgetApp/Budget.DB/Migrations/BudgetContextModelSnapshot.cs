@@ -170,10 +170,40 @@ namespace Budget.DB.Migrations
                             Id = 3,
                             Balance = 0m,
                             Budget = 0m,
-                            CategoryId = 2,
+                            CategoryId = 1,
                             Description = "",
                             Name = "Gas",
-                            SortOrder = 1
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Balance = 0m,
+                            Budget = 0m,
+                            CategoryId = 1,
+                            Description = "",
+                            Name = "Car Maint",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Balance = 0m,
+                            Budget = 0m,
+                            CategoryId = 1,
+                            Description = "",
+                            Name = "House Maint",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Balance = 0m,
+                            Budget = 0m,
+                            CategoryId = 1,
+                            Description = "",
+                            Name = "Medical",
+                            SortOrder = 5
                         });
                 });
 
@@ -217,26 +247,44 @@ namespace Budget.DB.Migrations
                             Id = 1,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "New Year's Dinner",
-                            TotalAmount = 100.00m,
+                            Description = "Giant",
+                            TotalAmount = 104.00m,
                             UserId = 1
                         },
                         new
                         {
                             Id = 2,
                             BalanceAfterTransaction = 0m,
-                            Date = new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Groceries",
-                            TotalAmount = 50.00m,
+                            Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Bonefish",
+                            TotalAmount = 48m,
                             UserId = 1
                         },
                         new
                         {
                             Id = 3,
                             BalanceAfterTransaction = 0m,
-                            Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Date = new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Gas",
+                            TotalAmount = 12.50m,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BalanceAfterTransaction = 0m,
+                            Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Home Depot",
                             TotalAmount = 30.00m,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BalanceAfterTransaction = 0m,
+                            Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "CVS",
+                            TotalAmount = 32.00m,
                             UserId = 2
                         });
                 });
@@ -273,30 +321,30 @@ namespace Budget.DB.Migrations
                             TransactionId = 1,
                             LineId = 1,
                             Amount = 52m,
-                            EnvelopeId = 1,
-                            Notes = ""
+                            EnvelopeId = 2,
+                            Notes = "Yasso"
                         },
                         new
                         {
                             TransactionId = 1,
                             LineId = 2,
-                            Amount = 48m,
-                            EnvelopeId = 2,
-                            Notes = ""
+                            Amount = 52m,
+                            EnvelopeId = 6,
+                            Notes = "Cough supresent"
                         },
                         new
                         {
                             TransactionId = 2,
                             LineId = 1,
-                            Amount = 50m,
-                            EnvelopeId = 3,
-                            Notes = ""
+                            Amount = 48m,
+                            EnvelopeId = 1,
+                            Notes = "din din"
                         },
                         new
                         {
                             TransactionId = 3,
                             LineId = 1,
-                            Amount = 27m,
+                            Amount = 10m,
                             EnvelopeId = 3,
                             Notes = ""
                         },
@@ -304,9 +352,49 @@ namespace Budget.DB.Migrations
                         {
                             TransactionId = 3,
                             LineId = 2,
+                            Amount = 2.5m,
+                            EnvelopeId = 2,
+                            Notes = "Tic Tacs"
+                        },
+                        new
+                        {
+                            TransactionId = 4,
+                            LineId = 1,
+                            Amount = 27m,
+                            EnvelopeId = 5,
+                            Notes = "Plumbing"
+                        },
+                        new
+                        {
+                            TransactionId = 4,
+                            LineId = 2,
                             Amount = 3m,
                             EnvelopeId = 2,
-                            Notes = ""
+                            Notes = "Candy"
+                        },
+                        new
+                        {
+                            TransactionId = 5,
+                            LineId = 1,
+                            Amount = 20m,
+                            EnvelopeId = 6,
+                            Notes = "Prescriptions"
+                        },
+                        new
+                        {
+                            TransactionId = 5,
+                            LineId = 2,
+                            Amount = 4m,
+                            EnvelopeId = 2,
+                            Notes = "Gum"
+                        },
+                        new
+                        {
+                            TransactionId = 5,
+                            LineId = 3,
+                            Amount = 8m,
+                            EnvelopeId = 5,
+                            Notes = "Light Bulbs"
                         });
                 });
 

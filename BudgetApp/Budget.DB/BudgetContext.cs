@@ -22,7 +22,6 @@ namespace Budget.DB
     {
       base.OnModelCreating(modelBuilder);
 
-      // NEW: set default schema for this context
       modelBuilder.HasDefaultSchema("budget");
 
       modelBuilder.ApplyConfiguration(new User.UserConfiguration());
@@ -31,6 +30,19 @@ namespace Budget.DB
       modelBuilder.ApplyConfiguration(new Envelope.EnvelopeConfiguration());
       modelBuilder.ApplyConfiguration(new Category.CategoryConfiguration());
       modelBuilder.ApplyConfiguration(new BankAccount.BankAccountConfiguration());
+
+#if DEBUG
+      var envelopeType = modelBuilder.Model.FindEntityType(typeof(Envelope));
+      if (envelopeType != null)
+      {
+        var seeds = envelopeType.GetSeedData();
+            Console.WriteLine($"DEBUG Envelope seed count = {seeds.Count()}");
+        foreach (var row in seeds)
+        {
+          Console.WriteLine("DEBUG Seed -> " + string.Join(", ", row.Select(kv => kv.Key + "=" + kv.Value)));
+        }
+      }
+#endif
     }
   }
 }
