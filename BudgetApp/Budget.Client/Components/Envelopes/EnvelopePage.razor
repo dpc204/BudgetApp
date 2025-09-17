@@ -32,10 +32,9 @@
       <SfGrid TItem="TransactionDto" AllowEditing="false" DataSource="@TransactionData" AllowPaging="true" aria-label="Order Details Table">
         <GridEvents TValue="TransactionDto" OnRecordDoubleClick="RecordDoubleClickHandler" />
         <GridColumns>
-          <GridColumn Field=@nameof(TransactionDto.Date) HeaderText="Date" Width="70" Type="ColumnType.Date" TextAlign="TextAlign.Left" ></GridColumn>
-          <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
-          <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
-          <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
+	        <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
+	        <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
+	        <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
         </GridColumns>
       </SfGrid>
     </div>
