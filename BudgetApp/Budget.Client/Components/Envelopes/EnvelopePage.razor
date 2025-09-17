@@ -42,24 +42,4 @@
   </div>
 </div>
 
-<SfDialog @bind-Visible="ShowTransactionDialog" IsModal="true" ShowCloseIcon="true" Width="480px" Header="Transaction Details">
-  <DialogContent>
-    @if (SelectedTransaction is null)
-    {
-      <p>No transaction selected.</p>
-    }
-    else
-    {
-      <ul class="list-unstyled">
-        <li><strong>Transaction Id:</strong> @SelectedTransaction.TransactionId</li>
-        <li><strong>Line:</strong> @SelectedTransaction.LineId</li>
-        <li><strong>Date:</strong> @SelectedTransaction.Date</li>
-        <li><strong>Description:</strong> @SelectedTransaction.Description</li>
-        <li><strong>Amount:</strong> @SelectedTransaction.Amount</li>
-      </ul>
-    }
-  </DialogContent>
-  <DialogButtons>
-    <DialogButton Content="Close" IsPrimary="true" OnClick="CloseTransactionDialog" />
-  </DialogButtons>
-</SfDialog>
+<ShowOneTransaction Transaction="@SelectedTransactionDetail" Visible="@ShowTransactionDialog" VisibleChanged="@OnShowTransactionDialogChanged" />

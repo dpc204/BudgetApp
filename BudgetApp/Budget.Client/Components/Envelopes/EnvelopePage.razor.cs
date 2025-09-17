@@ -14,10 +14,10 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
 
   private bool ShowTransactionDialog { get; set; }
   private TransactionDto? SelectedTransaction { get; set; }
+  private OneTransactionDetail? SelectedTransactionDetail { get; set; }
 
   protected override void OnInitialized()
   {
-    // Initial render shows nothing; we load in OnAfterRenderAsync to allow JS interop
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -59,12 +59,13 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
     Console.WriteLine($"Value: {value}");
   }
 
-  public void RecordDoubleClickHandler(RecordDoubleClickEventArgs<TransactionDto> args)
+  public async void RecordDoubleClickHandler(RecordDoubleClickEventArgs<TransactionDto> args)
   {
     if (args?.RowData is null)
       return;
 
     SelectedTransaction = args.RowData;
+    SelectedTransactionDetail = await api.GetOneTransactionDetailAsync(args.RowData.TransactionId);
     ShowTransactionDialog = true;
     StateHasChanged();
   }
@@ -82,5 +83,11 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
   private void CloseTransactionDialog(Microsoft.AspNetCore.Components.Web.MouseEventArgs _)
   {
     ShowTransactionDialog = false;
+  }
+
+  private void OnShowTransactionDialogChanged(bool value)
+  {
+    ShowTransactionDialog = value;
+    StateHasChanged();
   }
 }
