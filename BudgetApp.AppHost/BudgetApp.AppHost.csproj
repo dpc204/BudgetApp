@@ -15,7 +15,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BudgetApp\Budget.Api\Budget.Api.csproj" />
-    <ProjectReference Include="..\BudgetApp\Budget.Web\Budget.Web.csproj" />
+    <ProjectReference Include="..\Budget.Api\Budget.Api.csproj" />
+    <ProjectReference Include="..\Budget.Web\Budget.Web.csproj" />
   </ItemGroup>
 </Project>

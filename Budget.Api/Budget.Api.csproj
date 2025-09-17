@@ -17,9 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Budget.Shared\Budget.Shared.csproj" />
-    <ProjectReference Include="..\..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
+    <ProjectReference Include="..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
+    <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
+    <ProjectReference Include="..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
