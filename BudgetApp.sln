@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11005.162 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Web", "BudgetApp\Budget.Web\Budget.Web.csproj", "{B1541E1E-FB40-66F7-E620-046340D3B051}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Web", "Budget.Web\Budget.Web.csproj", "{B1541E1E-FB40-66F7-E620-046340D3B051}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Client", "BudgetApp\Budget.Client\Budget.Client.csproj", "{FFF80B86-826B-284D-0D5C-2D9431B24E28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Client", "Budget.Client\Budget.Client.csproj", "{FFF80B86-826B-284D-0D5C-2D9431B24E28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetApp.AppHost", "BudgetApp.AppHost\BudgetApp.AppHost.csproj", "{B3A2E998-73D1-441F-B403-D37E06602E61}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetApp.ServiceDefaults", "BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj", "{BDF24289-5DC4-1FCA-4946-C0FA2478D17C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.DB", "BudgetApp\Budget.DB\Budget.DB.csproj", "{7273D0A8-7D9F-EF35-0967-4EB6004D56FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.DB", "Budget.DB\Budget.DB.csproj", "{7273D0A8-7D9F-EF35-0967-4EB6004D56FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Api", "BudgetApp\Budget.Api\Budget.Api.csproj", "{B187FD0E-2562-341B-7E60-97F435B8FC43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Api", "Budget.Api\Budget.Api.csproj", "{B187FD0E-2562-341B-7E60-97F435B8FC43}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Shared", "Budget.Shared\Budget.Shared.csproj", "{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}"
 EndProject
