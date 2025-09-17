@@ -12,7 +12,10 @@ namespace Budget.DB
     public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
+
+    // Back-reference collection
     public List<Transaction> Transactions { get; set; } = [];
+    public List<Favorite> Favorites { get; set; } = [];
 
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
@@ -23,8 +26,9 @@ namespace Budget.DB
         entity.Property(u => u.LastName)
           .HasMaxLength(50);
 
-        entity.HasData(new User {Id = 1,FirstName = "Patrick", LastName = "Connelly" },
-          new User {Id=2, FirstName = "Terri", LastName = "Connelly" }
+        entity.HasData(
+          new User { Id = 1, FirstName = "Patrick", LastName = "Connelly" },
+          new User { Id = 2, FirstName = "Terri", LastName = "Connelly" }
         );
       }
     }
