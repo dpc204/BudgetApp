@@ -1,4 +1,4 @@
-﻿using System;
+﻿  using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +13,7 @@ namespace Budget.DB
     public DbSet<BankAccount> BankAccounts { get; set; }
     public DbSet<TransactionDetail> TransactionDetails { get; set; }
     public DbSet<Category> Categories { get; set; }
+    public DbSet<Favorite> Favorites { get; set; } // <-- add this
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -30,6 +31,7 @@ namespace Budget.DB
       modelBuilder.ApplyConfiguration(new Envelope.EnvelopeConfiguration());
       modelBuilder.ApplyConfiguration(new Category.CategoryConfiguration());
       modelBuilder.ApplyConfiguration(new BankAccount.BankAccountConfiguration());
+      modelBuilder.ApplyConfiguration(new Favorite.FavoriteConfiguration()); // <-- add this
 
 #if DEBUG
       var envelopeType = modelBuilder.Model.FindEntityType(typeof(Envelope));

@@ -15,6 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+// Ensure EF Core command logs go through ILogger and to structured logs
+builder.Logging.AddJsonConsole();
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
+
 builder.Services.AddRazorComponents()
   .AddInteractiveServerComponents()
   .AddInteractiveWebAssemblyComponents()
@@ -49,18 +53,32 @@ builder.Services.AddAuthentication(options =>
   })
   .AddIdentityCookies();
 
-var connectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly);
+var budgetConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Budget);
+var authConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Auth);
+
+
 
 builder.Services.AddDbContext<BudgetContext>((sp, options) =>
 {
-  var logger = sp.GetRequiredService<ILogger<BudgetContext>>();
-  options.UseSqlServer(connectionString).EnableSensitiveDataLogging();
+  var env = sp.GetRequiredService<IHostEnvironment>();
+  options.UseSqlServer(budgetConnectionString);
+  if (env.IsDevelopment())
+  {
+    options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+  }
 });
+
 
 builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
 {
-  var logger = sp.GetRequiredService<ILogger<ApplicationDbContext>>();
-  options.UseSqlServer(connectionString).EnableSensitiveDataLogging();
+  var env = sp.GetRequiredService<IHostEnvironment>();
+  options.UseSqlServer(authConnectionString);
+  if (env.IsDevelopment())
+  {
+    options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+  }
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -82,8 +100,12 @@ var app = builder.Build();
 
 var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
 startupLogger.LogInformation(
-  "Application starting at {UtcTime} with DB host parsed from connection string: {DataSource}", DateTime.UtcNow,
-  ParseDataSource(connectionString));
+  "Application starting at {UtcTime} with BudgetDB host parsed from connection string: {DataSource}", DateTime.UtcNow,
+  ParseDataSource(budgetConnectionString));
+
+startupLogger.LogInformation(
+  "Application starting at {UtcTime} with AuthDB host parsed from connection string: {DataSource}", DateTime.UtcNow,
+  ParseDataSource(authConnectionString));
 
 app.MapDefaultEndpoints();
 

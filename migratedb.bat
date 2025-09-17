@@ -21,7 +21,7 @@ goto run
 set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Initial Catalog=shisaDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
 
 :run
-dotnet ef migrations %2 %3   --project BudgetApp/Budget.DB   --startup-project BudgetApp/Budget.Web   --context Budget.DB.BudgetContext
+dotnet ef migrations %2 %3   --project Budget.DB   --startup-project Budget.Web   --context Budget.DB.BudgetContext
 
 goto end
 :paramerror

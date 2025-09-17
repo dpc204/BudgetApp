@@ -5,11 +5,20 @@ using MediatR;
 using Budget.DB;
 using Budget.Api.Features.Envelopes;
 using Budget.Shared;
+using Microsoft.Extensions.Logging; // added
+using Microsoft.Extensions.Hosting; // ensure AddServiceDefaults extension is in scope
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Enable Aspire defaults (OpenTelemetry logging/exporters, health checks, discovery)
+builder.AddServiceDefaults();
+
+// Configure structured logging and ensure EF Core command logs are emitted via ILogger
+builder.Logging.AddJsonConsole();
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
+
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Learn more about configuring OpenAPI at https://aka.ms/dotnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddCarter();
@@ -17,17 +26,25 @@ builder.Services.AddCarter();
 // MediatR for CQRS/handlers
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
 
-var connectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly);
+var budgetConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Budget);
 
-if (string.IsNullOrWhiteSpace(connectionString))
+if (string.IsNullOrWhiteSpace(budgetConnectionString))
 {
     throw new InvalidOperationException("Connection string 'budgetconnection' (or 'ConnectionStrings:BudgetConnection') not found.");
 }
 
+var isDev = builder.Environment.IsDevelopment();
+
 builder.Services.AddDbContext<BudgetContext>(options =>
 {
-    options.UseSqlServer(connectionString)
-           .EnableSensitiveDataLogging();
+    options.UseSqlServer(budgetConnectionString);
+
+    if (isDev)
+    {
+        options.EnableDetailedErrors();
+        options.EnableSensitiveDataLogging();
+    }
+    // No LogTo(Console.WriteLine) so all EF logs flow through ILogger to structured providers
 });
 
 var app = builder.Build();
