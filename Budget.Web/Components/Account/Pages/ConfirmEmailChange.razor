@@ -3,11 +3,10 @@
 @using System.Text
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using Budget.Data
-@using Budget.Web.Components.Account.Shared
+@using Budget.Web.Data
 
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<BudgetUser> UserManager
+@inject SignInManager<BudgetUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Confirm email change</PageTitle>
@@ -37,7 +36,6 @@
         {
             RedirectManager.RedirectToWithStatus(
                 "Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
-            return;
         }
 
         var user = await UserManager.FindByIdAsync(UserId);

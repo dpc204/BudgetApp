@@ -12,7 +12,7 @@ public static class Misc
   public enum ConnectionStringType
   {
     Budget,
-    Auth
+    Identity
   }
 
   public static string SetupConfigurationSources(IConfigurationBuilder configBuilder, IConfiguration configuration,
@@ -32,27 +32,26 @@ public static class Misc
     {
       s = configuration[$"Local{connectionType}Connection"];
     }
-    else if (configuration[$"{connectionType}budgetconnection"] != null)
+    else if (configuration[$"{connectionType}connection"] != null)
     {
       // For local dev, fall back to regular connection string if LocalBudgetConnection is not set
-      s = configuration[$"{connectionType}budgetconnection"];
+      s = configuration[$"{connectionType}connection"];
     }
     else
     {
       // For deployed environments, fall back to regular connection string if LocalBudgetConnection is not set
-      s = configuration.GetConnectionString($"{connectionType}budgetconnection");
+      s = configuration.GetConnectionString($"{connectionType}connection");
     }
 
     if (string.IsNullOrWhiteSpace(s))
-      s = configuration[$"{connectionType}budgetconnection"] ??
-          throw new InvalidOperationException("Connection string 'BudgetConnection' not found.");
+      s = configuration[$"{connectionType}connection"] ??
+          throw new InvalidOperationException($"Connection string '{connectionType}Connection' not found.");
 
-    Console.WriteLine("Console ConnectionString:" + s);
 
     ArgumentNullException.ThrowIfNull(s, connectionType);
 
-    Debug.WriteLine("DEBUG " + s);
-    Console.WriteLine("Console " + s);
+    Debug.WriteLine($"DEBUG {connectionType} String:{s}");
+    Console.WriteLine($"Console {connectionType} String:{s}");
     return s;
   }
 }

@@ -1,9 +1,10 @@
 ﻿@page "/Account/Manage/GenerateRecoveryCodes"
 
 @using Microsoft.AspNetCore.Identity
-@using Budget.Data
+@using Budget.Web.Data
 
-@inject UserManager<ApplicationUser> UserManager
+@inject UserManager<BudgetUser> UserManager
+@inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<GenerateRecoveryCodes> Logger
 
@@ -39,7 +40,7 @@ else
 
 @code {
     private string? message;
-    private ApplicationUser? user;
+    private BudgetUser user = default!;
     private IEnumerable<string>? recoveryCodes;
 
     [CascadingParameter]
@@ -47,12 +48,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         var isTwoFactorEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
         if (!isTwoFactorEnabled)
@@ -63,12 +59,6 @@ else
 
     private async Task OnSubmitAsync()
     {
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
-
         var userId = await UserManager.GetUserIdAsync(user);
         recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
         message = "You have generated new recovery codes.";

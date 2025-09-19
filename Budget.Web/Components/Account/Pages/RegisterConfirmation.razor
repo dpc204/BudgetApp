@@ -3,11 +3,10 @@
 @using System.Text
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using Budget.Data
-@using Budget.Web.Components.Account.Shared
+@using Budget.Web.Data
 
-@inject UserManager<ApplicationUser> UserManager
-@inject IEmailSender<ApplicationUser> EmailSender
+@inject UserManager<BudgetUser> UserManager
+@inject IEmailSender<BudgetUser> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
@@ -26,7 +25,7 @@
 }
 else
 {
-    <p role="alert">Please check your email to confirm your account.</p>
+    <p>Please check your email to confirm your account.</p>
 }
 
 @code {
@@ -47,7 +46,6 @@ else
         if (Email is null)
         {
             RedirectManager.RedirectTo("");
-            return;
         }
 
         var user = await UserManager.FindByEmailAsync(Email);

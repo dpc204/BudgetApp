@@ -1,15 +1,13 @@
-using Azure.Identity;
-using Budget.DB;
+﻿using Budget.DB;
 using Budget.Web.Components;
-using Budget.Web.Components.Account;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Syncfusion.Blazor;
-using System.Diagnostics;
 using Budget.Shared;
 using Budget.Shared.Services;
-using Budget.DTO; // interface & DTOs
-using Budget.Client.Services; // implementation
+using Budget.Web.Components.Account;
+using Budget.Web.Data;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +23,6 @@ builder.Services.AddRazorComponents()
   .AddAuthenticationStateSerialization();
 
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 var apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
              ?? builder.Configuration["ApiBaseUrl"]
@@ -54,7 +50,7 @@ builder.Services.AddAuthentication(options =>
   .AddIdentityCookies();
 
 var budgetConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Budget);
-var authConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Auth);
+var authConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Identity);
 
 
 
@@ -70,31 +66,34 @@ builder.Services.AddDbContext<BudgetContext>((sp, options) =>
 });
 
 
-builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
-{
-  var env = sp.GetRequiredService<IHostEnvironment>();
-  options.UseSqlServer(authConnectionString);
-  if (env.IsDevelopment())
-  {
-    options.EnableDetailedErrors();
-    options.EnableSensitiveDataLogging();
-  }
-});
+
+
+builder.Services.AddDbContext<IdentityDBContext>(options =>
+  options.UseSqlServer(authConnectionString));
+
+Console.WriteLine($"Right after Add IdentityDBContext {authConnectionString}");
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.AddIdentityCore<ApplicationUser>(options =>
-  {
-    options.SignIn.RequireConfirmedAccount = true;
-    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-  })
-  .AddEntityFrameworkStores<ApplicationDbContext>()
-  .AddSignInManager()
-  .AddDefaultTokenProviders();
-
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
 builder.Services.AddSyncfusionBlazor();
+
+builder.Services.AddScoped<IdentityUserAccessor>();
+
+builder.Services.AddScoped<IdentityRedirectManager>();
+
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddIdentityCore<BudgetUser>(options => 
+{
+    options.SignIn.RequireConfirmedAccount = true;
+    // Add this to disable passkey features
+    options.Stores.ProtectPersonalData = false;
+})
+.AddEntityFrameworkStores<IdentityDBContext>()
+.AddSignInManager()
+.AddDefaultTokenProviders();
+
+builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
+
 
 var app = builder.Build();
 
@@ -104,7 +103,7 @@ startupLogger.LogInformation(
   ParseDataSource(budgetConnectionString));
 
 startupLogger.LogInformation(
-  "Application starting at {UtcTime} with AuthDB host parsed from connection string: {DataSource}", DateTime.UtcNow,
+  "Application starting at {UtcTime} with IdentityDB host parsed from connection string: {DataSource}", DateTime.UtcNow,
   ParseDataSource(authConnectionString));
 
 app.MapDefaultEndpoints();
@@ -124,6 +123,7 @@ app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 app.UseAntiforgery();
 app.UseDeveloperExceptionPage();
+app.UseStaticFiles();
 app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
@@ -131,7 +131,8 @@ app.MapRazorComponents<App>()
   .AddInteractiveWebAssemblyRenderMode()
   .AddAdditionalAssemblies(typeof(Budget.Client._Imports).Assembly);
 
-app.MapAdditionalIdentityEndpoints();
+app.MapAdditionalIdentityEndpoints();;
+
 
 app.Run();
 

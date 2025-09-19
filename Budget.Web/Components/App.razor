@@ -11,8 +11,10 @@
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["Budget.Web.Styles.css"]" />
 
-    <!-- Syncfusion theme: required to hide internal elements like *_header_table and style components -->
-    <link rel="stylesheet" href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" />
+    <!-- Syncfusion: Load only specific component CSS to avoid Edge CSS rule limit -->
+    <link rel="stylesheet" href="_content/Syncfusion.Blazor.Grid/Themes/bootstrap5.css" />
+    <link rel="stylesheet" href="_content/Syncfusion.Blazor.DropDowns/Themes/bootstrap5.css" />
+    <link rel="stylesheet" href="_content/Syncfusion.Blazor.Popups/Themes/bootstrap5.css" />
 
     <ImportMap />
 

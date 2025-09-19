@@ -2,10 +2,11 @@
 
 @using Microsoft.AspNetCore.Http.Features
 @using Microsoft.AspNetCore.Identity
-@using Budget.Data
+@using Budget.Web.Data
 
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<BudgetUser> UserManager
+@inject SignInManager<BudgetUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Two-factor authentication (2FA)</PageTitle>
@@ -81,13 +82,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
-
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
         hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
         is2faEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
