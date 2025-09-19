@@ -112,18 +112,32 @@ if (app.Environment.IsDevelopment())
 {
   app.UseWebAssemblyDebugging();
   app.UseMigrationsEndPoint();
+  // Disable CSS Hot Reload to avoid Edge CSS rule limit issues
+  app.UseStaticFiles(new StaticFileOptions
+  {
+    OnPrepareResponse = ctx =>
+    {
+      if (ctx.File.Name.EndsWith(".css"))
+      {
+        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
+    }
+  });
 }
 else
 {
   app.UseExceptionHandler("/Error", createScopeForErrors: true);
   app.UseHsts();
+  app.UseStaticFiles();
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 app.UseAntiforgery();
-app.UseDeveloperExceptionPage();
-app.UseStaticFiles();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
