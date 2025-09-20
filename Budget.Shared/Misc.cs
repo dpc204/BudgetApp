@@ -23,9 +23,19 @@ public static class Misc
     configBuilder.AddUserSecrets(assembly);
     configBuilder.AddEnvironmentVariables();
 
-    configBuilder.AddAzureKeyVault(
-      new Uri("https://fantumkeyvault.vault.azure.net/"),
-      new DefaultAzureCredential());
+    // Add Azure Key Vault with error handling
+    try
+    {
+      configBuilder.AddAzureKeyVault(
+        new Uri("https://fantumkeyvault.vault.azure.net/"),
+        new DefaultAzureCredential());
+    }
+    catch (Exception ex)
+    {
+      // Log the exception but don't fail startup in development
+      Debug.WriteLine($"Azure Key Vault access failed: {ex.Message}");
+      Console.WriteLine($"Azure Key Vault access failed: {ex.Message}");
+    }
 
     string? s;
     if (configuration[$"Local{connectionType}Connection"] != null)
@@ -48,7 +58,10 @@ public static class Misc
           throw new InvalidOperationException($"Connection string '{connectionType}Connection' not found.");
 
 
-    ArgumentNullException.ThrowIfNull(s, connectionType);
+    if (string.IsNullOrWhiteSpace(s))
+    {
+      throw new InvalidOperationException($"Connection string '{connectionType}Connection' is null or empty. Checked: Local{connectionType}Connection, {connectionType}connection, ConnectionStrings:{connectionType}connection");
+    }
 
     Debug.WriteLine($"DEBUG {connectionType} String:{s}");
     Console.WriteLine($"Console {connectionType} String:{s}");
