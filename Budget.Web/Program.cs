@@ -52,8 +52,6 @@ builder.Services.AddAuthentication(options =>
 var budgetConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Budget);
 var authConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Identity);
 
-
-
 builder.Services.AddDbContext<BudgetContext>((sp, options) =>
 {
   var env = sp.GetRequiredService<IHostEnvironment>();
@@ -65,9 +63,6 @@ builder.Services.AddDbContext<BudgetContext>((sp, options) =>
   }
 });
 
-
-
-
 builder.Services.AddDbContext<IdentityDBContext>(options =>
   options.UseSqlServer(authConnectionString));
 
@@ -77,14 +72,14 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddSyncfusionBlazor();
 
 builder.Services.AddScoped<IdentityUserAccessor>();
-
 builder.Services.AddScoped<IdentityRedirectManager>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddIdentityCore<BudgetUser>(options => 
 {
-    options.SignIn.RequireConfirmedAccount = true;
+    // Temporarily disable email confirmation requirement for easier testing
+    options.SignIn.RequireConfirmedAccount = false;
     // Add this to disable passkey features
     options.Stores.ProtectPersonalData = false;
 })
@@ -93,7 +88,6 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
-
 
 var app = builder.Build();
 
@@ -133,7 +127,13 @@ else
 
 app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
+
+// Add authentication and authorization middleware in the correct order
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -145,8 +145,7 @@ app.MapRazorComponents<App>()
   .AddInteractiveWebAssemblyRenderMode()
   .AddAdditionalAssemblies(typeof(Budget.Client._Imports).Assembly);
 
-app.MapAdditionalIdentityEndpoints();;
-
+app.MapAdditionalIdentityEndpoints();
 
 app.Run();
 

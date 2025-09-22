@@ -1,4 +1,5 @@
 ﻿@page "/Account/Login"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
@@ -68,7 +69,7 @@
     private string? errorMessage;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext? HttpContext { get; set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
@@ -78,10 +79,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        Logger.LogInformation("Login page initializing. Current URL: {CurrentUrl}, ReturnUrl: {ReturnUrl}", 
+            NavigationManager.Uri, ReturnUrl);
+            
+        // Only try to access HttpContext if it's available (during static rendering)
+        if (HttpContext?.Request != null && HttpMethods.IsGet(HttpContext.Request.Method))
         {
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            try
+            {
+                // Clear the existing external cookie to ensure a clean login process
+                await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Could not sign out external authentication during login page initialization");
+            }
         }
     }
 
@@ -93,7 +105,11 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+            
+            // Handle ReturnUrl safely to prevent redirect loops
+            var redirectUrl = GetSafeRedirectUrl();
+            Logger.LogInformation("Redirecting after login to: {RedirectUrl}", redirectUrl);
+            RedirectManager.RedirectTo(redirectUrl);
         }
         else if (result.RequiresTwoFactor)
         {
@@ -110,6 +126,31 @@
         {
             errorMessage = "Error: Invalid login attempt.";
         }
+    }
+
+    private string GetSafeRedirectUrl()
+    {
+        // If no ReturnUrl or it's empty, redirect to home
+        if (string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            return "/";
+        }
+
+        // Prevent redirect loops by checking if ReturnUrl points to login or auth pages
+        if (ReturnUrl.Contains("/Account/Login", StringComparison.OrdinalIgnoreCase) ||
+            ReturnUrl.Contains("/Account/Register", StringComparison.OrdinalIgnoreCase) ||
+            ReturnUrl.Contains("/Account/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/";
+        }
+
+        // Make sure it's a relative URL to prevent open redirects
+        if (Uri.IsWellFormedUriString(ReturnUrl, UriKind.Absolute))
+        {
+            return "/";
+        }
+
+        return ReturnUrl;
     }
 
     private sealed class InputModel

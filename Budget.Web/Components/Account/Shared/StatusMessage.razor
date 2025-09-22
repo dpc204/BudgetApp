@@ -13,17 +13,29 @@
     public string? Message { get; set; }
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext? HttpContext { get; set; }
 
     private string? DisplayMessage => Message ?? messageFromCookie;
 
     protected override void OnInitialized()
     {
-        messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
-
-        if (messageFromCookie is not null)
+        // Only try to access HttpContext if it's available (during static rendering)
+        if (HttpContext?.Request?.Cookies != null)
         {
-            HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
+            try
+            {
+                messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
+
+                if (messageFromCookie is not null && HttpContext.Response != null)
+                {
+                    HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
+                }
+            }
+            catch (Exception)
+            {
+                // Silently handle cases where cookie operations are not available
+                // This can happen during interactive rendering
+            }
         }
     }
 }

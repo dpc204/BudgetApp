@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Budget.Web.Components.Account
 {
-    internal sealed class IdentityRedirectManager(NavigationManager navigationManager)
+    internal sealed class IdentityRedirectManager(NavigationManager navigationManager, ILogger<IdentityRedirectManager> logger)
     {
         public const string StatusCookieName = "Identity.StatusMessage";
 
@@ -18,13 +18,26 @@ namespace Budget.Web.Components.Account
         [DoesNotReturn]
         public void RedirectTo(string? uri)
         {
-            uri ??= "";
+            // Default to home page if uri is null or empty
+            if (string.IsNullOrWhiteSpace(uri))
+            {
+                uri = "/";
+            }
 
             // Prevent open redirects.
             if (!Uri.IsWellFormedUriString(uri, UriKind.Relative))
             {
                 uri = navigationManager.ToBaseRelativePath(uri);
             }
+
+            // If we still don't have a valid relative URI, default to home
+            if (string.IsNullOrWhiteSpace(uri) || uri == "/Account/Login")
+            {
+                uri = "/";
+            }
+
+            // Log the redirect for debugging
+            logger.LogInformation("Redirecting to: {Uri} from current URL: {CurrentUrl}", uri, navigationManager.Uri);
 
             // During static rendering, NavigateTo throws a NavigationException which is handled by the framework as a redirect.
             // So as long as this is called from a statically rendered Identity component, the InvalidOperationException is never thrown.
