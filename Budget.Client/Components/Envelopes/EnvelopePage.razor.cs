@@ -59,14 +59,15 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
     Console.WriteLine($"Value: {value}");
   }
 
-  public async void RecordDoubleClickHandler(RecordDoubleClickEventArgs<TransactionDto> args)
+  private async Task RecordDoubleClickHandler(RecordDoubleClickEventArgs<TransactionDto> args)
   {
-    if (args?.RowData is null)
-      return;
+    if (args?.RowData is null) return;
 
     SelectedTransaction = args.RowData;
-    SelectedTransactionDetail = await api.GetOneTransactionDetailAsync(args.RowData.TransactionId);
     ShowTransactionDialog = true;
+    StateHasChanged();
+
+    SelectedTransactionDetail = await api.GetOneTransactionDetailAsync(args.RowData.TransactionId);
     StateHasChanged();
   }
 
@@ -89,5 +90,17 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
   {
     ShowTransactionDialog = value;
     StateHasChanged();
+  }
+
+  private Task RecordClickHandler(RecordClickEventArgs<TransactionDto> args)
+  {
+    Console.WriteLine($"Record clicked: {args?.RowData?.Description}");
+    return Task.CompletedTask;
+  }
+
+  private Task GridFailure(FailureEventArgs args)
+  {
+    Console.Error.WriteLine($"Grid failure: {args?.Error?.Message}");
+    return Task.CompletedTask;
   }
 }

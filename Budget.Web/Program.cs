@@ -144,7 +144,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode()
   .AddInteractiveWebAssemblyRenderMode()
-  .AddAdditionalAssemblies(typeof(Budget.Client._Imports).Assembly);
+  .AddAdditionalAssemblies(typeof(Budget.Client.RedirectToLogin).Assembly);
 
 app.MapAdditionalIdentityEndpoints();
 

@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["Budget.Web.Styles.css"]" />
 
-    <!-- Minimal Syncfusion theme: Custom CSS with only essential styles -->
-    <link rel="stylesheet" href="@Assets["css/syncfusion-minimal.css"]" />
+	    <!-- Syncfusion official theme (ensures correct component styling) -->
+    <link rel="stylesheet" href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" />
 
     <ImportMap />
 
@@ -44,7 +44,8 @@
     @* <ReconnectModal /> *@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
-    <script src="_content/Syncfusion.Blazor.Core/scripts/syncfusion-blazor.min.js"></script>
+    <!-- Correct Syncfusion script path for v31.x -->
+    <script src="_content/Syncfusion.Blazor/scripts/syncfusion-blazor.min.js"></script>
 </body>
 
 </html>

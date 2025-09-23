@@ -30,8 +30,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.0-rc.1.25458.5" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Syncfusion.Blazor.Grid" Version="31.1.20" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.20" />
+    <PackageReference Include="Syncfusion.Blazor" Version="31.1.21" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.21" />
   </ItemGroup>
 
 </Project>
