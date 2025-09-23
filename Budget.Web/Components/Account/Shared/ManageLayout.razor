@@ -1,6 +1,5 @@
-﻿@using Budget.Web.Components.Account.Shared 
-
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
+@layout AccountLayout
 
 <h1>Manage your account</h1>
 
@@ -8,10 +7,10 @@
     <h2>Change your account settings</h2>
     <hr />
     <div class="row">
-        <div class="col-lg-3">
+        <div class="col-md-3">
             <ManageNavMenu />
         </div>
-        <div class="col-lg-9">
+        <div class="col-md-9">
             @Body
         </div>
     </div>

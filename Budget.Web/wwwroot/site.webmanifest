@@ -2,14 +2,7 @@
   "name": "Fantum Budget",
   "short_name": "Budget",
   "description": "Fantum Budget web application",
-  "icons": [
-        {
-      "src": "/android-chrome-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
+ 
   "theme_color": "#0d3d7e",
   "background_color": "#ffffff",
   "display": "standalone",

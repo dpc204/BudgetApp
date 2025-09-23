@@ -1,10 +1,6 @@
 ﻿@page "/Account/Manage/PersonalData"
 
-@using Microsoft.AspNetCore.Identity
-@using Budget.Data
-
-@inject UserManager<ApplicationUser> UserManager
-@inject IdentityRedirectManager RedirectManager
+@inject IdentityUserAccessor UserAccessor
 
 <PageTitle>Personal Data</PageTitle>
 
@@ -33,10 +29,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user  = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-        }
+        _ = await UserAccessor.GetRequiredUserAsync(HttpContext);
     }
 }

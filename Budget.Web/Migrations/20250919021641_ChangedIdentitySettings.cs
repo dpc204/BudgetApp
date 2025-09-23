@@ -5,7 +5,7 @@
 namespace Budget.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class testnew : Migration
+    public partial class ChangedIdentitySettings : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

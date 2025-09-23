@@ -1,0 +1,131 @@
+/* Minimal Syncfusion Theme - Bootstrap 5 Compatible */
+/* Only includes essential styles for Grid, DropDown, and Dialog components */
+
+/* Base Syncfusion variables */
+:root {
+  --sf-primary: #007bff;
+  --sf-primary-dark: #0056b3;
+  --sf-border: #dee2e6;
+  --sf-background: #ffffff;
+  --sf-text: #212529;
+  --sf-hover: #f8f9fa;
+}
+
+/* Grid styles */
+.e-grid {
+  border: 1px solid var(--sf-border);
+  font-family: inherit;
+}
+
+.e-grid .e-gridheader {
+  background-color: var(--sf-hover);
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.e-grid .e-headercell {
+  padding: 0.75rem;
+  font-weight: 600;
+  border-right: 1px solid var(--sf-border);
+}
+
+.e-grid .e-rowcell {
+  padding: 0.75rem;
+  border-right: 1px solid var(--sf-border);
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.e-grid .e-row:hover {
+  background-color: var(--sf-hover);
+}
+
+.e-grid .e-selectionbackground {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* DropDown styles */
+.e-dropdownlist {
+  border: 1px solid var(--sf-border);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-family: inherit;
+}
+
+.e-dropdownlist:focus {
+  border-color: var(--sf-primary);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.e-ddl .e-input-group .e-input {
+  border: none;
+  outline: none;
+}
+
+/* Dialog styles */
+.e-dialog {
+  border-radius: 0.375rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.e-dialog .e-dlg-header {
+  background-color: var(--sf-background);
+  border-bottom: 1px solid var(--sf-border);
+  padding: 1rem;
+  font-weight: 600;
+}
+
+.e-dialog .e-dlg-content {
+  padding: 1rem;
+}
+
+.e-dialog .e-footer-content {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--sf-border);
+  background-color: var(--sf-hover);
+}
+
+/* Button styles */
+.e-btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.e-btn.e-primary {
+  background-color: var(--sf-primary);
+  border-color: var(--sf-primary);
+  color: white;
+}
+
+.e-btn.e-primary:hover {
+  background-color: var(--sf-primary-dark);
+  border-color: var(--sf-primary-dark);
+}
+
+/* Hide internal Syncfusion elements */
+.e-hide {
+  display: none !important;
+}
+
+/* Paging styles */
+.e-pager {
+  padding: 0.75rem;
+  border-top: 1px solid var(--sf-border);
+  background-color: var(--sf-hover);
+}
+
+.e-pager .e-numericcontainer .e-link {
+  padding: 0.375rem 0.75rem;
+  margin: 0 0.125rem;
+  border: 1px solid var(--sf-border);
+  border-radius: 0.25rem;
+  text-decoration: none;
+  color: var(--sf-text);
+}
+
+.e-pager .e-numericcontainer .e-currentitem {
+  background-color: var(--sf-primary);
+  color: white;
+  border-color: var(--sf-primary);
+}

@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["Budget.Web.Styles.css"]" />
 
-    <!-- Syncfusion theme: required to hide internal elements like *_header_table and style components -->
-    <link rel="stylesheet" href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" />
+    <!-- Minimal Syncfusion theme: Custom CSS with only essential styles -->
+    <link rel="stylesheet" href="@Assets["css/syncfusion-minimal.css"]" />
 
     <ImportMap />
 
@@ -40,7 +40,7 @@
 </head>
 
 <body>
-    <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <Routes />
     @* <ReconnectModal /> *@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>

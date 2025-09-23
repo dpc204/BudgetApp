@@ -1,4 +1,7 @@
-﻿@if (!string.IsNullOrEmpty(DisplayMessage))
+﻿@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager NavigationManager
+
+@if (!string.IsNullOrEmpty(DisplayMessage))
 {
     var statusMessageClass = DisplayMessage.StartsWith("Error") ? "danger" : "success";
     <div class="alert alert-@statusMessageClass" role="alert">
@@ -7,23 +10,66 @@
 }
 
 @code {
-    private string? messageFromCookie;
+    private string? messageFromUrl;
 
     [Parameter]
     public string? Message { get; set; }
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext? HttpContext { get; set; }
 
-    private string? DisplayMessage => Message ?? messageFromCookie;
+    private string? DisplayMessage => Message ?? messageFromUrl;
 
     protected override void OnInitialized()
     {
-        messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
-
-        if (messageFromCookie is not null)
+        // Try to get status message from URL query parameter
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("status", out var statusValues))
         {
-            HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
+            messageFromUrl = statusValues.FirstOrDefault();
+            
+            // Clean the URL by removing the status parameter
+            if (!string.IsNullOrEmpty(messageFromUrl))
+            {
+                var cleanUrl = RemoveQueryParameter(NavigationManager.Uri, "status");
+                NavigationManager.NavigateTo(cleanUrl, replace: true);
+            }
         }
+        
+        // Fallback: Try to get from cookie if available (for backward compatibility)
+        if (string.IsNullOrEmpty(messageFromUrl) && HttpContext?.Request?.Cookies != null)
+        {
+            try
+            {
+                const string StatusCookieName = "Identity.StatusMessage";
+                messageFromUrl = HttpContext.Request.Cookies[StatusCookieName];
+
+                if (messageFromUrl is not null && HttpContext.Response != null && !HttpContext.Response.HasStarted)
+                {
+                    HttpContext.Response.Cookies.Delete(StatusCookieName);
+                }
+            }
+            catch
+            {
+                // Ignore cookie errors in mixed rendering scenarios
+            }
+        }
+    }
+
+    private string RemoveQueryParameter(string url, string parameterName)
+    {
+        var uri = new Uri(url);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        
+        if (query.ContainsKey(parameterName))
+        {
+            var newQuery = query.Where(kvp => kvp.Key != parameterName)
+                               .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            
+            var queryString = QueryHelpers.AddQueryString("", newQuery);
+            return $"{uri.GetLeftPart(UriPartial.Path)}{queryString}";
+        }
+        
+        return url;
     }
 }

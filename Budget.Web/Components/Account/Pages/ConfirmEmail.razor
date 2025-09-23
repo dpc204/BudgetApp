@@ -3,10 +3,9 @@
 @using System.Text
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using Budget.Data
-@using Budget.Web.Components.Account.Shared
+@using Budget.Web.Data
 
-@inject UserManager<ApplicationUser> UserManager
+@inject UserManager<BudgetUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Confirm email</PageTitle>
@@ -31,7 +30,6 @@
         if (UserId is null || Code is null)
         {
             RedirectManager.RedirectTo("");
-            return;
         }
 
         var user = await UserManager.FindByIdAsync(UserId);
