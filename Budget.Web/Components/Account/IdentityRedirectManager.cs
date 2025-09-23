@@ -29,20 +29,9 @@ namespace Budget.Web.Components.Account
             // Log the redirect for debugging
             logger.LogInformation("Redirecting to: {Uri} from current URL: {CurrentUrl}", uri, navigationManager.Uri);
 
-            try
-            {
-                // During static rendering, NavigateTo throws a NavigationException which is handled by the framework as a redirect.
-                navigationManager.NavigateTo(uri);
-                // If we reach this point, we're not in static rendering, so we need to force a full page redirect
-                throw new InvalidOperationException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
-            }
-            catch (InvalidOperationException) when (navigationManager.Uri != null)
-            {
-                // If NavigateTo fails because we're not in static rendering context,
-                // try to force a full page navigation using JavaScript
-                logger.LogWarning("NavigateTo failed in non-static context, attempting JavaScript redirect to: {Uri}", uri);
-                navigationManager.NavigateTo(uri, forceLoad: true);
-            }
+            // During static rendering, NavigateTo throws a NavigationException which is handled by the framework as a redirect.
+            navigationManager.NavigateTo(uri);
+            throw new InvalidOperationException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
         }
 
         [DoesNotReturn]
