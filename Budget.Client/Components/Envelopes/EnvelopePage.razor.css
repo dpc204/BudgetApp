@@ -1,0 +1,40 @@
+.content-wrapper {
+  border: 0.125rem solid #0d6efd; /* ~2px */
+  border-radius: 0.5rem;          /* ~8px */
+  padding: 1rem;                  /* ~16px */
+}
+
+/* Keep row selection highlight, remove per-cell focus box */
+::deep .e-grid .e-rowcell:focus,
+::deep .e-grid .e-rowcell:focus-visible,
+::deep .e-grid .e-rowcell.e-focused,
+::deep .e-grid .e-rowcell.e-active {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Optional: emphasize the whole selected row */
+::deep .e-grid .e-row.e-selectionbackground > td {
+  background-color: rgba(13, 110, 253, 0.08); /* subtle */
+}
+
+/* Make the "Choose Category" label bold and a bit larger */
+.example-label {
+  font-weight: 700;      /* bold */
+  font-size: 1.125rem;   /* ~18px if root is 16px */
+  line-height: 1.2;
+}
+
+/* Bold the items in the DropDownList popup */
+::deep .e-dropdownbase .e-list-item {
+  font-weight: 700 !important;
+}
+
+/* Bold the selected value shown in the DropDownList input (display line) */
+::deep .e-ddl .e-input,
+::deep .e-dropdownlist .e-input,
+::deep .e-ddl .e-input-group .e-input,
+::deep .e-ddl .e-input-value {
+  font-weight: 700 !important;
+}

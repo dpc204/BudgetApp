@@ -14,7 +14,7 @@
       <div class="control-wrapper">
         <label class="example-label">Choose Category</label>
         <SfDropDownList TItem="Cat" TValue="int?" PopupHeight="230px" Value="@SelectedCategoryId" ValueChanged="@CatChanged" DataSource="@Cats" >
-          <DropDownListFieldSettings Text="CategoryName" Value="CategoryId"/> 
+          <DropDownListFieldSettings Text="CategoryName" Value="CategoryId" />
         </SfDropDownList>
       </div>
     </div>
@@ -24,7 +24,7 @@
 		    <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single"></GridSelectionSettings>
 		    <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler"/>
 		    <GridColumns>
-			    <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130"></GridColumn>
+			    <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130" AllowEditing="false"></GridColumn>
 			    <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
 			    <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
 		    </GridColumns>
