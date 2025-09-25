@@ -8,7 +8,7 @@ set LocalIdentityConnection=Data Source=(localdb)\MSSQLLocalDB;Database=Identity
 goto run
 
 :azure
-set LocalIdentityConnection=Data Source=fantumsqlserver.database.windows.net;Initial Catalog=IdentityDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+set LocalIdentityConnection=Data Source=fantumsqlserver.database.windows.net;Initial Catalog=IdentityDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False
 
 :run
 dotnet ef database update   --project Budget.Web   --startup-project Budget.Web   --context IdentityDBContext   
