@@ -33,7 +33,15 @@ var apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
 
 builder.Services.AddHttpClient<Budget.DTO.IBudgetApiClient, Budget.Client.Services.BudgetApiClient>(client =>
 {
-  if (!apiBase.EndsWith('/')) apiBase += "/";
+  if(!apiBase.EndsWith('/'))
+    apiBase += "/";
+  client.BaseAddress = new Uri(apiBase);
+});
+
+builder.Services.AddHttpClient<Budget.DTO.IBudgetMaintApiClient, Budget.Client.Services.BudgetMaintApiClient>(client =>
+{
+  if(!apiBase.EndsWith('/'))
+    apiBase += "/";
   client.BaseAddress = new Uri(apiBase);
 });
 
@@ -91,6 +99,9 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
+
+// Initialize ServiceAccessor with built service provider for parameterless constructors
+ServiceAccessor.Configure(app.Services);
 
 var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
 startupLogger.LogInformation(

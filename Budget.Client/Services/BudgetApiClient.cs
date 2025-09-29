@@ -6,14 +6,25 @@ namespace Budget.Client.Services;
 
 public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> logger) : Budget.DTO.IBudgetApiClient
 {
+  
+
   public async Task<IReadOnlyList<EnvelopeDto>> GetEnvelopesAsync(CancellationToken cancellationToken = default)
-    => await GetListAsync<EnvelopeDto>("envelopes/getall", cancellationToken);
+  {
+    var readOnlyList = await GetListAsync<EnvelopeDto>("envelopes/getall", cancellationToken);
+    return readOnlyList;
+  }
 
   public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync(CancellationToken cancellationToken = default)
-    => await GetListAsync<CategoryDto>("categories/getbyenvelopeid", cancellationToken);
+  {
+    var readOnlyList = await GetListAsync<CategoryDto>("categories/getbyenvelopeid", cancellationToken);
+    return readOnlyList;
+  }
 
   public async Task<IReadOnlyList<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, CancellationToken cancellationToken = default)
-    => await GetListAsync<TransactionDto>($"transactions/{envelopeId}", cancellationToken);
+  {
+    var readOnlyList = await GetListAsync<TransactionDto>($"transactions/{envelopeId}", cancellationToken);
+    return readOnlyList;
+  }
 
   public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default)
     => await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);

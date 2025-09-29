@@ -16,13 +16,14 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
   private TransactionDto? SelectedTransaction { get; set; }
   private OneTransactionDetail? SelectedTransactionDetail { get; set; }
 
-  protected override void OnInitialized()
+  protected  override  void OnInitialized()
   {
+   
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    if (firstRender)
+    if(firstRender)
     {
       await State.EnsureLoadedAsync();
       ApplySelection();

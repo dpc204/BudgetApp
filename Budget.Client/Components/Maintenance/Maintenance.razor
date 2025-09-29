@@ -1,0 +1,51 @@
+﻿@page "/maintenance"
+@rendermode InteractiveServer
+@using Budget.Client.Components.Envelopes
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Kanban.Internal
+@using Syncfusion.Blazor.Navigations
+
+<h4>Maintenance</h4>
+<SfTab >
+	<SfTab>
+		<TabAnimationSettings>
+			<TabAnimationPrevious Effect="AnimationEffect.FadeIn" Duration="500"></TabAnimationPrevious>
+			<TabAnimationNext Effect="AnimationEffect.FadeOut" Duration="500"></TabAnimationNext>
+		</TabAnimationSettings>
+	</SfTab>
+	<TabItems>
+		<TabItem>
+			<ChildContent>
+				<TabHeader Text="Accounts"></TabHeader>
+			</ChildContent>
+			<ContentTemplate >
+				<EnvelopePage></EnvelopePage>
+			</ContentTemplate>
+		</TabItem>
+		<TabItem>
+			<ChildContent>
+				<TabHeader Text="Envelopes"></TabHeader>
+			</ChildContent>
+			<ContentTemplate>
+				<div>Content of tab 2</div>
+			</ContentTemplate>
+		</TabItem>
+		<TabItem>
+			<ChildContent>
+				<TabHeader Text="Categories"></TabHeader>
+			</ChildContent>
+			<ContentTemplate>
+				<div>Content of tab 3</div>
+			</ContentTemplate>
+		</TabItem>
+		<TabItem>
+			<ChildContent>
+				<TabHeader Text="Users"></TabHeader>
+			</ChildContent>
+			<ContentTemplate>
+				<div>Content of tab 3</div>
+			</ContentTemplate>
+		</TabItem>
+	</TabItems>
+</SfTab>

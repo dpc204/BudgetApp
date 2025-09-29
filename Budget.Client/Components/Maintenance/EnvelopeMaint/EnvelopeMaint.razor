@@ -1,0 +1,40 @@
+﻿@page "/envelopes/maint"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@using Budget.Api.Features.Envelopes.EnvelopeMaint
+@using Budget.DTO
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Popups
+@using Budget.Shared.Models
+@using Syncfusion.Blazor.Data
+
+<h1>Envelopes</h1>
+<div class="col-lg-12 control-section">
+	<div class="content-wrapper" >
+		<div class="row">
+			<SfGrid @ref="GridRef"
+			       TValue="EnvelopeDto"
+			       AllowPaging="true"
+			       Toolbar="@(new string[] { "Add", "Edit", "Delete", "Update", "Cancel" })"
+			       AllowEditing="true">
+				<SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+				<GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="EditMode.Normal" />
+				<GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single" />
+				<GridEvents TValue="EnvelopeDto"
+				           OnActionBegin="ActionBeginHandler"
+				           OnActionComplete="ActionCompletedHandler"
+				           OnActionFailure="ActionFailureHandler" />
+				<GridColumns>
+					<GridColumn Field=@nameof(EnvelopeDto.Id) HeaderText="Id" TextAlign="TextAlign.Left" Width="130" AllowEditing="false" IsPrimaryKey="true" />
+					<GridColumn Field=@nameof(EnvelopeDto.CategoryId) HeaderText="Category" TextAlign="TextAlign.Left" Width="130" />
+					<GridColumn Field=@nameof(EnvelopeDto.Name) HeaderText="Envelope Name" TextAlign="TextAlign.Left" Width="160" />
+					<GridColumn Field=@nameof(EnvelopeDto.Balance) HeaderText="Balance" Width="80" Type="ColumnType.Decimal" TextAlign="TextAlign.Right" />
+				</GridColumns>
+			</SfGrid>
+		</div>
+	</div>
+</div>
+@code { }

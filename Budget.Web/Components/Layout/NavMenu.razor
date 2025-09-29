@@ -20,13 +20,13 @@
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="envelopes">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> EnvelopePage
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Envelopes
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+      <NavLink class="nav-link" href="envelopes/maint">
+				<span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Maintenance
             </NavLink>
         </div>
 
@@ -74,6 +74,13 @@
         </AuthorizeView>
     </nav>
 </div>
+
+<style>
+    .nav-item {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+</style>
 
 @code {
     private string? currentUrl;
