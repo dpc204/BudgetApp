@@ -8,6 +8,7 @@ public interface IBudgetMaintApiClient
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
   // Changed to return created envelope with server-generated Id
   Task<EnvelopeDto> AddAsync(EnvelopeDto dto);
+  Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default); // new
 }
 public interface IBudgetApiClient
 {

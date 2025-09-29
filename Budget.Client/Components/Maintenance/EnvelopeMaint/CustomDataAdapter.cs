@@ -1,10 +1,9 @@
 ﻿using System.Collections;
 using System.Linq;
 using Budget.Client.Services;
-// Removed using Budget.DB to avoid EnvelopeDto ambiguity
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
-using Budget.Shared.Services; // updated reference
-using Budget.DTO; // for IBudgetMaintApiClient and DTO records
+using Budget.Shared.Services;
+using Budget.DTO;
 
 namespace Budget.Api.Features.Envelopes.EnvelopeMaint
 {
@@ -12,70 +11,79 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
   using Syncfusion.Blazor.Data;
   using Syncfusion.Blazor.Grids;
 
-  // Implementing custom adaptor by extending the DataAdaptor class
   public class CustomAdaptor : DataAdaptor
   {
     private readonly IBudgetMaintApiClient _maintApiClient;
 
-    // Parameterless ctor required by SfDataManager - resolves dependency via static accessor
     public CustomAdaptor()
     {
       _maintApiClient = ServiceAccessor.GetRequiredService<IBudgetMaintApiClient>();
     }
 
-    // Optional DI constructor (in case you instantiate manually elsewhere)
     public CustomAdaptor(IBudgetMaintApiClient maintApiClient)
     {
       _maintApiClient = maintApiClient;
     }
 
-    public List<Budget.DTO.EnvelopeDto> Envelopes { get; set; } = new();
+    public List<EnvelopeDto> Envelopes { get; set; } = new();
+
     public override async Task<object> ReadAsync(DataManagerRequest dm, string additionalParam = null)
     {
-      // Pull remote data and keep local cache
       var remote = await _maintApiClient.GetEnvelopesDtoAsync();
-        Envelopes = remote.ToList();
+      Envelopes = remote.ToList();
 
       IEnumerable gridData = Envelopes;
-
       return dm.RequiresCounts
-        ? new DataResult()
-        { Result = gridData, Count = Envelopes.Count, Aggregates = new Dictionary<string, object>() }
+        ? new DataResult { Result = gridData, Count = Envelopes.Count, Aggregates = new Dictionary<string, object>() }
         : (object)gridData;
     }
 
-    // Async insert so we can await server and return created row with Id
     public override async Task<object> InsertAsync(DataManager dataManager, object value, string key)
     {
-      if (value is Budget.DTO.EnvelopeDto dto)
+      if (value is EnvelopeDto dto)
       {
         var created = await _maintApiClient.AddAsync(dto);
         Envelopes.Add(created);
-        return created; // grid will use this (with Id) immediately
+        return created;
       }
       return value;
     }
 
-    // Performs Remove operation
-    public override object Remove(DataManager dm, object value, string keyField, string key)
+    // Async delete so grid waits for server before finalizing UI state
+    public override async Task<object> RemoveAsync(DataManager dm, object value, string keyField, string key)
     {
-      if (int.TryParse(value?.ToString(), out var id))
+      int id = 0;
+      if (value is EnvelopeDto dto)
       {
-        Envelopes.RemoveAll(e => e.Id == id);
+        id = dto.Id;
       }
-      return value;
+      else if (int.TryParse(value?.ToString(), out var parsed))
+      {
+        id = parsed;
+      }
+
+      if (id != 0)
+      {
+        var success = await _maintApiClient.RemoveEnvelopeAsync(id);
+        if (success)
+        {
+          Envelopes.RemoveAll(e => e.Id == id);
+        }
+      }
+
+      // Return current dataset so grid can re-render without needing external Refresh()
+      return new DataResult { Result = Envelopes, Count = Envelopes.Count };
     }
 
-    // Performs Update operation - replace record instance
     public override object Update(DataManager dm, object value, string keyField, string key)
     {
-      if (value is not Budget.DTO.EnvelopeDto update)
+      if (value is not EnvelopeDto update)
         throw new ArgumentException("input record cannot be null");
 
       var idx = Envelopes.FindIndex(e => e.Id == update.Id);
       if (idx >= 0)
       {
-        Envelopes[idx] = update; // replace immutable record
+        Envelopes[idx] = update;
       }
       return value;
     }
@@ -84,7 +92,7 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
       object deletedRecords,
       string primaryColumnName, string key, int? dropIndex)
     {
-      if (changedRecords is IEnumerable<Budget.DTO.EnvelopeDto> changed)
+      if (changedRecords is IEnumerable<EnvelopeDto> changed)
       {
         foreach (var rec in changed)
         {
@@ -93,7 +101,7 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
         }
       }
 
-      if (addedRecords is IEnumerable<Budget.DTO.EnvelopeDto> added)
+      if (addedRecords is IEnumerable<EnvelopeDto> added)
       {
         foreach (var rec in added)
         {
@@ -101,11 +109,12 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
         }
       }
 
-      if (deletedRecords is IEnumerable<Budget.DTO.EnvelopeDto> deleted)
+      if (deletedRecords is IEnumerable<EnvelopeDto> deleted)
       {
         foreach (var rec in deleted)
         {
           Envelopes.RemoveAll(e => e.Id == rec.Id);
+          _ = _maintApiClient.RemoveEnvelopeAsync(rec.Id);
         }
       }
 

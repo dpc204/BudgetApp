@@ -1,7 +1,7 @@
 ﻿using Budget.DTO;
 using Syncfusion.Blazor.Grids;
 
-namespace Budget.Client.Components.Maintenance.EnvelopeMaint; // fixed namespace to match Razor component
+namespace Budget.Client.Components.Maintenance.EnvelopeMaint;
 
 public partial class EnvelopeMaint
 {
@@ -11,7 +11,7 @@ public partial class EnvelopeMaint
 
   public void DataBoundHandler(BeforeDataBoundArgs<EnvelopeDto> args)
   {
-    // Custom logic after data bound if needed.
+    // Optional: logic after data bound.
   }
 
   public void ActionBeginHandler(ActionEventArgs<EnvelopeDto> args)

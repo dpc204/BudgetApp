@@ -56,6 +56,14 @@ public sealed class BudgetMaintApiClient : Budget.DTO.IBudgetMaintApiClient
     return created;
   }
 
+  public async Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default)
+  {
+    using var resp = await _http.DeleteAsync($"envelopes/maint/{id}", cancellationToken);
+    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
+    resp.EnsureSuccessStatusCode();
+    return true;
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     var result = await _http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);
