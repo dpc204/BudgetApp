@@ -56,6 +56,22 @@ public sealed class BudgetMaintApiClient : Budget.DTO.IBudgetMaintApiClient
     return created;
   }
 
+  public async Task<EnvelopeDto> UpdateAsync(EnvelopeDto dto, CancellationToken cancellationToken = default)
+  {
+    var payload = new
+    {
+      id = dto.Id,
+      name = dto.Name,
+      description = dto.Description,
+      balance = dto.Balance,
+      budget = dto.Budget,
+      categoryId = dto.CategoryId,
+      sortOrder = dto.SortOrder
+    };
+    var updated = await PutAsync<object, EnvelopeDto>($"envelopes/maint/{dto.Id}", payload, cancellationToken);
+    return updated;
+  }
+
   public async Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default)
   {
     using var resp = await _http.DeleteAsync($"envelopes/maint/{id}", cancellationToken);
@@ -84,6 +100,19 @@ public sealed class BudgetMaintApiClient : Budget.DTO.IBudgetMaintApiClient
   private async Task<TResponse> PostAsync<TRequest, TResponse>(string relativeUrl, TRequest payload, CancellationToken ct)
   {
     using var resp = await _http.PostAsJsonAsync(relativeUrl, payload, ct);
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
+    if (result is null)
+    {
+      _logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
+      throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
+    }
+    return result;
+  }
+
+  private async Task<TResponse> PutAsync<TRequest, TResponse>(string relativeUrl, TRequest payload, CancellationToken ct)
+  {
+    using var resp = await _http.PutAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
     if (result is null)

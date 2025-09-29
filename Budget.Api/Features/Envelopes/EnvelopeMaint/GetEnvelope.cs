@@ -9,7 +9,7 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
 public static class GetAll
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
-  public sealed record Response(int Id, string Name, decimal Balance, decimal Budget, int CategoryId, int SortOrder);
+  public sealed record Response(int Id, string Name,string Description, decimal Balance, decimal Budget, int CategoryId, int SortOrder);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {
@@ -17,7 +17,7 @@ public static class GetAll
 
     {
      var result = await db.Envelopes.AsNoTracking()
-       .Select(a=> new Response(a.Id, a.Name, a.Balance, a.Budget, a.CategoryId, a.SortOrder))
+       .Select(a=> new Response(a.Id, a.Name,a.Description, a.Balance, a.Budget, a.CategoryId, a.SortOrder))
          .ToListAsync(cancellationToken);
 
      // Wrap the single Response in a collection (e.g., array)

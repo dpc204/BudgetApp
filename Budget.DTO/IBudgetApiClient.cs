@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Budget.DTO;
 
 public interface IBudgetMaintApiClient
@@ -6,9 +8,9 @@ public interface IBudgetMaintApiClient
   Task<IEnumerable<CategoryDto>> GetCategoriesAsync(CancellationToken cancellationToken = default);
   Task<IEnumerable<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, CancellationToken cancellationToken = default);
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
-  // Changed to return created envelope with server-generated Id
   Task<EnvelopeDto> AddAsync(EnvelopeDto dto);
-  Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default); // new
+  Task<EnvelopeDto> UpdateAsync(EnvelopeDto dto, CancellationToken cancellationToken = default); // new for editing
+  Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default);
 }
 public interface IBudgetApiClient
 {
@@ -18,7 +20,7 @@ public interface IBudgetApiClient
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
 }
 
-public sealed record EnvelopeDto(int Id, string Name,string Description, decimal Balance, decimal Budget, int CategoryId, int SortOrder);
+public sealed record EnvelopeDto(int Id,[Required] string Name,[Required]string Description, decimal Balance, decimal Budget, int CategoryId, int SortOrder);
 public sealed record CategoryDto(int Id, string Name, string Description, int SortOrder);
 public sealed record TransactionDto(int TransactionId, int LineId, string Description, decimal Amount, DateTime Date, string EnvelopeName);
 

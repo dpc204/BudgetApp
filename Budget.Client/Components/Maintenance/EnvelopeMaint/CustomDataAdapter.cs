@@ -49,7 +49,31 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
       return value;
     }
 
-    // Async delete so grid waits for server before finalizing UI state
+    // Syncfusion base adaptor defines Update; keep async work inside then return
+    public override object Update(DataManager dm, object value, string keyField, string key)
+    {
+      if (value is EnvelopeDto update)
+      {
+        // Fire-and-forget async update; grid expects immediate return
+        _ = PerformServerUpdate(update);
+      }
+      return value;
+    }
+
+    private async Task PerformServerUpdate(EnvelopeDto update)
+    {
+      try
+      {
+        var updated = await _maintApiClient.UpdateAsync(update);
+        var idx = Envelopes.FindIndex(e => e.Id == updated.Id);
+        if (idx >= 0) Envelopes[idx] = updated; else Envelopes.Add(updated);
+      }
+      catch
+      {
+        // Optionally log
+      }
+    }
+
     public override async Task<object> RemoveAsync(DataManager dm, object value, string keyField, string key)
     {
       int id = 0;
@@ -73,19 +97,6 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
 
       // Return current dataset so grid can re-render without needing external Refresh()
       return new DataResult { Result = Envelopes, Count = Envelopes.Count };
-    }
-
-    public override object Update(DataManager dm, object value, string keyField, string key)
-    {
-      if (value is not EnvelopeDto update)
-        throw new ArgumentException("input record cannot be null");
-
-      var idx = Envelopes.FindIndex(e => e.Id == update.Id);
-      if (idx >= 0)
-      {
-        Envelopes[idx] = update;
-      }
-      return value;
     }
 
     public override object BatchUpdate(DataManager dataManager, object changedRecords, object addedRecords,
