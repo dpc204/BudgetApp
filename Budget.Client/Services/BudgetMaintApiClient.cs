@@ -82,6 +82,29 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
     return true;
   }
 
+  // Category maintenance methods
+  public async Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default)
+  {
+    var payload = new { name = dto.Name, description = dto.Description, sortOrder = dto.SortOrder };
+    var created = await PostAsync<object, CategoryDto>("categories/maint/Insert", payload, cancellationToken);
+    return created;
+  }
+
+  public async Task<CategoryDto> UpdateCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default)
+  {
+    var payload = new { id = dto.Id, name = dto.Name, description = dto.Description, sortOrder = dto.SortOrder };
+    var updated = await PutAsync<object, CategoryDto>($"categories/maint/{dto.Id}", payload, cancellationToken);
+    return updated;
+  }
+
+  public async Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default)
+  {
+    using var resp = await _http.DeleteAsync($"categories/maint/{id}", cancellationToken);
+    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
+    resp.EnsureSuccessStatusCode();
+    return true;
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     var result = await _http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);

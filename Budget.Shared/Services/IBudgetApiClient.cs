@@ -12,6 +12,11 @@ public interface IBudgetMaintApiClient
   Task<EnvelopeDto> AddAsync(EnvelopeDto dto);
   Task<EnvelopeDto> UpdateAsync(EnvelopeDto dto, CancellationToken cancellationToken = default); // new for editing
   Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default);
+
+  // Category maintenance
+  Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
+  Task<CategoryDto> UpdateCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
+  Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default);
 }
 public interface IBudgetApiClient
 {

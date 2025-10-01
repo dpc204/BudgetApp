@@ -1,0 +1,61 @@
+@using Budget.Shared.Models
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
+
+<div class="category-edit-form">
+@if (_category is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="_category" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control form-control-lg" @bind-Value="_category.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputText class="form-control form-control-lg" @bind-Value="_category.Description" />
+        </div>
+        <div class="mb-3" style="max-width:160px;">
+            <label class="form-label">Sort</label>
+            <InputNumber class="form-control form-control-lg" @bind-Value="_category.SortOrder" />
+        </div>
+        <div class="mt-2">
+            <button class="btn btn-primary btn-lg me-2" type="submit">Save</button>
+            <button type="button" class="btn btn-secondary btn-lg" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
+        </div>
+    </EditForm>
+}
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public EventCallback<CategoryDto> OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private CategoryDto? _category;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var list = await MaintApi.GetCategoriesAsync();
+        _category = list.FirstOrDefault(c => c.Id == Id);
+    }
+
+    private async Task SaveAsync()
+    {
+        var updated = await MaintApi.UpdateCategoryAsync(_category!);
+        await OnSaved.InvokeAsync(updated);
+    }
+}
+
+<style>
+.category-edit-form { width:100%; }
+.category-edit-form .form-control-lg { font-size:1rem; }
+.category-edit-form .form-label { font-weight:500; }
+.category-edit-form .mb-3 { margin-bottom:1rem !important; }
+.category-edit-form .btn-lg { padding:.55rem 1.2rem; }
+</style>

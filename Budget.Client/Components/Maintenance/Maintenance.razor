@@ -7,6 +7,7 @@
 @using Syncfusion.Blazor.Kanban.Internal
 @using Syncfusion.Blazor.Navigations
 @using Budget.Client.Components.Maintenance.EnvelopePagesCRUD
+@using Budget.Client.Components.Maintenance.CategoryCRUD
 
 <h4>Maintenance</h4>
 <SfTab >
@@ -25,14 +26,7 @@
 				<TabHeader Text="Categories"></TabHeader>
 			</ChildContent>
 			<ContentTemplate>
-				<div>Content of tab 3</div>
-			</ContentTemplate>
-		</TabItem><TabItem>
-			<ChildContent>
-				<TabHeader Text="Envelopes"></TabHeader>
-			</ChildContent>
-			<ContentTemplate>
-				<EnvelopeMaint></EnvelopeMaint>
+				<CategoryIndex></CategoryIndex>
 			</ContentTemplate>
 		</TabItem>
 		<TabItem>
@@ -40,7 +34,7 @@
 				<TabHeader Text="EnvelopesCRUD"></TabHeader>
 			</ChildContent>
 			<ContentTemplate>
-				<EnvelopeIndex/>asdfasfd
+				<EnvelopeIndex/>
 			</ContentTemplate>
 		</TabItem>
 

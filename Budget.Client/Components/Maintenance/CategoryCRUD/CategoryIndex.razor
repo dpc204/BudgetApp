@@ -1,0 +1,108 @@
+@using Budget.Client.Components.Shared
+@using Budget.Shared.Models
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
+
+<h3>Categories</h3>
+
+@if (_categories is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button class="btn btn-sm btn-primary" @onclick="ShowCreate">New</button>
+    <table class="table table-striped mt-2">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Sort</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in _categories)
+        {
+            <tr>
+                <td>@c.Name</td>
+                <td>@c.Description</td>
+                <td>@c.SortOrder</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => BeginEdit(c.Id)">Edit</button>
+                    <button class="btn btn-sm btn-info me-1" @onclick="() => ViewDetails(c.Id)">Details</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => BeginDelete(c.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<ModalDialog Title="Create Category" @bind-Visible="_showCreate">
+    @if (_showCreate)
+    {
+        <CategoryCreate OnCreated="HandleCreated" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Edit Category" @bind-Visible="_showEdit">
+    @if (_showEdit && _editId.HasValue)
+    {
+        <CategoryEdit Id="_editId.Value" OnSaved="HandleSaved" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Category Details" @bind-Visible="_showDetails">
+    @if (_showDetails && _detailsId.HasValue)
+    {
+        <CategoryDetails Id="_detailsId.Value" OnClose="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Delete Category" @bind-Visible="_showDelete" CssClass="modal-danger">
+    @if (_showDelete && _deleteId.HasValue)
+    {
+        <CategoryDelete Id="_deleteId.Value" OnDeleted="HandleDeleted" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+@code {
+    private List<CategoryDto>? _categories;
+    private bool _showCreate;
+    private bool _showEdit;
+    private bool _showDetails;
+    private bool _showDelete;
+    private int? _editId;
+    private int? _detailsId;
+    private int? _deleteId;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _categories = (await MaintApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
+    }
+
+    private void ShowCreate() => _showCreate = true;
+    private void BeginEdit(int id) { _editId = id; _showEdit = true; }
+    private void ViewDetails(int id) { _detailsId = id; _showDetails = true; }
+    private void BeginDelete(int id) { _deleteId = id; _showDelete = true; }
+
+    private async Task HandleCreated(CategoryDto _) => await ReloadAndClose();
+    private async Task HandleSaved(CategoryDto _) => await ReloadAndClose();
+    private async Task HandleDeleted(int _) => await ReloadAndClose();
+
+    private async Task ReloadAndClose()
+    {
+        CloseDialogs();
+        await LoadAsync();
+        StateHasChanged();
+    }
+
+    private void CloseDialogs()
+    {
+        _showCreate = _showEdit = _showDetails = _showDelete = false;
+        _editId = _detailsId = _deleteId = null;
+    }
+}

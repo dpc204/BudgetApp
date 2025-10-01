@@ -24,4 +24,8 @@
     <ProjectReference Include="..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Catagories\CategoryMaint\" />
+  </ItemGroup>
+
 </Project>
