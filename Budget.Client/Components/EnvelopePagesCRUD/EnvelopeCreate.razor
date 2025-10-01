@@ -1,0 +1,65 @@
+@using Budget.Shared.Models
+@using Budget.Client.Services
+@inject BudgetMaintApiClient MaintApi
+
+<h3>Create Envelope</h3>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        @if (_envelope is null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <EditForm Model="_envelope" OnValidSubmit="CreateAsync">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="mb-2">
+                    <label class="form-label">Category</label>
+                    <InputNumber class="form-control" @bind-Value="_envelope.CategoryId" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Name</label>
+                    <InputText class="form-control" @bind-Value="_envelope.Name" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Budget</label>
+                    <InputNumber class="form-control" @bind-Value="_envelope.Budget" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Balance</label>
+                    <InputNumber class="form-control" @bind-Value="_envelope.Balance" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Description</label>
+                    <InputText class="form-control" @bind-Value="_envelope.Description" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Sort</label>
+                    <InputNumber class="form-control" @bind-Value="_envelope.SortOrder" />
+                </div>
+                <button class="btn btn-primary me-2" type="submit">Create</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<EnvelopeDto> OnCreated { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private EnvelopeDto? _envelope;
+
+    protected override void OnInitialized()
+    {
+        _envelope = new EnvelopeDto();
+    }
+
+    private async Task CreateAsync()
+    {
+        var created = await MaintApi.AddAsync(_envelope!);
+        await OnCreated.InvokeAsync(created);
+    }
+}
