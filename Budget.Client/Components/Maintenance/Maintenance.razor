@@ -8,6 +8,7 @@
 @using Syncfusion.Blazor.Navigations
 @using Budget.Client.Components.Maintenance.EnvelopePagesCRUD
 @using Budget.Client.Components.Maintenance.CategoryCRUD
+@using Budget.Client.Components.Maintenance.AccountCRUD
 
 <h4>Maintenance</h4>
 <SfTab >
@@ -18,7 +19,7 @@
 				<TabHeader Text="Accounts"></TabHeader>
 			</ChildContent>
 			<ContentTemplate>
-				<div>Content of tab 2</div>
+				<AccountIndex></AccountIndex>
 			</ContentTemplate>
 		</TabItem>
 		<TabItem>
@@ -31,7 +32,7 @@
 		</TabItem>
 		<TabItem>
 			<ChildContent>
-				<TabHeader Text="EnvelopesCRUD"></TabHeader>
+				<TabHeader Text="Envelopes"></TabHeader>
 			</ChildContent>
 			<ContentTemplate>
 				<EnvelopeIndex/>

@@ -17,6 +17,12 @@ public interface IBudgetMaintApiClient
   Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
   Task<CategoryDto> UpdateCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
   Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default);
+
+  // Account maintenance
+  Task<IEnumerable<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default);
+  Task<BankAccountDto> AddAccountAsync(BankAccountDto dto, CancellationToken cancellationToken = default);
+  Task<BankAccountDto> UpdateAccountAsync(BankAccountDto dto, CancellationToken cancellationToken = default);
+  Task<bool> RemoveAccountAsync(int id, CancellationToken cancellationToken = default);
 }
 public interface IBudgetApiClient
 {

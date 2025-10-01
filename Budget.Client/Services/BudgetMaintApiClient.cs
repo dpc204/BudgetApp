@@ -105,6 +105,35 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
     return true;
   }
 
+  // Account maintenance methods
+  public async Task<IEnumerable<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
+  {
+    var readOnlyList = await GetListAsync<BankAccountDto>("accounts/maint/getall", cancellationToken);
+    return readOnlyList;
+  }
+
+  public async Task<BankAccountDto> AddAccountAsync(BankAccountDto dto, CancellationToken cancellationToken = default)
+  {
+    var payload = new { name = dto.Name, balance = dto.Balance, accountType = dto.AccountType };
+    var created = await PostAsync<object, BankAccountDto>("accounts/maint/Insert", payload, cancellationToken);
+    return created;
+  }
+
+  public async Task<BankAccountDto> UpdateAccountAsync(BankAccountDto dto, CancellationToken cancellationToken = default)
+  {
+    var payload = new { id = dto.Id, name = dto.Name, balance = dto.Balance, accountType = dto.AccountType };
+    var updated = await PutAsync<object, BankAccountDto>($"accounts/maint/{dto.Id}", payload, cancellationToken);
+    return updated;
+  }
+
+  public async Task<bool> RemoveAccountAsync(int id, CancellationToken cancellationToken = default)
+  {
+    using var resp = await _http.DeleteAsync($"accounts/maint/{id}", cancellationToken);
+    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
+    resp.EnsureSuccessStatusCode();
+    return true;
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     var result = await _http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);

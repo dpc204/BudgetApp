@@ -1,0 +1,108 @@
+@using Budget.Client.Components.Shared
+@using Budget.Shared.Models
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
+
+<h3>Accounts</h3>
+
+@if (_accounts is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button class="btn btn-sm btn-primary" @onclick="ShowCreate">New</button>
+    <table class="table table-striped mt-2">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Balance</th>
+            <th>Type</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var a in _accounts)
+        {
+            <tr>
+                <td>@a.Name</td>
+                <td>@a.Balance</td>
+                <td>@a.AccountType</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => BeginEdit(a.Id)">Edit</button>
+                    <button class="btn btn-sm btn-info me-1" @onclick="() => ViewDetails(a.Id)">Details</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => BeginDelete(a.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<ModalDialog Title="Create Account" @bind-Visible="_showCreate">
+    @if (_showCreate)
+    {
+        <AccountCreate OnCreated="HandleCreated" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Edit Account" @bind-Visible="_showEdit">
+    @if (_showEdit && _editId.HasValue)
+    {
+        <AccountEdit Id="_editId.Value" OnSaved="HandleSaved" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Account Details" @bind-Visible="_showDetails">
+    @if (_showDetails && _detailsId.HasValue)
+    {
+        <AccountDetails Id="_detailsId.Value" OnClose="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Delete Account" @bind-Visible="_showDelete" CssClass="modal-danger">
+    @if (_showDelete && _deleteId.HasValue)
+    {
+        <AccountDelete Id="_deleteId.Value" OnDeleted="HandleDeleted" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+@code {
+    private List<BankAccountDto>? _accounts;
+    private bool _showCreate;
+    private bool _showEdit;
+    private bool _showDetails;
+    private bool _showDelete;
+    private int? _editId;
+    private int? _detailsId;
+    private int? _deleteId;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _accounts = (await MaintApi.GetAccountsAsync()).OrderBy(a => a.Name).ToList();
+    }
+
+    private void ShowCreate() => _showCreate = true;
+    private void BeginEdit(int id) { _editId = id; _showEdit = true; }
+    private void ViewDetails(int id) { _detailsId = id; _showDetails = true; }
+    private void BeginDelete(int id) { _deleteId = id; _showDelete = true; }
+
+    private async Task HandleCreated(BankAccountDto _) => await ReloadAndClose();
+    private async Task HandleSaved(BankAccountDto _) => await ReloadAndClose();
+    private async Task HandleDeleted(int _) => await ReloadAndClose();
+
+    private async Task ReloadAndClose()
+    {
+        CloseDialogs();
+        await LoadAsync();
+        StateHasChanged();
+    }
+
+    private void CloseDialogs()
+    {
+        _showCreate = _showEdit = _showDetails = _showDelete = false;
+        _editId = _detailsId = _deleteId = null;
+    }
+}

@@ -1,0 +1,66 @@
+@using Budget.Shared.Models
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
+
+<div class="account-edit-form">
+@if (_account is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="_account" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control form-control-lg" @bind-Value="_account.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Balance</label>
+            <InputNumber class="form-control form-control-lg" @bind-Value="_account.Balance" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Type</label>
+            <InputSelect class="form-select form-select-lg" @bind-Value="_account.AccountType">
+                @foreach (var t in Enum.GetValues<BankAccountType>())
+                {
+                    <option value="@t">@t</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mt-2">
+            <button class="btn btn-primary btn-lg me-2" type="submit">Save</button>
+            <button type="button" class="btn btn-secondary btn-lg" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
+        </div>
+    </EditForm>
+}
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public EventCallback<BankAccountDto> OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private BankAccountDto? _account;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var list = await MaintApi.GetAccountsAsync();
+        _account = list.FirstOrDefault(a => a.Id == Id);
+    }
+
+    private async Task SaveAsync()
+    {
+        var updated = await MaintApi.UpdateAccountAsync(_account!);
+        await OnSaved.InvokeAsync(updated);
+    }
+}
+
+<style>
+.account-edit-form { width:100%; }
+.account-edit-form .form-control-lg, .account-edit-form .form-select-lg { font-size:1rem; }
+.account-edit-form .form-label { font-weight:500; }
+.account-edit-form .mb-3 { margin-bottom:1rem !important; }
+.account-edit-form .btn-lg { padding:.55rem 1.2rem; }
+</style>

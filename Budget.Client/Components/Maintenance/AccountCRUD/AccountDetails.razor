@@ -1,0 +1,35 @@
+@using Budget.Shared.Models
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
+
+<h3>Account Details</h3>
+<hr />
+@if (_account is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-2">Name</dt>
+        <dd class="col-sm-10">@_account.Name</dd>
+        <dt class="col-sm-2">Balance</dt>
+        <dd class="col-sm-10">@_account.Balance</dd>
+        <dt class="col-sm-2">Type</dt>
+        <dd class="col-sm-10">@_account.AccountType</dd>
+    </dl>
+    <button class="btn btn-secondary" @onclick="() => OnClose.InvokeAsync()">Close</button>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private BankAccountDto? _account;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var list = await MaintApi.GetAccountsAsync();
+        _account = list.FirstOrDefault(a => a.Id == Id);
+    }
+}
