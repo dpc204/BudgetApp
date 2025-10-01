@@ -1,12 +1,12 @@
 @using Budget.Shared.Models
-@using Budget.Client.Services
-@inject BudgetMaintApiClient MaintApi
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
 
 <h3>Create Envelope</h3>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        @if (_envelope is null)
+        @if (_envelope is null || _categories is null)
         {
             <p><em>Loading...</em></p>
         }
@@ -17,7 +17,13 @@
                 <ValidationSummary />
                 <div class="mb-2">
                     <label class="form-label">Category</label>
-                    <InputNumber class="form-control" @bind-Value="_envelope.CategoryId" />
+                    <InputSelect class="form-select" @bind-Value="_envelope.CategoryId">
+                        <option value="">-- select --</option>
+                        @foreach (var c in _categories)
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    </InputSelect>
                 </div>
                 <div class="mb-2">
                     <label class="form-label">Name</label>
@@ -39,7 +45,7 @@
                     <label class="form-label">Sort</label>
                     <InputNumber class="form-control" @bind-Value="_envelope.SortOrder" />
                 </div>
-                <button class="btn btn-primary me-2" type="submit">Create</button>
+                <button class="btn btn-primary me-2" type="submit" disabled="@(!_categories.Any())">Create</button>
                 <button type="button" class="btn btn-secondary" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
             </EditForm>
         }
@@ -51,10 +57,15 @@
     [Parameter] public EventCallback OnCancel { get; set; }
 
     private EnvelopeDto? _envelope;
+    private List<CategoryDto>? _categories;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _envelope = new EnvelopeDto();
+        _categories = (await MaintApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
+        // Default category if any
+        if (_categories.Count > 0 && _envelope.CategoryId == 0)
+            _envelope.CategoryId = _categories[0].Id;
     }
 
     private async Task CreateAsync()

@@ -1,6 +1,7 @@
+@using Budget.Client.Components.Shared
 @using Budget.Shared.Models
-@using Budget.Client.Services
 @using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
 
 <h3>Envelopes</h3>
 
@@ -27,7 +28,7 @@ else
         @foreach (var e in _envelopes)
         {
             <tr>
-                <td>@e.CategoryId</td>
+                <td>@GetCategoryName(e.CategoryId)</td>
                 <td>@e.Name</td>
                 <td>@e.Budget</td>
                 <td>@e.Balance</td>
@@ -44,44 +45,60 @@ else
     </table>
 }
 
-@if (_showCreate)
-{
-    <EnvelopeCreate OnCreated="HandleCreated" OnCancel="CloseDialogs" />
-}
-@if (_editId.HasValue)
-{
-    <EnvelopeEdit Id="_editId.Value" OnSaved="HandleSaved" OnCancel="CloseDialogs" />
-}
-@if (_detailsId.HasValue)
-{
-    <EnvelopeDetails Id="_detailsId.Value" OnClose="CloseDialogs" />
-}
-@if (_deleteId.HasValue)
-{
-    <EnvelopeDelete Id="_deleteId.Value" OnDeleted="HandleDeleted" OnCancel="CloseDialogs" />
-}
+<ModalDialog Title="Create Envelope" @bind-Visible="_showCreate">
+    @if (_showCreate)
+    {
+        <EnvelopeCreate OnCreated="HandleCreated" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Edit Envelope" @bind-Visible="_showEdit">
+    @if (_showEdit && _editId.HasValue)
+    {
+        <EnvelopeEdit Id="_editId.Value" OnSaved="HandleSaved" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Envelope Details" @bind-Visible="_showDetails">
+    @if (_showDetails && _detailsId.HasValue)
+    {
+        <EnvelopeDetails Id="_detailsId.Value" OnClose="CloseDialogs" />
+    }
+</ModalDialog>
+
+<ModalDialog Title="Delete Envelope" @bind-Visible="_showDelete" CssClass="modal-danger">
+    @if (_showDelete && _deleteId.HasValue)
+    {
+        <EnvelopeDelete Id="_deleteId.Value" OnDeleted="HandleDeleted" OnCancel="CloseDialogs" />
+    }
+</ModalDialog>
 
 @code {
-  private List<EnvelopeDto>? _envelopes;
-  private bool _showCreate;
-  private int? _editId;
-  private int? _detailsId;
-  private int? _deleteId;
-  private IBudgetMaintApiClient? MaintApi;
+    private List<EnvelopeDto>? _envelopes;
+    private Dictionary<int,string> _categoryLookup = new();
+    private bool _showCreate;
+    private bool _showEdit;
+    private bool _showDetails;
+    private bool _showDelete;
+    private int? _editId;
+    private int? _detailsId;
+    private int? _deleteId;
 
+    protected override async Task OnInitializedAsync() => await LoadAsync();
 
-  protected override async Task OnInitializedAsync()
-  {
-    MaintApi= ServiceAccessor.GetRequiredService<IBudgetMaintApiClient>();
-      await LoadAsync();
-  }
+    private async Task LoadAsync()
+    {
+        var categories = await MaintApi.GetCategoriesAsync();
+        _categoryLookup = categories.ToDictionary(c => c.Id, c => c.Name);
+        _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).ToList();
+    }
 
-    private async Task LoadAsync() => _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).ToList();
+    private string GetCategoryName(int id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
 
     private void ShowCreate() => _showCreate = true;
-    private void BeginEdit(int id) => _editId = id;
-    private void ViewDetails(int id) => _detailsId = id;
-    private void BeginDelete(int id) => _deleteId = id;
+    private void BeginEdit(int id) { _editId = id; _showEdit = true; }
+    private void ViewDetails(int id) { _detailsId = id; _showDetails = true; }
+    private void BeginDelete(int id) { _deleteId = id; _showDelete = true; }
 
     private async Task HandleCreated(EnvelopeDto _) => await ReloadAndClose();
     private async Task HandleSaved(EnvelopeDto _) => await ReloadAndClose();
@@ -96,9 +113,7 @@ else
 
     private void CloseDialogs()
     {
-        _showCreate = false;
-        _editId = null;
-        _detailsId = null;
-        _deleteId = null;
+        _showCreate = _showEdit = _showDetails = _showDelete = false;
+        _editId = _detailsId = _deleteId = null;
     }
 }

@@ -9,7 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Budget.DTO\Budget.DTO.csproj" />
+    <Compile Remove="Components\Pages\EnvelopePagesCRUD\**" />
+    <Content Remove="Components\Pages\EnvelopePagesCRUD\**" />
+    <EmbeddedResource Remove="Components\Pages\EnvelopePagesCRUD\**" />
+    <None Remove="Components\Pages\EnvelopePagesCRUD\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
     <ProjectReference Include="..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Budget.Client\Budget.Client.csproj" />
