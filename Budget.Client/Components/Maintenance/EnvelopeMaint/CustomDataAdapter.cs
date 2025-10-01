@@ -3,10 +3,10 @@ using System.Linq;
 using Budget.Client.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Budget.Shared.Services;
-using Budget.DTO;
 
 namespace Budget.Api.Features.Envelopes.EnvelopeMaint
 {
+  using Budget.Shared.Models;
   using Syncfusion.Blazor;
   using Syncfusion.Blazor.Data;
   using Syncfusion.Blazor.Grids;
@@ -32,10 +32,11 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
       var remote = await _maintApiClient.GetEnvelopesDtoAsync();
       Envelopes = remote.ToList();
 
-      IEnumerable gridData = Envelopes;
-      return dm.RequiresCounts
-        ? new DataResult { Result = gridData, Count = Envelopes.Count, Aggregates = new Dictionary<string, object>() }
-        : (object)gridData;
+      return new DataResult
+      {
+        Result = Envelopes,
+        Count = Envelopes.Count
+      };
     }
 
     public override async Task<object> InsertAsync(DataManager dataManager, object value, string key)
@@ -49,66 +50,48 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
       return value;
     }
 
-    // Syncfusion base adaptor defines Update; keep async work inside then return
+    public override object Remove(DataManager dm, object value, string keyField, string key)
+    {
+      if (value is int id)
+      {
+        _ = _maintApiClient.RemoveEnvelopeAsync(id);
+        Envelopes.RemoveAll(e => e.Id == id);
+        return id;
+      }
+      return 0;
+    }
+
     public override object Update(DataManager dm, object value, string keyField, string key)
     {
-      if (value is EnvelopeDto update)
-      {
-        // Fire-and-forget async update; grid expects immediate return
-        _ = PerformServerUpdate(update);
-      }
-      return value;
+      if (value is not EnvelopeDto edited)
+        throw new ArgumentException("input record cannot be null");
+
+      var server = _maintApiClient.UpdateAsync(edited).GetAwaiter().GetResult();
+      var existing = Envelopes.FirstOrDefault(e => e.Id == server.Id);
+      if (existing != null)
+        ApplyValues(existing, server);
+      else
+        Envelopes.Add(server);
+
+      return existing ?? server;
     }
 
-    private async Task PerformServerUpdate(EnvelopeDto update)
-    {
-      try
-      {
-        var updated = await _maintApiClient.UpdateAsync(update);
-        var idx = Envelopes.FindIndex(e => e.Id == updated.Id);
-        if (idx >= 0) Envelopes[idx] = updated; else Envelopes.Add(updated);
-      }
-      catch
-      {
-        // Optionally log
-      }
-    }
-
-    public override async Task<object> RemoveAsync(DataManager dm, object value, string keyField, string key)
-    {
-      int id = 0;
-      if (value is EnvelopeDto dto)
-      {
-        id = dto.Id;
-      }
-      else if (int.TryParse(value?.ToString(), out var parsed))
-      {
-        id = parsed;
-      }
-
-      if (id != 0)
-      {
-        var success = await _maintApiClient.RemoveEnvelopeAsync(id);
-        if (success)
-        {
-          Envelopes.RemoveAll(e => e.Id == id);
-        }
-      }
-
-      // Return current dataset so grid can re-render without needing external Refresh()
-      return new DataResult { Result = Envelopes, Count = Envelopes.Count };
-    }
-
-    public override object BatchUpdate(DataManager dataManager, object changedRecords, object addedRecords,
+    public async override Task<object> BatchUpdate(
+      DataManager dataManager,
+      object changedRecords,
+      object addedRecords,
       object deletedRecords,
-      string primaryColumnName, string key, int? dropIndex)
+      string primaryColumnName,
+      string key,
+      int? dropIndex)
     {
       if (changedRecords is IEnumerable<EnvelopeDto> changed)
       {
         foreach (var rec in changed)
         {
-          var idx = Envelopes.FindIndex(e => e.Id == rec.Id);
-          if (idx >= 0) Envelopes[idx] = rec;
+          var server = await _maintApiClient.UpdateAsync(rec);
+          var existing = Envelopes.FirstOrDefault(e => e.Id == server.Id);
+          if (existing != null) ApplyValues(existing, server); else Envelopes.Add(server);
         }
       }
 
@@ -116,7 +99,8 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
       {
         foreach (var rec in added)
         {
-          Envelopes.Add(rec);
+          var created = await _maintApiClient.AddAsync(rec);
+          Envelopes.Add(created);
         }
       }
 
@@ -129,7 +113,39 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
         }
       }
 
-      return Envelopes;
+      // Authoritative refresh
+      var fresh = (await _maintApiClient.GetEnvelopesDtoAsync()).ToList();
+      var lookup = fresh.ToDictionary(e => e.Id, e => e);
+
+      // Update existing objects in place
+      foreach (var local in Envelopes.ToList())
+      {
+        if (lookup.TryGetValue(local.Id, out var srv))
+          ApplyValues(local, srv);
+        else
+          Envelopes.Remove(local); // removed on server
+      }
+      // Add any new ones
+      foreach (var srv in fresh)
+      {
+        if (!Envelopes.Any(e => e.Id == srv.Id)) Envelopes.Add(srv);
+      }
+
+      return new DataResult
+      {
+        Result = Envelopes,
+        Count = Envelopes.Count
+      };
+    }
+
+    private static void ApplyValues(EnvelopeDto target, EnvelopeDto source)
+    {
+      target.Name = source.Name;
+      target.Description = source.Description;
+      target.Balance = source.Balance;
+      target.Budget = source.Budget;
+      target.CategoryId = source.CategoryId;
+      target.SortOrder = source.SortOrder;
     }
   }
 }

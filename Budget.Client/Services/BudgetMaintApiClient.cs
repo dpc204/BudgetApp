@@ -1,11 +1,12 @@
 using System.Net.Http.Json;
-using Budget.DTO; // for DTO records
+using Budget.Shared.Models;
+using Budget.Shared.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Budget.Client.Services;
 
 // Uses the typed HttpClient registered in Program.cs (line 41) via AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>
-public sealed class BudgetMaintApiClient : Budget.DTO.IBudgetMaintApiClient
+public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 {
   private readonly HttpClient _http; // configured base address & handlers
   private readonly ILogger<BudgetMaintApiClient> _logger;
@@ -71,6 +72,7 @@ public sealed class BudgetMaintApiClient : Budget.DTO.IBudgetMaintApiClient
     var updated = await PutAsync<object, EnvelopeDto>($"envelopes/maint/{dto.Id}", payload, cancellationToken);
     return updated;
   }
+
 
   public async Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default)
   {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Budget.DB
+﻿namespace Budget.Shared.Models
 {
   public class CategoryDto
   {

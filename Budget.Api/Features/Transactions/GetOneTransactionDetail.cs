@@ -1,5 +1,6 @@
 ﻿using Budget.DB;
-using Budget.DTO;
+using Budget.Shared.Models;
+//using Budget.Shared.Services;
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -34,15 +35,23 @@ public static class GetOneTransactionDetail
         .Select(t => new Response
         {
           Id = t.Id,
-            Date = t.Date,
-            Description = t.Description,
-            TotalAmount = t.TotalAmount,
-            UserInitials = (t.User.FirstName.Substring(0,1) + t.User.LastName.Substring(0,1)),
-            BalanceAfterTransaction = t.BalanceAfterTransaction,
-            Details = t.Details
-              .OrderBy(d => d.LineId)
-              .Select(d => new TransactionDto(d.TransactionId, d.LineId, d.Notes, d.Amount, t.Date, d.Envelope.Name))
-              .ToList()
+          Date = t.Date,
+          Description = t.Description,
+          TotalAmount = t.TotalAmount,
+          UserInitials = (t.User.FirstName.Substring(0,1) + t.User.LastName.Substring(0,1)),
+          BalanceAfterTransaction = t.BalanceAfterTransaction,
+          Details = t.Details
+            .OrderBy(d => d.LineId)
+            .Select(d => new TransactionDto
+            {
+              TransactionId = d.TransactionId,
+              LineId = d.LineId,
+              Description = d.Notes,
+              Amount = d.Amount,
+              Date = t.Date,
+              EnvelopeName = d.Envelope.Name
+            })
+            .ToList()
         })
         .FirstOrDefaultAsync(cancellationToken);
 

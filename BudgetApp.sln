@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Shared", "Budget.Sha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.DTO", "Budget.DTO\Budget.DTO.csproj", "{50674BA8-9B22-48EB-9A45-84811FB2D733}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Client2", "Budget.Client2\Budget.Client2.csproj", "{B42057B0-86C5-4509-BD75-555051F12DC7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{50674BA8-9B22-48EB-9A45-84811FB2D733}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50674BA8-9B22-48EB-9A45-84811FB2D733}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50674BA8-9B22-48EB-9A45-84811FB2D733}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B42057B0-86C5-4509-BD75-555051F12DC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B42057B0-86C5-4509-BD75-555051F12DC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B42057B0-86C5-4509-BD75-555051F12DC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B42057B0-86C5-4509-BD75-555051F12DC7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

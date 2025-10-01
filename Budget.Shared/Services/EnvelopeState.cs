@@ -4,7 +4,6 @@
 using Microsoft.JSInterop;
 using System.Text.Json;
 using Budget.Shared.Models;
-using Budget.DTO;
 using Microsoft.Extensions.Logging;
 
 namespace Budget.Shared.Services;

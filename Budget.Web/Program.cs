@@ -31,14 +31,14 @@ var apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
              ?? builder.Configuration["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
              ?? "https://localhost:5001"; // final fallback
 
-builder.Services.AddHttpClient<Budget.DTO.IBudgetApiClient, Budget.Client.Services.BudgetApiClient>(client =>
+builder.Services.AddHttpClient<IBudgetApiClient, Budget.Client.Services.BudgetApiClient>(client =>
 {
   if(!apiBase.EndsWith('/'))
     apiBase += "/";
   client.BaseAddress = new Uri(apiBase);
 });
 
-builder.Services.AddHttpClient<Budget.DTO.IBudgetMaintApiClient, Budget.Client.Services.BudgetMaintApiClient>(client =>
+builder.Services.AddHttpClient<IBudgetMaintApiClient, Budget.Client.Services.BudgetMaintApiClient>(client =>
 {
   if(!apiBase.EndsWith('/'))
     apiBase += "/";
@@ -71,6 +71,8 @@ builder.Services.AddDbContext<BudgetContext>((sp, options) =>
     options.EnableSensitiveDataLogging();
   }
 });
+
+builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDbContext<IdentityDBContext>(options =>
   options.UseSqlServer(authConnectionString));
@@ -134,6 +136,7 @@ else
 {
   app.UseExceptionHandler("/Error", createScopeForErrors: true);
   app.UseHsts();
+    app.UseMigrationsEndPoint();
   app.UseStaticFiles();
 }
 

@@ -1,4 +1,4 @@
-﻿using Budget.DTO;
+﻿using Budget.Shared.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Budget.Client.Components.Envelopes;
