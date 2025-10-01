@@ -46,4 +46,12 @@
 .modal-container { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:1rem 1.25rem; border-radius:.3rem; min-width:360px; max-width:640px; z-index:1060; box-shadow:0 0.5rem 1rem rgba(0,0,0,.15);} 
 .modal-body { max-height:70vh; overflow:auto; }
 .btn-close { background: none; border: none; font-size: 1.1rem; }
+/* Utility sizing/consistency for form controls inside modal */
+.modal-container .form-control,
+.modal-container .form-select,
+.modal-container input[type=text],
+.modal-container input[type=number],
+.modal-container textarea { width:100%; box-sizing:border-box; }
+.modal-container .form-control, .modal-container .form-select { min-height:2.35rem; }
+.modal-container .mb-2, .modal-container .mb-3 { margin-bottom:0.85rem !important; }
 </style>

@@ -1,0 +1,37 @@
+@using Budget.Shared.Models
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
+
+<h3>Delete Envelope</h3>
+<hr />
+@if (_envelope is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>Are you sure you want to delete <strong>@_envelope.Name</strong>?</p>
+    <button class="btn btn-danger me-2" @onclick="DeleteAsync">Delete</button>
+    <button class="btn btn-secondary" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public EventCallback<int> OnDeleted { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private EnvelopeDto? _envelope;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var list = await MaintApi.GetEnvelopesDtoAsync();
+        _envelope = list.FirstOrDefault(e => e.Id == Id);
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (_envelope is null) return;
+        await MaintApi.RemoveEnvelopeAsync(_envelope.Id);
+        await OnDeleted.InvokeAsync(_envelope.Id);
+    }
+}

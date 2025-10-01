@@ -1,0 +1,90 @@
+@using Budget.Shared.Models
+@using Budget.Shared.Services
+@inject IBudgetMaintApiClient MaintApi
+
+<div class="envelope-create-form">
+    @if (_envelope is null || _categories is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <EditForm Model="_envelope" OnValidSubmit="CreateAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <InputSelect class="form-select form-select-lg" @bind-Value="_envelope.CategoryId">
+                    <option value="">-- select --</option>
+                    @foreach (var c in _categories)
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <InputText class="form-control form-control-lg" @bind-Value="_envelope.Name" />
+            </div>
+            <div class="mb-3 d-flex gap-3 flex-wrap">
+                <div class="flex-fill min-field-180">
+                    <label class="form-label">Budget</label>
+                    <InputNumber class="form-control form-control-lg" @bind-Value="_envelope.Budget" />
+                </div>
+                <div class="flex-fill min-field-180">
+                    <label class="form-label">Balance</label>
+                    <InputNumber class="form-control form-control-lg" @bind-Value="_envelope.Balance" />
+                </div>
+                <div class="flex-fill min-field-140" style="max-width:160px;">
+                    <label class="form-label">Sort</label>
+                    <InputNumber class="form-control form-control-lg" @bind-Value="_envelope.SortOrder" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <InputText class="form-control form-control-lg" @bind-Value="_envelope.Description" />
+            </div>
+            <div class="mt-2">
+                <button class="btn btn-primary btn-lg me-2" type="submit" disabled="@(!_categories.Any())">Create</button>
+                <button type="button" class="btn btn-secondary btn-lg" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<EnvelopeDto> OnCreated { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private EnvelopeDto? _envelope;
+    private List<CategoryDto>? _categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _envelope = new EnvelopeDto();
+        _categories = (await MaintApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
+        // Default category if any
+        if (_categories.Count > 0 && _envelope.CategoryId == 0)
+            _envelope.CategoryId = _categories[0].Id;
+    }
+
+    private async Task CreateAsync()
+    {
+        var created = await MaintApi.AddAsync(_envelope!);
+        await OnCreated.InvokeAsync(created);
+    }
+}
+
+<style>
+.envelope-create-form { width:100%; }
+.envelope-create-form .form-control-lg, 
+.envelope-create-form .form-select-lg { font-size:1rem; }
+.envelope-create-form .min-field-180 { min-width:180px; }
+.envelope-create-form .min-field-140 { min-width:140px; }
+.envelope-create-form .form-label { font-weight:500; }
+.envelope-create-form .mb-3 { margin-bottom:1rem !important; }
+.envelope-create-form .btn-lg { padding:.55rem 1.2rem; }
+@@media (max-width: 600px) { 
+  .envelope-create-form .d-flex.flex-wrap > div { min-width:100% !important; max-width:100% !important; }
+}
+</style>
