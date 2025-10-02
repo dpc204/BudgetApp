@@ -1,0 +1,32 @@
+@page "/Admin/Roles/Create"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Identity
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager Nav
+
+<h1>Create Role</h1>
+<EditForm Model="model" OnValidSubmit="CreateRole">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label>Name</label>
+        <InputText class="form-control" @bind-Value="model.Name" />
+    </div>
+    <button class="btn btn-primary" type="submit">Create</button>
+    <button type="button" class="btn btn-secondary ms-2" @onclick='() => Nav.NavigateTo("/Admin/Roles")'>Cancel</button>
+</EditForm>
+
+@code {
+    private RoleModel model = new();
+
+    private sealed class RoleModel { public string Name { get; set; } = string.Empty; }
+
+    private async Task CreateRole()
+    {
+        if (string.IsNullOrWhiteSpace(model.Name)) return;
+        var exists = await RoleManager.RoleExistsAsync(model.Name);
+        if (exists) return; // Could show validation
+        await RoleManager.CreateAsync(new IdentityRole(model.Name));
+        Nav.NavigateTo("/Admin/Roles");
+    }
+}

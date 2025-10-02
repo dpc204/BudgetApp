@@ -1,0 +1,148 @@
+@page "/Admin/Roles"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Identity
+@using Budget.Web.Data
+@inject RoleManager<IdentityRole> RoleManager
+@inject UserManager<BudgetUser> UserManager
+@inject NavigationManager Nav
+
+<h1>Roles</h1>
+@if (roles is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <button class="btn btn-sm btn-primary mb-2" @onclick='() => Nav.NavigateTo("/Admin/Roles/Create")'>Create Role</button>
+    <table class="table table-sm">
+        <thead>
+            <tr><th>Name</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var r in roles)
+        {
+            <tr>
+                <td>@r.Name</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-secondary me-1" href="/Admin/Roles/Edit/@r.Id">Edit</a>
+                    <button class="btn btn-sm btn-danger" @onclick='() => PromptDelete(r)'>Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (showDelete && deleteTarget is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Role</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(deleteError))
+                    {
+                        <div class="alert alert-danger py-1">@deleteError</div>
+                    }
+                    <p>Are you sure you want to delete role <strong>@deleteTarget.Name</strong>?</p>
+                    @if (dependentUsers?.Count > 0)
+                    {
+                        <p class="text-warning small">Users assigned: @dependentUsers.Count. They will lose this role.</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button class="btn btn-danger" disabled="@deleting" @onclick="ConfirmDelete">@(deleting ? "Deleting..." : "Delete")</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<IdentityRole>? roles;
+    private bool showDelete;
+    private IdentityRole? deleteTarget;
+    private bool deleting;
+    private string? deleteError;
+    private List<BudgetUser>? dependentUsers;
+
+    protected override void OnInitialized()
+    {
+        roles = RoleManager.Roles.OrderBy(r => r.Name).ToList();
+    }
+
+    private void PromptDelete(IdentityRole r)
+    {
+        deleteTarget = r;
+        deleteError = null;
+        showDelete = true;
+        dependentUsers = null;
+        _ = LoadDependentsAsync(r);
+    }
+
+    private async Task LoadDependentsAsync(IdentityRole r)
+    {
+        var list = new List<BudgetUser>();
+        foreach (var u in UserManager.Users)
+        {
+            if (await UserManager.IsInRoleAsync(u, r.Name!))
+            {
+                list.Add(u);
+            }
+        }
+        dependentUsers = list;
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        showDelete = false;
+        deleteTarget = null;
+        deleting = false;
+        deleteError = null;
+        dependentUsers = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (deleteTarget is null) return;
+        deleting = true;
+        deleteError = null;
+        try
+        {
+            if (dependentUsers is { Count: > 0 })
+            {
+                foreach (var u in dependentUsers)
+                {
+                    var result = await UserManager.RemoveFromRoleAsync(u, deleteTarget.Name!);
+                    if (!result.Succeeded)
+                    {
+                        deleteError = string.Join("; ", result.Errors.Select(e => e.Description));
+                        deleting = false;
+                        return;
+                    }
+                }
+            }
+            var del = await RoleManager.DeleteAsync(deleteTarget);
+            if (!del.Succeeded)
+            {
+                deleteError = string.Join("; ", del.Errors.Select(e => e.Description));
+                deleting = false;
+                return;
+            }
+            CloseModal();
+            roles = RoleManager.Roles.OrderBy(r => r.Name).ToList();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            deleteError = ex.Message;
+            deleting = false;
+        }
+    }
+}

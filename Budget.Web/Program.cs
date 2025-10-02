@@ -87,6 +87,7 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
+// Add role services so RoleManager<T> can be injected
 builder.Services.AddIdentityCore<BudgetUser>(options => 
 {
     // Temporarily disable email confirmation requirement for easier testing
@@ -94,6 +95,7 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
     // Add this to disable passkey features
     options.Stores.ProtectPersonalData = false;
 })
+.AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<IdentityDBContext>()
 .AddSignInManager()
 .AddDefaultTokenProviders();

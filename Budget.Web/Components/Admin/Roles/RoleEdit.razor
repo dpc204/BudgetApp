@@ -1,0 +1,52 @@
+@page "/Admin/Roles/Edit/{Id}"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Identity
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager Nav
+
+<h1>Edit Role</h1>
+@if (role is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="model" OnValidSubmit="Save">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="mb-3">
+            <label>Name</label>
+            <InputText class="form-control" @bind-Value="model.Name" />
+        </div>
+        <button class="btn btn-primary" type="submit">Save</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick='() => Nav.NavigateTo("/Admin/Roles")'>Back</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+    private IdentityRole? role;
+    private RoleModel model = new();
+
+    private sealed class RoleModel { public string Name { get; set; } = string.Empty; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        role = await RoleManager.FindByIdAsync(Id);
+        if (role != null)
+        {
+            model.Name = role.Name ?? string.Empty;
+        }
+    }
+
+    private async Task Save()
+    {
+        if (role is null) return;
+        if (!string.Equals(role.Name, model.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            role.Name = model.Name;
+            await RoleManager.UpdateAsync(role);
+        }
+        Nav.NavigateTo("/Admin/Roles");
+    }
+}

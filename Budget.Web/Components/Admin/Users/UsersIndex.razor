@@ -1,0 +1,133 @@
+@page "/Admin/Users"
+@rendermode InteractiveServer
+@using Budget.Web.Data
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<BudgetUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager Nav
+
+<h1>Users</h1>
+@if (users is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <button class="btn btn-sm btn-primary mb-2" @onclick='() => Nav.NavigateTo("/Admin/Users/Create")'>Create User</button>
+    <table class="table table-sm">
+        <thead>
+            <tr><th>Email</th><th>Roles</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var u in users)
+        {
+            <tr>
+                <td>@u.Email</td>
+                <td>@string.Join(", ", userRoles.TryGetValue(u.Id, out var rs) ? rs : [])</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-secondary me-1" href="/Admin/Users/Edit/@u.Id">Edit</a>
+                    <button class="btn btn-sm btn-danger" @onclick="() => PromptDelete(u)">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+ 
+
+@if (showDelete && deleteTarget is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete User</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(deleteError))
+                    {
+                        <div class="alert alert-danger py-1">@deleteError</div>
+                    }
+                    <p>Are you sure you want to delete user <strong>@deleteTarget.Email</strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button class="btn btn-danger" disabled="@deleting" @onclick="ConfirmDelete">@(deleting ? "Deleting..." : "Delete")</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<BudgetUser>? users;
+    private readonly Dictionary<string, List<string>> userRoles = new();
+
+    private bool showDelete;
+    private BudgetUser? deleteTarget;
+    private bool deleting;
+    private string? deleteError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        users = UserManager.Users.ToList();
+        userRoles.Clear();
+        foreach (var u in users)
+        {
+            userRoles[u.Id] = new List<string>(await UserManager.GetRolesAsync(u));
+        }
+    }
+
+    private void PromptDelete(BudgetUser u)
+    {
+        deleteTarget = u;
+        deleteError = null;
+        showDelete = true;
+    }
+
+    private void CloseModal()
+    {
+        showDelete = false;
+        deleteTarget = null;
+        deleting = false;
+        deleteError = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (deleteTarget is null) return;
+        deleting = true;
+        deleteError = null;
+        try
+        {
+            // Remove from roles first (optional but explicit)
+            var roles = await UserManager.GetRolesAsync(deleteTarget);
+            if (roles.Count > 0)
+            {
+                await UserManager.RemoveFromRolesAsync(deleteTarget, roles);
+            }
+            var result = await UserManager.DeleteAsync(deleteTarget);
+            if (!result.Succeeded)
+            {
+                deleteError = string.Join("; ", result.Errors.Select(e => e.Description));
+                deleting = false;
+                return;
+            }
+            CloseModal();
+            await LoadAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            deleteError = ex.Message;
+            deleting = false;
+        }
+    }
+}

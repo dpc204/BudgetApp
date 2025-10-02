@@ -1,0 +1,115 @@
+@page "/Admin/Users/Create"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Budget.Web.Data
+@inject UserManager<BudgetUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager Nav
+
+<h1>Create User</h1>
+<StatusMessage Message="@errorMessage" />
+<EditForm Model="model" OnValidSubmit="CreateUser">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="model.Email" />
+        <ValidationMessage For="() => model.Email" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <InputText type="password" class="form-control" @bind-Value="model.Password" />
+        <ValidationMessage For="() => model.Password" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <InputText type="password" class="form-control" @bind-Value="model.ConfirmPassword" />
+        <ValidationMessage For="() => model.ConfirmPassword" />
+    </div>
+    <fieldset class="mb-3">
+        <legend class="h6">Assign Roles</legend>
+        @foreach (var r in allRoles)
+        {
+            var selected = model.Roles.Contains(r);
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" checked="@selected" @onchange="e => ToggleRole(r, (bool)e.Value!)" />
+                <label class="form-check-label">@r</label>
+            </div>
+        }
+        @if (allRoles.Count == 0)
+        {
+            <div class="text-muted">No roles defined yet.</div>
+        }
+    </fieldset>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <button type="button" class="btn btn-secondary ms-2" @onclick='() => Nav.NavigateTo("/Admin/Users")'>Cancel</button>
+</EditForm>
+
+@code {
+    private CreateModel model = new();
+    private List<string> allRoles = new();
+    private string? errorMessage;
+
+    private sealed class CreateModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        public HashSet<string> Roles { get; set; } = new();
+    }
+
+    protected override void OnInitialized()
+    {
+        allRoles = RoleManager.Roles.Select(r => r.Name!).OrderBy(n => n).ToList();
+    }
+
+    private void ToggleRole(string role, bool add)
+    {
+        if (add) model.Roles.Add(role); else model.Roles.Remove(role);
+    }
+
+    private async Task CreateUser()
+    {
+        errorMessage = null;
+        if (!string.Equals(model.Password, model.ConfirmPassword, StringComparison.Ordinal))
+        {
+            errorMessage = "Error: Passwords do not match.";
+            return;
+        }
+        var existing = await UserManager.FindByEmailAsync(model.Email);
+        if (existing != null)
+        {
+            errorMessage = "Error: A user with that email already exists.";
+            return;
+        }
+
+        var user = new BudgetUser { UserName = model.Email, Email = model.Email, EmailConfirmed = true };
+        var createResult = await UserManager.CreateAsync(user, model.Password);
+        if (!createResult.Succeeded)
+        {
+            errorMessage = "Error: " + string.Join(", ", createResult.Errors.Select(e => e.Description));
+            return;
+        }
+
+        if (model.Roles.Count > 0)
+        {
+            var roleResult = await UserManager.AddToRolesAsync(user, model.Roles.ToList());
+            if (!roleResult.Succeeded)
+            {
+                errorMessage = "User created but adding roles failed: " + string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                return;
+            }
+        }
+
+        Nav.NavigateTo("/Admin/Users");
+    }
+}
