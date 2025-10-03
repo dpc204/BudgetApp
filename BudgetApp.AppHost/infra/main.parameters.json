@@ -1,16 +1,25 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "principalId": {
-        "value": "${AZURE_PRINCIPAL_ID}"
-      },
-      "environmentName": {
-        "value": "${AZURE_ENV_NAME}"
-      },
-      "location": {
-        "value": "${AZURE_LOCATION}"
-      }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "prod" },
+    "location": { "value": "eastus" },
+    "containerAppName": { "value": "budget" },
+    "containerImage": { "value": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" },
+    "containerMemory": { "value": "2Gi" },
+    "customDomainBindings": {
+      "value": [
+        {
+          "host": "www.fantum.dev",
+          "certificateType": "managed",
+          "certificateName": "www-fantum-dev"
+        },
+        {
+          "host": "fantum.dev",
+          "certificateType": "managed",
+          "certificateName": "fantum-dev"
+        }
+      ]
     }
   }
-  
+}
