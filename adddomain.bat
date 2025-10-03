@@ -6,7 +6,7 @@ azd up
 set SCRIPT_DIR=%~dp0
 
 echo Executing hardcoded custom domain bindings...
-powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%infra\Bind-CustomDomains-Hardcoded.ps1"
+powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%\BudgetApp.AppHost\infra\Bind-CustomDomains-Hardcoded.ps1"
 if errorlevel 1 (
   echo Custom domain binding FAILED.
   exit /b 1
