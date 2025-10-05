@@ -4,15 +4,15 @@
 <SfDialog @ref="DialogRef" Width="640px" IsModal="true" ShowCloseIcon="true" Header="New Purchase" Visible="@Visible" CssClass="purchase-dialog" AllowDragging="false">
     <DialogTemplates>
         <Content>
-            <EditForm Model="_header" OnValidSubmit="HandleSaveAsync">
+            <EditForm EditContext="_editContext">
                 <DataAnnotationsValidator />
                 <div class="row g-2 mb-2 align-items-end">
                     <div class="col-md-5">
-                        <SfTextBox Placeholder="Vendor *" @bind-Value="_header.Vendor" FloatLabelType="FloatLabelType.Always"></SfTextBox>
+                        <SfTextBox Placeholder="Vendor *" @bind-Value="_header.Vendor" FloatLabelType="FloatLabelType.Always" Input="OnFieldChanged"></SfTextBox>
                         <ValidationMessage For="() => _header.Vendor" />
                     </div>
                     <div class="col-md-3">
-                        <SfDatePicker @bind-Value="_header.Date" Max="@DateTime.Today" FloatLabelType="FloatLabelType.Always" Placeholder="Date" ></SfDatePicker>
+                        <SfDatePicker @bind-Value="_header.Date" Max="@DateTime.Today" FloatLabelType="FloatLabelType.Always" Placeholder="Date" Change="OnDateChanged"></SfDatePicker>
                         <ValidationMessage For="() => _header.Date" />
                     </div>
                     <div class="col-md-2">
@@ -20,8 +20,7 @@
                         <div class="fw-bold">@_header.TotalAmount.ToString("C")</div>
                     </div>
                     <div class="col-md-2 text-end">
-                        <button type="button" class="btn btn-sm btn-secondary me-1" @onclick="AddLine" disabled="@(!Envelopes.Any())">Add Line</button>
-                        <button type="submit" class="btn btn-sm btn-primary" disabled="@(!_lines.Any())">Save</button>
+                        <!-- Save button moved to dialog footer -->
                     </div>
                 </div>
 
@@ -32,7 +31,7 @@
                             <th style="width:200px;">Envelope</th>
                             <th style="width:110px;">Amount</th>
                             <th>Note</th>
-                            <th style="width:60px;"></th>
+                            <th style="width:90px;"></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -51,8 +50,30 @@
                                 <td>
                                     <SfTextBox @bind-Value="line.Note" Placeholder="Note (optional)" Input="OnLineChanged"></SfTextBox>
                                 </td>
-                                <td class="text-end">
-                                    <button type="button" class="btn btn-outline-danger btn-sm" title="Delete" @onclick="() => DeleteLine(line)">?</button>
+                                <td class="text-end d-flex gap-1 justify-content-end">
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center"
+                                            style="width:30px;height:30px;"
+                                            title="Add Line"
+                                            @onclick="AddLine">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M8 1a.75.75 0 0 1 .75.75v5.5h5.5a.75.75 0 0 1 0 1.5h-5.5v5.5a.75.75 0 0 1-1.5 0v-5.5h-5.5a.75.75 0 0 1 0-1.5h5.5v-5.5A.75.75 0 0 1 8 1Z" />
+                                        </svg>
+                                        <span class="visually-hidden">Add Line</span>
+                                    </button>
+                                    @if (_lines.Count > 1)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center"
+                                                style="width:30px;height:30px;"
+                                                title="Remove Line"
+                                                @onclick="() => DeleteLine(line)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+                                                <path d="M2 8a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 8Z" />
+                                            </svg>
+                                            <span class="visually-hidden">Remove Line</span>
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -60,15 +81,18 @@
                     </table>
                     @if (!_lines.Any())
                     {
-                        <div class="text-muted fst-italic">No line items. Click Add Line to begin.</div>
+                        <div class="text-muted fst-italic">No line items. Click + to begin.</div>
                     }
                 </div>
             </EditForm>
         </Content>
+        <FooterTemplate>
+            <div class="d-flex justify-content-end gap-2 w-100">
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="Cancel">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" disabled="@IsSaveDisabled" @onclick="SaveFromFooter">Save</button>
+            </div>
+        </FooterTemplate>
     </DialogTemplates>
-    <DialogButtons>
-        <DialogButton Content="Cancel" OnClick="Cancel"/>
-    </DialogButtons>
 </SfDialog>
 
 @code {
@@ -81,8 +105,16 @@
     private SfDialog? DialogRef;
 
     private PurchaseHeader _header = new();
+    private EditContext _editContext = default!;
     private readonly List<PurchaseLine> _lines = new();
     private List<EnvelopeDto> Envelopes = new();
+
+    private bool IsSaveDisabled =>
+        string.IsNullOrWhiteSpace(_header.Vendor) ||
+        _header.Vendor.Length > 100 ||
+        _header.Date.Date > DateTime.Today ||
+        !_lines.Any() ||
+        _lines.Any(l => l.Amount < 0);
 
     [Inject] private IBudgetApiClient Api { get; set; } = default!;
 
@@ -93,6 +125,11 @@
             if (!Envelopes.Any())
             {
                 Envelopes = await Api.GetEnvelopesAsync();
+            }
+            if (_editContext is null || _editContext.Model != _header)
+            {
+                _editContext = new EditContext(_header);
+                _editContext.OnFieldChanged += (_, __) => StateHasChanged();
             }
             if (!_lines.Any())
             {
@@ -114,7 +151,20 @@
         Recalc();
     }
 
-    private void OnLineChanged(object? _) => Recalc();
+    private void OnLineChanged(object? _)
+    {
+        Recalc();
+    }
+
+    private void OnFieldChanged(object? _)
+    {
+        StateHasChanged();
+    }
+
+    private void OnDateChanged(ChangedEventArgs<DateTime?> _)
+    {
+        StateHasChanged();
+    }
 
     private void Recalc()
     {
@@ -122,11 +172,16 @@
         StateHasChanged();
     }
 
+    private async Task SaveFromFooter()
+    {
+        if (_editContext is not null && !_editContext.Validate())
+            return;
+        await HandleSaveAsync();
+    }
+
     private async Task HandleSaveAsync()
     {
-        if (_header.Date.Date > DateTime.Today) return; // future date not allowed
-        if (string.IsNullOrWhiteSpace(_header.Vendor) || _header.Vendor.Length > 100) return;
-        if (!_lines.Any() || _lines.Any(l => l.Amount < 0)) return;
+        if (IsSaveDisabled) return;
 
         var result = new PurchaseTransactionResult
         {
@@ -156,6 +211,8 @@
     {
         _lines.Clear();
         _header = new PurchaseHeader();
+        _editContext = new EditContext(_header);
+        _editContext.OnFieldChanged += (_, __) => StateHasChanged();
         await VisibleChanged.InvokeAsync(false);
     }
 
