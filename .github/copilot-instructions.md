@@ -5,12 +5,14 @@ Architecture priorities:
 - Use component parameters, not cascading values, unless state truly cross-cuts.
 - Prefer `@key` when rendering dynamic lists.
 - Favor `IJSRuntime` abstractions for browser interop; avoid direct DOM assumptions.
+- Your task is not complete until the solution builds cleanly
 
 Coding conventions:
 - File-scoped namespaces.
 - Async suffix on async methods.
 - Use `CancellationToken` in public async APIs.
 - Always use code-behind for .razor pages
+- All using directives should be in the _imports.razor file.
 
 Testing:
 - BUnit for component tests.

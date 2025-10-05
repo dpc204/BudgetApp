@@ -11,10 +11,11 @@ namespace Budget.DB
   {
     public int Id { get; set; }
     public DateTime Date { get; set; }
-    public string Description { get; set; } = string.Empty;
+    public string Vendor { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public int UserId { get; set; }
     public User User { get; set; } = null!;
+    
     public decimal BalanceAfterTransaction { get; set; }
     public List<TransactionDetail> Details { get; set; } = [];
 
@@ -22,7 +23,7 @@ namespace Budget.DB
     {
       public void Configure(EntityTypeBuilder<Transaction> entity)
       {
-        entity.Property(t => t.Description)
+        entity.Property(t => t.Vendor)
           .HasMaxLength(200);
         entity.Property(t => t.UserId)
           .HasMaxLength(50);
@@ -32,11 +33,11 @@ namespace Budget.DB
           .HasPrecision(18, 2);
 
         entity.HasData(
-          new Transaction { Id = 1, Date = new DateTime(2023, 1, 1), Description = "Giant", TotalAmount = 104.00m, UserId = 1 },
-          new Transaction { Id = 2, Date = new DateTime(2023, 1, 1), Description = "Bonefish", TotalAmount = 48m, UserId = 1 },
-          new Transaction { Id = 3, Date = new DateTime(2023, 1, 2), Description = "Gas", TotalAmount = 12.50m, UserId = 1 },
-          new Transaction { Id = 4, Date = new DateTime(2023, 1, 3), Description = "Home Depot", TotalAmount = 30.00m, UserId = 2 },
-          new Transaction { Id = 5, Date = new DateTime(2023, 1, 3), Description = "CVS", TotalAmount = 32.00m, UserId = 2 }
+          new Transaction { Id = 1, Date = new DateTime(2023, 1, 1), Vendor = "Giant", TotalAmount = 104.00m, UserId = 1 },
+          new Transaction { Id = 2, Date = new DateTime(2023, 1, 1), Vendor = "Bonefish", TotalAmount = 48m, UserId = 1 },
+          new Transaction { Id = 3, Date = new DateTime(2023, 1, 2), Vendor = "Gas", TotalAmount = 12.50m, UserId = 1 },
+          new Transaction { Id = 4, Date = new DateTime(2023, 1, 3), Vendor = "Home Depot", TotalAmount = 30.00m, UserId = 2 },
+          new Transaction { Id = 5, Date = new DateTime(2023, 1, 3), Vendor = "CVS", TotalAmount = 32.00m, UserId = 2 }
         );
       }
     }
@@ -63,7 +64,7 @@ namespace Budget.DB
           .HasPrecision(18, 2);
 
         entity.HasData(
-          new TransactionDetail { TransactionId = 1,LineId = 1, Amount = 52m,    EnvelopeId = 2, Notes = "Yasso" },
+          new TransactionDetail { TransactionId = 1,LineId = 1, Amount = 52m,    EnvelopeId = 2, Notes = "Yasso"},
           new TransactionDetail { TransactionId = 1,LineId = 2, Amount = 52m,    EnvelopeId = 6, Notes = "Cough supresent" },
           new TransactionDetail { TransactionId = 2,LineId = 1, Amount = 48m,    EnvelopeId = 1, Notes = "din din" },
           new TransactionDetail { TransactionId = 3,LineId = 1, Amount = 10m,    EnvelopeId = 3 },

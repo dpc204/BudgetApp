@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.Envelopes;
 
+
 public static class GetAll
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
@@ -34,4 +35,6 @@ public static class GetAll
   }
 }
 
-     
+
+
+

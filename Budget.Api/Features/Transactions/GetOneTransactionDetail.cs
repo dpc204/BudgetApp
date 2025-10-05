@@ -36,7 +36,6 @@ public static class GetOneTransactionDetail
         {
           Id = t.Id,
           Date = t.Date,
-          Description = t.Description,
           TotalAmount = t.TotalAmount,
           UserInitials = (t.User.FirstName.Substring(0,1) + t.User.LastName.Substring(0,1)),
           BalanceAfterTransaction = t.BalanceAfterTransaction,
