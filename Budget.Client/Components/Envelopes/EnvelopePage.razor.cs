@@ -2,11 +2,15 @@ using Budget.Shared.Models;
 using Budget.Shared.Services;
 using Microsoft.AspNetCore.Components;
 using Syncfusion.Blazor.Grids;
+using Budget.Client.Components.Transactions;
 
 namespace Budget.Client.Components.Envelopes;
 
-public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : ComponentBase
+public partial class EnvelopePage : ComponentBase
 {
+  [Inject] private EnvelopeState State { get; set; } = default!;
+  [Inject] private IBudgetApiClient Api { get; set; } = default!;
+
   public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
   public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
   public List<TransactionDto>? TransactionData { get; set; } = [];
@@ -15,10 +19,8 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
   private TransactionDto? SelectedTransaction { get; set; }
   private OneTransactionDetail? SelectedTransactionDetail { get; set; }
 
-  protected  override  void OnInitialized()
-  {
-   
-  }
+  private bool ShowPurchaseDialog { get; set; }
+  private int InitialEnvelopeIdForNew { get; set; }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -56,7 +58,6 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
     SelectedCategoryId = selected;
     ApplySelection();
     await State.SaveAsync();
-    Console.WriteLine($"Value: {value}");
   }
 
   private async Task RecordDoubleClickHandler(RecordDoubleClickEventArgs<TransactionDto> args)
@@ -67,7 +68,7 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
     ShowTransactionDialog = true;
     StateHasChanged();
 
-    SelectedTransactionDetail = await api.GetOneTransactionDetailAsync(args.RowData.TransactionId);
+    SelectedTransactionDetail = await Api.GetOneTransactionDetailAsync(args.RowData.TransactionId);
     StateHasChanged();
   }
 
@@ -76,14 +77,10 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
     if (args?.Data is null)
       return;
 
-    var rslt = await api.GetTransactionsByEnvelopeAsync(args.Data.EnvelopeId);
+    var rslt = await Api.GetTransactionsByEnvelopeAsync(args.Data.EnvelopeId);
     TransactionData = rslt.ToList();
+    InitialEnvelopeIdForNew = args.Data.EnvelopeId; // track for new transaction default
     StateHasChanged();
-  }
-
-  private void CloseTransactionDialog(Microsoft.AspNetCore.Components.Web.MouseEventArgs _)
-  {
-    ShowTransactionDialog = false;
   }
 
   private void OnShowTransactionDialogChanged(bool value)
@@ -92,15 +89,34 @@ public partial class EnvelopePage(EnvelopeState State, IBudgetApiClient api) : C
     StateHasChanged();
   }
 
-  private Task RecordClickHandler(RecordClickEventArgs<TransactionDto> args)
+  private void NewTransaction(int envelopeId)
   {
-    Console.WriteLine($"Record clicked: {args?.RowData?.Description}");
+    InitialEnvelopeIdForNew = envelopeId;
+    ShowPurchaseDialog = true;
+    StateHasChanged();
+  }
+
+  private void OnPurchaseDialogVisibleChanged(bool value)
+  {
+    ShowPurchaseDialog = value;
+    StateHasChanged();
+  }
+
+  private Task HandlePurchaseSaved(PurchaseTransactionDialog.PurchaseTransactionResult result)
+  {
+    _ = RefreshTransactionsAsync();
     return Task.CompletedTask;
   }
 
-  private Task GridFailure(FailureEventArgs args)
+  private Task HandlePurchaseCancelled() => Task.CompletedTask;
+
+  private async Task RefreshTransactionsAsync()
   {
-    Console.Error.WriteLine($"Grid failure: {args?.Error?.Message}");
-    return Task.CompletedTask;
+    if (InitialEnvelopeIdForNew > 0)
+    {
+      var list = await Api.GetTransactionsByEnvelopeAsync(InitialEnvelopeIdForNew);
+      TransactionData = list.ToList();
+      StateHasChanged();
+    }
   }
 }

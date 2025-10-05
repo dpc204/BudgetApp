@@ -21,10 +21,23 @@
     </div>
     <p/>
     <div class="row">
-	    <SfGrid TItem="EnvelopeResult" AllowEditing="false" DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Order Details Table">
+	    <SfGrid TItem="EnvelopeResult" AllowEditing="false" DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Envelopes Table">
 		    <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single"></GridSelectionSettings>
 		    <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler"/>
 		    <GridColumns>
+            <GridColumn HeaderText="" Width="50" TextAlign="TextAlign.Center" AllowEditing="false" AllowSorting="false">
+              <Template>
+                @if (context is EnvelopeResult er)
+                {
+                  <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center" style="width:30px;height:30px;" title="New Transaction" @onclick="() => NewTransaction(er.EnvelopeId)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+                      <path d="M8 1a.75.75 0 0 1 .75.75v5.5h5.5a.75.75 0 0 1 0 1.5h-5.5v5.5a.75.75 0 0 1-1.5 0v-5.5h-5.5a.75.75 0 0 1 0-1.5h5.5v-5.5A.75.75 0 0 1 8 1Z" />
+                    </svg>
+                    <span class="visually-hidden">New Transaction</span>
+                  </button>
+                }
+              </Template>
+            </GridColumn>
 			    <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130" AllowEditing="false"></GridColumn>
 			    <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
 			    <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
@@ -46,3 +59,9 @@
 </div>
 
 <ShowOneTransaction Transaction="@SelectedTransactionDetail" Visible="@ShowTransactionDialog" VisibleChanged="@OnShowTransactionDialogChanged" />
+
+<PurchaseTransactionDialog Visible="@ShowPurchaseDialog"
+                           VisibleChanged="OnPurchaseDialogVisibleChanged"
+                           InitialEnvelopeId="@InitialEnvelopeIdForNew"
+                           OnSaved="HandlePurchaseSaved"
+                           OnCancelled="HandlePurchaseCancelled" />
