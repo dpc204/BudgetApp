@@ -1,5 +1,5 @@
 @page "/envelopes"
-@rendermode InteractiveServer
+@rendermode InteractiveWebAssembly
 @using Budget.Shared
 @using Syncfusion.Blazor.Grids
 @using Syncfusion.Blazor
@@ -9,22 +9,32 @@
 @using Budget.Shared.Services
 
 <h1>Envelopes!</h1>
-<div class="col-lg-12 control-section">
-  <div class="content-wrapper" >
-	  <div class="col-lg-8 control-section sb-property-border">
-      <div class="control-wrapper">
-        <label class="example-label">Choose Category</label>
-        <SfDropDownList TItem="Cat" TValue="int?" PopupHeight="230px" Value="@SelectedCategoryId" ValueChanged="@CatChanged" DataSource="@Cats" >
-          <DropDownListFieldSettings Text="CategoryName" Value="CategoryId" />
-        </SfDropDownList>
+@if (_loading)
+{
+  <p><em>Loading envelopes...</em></p>
+}
+else if (!string.IsNullOrEmpty(_loadError))
+{
+  <div class="alert alert-danger">Failed to load: @_loadError</div>
+}
+else
+{
+  <div class="col-lg-12 control-section">
+    <div class="content-wrapper" >
+	    <div class="col-lg-8 control-section sb-property-border">
+        <div class="control-wrapper">
+          <label class="example-label">Choose Category</label>
+          <SfDropDownList TItem="Cat" TValue="int?" PopupHeight="230px" Value="@SelectedCategoryId" ValueChanged="@CatChanged" DataSource="@Cats" >
+            <DropDownListFieldSettings Text="CategoryName" Value="CategoryId" />
+          </SfDropDownList>
+        </div>
       </div>
-    </div>
-    <p/>
-    <div class="row">
-	    <SfGrid TItem="EnvelopeResult" AllowEditing="false" DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Envelopes Table">
-		    <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single"></GridSelectionSettings>
-		    <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler"/>
-		    <GridColumns>
+      <p/>
+      <div class="row">
+	      <SfGrid TItem="EnvelopeResult" AllowEditing="false" DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Envelopes Table">
+		      <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single"></GridSelectionSettings>
+		      <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler"/>
+		      <GridColumns>
             <GridColumn HeaderText="" Width="50" TextAlign="TextAlign.Center" AllowEditing="false" AllowSorting="false">
               <Template>
                 @if (context is EnvelopeResult er)
@@ -38,25 +48,26 @@
                 }
               </Template>
             </GridColumn>
-			    <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130" AllowEditing="false"></GridColumn>
-			    <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
-			    <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
-		    </GridColumns>
-	    </SfGrid>
-    </div>
-    <div class="row">
-	    <SfGrid TItem="TransactionDto" AllowEditing="false" DataSource="@TransactionData" AllowPaging="true" aria-label="Order Details Table">
-		    <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single" ></GridSelectionSettings>
-		    <GridEvents TValue="TransactionDto" OnRecordDoubleClick="RecordDoubleClickHandler"/>
-		    <GridColumns>
-			    <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
-			    <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
-			    <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
-		    </GridColumns>
-	    </SfGrid>
+			      <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130" AllowEditing="false"></GridColumn>
+			      <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+			      <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
+		      </GridColumns>
+	      </SfGrid>
+      </div>
+      <div class="row mt-3">
+	      <SfGrid TItem="TransactionDto" AllowEditing="false" DataSource="@TransactionData" AllowPaging="true" aria-label="Order Details Table">
+		      <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single" ></GridSelectionSettings>
+		      <GridEvents TValue="TransactionDto" OnRecordDoubleClick="RecordDoubleClickHandler"/>
+		      <GridColumns>
+			      <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
+			      <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
+			      <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
+		      </GridColumns>
+	      </SfGrid>
+      </div>
     </div>
   </div>
-</div>
+}
 
 <ShowOneTransaction Transaction="@SelectedTransactionDetail" Visible="@ShowTransactionDialog" VisibleChanged="@OnShowTransactionDialogChanged" />
 

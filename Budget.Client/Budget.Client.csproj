@@ -1,13 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-    <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+	<PropertyGroup>
+		<WasmFingerprintUrls >false</WasmFingerprintUrls>
+		<!--<WasmFingerprintUrls Condition="'$(Configuration)' == 'Debug'">false</WasmFingerprintUrls>-->
+	</PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Components\EnvelopePagesCRUD\**" />
@@ -17,12 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Syncfusion.Blazor" Version="31.1.21" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.21" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.0-rc.1.25451.107" />
   </ItemGroup>
 
   <ItemGroup>

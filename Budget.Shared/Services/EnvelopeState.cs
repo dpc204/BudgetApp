@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Budget.Shared.Services;
 
-// Client-side version using API client + localStorage
+// Client-side version using API client + localStorage (deferred until after first interactive render)
 public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<EnvelopeState> logger)
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
@@ -21,11 +21,22 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
   public int? SelectedCategoryId { get; set; } = 0;
 
   public bool IsLoaded => AllEnvelopeData != null;
+  private bool _cacheAttempted; // ensures we only try localStorage once after interactive render
 
+  // Call as early as possible (OnInitializedAsync) – performs ONLY server/API work (no JS)
   public async Task EnsureLoadedAsync()
   {
     if (IsLoaded)
       return;
+    await RefreshAsync(); // API fetch only; caching happens later
+  }
+
+  // Invoke from a component's OnAfterRenderAsync(firstRender) to hydrate from localStorage once JS is available.
+  public async Task TryLoadFromCacheAsync()
+  {
+    if (_cacheAttempted)
+      return;
+    _cacheAttempted = true;
 
     try
     {
@@ -36,19 +47,17 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
         if (snapshot is not null && snapshot.AllEnvelopeData is not null)
         {
           AllEnvelopeData = snapshot.AllEnvelopeData;
-          Cats = snapshot.Cats ?? [];
+          Cats = snapshot.Cats ?? Cats;
           SelectedCategoryId = snapshot.SelectedCategoryId;
-          return; // defer to refresh later
+          return; // do not immediately re-save; SaveAsync guarded
         }
       }
     }
     catch (Exception ex)
     {
-      _logger.LogWarning(ex, "Failed loading cached EnvelopeState from localStorage key {StorageKey}", StorageKey);
-      // continue to refresh
+      // Swallow – may still be prerendering or JS not yet ready; we'll rely on RefreshAsync data.
+      _logger.LogDebug(ex, "Skipping cache load (JS not ready or failed).");
     }
-
-    await RefreshAsync();
   }
 
   public async Task RefreshAsync()
@@ -89,6 +98,10 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
 
   public async Task SaveAsync()
   {
+    // Only persist to localStorage after we've attempted cache load (i.e., interactive render occurred)
+    if (!_cacheAttempted)
+      return;
+
     try
     {
       var snapshot = new StateSnapshot
@@ -100,20 +113,14 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
       var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
       await js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
     }
-    catch (TaskCanceledException ex)
+    catch (Exception ex) when (ex is InvalidOperationException or JSException)
     {
-      _logger.LogWarning(ex, "JS interop canceled saving EnvelopeState (likely circuit disposed) for key {StorageKey}", StorageKey);
-      throw;
-    }
-    catch (JSException ex)
-    {
-      _logger.LogError(ex, "JS exception saving EnvelopeState to localStorage key {StorageKey}", StorageKey);
-      throw;
+      // Ignore – typically occurs if called just before JS is fully ready; non-fatal.
+      _logger.LogDebug(ex, "Skipping localStorage save (JS unavailable).");
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Unexpected error saving EnvelopeState to localStorage key {StorageKey}", StorageKey);
-      throw;
+      _logger.LogWarning(ex, "Unexpected error saving EnvelopeState to localStorage key {StorageKey}", StorageKey);
     }
   }
 

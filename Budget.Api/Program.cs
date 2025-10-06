@@ -21,6 +21,14 @@ builder.AddServiceDefaults();
 builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
+// Add HTTP logging services
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
+    logging.RequestBodyLogLimit = 4096;
+    logging.ResponseBodyLogLimit = 4096;
+});
+
 builder.Services.AddOpenApi();
 builder.Services.AddCarter();
 
@@ -103,8 +111,10 @@ using (var scope = app.Services.CreateScope())
     services.GetRequiredService<BudgetContext>().Database.EnsureCreated();
 }
 
+// Add HTTP request logging (logs all incoming requests)
 if (app.Environment.IsDevelopment())
 {
+    app.UseHttpLogging();
     app.MapOpenApi();
     app.MapScalarApiReference(options =>
       options.WithTheme(ScalarTheme.DeepSpace)

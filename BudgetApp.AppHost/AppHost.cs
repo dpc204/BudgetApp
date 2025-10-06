@@ -11,4 +11,5 @@ var web = builder.AddProject<Projects.Budget_Web>("budget")
                  .WithEnvironment("BUDGET_API_BASE_URL", api.GetEndpoint("https"))
                  .WithExternalHttpEndpoints();
 
+
 builder.Build().Run();
