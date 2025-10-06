@@ -11,5 +11,7 @@ var web = builder.AddProject<Projects.Budget_Web>("budget")
                  .WithEnvironment("BUDGET_API_BASE_URL", api.GetEndpoint("https"))
                  .WithExternalHttpEndpoints();
 
+// Configure API to allow CORS from the web app's origin
+api.WithEnvironment("ALLOWED_ORIGINS", web.GetEndpoint("https"));
 
 builder.Build().Run();

@@ -2,12 +2,28 @@ using System.Diagnostics;
 using Budget.Client;
 using Budget.Client.Services;
 using Budget.Shared.Services;
+using Budget.Shared.Models;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Syncfusion.Blazor;
+using System.Net.Http.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 Console.WriteLine($"Console Program running");
+
+// Fetch configuration from server
+var tempClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+ClientConfiguration? serverConfig = null;
+
+try
+{
+    serverConfig = await tempClient.GetFromJsonAsync<ClientConfiguration>("api/client-config");
+    Console.WriteLine($"Fetched server config - BUDGET_API_BASE_URL: {serverConfig?.BudgetApiBaseUrl}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Failed to fetch server config: {ex.Message}");
+}
 
 // Register EnvelopeState service
 builder.Services.AddScoped<EnvelopeState>();
@@ -15,13 +31,15 @@ builder.Services.AddScoped<EnvelopeState>();
 // Register HTTP logging handler
 builder.Services.AddTransient<LoggingHttpHandler>();
 
-var test = builder.Configuration["BUDGET_API_BASE_URL"];
 
-Console.WriteLine($"BUDGET_API_BASE_URL from config: {test}");
 
 // Register HttpClient for API calls with logging
-var apiBaseUrl = builder.Configuration["BUDGET_API_BASE_URL"] ?? builder.HostEnvironment.BaseAddress;
+// Priority: server config > appsettings.json > host base address
+var apiBaseUrl = serverConfig?.BudgetApiBaseUrl 
+                ?? builder.Configuration["BUDGET_API_BASE_URL"] 
+                ?? builder.HostEnvironment.BaseAddress;
 Console.WriteLine($"url:{apiBaseUrl}");
+
 
 
 

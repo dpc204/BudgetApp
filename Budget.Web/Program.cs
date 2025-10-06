@@ -9,6 +9,7 @@ using Budget.Web.Components.Account;
 using Budget.Web.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Budget.Shared.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -163,6 +164,21 @@ app.MapRazorComponents<App>()
   .AddAdditionalAssemblies(typeof(Budget.Client.RedirectToLogin).Assembly);
 
 app.MapAdditionalIdentityEndpoints();
+
+// Add configuration endpoint for WASM client
+app.MapGet("/api/client-config", (IConfiguration config) =>
+{
+    var apiBase = config["BUDGET_API_BASE_URL"]
+                 ?? config["ApiBaseUrl"]
+                 ?? config["Api:BaseUrl"]
+                 ?? config["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
+                 ?? "https://localhost:5001";
+
+    return Results.Ok(new ClientConfiguration
+    {
+        BudgetApiBaseUrl = apiBase
+    });
+});
 
 app.Run();
 
