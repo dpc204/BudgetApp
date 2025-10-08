@@ -4,6 +4,9 @@
         NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <Authorizing>
+                <p>Authorizing...</p>
+            </Authorizing>
             <NotAuthorized>
                 <Budget.Web.Components.Account.Shared.RedirectToLogin />
             </NotAuthorized>
