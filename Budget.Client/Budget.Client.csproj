@@ -10,7 +10,7 @@
   </PropertyGroup>
 
 	<PropertyGroup>
-		<WasmFingerprintUrls >false</WasmFingerprintUrls>
+		<WasmFingerprintUrls>false</WasmFingerprintUrls>
 		<!--<WasmFingerprintUrls Condition="'$(Configuration)' == 'Debug'">false</WasmFingerprintUrls>-->
 	</PropertyGroup>
 
@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="8.13.0" />
     <PackageReference Include="Syncfusion.Blazor" Version="31.1.21" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.21" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-rc.1.25451.107" />

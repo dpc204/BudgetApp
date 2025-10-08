@@ -36,6 +36,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.0-rc.1.25458.5" />
+    <PackageReference Include="MudBlazor" Version="8.13.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Syncfusion.Blazor" Version="31.1.21" />

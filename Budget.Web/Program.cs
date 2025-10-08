@@ -1,15 +1,16 @@
 ﻿using Azure.Identity;
 using Budget.DB;
-using Budget.Web.Components;
-using Microsoft.EntityFrameworkCore;
-using Syncfusion.Blazor;
 using Budget.Shared;
+using Budget.Shared.Models;
 using Budget.Shared.Services;
+using Budget.Web.Components;
 using Budget.Web.Components.Account;
 using Budget.Web.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Budget.Shared.Models;
+using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
+using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,7 +103,7 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
-
+builder.Services.AddMudServices();
 var app = builder.Build();
 
 // Initialize ServiceAccessor with built service provider for parameterless constructors
