@@ -48,6 +48,7 @@ builder.Services.AddHttpClient<IBudgetMaintApiClient, Budget.Client.Services.Bud
 });
 
 builder.Services.AddScoped<EnvelopeState>();
+
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
   "Ngo9BigBOggjGyl/Vkd+XU9FcVRDX3xKf0x/TGpQb19xflBPallYVBYiSV9jS3tTf0VkW35ecHFcRGdeUk91Xg==");
 
