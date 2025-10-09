@@ -16,7 +16,6 @@
         "ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS": "true"
       },
       "dotnetRunMessages": true,
-      "launchBrowser": true,
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
       "applicationUrl": "https://localhost:7141"
     }

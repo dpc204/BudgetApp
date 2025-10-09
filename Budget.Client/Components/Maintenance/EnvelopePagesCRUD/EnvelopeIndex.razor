@@ -1,88 +1,49 @@
-@using Budget.Client.Components.Shared
 @using Budget.Shared.Models
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
+@inject IDialogService DialogService
 
-<h3>Envelopes</h3>
+<MudText Typo="Typo.h5" Class="mb-2">Envelopes</MudText>
 
 @if (_envelopes is null)
 {
-    <p><em>Loading...</em></p>
+    <MudProgressCircular Indeterminate="true" />
 }
 else
 {
-    <button class="btn btn-sm btn-primary" @onclick="ShowCreate">New</button>
-    <table class="table table-striped mt-2">
-        <thead>
-        <tr>
-            <th>Category</th>
-            <th>Name</th>
-            <th>Budget</th>
-            <th>Balance</th>
-            <th>Description</th>
-            <th>Sort</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var e in _envelopes)
-        {
-            <tr>
-                <td>@GetCategoryName(e.CategoryId)</td>
-                <td>@e.Name</td>
-                <td>@e.Budget</td>
-                <td>@e.Balance</td>
-                <td>@e.Description</td>
-                <td>@e.SortOrder</td>
-                <td>
-                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => BeginEdit(e.Id)">Edit</button>
-                    <button class="btn btn-sm btn-info me-1" @onclick="() => ViewDetails(e.Id)">Details</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => BeginDelete(e.Id)">Delete</button>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
+    <MudTable Items="_envelopes" Hover="true" Dense="true" Class="mt-2" Elevation="0">
+        <HeaderContent>
+            <MudTh>Category</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Budget</MudTh>
+            <MudTh>Balance</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Sort</MudTh>
+            <MudTh style="width:240px;"></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Category">@GetCategoryName(context.CategoryId)</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Budget">@context.Budget</MudTd>
+            <MudTd DataLabel="Balance">@context.Balance</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
+            <MudTd Class="d-flex gap-1 justify-end">
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.Id)">Details</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.Id)">Delete</MudButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Class="pa-4" Color="Color.Secondary">No envelopes</MudText>
+        </NoRecordsContent>
+    </MudTable>
 }
-
-<ModalDialog Title="Create Envelope" @bind-Visible="_showCreate">
-    @if (_showCreate)
-    {
-        <EnvelopeCreate OnCreated="HandleCreated" OnCancel="CloseDialogs" />
-    }
-</ModalDialog>
-
-<ModalDialog Title="Edit Envelope" @bind-Visible="_showEdit">
-    @if (_showEdit && _editId.HasValue)
-    {
-        <EnvelopeEdit Id="_editId.Value" OnSaved="HandleSaved" OnCancel="CloseDialogs" />
-    }
-</ModalDialog>
-
-<ModalDialog Title="Envelope Details" @bind-Visible="_showDetails">
-    @if (_showDetails && _detailsId.HasValue)
-    {
-        <EnvelopeDetails Id="_detailsId.Value" OnClose="CloseDialogs" />
-    }
-</ModalDialog>
-
-<ModalDialog Title="Delete Envelope" @bind-Visible="_showDelete" CssClass="modal-danger">
-    @if (_showDelete && _deleteId.HasValue)
-    {
-        <EnvelopeDelete Id="_deleteId.Value" OnDeleted="HandleDeleted" OnCancel="CloseDialogs" />
-    }
-</ModalDialog>
 
 @code {
     private List<EnvelopeDto>? _envelopes;
     private Dictionary<int,string> _categoryLookup = new();
-    private bool _showCreate;
-    private bool _showEdit;
-    private bool _showDetails;
-    private bool _showDelete;
-    private int? _editId;
-    private int? _detailsId;
-    private int? _deleteId;
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
 
@@ -90,30 +51,44 @@ else
     {
         var categories = await MaintApi.GetCategoriesAsync();
         _categoryLookup = categories.ToDictionary(c => c.Id, c => c.Name);
-        _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).ToList();
+        _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
     }
 
     private string GetCategoryName(int id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
 
-    private void ShowCreate() => _showCreate = true;
-    private void BeginEdit(int id) { _editId = id; _showEdit = true; }
-    private void ViewDetails(int id) { _detailsId = id; _showDetails = true; }
-    private void BeginDelete(int id) { _deleteId = id; _showDelete = true; }
-
-    private async Task HandleCreated(EnvelopeDto _) => await ReloadAndClose();
-    private async Task HandleSaved(EnvelopeDto _) => await ReloadAndClose();
-    private async Task HandleDeleted(int _) => await ReloadAndClose();
-
-    private async Task ReloadAndClose()
+    private async Task ShowCreate()
     {
-        CloseDialogs();
-        await LoadAsync();
-        StateHasChanged();
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var dialogRef = await DialogService.ShowAsync<EnvelopeCreate>("Create Envelope", options);
+        var result = await dialogRef.Result;
+        if (!result.Canceled)
+            await LoadAsync();
     }
 
-    private void CloseDialogs()
+    private async Task BeginEdit(int id)
     {
-        _showCreate = _showEdit = _showDetails = _showDelete = false;
-        _editId = _detailsId = _deleteId = null;
+        var parameters = new DialogParameters { [nameof(EnvelopeEdit.Id)] = id };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var dialogRef = await DialogService.ShowAsync<EnvelopeEdit>("Edit Envelope", parameters, options);
+        var result = await dialogRef.Result;
+        if (!result.Canceled)
+            await LoadAsync();
+    }
+
+    private async Task ViewDetails(int id)
+    {
+        var parameters = new DialogParameters { [nameof(EnvelopeDetails.Id)] = id };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<EnvelopeDetails>("Envelope Details", parameters, options);
+    }
+
+    private async Task BeginDelete(int id)
+    {
+        var parameters = new DialogParameters { [nameof(EnvelopeDelete.Id)] = id };
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };
+        var dialogRef = await DialogService.ShowAsync<EnvelopeDelete>("Delete Envelope", parameters, options);
+        var result = await dialogRef.Result;
+        if (!result.Canceled)
+            await LoadAsync();
     }
 }
