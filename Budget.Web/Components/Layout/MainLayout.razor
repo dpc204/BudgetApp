@@ -10,13 +10,12 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Help" Color="Color.Inherit" Href="https://learn.microsoft.com/aspnet/core/" Target="_blank" />
-    </MudAppBar>
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />  </MudAppBar>
     
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
-        <MudDrawerHeader>
-            <MudText Typo="Typo.h6">Fantum Budget</MudText>
-        </MudDrawerHeader>
+       @*  <MudDrawerHeader>
+            <MudText Typo="Typo.h6">Fantum Budgetx</MudText>
+        </MudDrawerHeader> *@
         <NavMenuMud />
     </MudDrawer>
     
