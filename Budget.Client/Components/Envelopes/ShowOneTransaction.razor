@@ -6,32 +6,34 @@
 @if (Visible)
 {
   <SfDialog Visible="true" Width="480px" IsModal="true" ShowCloseIcon="true" Header="Transaction Details">
-    <DialogContent>
-      @if (Transaction is null)
-      {
-        <p>No transaction selected.</p>
-      }
-      else
-      {
-	      <ul class="list-unstyled">
+    <DialogTemplates>
+      <Content>
+        @if (Transaction is null)
+        {
+          <p>No transaction selected.</p>
+        }
+        else
+        {
+	        <ul class="list-unstyled">
 		      <li><strong>Transaction Id:</strong> @Transaction.Id</li>
 		      <li><strong>Line:</strong> @Transaction.UserInitials</li>
 		      <li><strong>Date:</strong> @Transaction.Date</li>
 		      <li><strong>Description:</strong> @Transaction.Description</li>
 		      <li><strong>Amount:</strong> @Transaction.TotalAmount</li>
-	      </ul>
-        <SfGrid TItem="TransactionDto" AllowPaging="false"  DataSource="@Transaction.Details" >
-        <GridColumns>
-	        <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="Syncfusion.Blazor.Grids.ColumnType.Integer" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left"></GridColumn>
-          <GridColumn Field=@nameof(TransactionDto.EnvelopeName) HeaderText="Envelope" Width="100" Type=ColumnType.String TextAlign=TextAlign.Left></GridColumn>
-	        <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="Syncfusion.Blazor.Grids.ColumnType.String" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left" Width="140"></GridColumn>
-	        <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="Syncfusion.Blazor.Grids.ColumnType.Decimal" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GridColumn>
-        </GridColumns>
-        </SfGrid>
-      }
-    </DialogContent>
-    <DialogButtons>
-      <DialogButton Content="Close" IsPrimary="true" OnClick="Close" />
-    </DialogButtons>
+	        </ul>
+          <SfGrid TItem="TransactionDto" AllowPaging="false"  DataSource="@Transaction.Details" >
+            <GridColumns>
+	          <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="Syncfusion.Blazor.Grids.ColumnType.Integer" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left"></GridColumn>
+            <GridColumn Field=@nameof(TransactionDto.EnvelopeName) HeaderText="Envelope" Width="100" Type=ColumnType.String TextAlign=TextAlign.Left></GridColumn>
+	          <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="Syncfusion.Blazor.Grids.ColumnType.String" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left" Width="140"></GridColumn>
+	          <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="Syncfusion.Blazor.Grids.ColumnType.Decimal" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GridColumn>
+            </GridColumns>
+          </SfGrid>
+        }
+      </Content>
+      <FooterTemplate>
+        <button class="btn btn-primary" @onclick="Close">Close</button>
+      </FooterTemplate>
+    </DialogTemplates>
   </SfDialog>
 }

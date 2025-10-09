@@ -1,5 +1,5 @@
 @page "/envelopes"
-@rendermode InteractiveWebAssembly
+@rendermode InteractiveServer
 @using Budget.Shared
 @using Syncfusion.Blazor.Grids
 @using Syncfusion.Blazor
@@ -33,7 +33,7 @@ else
       <div class="row">
 	      <SfGrid TItem="EnvelopeResult" AllowEditing="false" DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Envelopes Table">
 		      <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single"></GridSelectionSettings>
-		      <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler"/>
+		      <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler" />
 		      <GridColumns>
             <GridColumn HeaderText="" Width="50" TextAlign="TextAlign.Center" AllowEditing="false" AllowSorting="false">
               <Template>
@@ -57,11 +57,11 @@ else
       <div class="row mt-3">
 	      <SfGrid TItem="TransactionDto" AllowEditing="false" DataSource="@TransactionData" AllowPaging="true" aria-label="Order Details Table">
 		      <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single" ></GridSelectionSettings>
-		      <GridEvents TValue="TransactionDto" OnRecordDoubleClick="RecordDoubleClickHandler"/>
+		      <GridEvents TValue="TransactionDto" OnRecordDoubleClick="RecordDoubleClickHandler" />
 		      <GridColumns>
-			      <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
-			      <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
-			      <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
+				  <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
+				  <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
+				  <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
 		      </GridColumns>
 	      </SfGrid>
       </div>

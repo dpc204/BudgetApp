@@ -6,7 +6,6 @@ global using System.Net.Http.Json;
 global using System.Text;
 global using System.Text.Encodings.Web;
 global using Budget;
-global using Budget.Client;
 global using Budget.Web.Components.Layout;
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Components.Authorization;

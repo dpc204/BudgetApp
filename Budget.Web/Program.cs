@@ -21,9 +21,7 @@ builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
 builder.Services.AddRazorComponents()
-  .AddInteractiveServerComponents()
-  .AddInteractiveWebAssemblyComponents()
-  .AddAuthenticationStateSerialization();
+  .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
 
@@ -90,12 +88,9 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-// Add role services so RoleManager<T> can be injected
 builder.Services.AddIdentityCore<BudgetUser>(options => 
 {
-    // Temporarily disable email confirmation requirement for easier testing
     options.SignIn.RequireConfirmedAccount = false;
-    // Add this to disable passkey features
     options.Stores.ProtectPersonalData = false;
 })
 .AddRoles<IdentityRole>()
@@ -123,7 +118,6 @@ app.MapDefaultEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
-  app.UseWebAssemblyDebugging();
   app.UseMigrationsEndPoint();
   // Disable CSS Hot Reload to avoid Edge CSS rule limit issues
   app.UseStaticFiles(new StaticFileOptions
@@ -141,14 +135,13 @@ else
 {
   app.UseExceptionHandler("/Error", createScopeForErrors: true);
   app.UseHsts();
-    app.UseMigrationsEndPoint();
+  app.UseMigrationsEndPoint();
   app.UseStaticFiles();
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 
-// Add authentication and authorization middleware in the correct order
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -162,25 +155,9 @@ app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode()
-  .AddInteractiveWebAssemblyRenderMode()
-  .AddAdditionalAssemblies(typeof(Budget.Client.RedirectToLogin).Assembly);
+  .AddAdditionalAssemblies(typeof(Budget.Client.Pages.Home).Assembly); // enable routes from Budget.Client RCL
 
 app.MapAdditionalIdentityEndpoints();
-
-// Add configuration endpoint for WASM client
-app.MapGet("/api/client-config", (IConfiguration config) =>
-{
-    var apiBase = config["BUDGET_API_BASE_URL"]
-                 ?? config["ApiBaseUrl"]
-                 ?? config["Api:BaseUrl"]
-                 ?? config["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
-                 ?? "https://localhost:5001";
-
-    return Results.Ok(new ClientConfiguration
-    {
-        BudgetApiBaseUrl = apiBase
-    });
-});
 
 app.Run();
 

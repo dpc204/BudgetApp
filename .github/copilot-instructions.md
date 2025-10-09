@@ -12,7 +12,7 @@ Coding conventions:
 - Async suffix on async methods.
 - Use `CancellationToken` in public async APIs.
 - Always use code-behind for .razor pages
-- All using directives should be in the _imports.razor file.
+- All using directives should be in the _imports.razor or globalusings.cs file.
 
 Testing:
 - BUnit for component tests.

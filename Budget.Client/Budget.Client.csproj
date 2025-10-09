@@ -1,32 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
-
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+  
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <IsPackable>false</IsPackable>
+    <RazorLangVersion>Latest</RazorLangVersion>
   </PropertyGroup>
-
-	<PropertyGroup>
-		<WasmFingerprintUrls>false</WasmFingerprintUrls>
-		<!--<WasmFingerprintUrls Condition="'$(Configuration)' == 'Debug'">false</WasmFingerprintUrls>-->
-	</PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Components\EnvelopePagesCRUD\**" />
-    <Content Remove="Components\EnvelopePagesCRUD\**" />
-    <EmbeddedResource Remove="Components\EnvelopePagesCRUD\**" />
-    <None Remove="Components\EnvelopePagesCRUD\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.13.0" />
     <PackageReference Include="Syncfusion.Blazor" Version="31.1.21" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.21" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-rc.1.25451.107" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-rc.1.25451.107" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.0-rc.1.25451.107" />
   </ItemGroup>
 
