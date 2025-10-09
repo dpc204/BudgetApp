@@ -1,51 +1,23 @@
 ﻿@page "/maintenance"
-@rendermode InteractiveServer
 @using Budget.Client.Components.Envelopes
 @using Budget.Client.Components.Maintenance.EnvelopeMaint
-@using Syncfusion.Blazor
-@using Syncfusion.Blazor.Inputs
-@using Syncfusion.Blazor.Kanban.Internal
-@using Syncfusion.Blazor.Navigations
 @using Budget.Client.Components.Maintenance.EnvelopePagesCRUD
 @using Budget.Client.Components.Maintenance.CategoryCRUD
 @using Budget.Client.Components.Maintenance.AccountCRUD
 
-<h4>Maintenance</h4>
-<SfTab >
+<MudText Typo="Typo.h5" Class="mb-4">Maintenance</MudText>
 
-	<TabItems>
-		<TabItem >
-			<ChildContent>
-				<TabHeader Text="Accounts"></TabHeader>
-			</ChildContent>
-			<ContentTemplate>
-				<AccountIndex></AccountIndex>
-			</ContentTemplate>
-		</TabItem>
-		<TabItem>
-			<ChildContent>
-				<TabHeader Text="Categories"></TabHeader>
-			</ChildContent>
-			<ContentTemplate>
-				<CategoryIndex></CategoryIndex>
-			</ContentTemplate>
-		</TabItem>
-		<TabItem>
-			<ChildContent>
-				<TabHeader Text="Envelopes"></TabHeader>
-			</ChildContent>
-			<ContentTemplate>
-				<EnvelopeIndex/>
-			</ContentTemplate>
-		</TabItem>
-
-		<TabItem>
-			<ChildContent>
-				<TabHeader Text="Users"></TabHeader>
-			</ChildContent>
-			<ContentTemplate>
-				<div>Content of tab 3</div>
-			</ContentTemplate>
-		</TabItem>
-	</TabItems>
-</SfTab>
+<MudTabs Elevation="1" Rounded="true" >
+    <MudTabPanel Text="Accounts">
+        <AccountIndex />
+    </MudTabPanel>
+    <MudTabPanel Text="Categories">
+        <CategoryIndex />
+    </MudTabPanel>
+    <MudTabPanel Text="Envelopes">
+        <EnvelopeIndex />
+    </MudTabPanel>
+    <MudTabPanel Text="Users">
+        <div>Content of tab 3</div>
+    </MudTabPanel>
+</MudTabs>

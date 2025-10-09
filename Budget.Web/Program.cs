@@ -75,6 +75,8 @@ builder.Services.AddDbContext<BudgetContext>((sp, options) =>
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
+builder.Logging.AddFilter("Budget.Client.Components.Maintenance.AccountCRUD", LogLevel.Debug);
+
 builder.Services.AddDbContext<IdentityDBContext>(options =>
   options.UseSqlServer(authConnectionString));
 
