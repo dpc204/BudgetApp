@@ -2,28 +2,31 @@
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 
-<h3>Category Details</h3>
-<hr />
-@if (_category is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <dl class="row">
-        <dt class="col-sm-2">Name</dt>
-        <dd class="col-sm-10">@_category.Name</dd>
-        <dt class="col-sm-2">Description</dt>
-        <dd class="col-sm-10">@_category.Description</dd>
-        <dt class="col-sm-2">SortOrder</dt>
-        <dd class="col-sm-10">@_category.SortOrder</dd>
-    </dl>
-    <button class="btn btn-secondary" @onclick="() => OnClose.InvokeAsync()">Close</button>
-}
+<MudDialog>
+  <DialogContent>
+    @if (_category is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h6">Category Details</MudText>
+            <MudDivider Class="mb-2" />
+            <MudText><strong>Name:</strong> @_category.Name</MudText>
+            <MudText><strong>Description:</strong> @_category.Description</MudText>
+            <MudText><strong>Sort:</strong> @_category.SortOrder</MudText>
+        </MudStack>
+    }
+  </DialogContent>
+  <DialogActions>
+      <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="Close">Close</MudButton>
+  </DialogActions>
+</MudDialog>
 
 @code {
     [Parameter] public int Id { get; set; }
-    [Parameter] public EventCallback OnClose { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private CategoryDto? _category;
 
@@ -32,4 +35,6 @@ else
         var list = await MaintApi.GetCategoriesAsync();
         _category = list.FirstOrDefault(c => c.Id == Id);
     }
+
+    private void Close() => MudDialog.Close();
 }

@@ -2,23 +2,30 @@
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 
-<h3>Delete Category</h3>
-<hr />
-@if (_category is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <p>Are you sure you want to delete <strong>@_category.Name</strong>?</p>
-    <button class="btn btn-danger me-2" @onclick="DeleteAsync">Delete</button>
-    <button class="btn btn-secondary" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
-}
+<MudDialog>
+  <DialogContent>
+    @if (_category is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.h6">Delete Category</MudText>
+            <MudAlert Severity="Severity.Warning" Dense="true">This action cannot be undone.</MudAlert>
+            <MudText>Are you sure you want to delete <strong>@_category.Name</strong>?</MudText>
+        </MudStack>
+    }
+  </DialogContent>
+  <DialogActions>
+      <MudButton Color="Color.Error" Variant="Variant.Filled" Disabled="@(_category is null)" OnClick="DeleteAsync">Delete</MudButton>
+      <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+  </DialogActions>
+</MudDialog>
 
 @code {
     [Parameter] public int Id { get; set; }
-    [Parameter] public EventCallback<int> OnDeleted { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private CategoryDto? _category;
 
@@ -32,6 +39,8 @@ else
     {
         if (_category is null) return;
         await MaintApi.RemoveCategoryAsync(_category.Id);
-        await OnDeleted.InvokeAsync(_category.Id);
+        MudDialog.Close(DialogResult.Ok(true));
     }
+
+    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
 }
