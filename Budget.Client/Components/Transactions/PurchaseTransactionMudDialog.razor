@@ -1,0 +1,34 @@
+@using Budget.Shared.Models
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int InitialEnvelopeId { get; set; }
+
+    private bool _visible = true;
+
+    private void OnVisibleChanged(bool v)
+    {
+        _visible = v;
+        if (!_visible)
+            MudDialog.Cancel();
+    }
+
+    private Task OnSavedAsync(PurchaseTransactionDialog.PurchaseTransactionResult result)
+    {
+        MudDialog.Close(DialogResult.Ok(result));
+        return Task.CompletedTask;
+    }
+
+    private Task OnCancelledAsync()
+    {
+        MudDialog.Cancel();
+        return Task.CompletedTask;
+    }
+}
+
+<PurchaseTransactionDialog
+    Visible="@_visible"
+    VisibleChanged="OnVisibleChanged"
+    InitialEnvelopeId="@InitialEnvelopeId"
+    OnSaved="OnSavedAsync"
+    OnCancelled="OnCancelledAsync" />

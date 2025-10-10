@@ -13,4 +13,4 @@ var web = builder.AddProject<Projects.Budget_Web>("budget")
 // Configure API to allow CORS from the web app's origin (may be trimmed later since no WASM)
 api.WithEnvironment("ALLOWED_ORIGINS", web.GetEndpoint("https"));
 
-builder.Build().Run();builder.Build().Run();
+builder.Build().Run();

@@ -1,253 +1,209 @@
-@using Syncfusion.Blazor.Popups
-@using Syncfusion.Blazor.DropDowns
+@using MudBlazor
 
-<SfDialog @ref="DialogRef" Width="640px" IsModal="true" ShowCloseIcon="true" Header="New Purchase" Visible="@Visible" CssClass="purchase-dialog" AllowDragging="false">
-    <DialogTemplates>
-        <Content>
-            <EditForm EditContext="_editContext">
-                <DataAnnotationsValidator />
-                <div class="row g-2 mb-2 align-items-end">
-                    <div class="col-md-5">
-                        <SfTextBox Placeholder="Vendor *" @bind-Value="_header.Vendor" FloatLabelType="FloatLabelType.Always" Input="OnFieldChanged"></SfTextBox>
-                        <ValidationMessage For="() => _header.Vendor" />
-                    </div>
-                    <div class="col-md-3">
-                        <SfDatePicker @bind-Value="_header.Date" Max="@DateTime.Today" FloatLabelType="FloatLabelType.Always" Placeholder="Date" Change="OnDateChanged"></SfDatePicker>
-                        <ValidationMessage For="() => _header.Date" />
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label mb-0 small text-muted">Total</label>
-                        <div class="fw-bold">@_header.TotalAmount.ToString("C")</div>
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <!-- Save button moved to dialog footer -->
-                    </div>
-                </div>
+<MudDialog>
+  <DialogContent>
+    <MudForm @ref="_form" Model="_header">
+      <MudGrid Class="mb-2">
+        <MudItem xs="12" md="5">
+          <MudTextField @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" />
+        </MudItem>
+        <MudItem xs="12" md="2">
+          <MudText Class="form-label mb-0 small text-muted">Total</MudText>
+          <MudText Typo="Typo.subtitle2" Class="fw-bold">@_header.TotalAmount.ToString("C")</MudText>
+        </MudItem>
+        <MudItem xs="12" md="2" Class="text-end">
+          @* Save button in footer *@
+        </MudItem>
+      </MudGrid>
 
-                <div class="table-responsive small">
-                    <table class="table table-sm align-middle mb-2">
-                        <thead>
-                        <tr>
-                            <th style="width:200px;">Envelope</th>
-                            <th style="width:110px;">Amount</th>
-                            <th>Note</th>
-                            <th style="width:90px;"></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @for (var i = 0; i < _lines.Count; i++)
-                        {
-                            var line = _lines[i];
-                            <tr @key="line">
-                                <td>
-                                    <SfComboBox TItem="EnvelopeDto" TValue="int" @bind-Value="line.EnvelopeId" DataSource="Envelopes" AllowFiltering="true" Placeholder="Envelope" Change="OnLineChanged">
-                                        <ComboBoxFieldSettings Text="Name" Value="Id"></ComboBoxFieldSettings>
-                                    </SfComboBox>
-                                </td>
-                                <td>
-                                    <SfNumericTextBox @bind-Value="line.Amount" Min="0" Format="C2" Change="OnLineChanged" Placeholder="0.00" FloatLabelType="FloatLabelType.Never"/>
-                                </td>
-                                <td>
-                                    <SfTextBox @bind-Value="line.Note" Placeholder="Note (optional)" Input="OnLineChanged"></SfTextBox>
-                                </td>
-                                <td class="text-end d-flex gap-1 justify-content-end">
-                                    <button type="button"
-                                            class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center"
-                                            style="width:30px;height:30px;"
-                                            title="Add Line"
-                                            @onclick="AddLine">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
-                                            <path d="M8 1a.75.75 0 0 1 .75.75v5.5h5.5a.75.75 0 0 1 0 1.5h-5.5v5.5a.75.75 0 0 1-1.5 0v-5.5h-5.5a.75.75 0 0 1 0-1.5h5.5v-5.5A.75.75 0 0 1 8 1Z" />
-                                        </svg>
-                                        <span class="visually-hidden">Add Line</span>
-                                    </button>
-                                    @if (_lines.Count > 1)
-                                    {
-                                        <button type="button"
-                                                class="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center"
-                                                style="width:30px;height:30px;"
-                                                title="Remove Line"
-                                                @onclick="() => DeleteLine(line)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
-                                                <path d="M2 8a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 8Z" />
-                                            </svg>
-                                            <span class="visually-hidden">Remove Line</span>
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
-                    @if (!_lines.Any())
-                    {
-                        <div class="text-muted fst-italic">No line items. Click + to begin.</div>
-                    }
-                </div>
-            </EditForm>
-        </Content>
-        <FooterTemplate>
-            <div class="d-flex justify-content-end gap-2 w-100">
-                <button type="button" class="btn btn-secondary btn-sm" @onclick="Cancel">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm" disabled="@IsSaveDisabled" @onclick="SaveFromFooter">Save</button>
-            </div>
-        </FooterTemplate>
-    </DialogTemplates>
-</SfDialog>
+      <MudTable Items="@_lines" Dense="true" Hover="true" Elevation="0">
+        <ToolBarContent>
+          <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
+                     StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
+        </ToolBarContent>
+        <HeaderContent>
+          <MudTh>Envelope</MudTh>
+          <MudTh class="text-end">Amount</MudTh>
+          <MudTh>Note</MudTh>
+          <MudTh style="width:90px;"></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+          <MudTd>
+            <MudSelect T="int" @bind-Value="context.EnvelopeId" Dense="true">
+              @foreach (var e in Envelopes)
+              {
+                <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
+              }
+            </MudSelect>
+          </MudTd>
+          <MudTd Class="text-end">
+            <MudNumericField T="decimal"
+                             @bind-Value="context.Amount"
+                             @bind-Value:after="() => NormalizeAmount(context)"
+                             Immediate="true"
+                             Min="0"
+                             Format="C2"
+                             HideSpinButtons="true" />
+          </MudTd>
+          <MudTd>
+            <MudTextField @bind-Value="context.Note" Immediate="true" Placeholder="Note (optional)" />
+          </MudTd>
+          <MudTd Class="text-end">
+            <MudIconButton Icon="@Icons.Material.Filled.Remove" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error"
+                           OnClick="@(() => DeleteLine(context))" Disabled="@(_lines.Count <= 1)" />
+          </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+          <MudText Class="pa-2" Color="Color.Secondary">No line items. Click Add to begin.</MudText>
+        </NoRecordsContent>
+      </MudTable>
+    </MudForm>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsSaveDisabled" OnClick="SaveFromFooter">Save</MudButton>
+  </DialogActions>
+</MudDialog>
 
 @code {
-    [Parameter] public bool Visible { get; set; }
-    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
-    [Parameter] public int InitialEnvelopeId { get; set; }
-    [Parameter] public EventCallback<PurchaseTransactionResult> OnSaved { get; set; }
-    [Parameter] public EventCallback OnCancelled { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+  [Parameter] public int InitialEnvelopeId { get; set; }
 
-    private SfDialog? DialogRef;
+  private MudForm? _form;
+  private PurchaseHeader _header = new();
+  private readonly List<PurchaseLine> _lines = new();
+  private List<EnvelopeDto> Envelopes = new();
 
-    private PurchaseHeader _header = new();
-    private EditContext _editContext = default!;
-    private readonly List<PurchaseLine> _lines = new();
-    private List<EnvelopeDto> Envelopes = new();
+  private bool IsSaveDisabled =>
+    string.IsNullOrWhiteSpace(_header.Vendor) ||
+    _header.Vendor.Length > 100 ||
+    _header.Date.Date > DateTime.Today ||
+    !_lines.Any() ||
+    _lines.Any(l => l.Amount < 0);
 
-    private bool IsSaveDisabled =>
-        string.IsNullOrWhiteSpace(_header.Vendor) ||
-        _header.Vendor.Length > 100 ||
-        _header.Date.Date > DateTime.Today ||
-        !_lines.Any() ||
-        _lines.Any(l => l.Amount < 0);
+  [Inject] private IBudgetApiClient Api { get; set; } = default!;
 
-    [Inject] private IBudgetApiClient Api { get; set; } = default!;
-
-    protected override async Task OnParametersSetAsync()
+  protected override async Task OnInitializedAsync()
+  {
+    if (!Envelopes.Any())
     {
-        if (Visible)
-        {
-            if (!Envelopes.Any())
-            {
-                Envelopes = await Api.GetEnvelopesAsync();
-            }
-            if (_editContext is null || _editContext.Model != _header)
-            {
-                _editContext = new EditContext(_header);
-                _editContext.OnFieldChanged += (_, __) => StateHasChanged();
-            }
-            if (!_lines.Any())
-            {
-                _lines.Add(new PurchaseLine { EnvelopeId = InitialEnvelopeId, Amount = 0 });
-                Recalc();
-            }
-        }
+      Envelopes = await Api.GetEnvelopesAsync();
     }
-
-    private void AddLine()
+    if (!_lines.Any())
     {
-        _lines.Add(new PurchaseLine { EnvelopeId = InitialEnvelopeId });
-        Recalc();
+      _lines.Add(new PurchaseLine { EnvelopeId = InitialEnvelopeId, Amount = 0 });
+      Recalc();
     }
+  }
 
-    private void DeleteLine(PurchaseLine line)
+  private DateTime? HeaderDate
+  {
+    get => _header.Date;
+    set
     {
-        _lines.Remove(line);
-        Recalc();
+      if (value.HasValue)
+        _header.Date = value.Value;
+      StateHasChanged();
     }
+  }
 
-    private void OnLineChanged(object? _)
+  private void AddLine()
+  {
+    _lines.Add(new PurchaseLine { EnvelopeId = InitialEnvelopeId });
+    Recalc();
+  }
+
+  private void DeleteLine(PurchaseLine line)
+  {
+    _lines.Remove(line);
+    Recalc();
+  }
+
+  private void NormalizeAmount(PurchaseLine line)
+  {
+    // Clamp to >= 0 and round to 2 decimals
+    var v = Math.Round(line.Amount < 0 ? 0 : line.Amount, 2, MidpointRounding.AwayFromZero);
+    if (v != line.Amount)
+      line.Amount = v;
+    Recalc();
+  }
+
+  private void Recalc()
+  {
+    _header.TotalAmount = _lines.Sum(l => l.Amount);
+    StateHasChanged();
+  }
+
+  private async Task SaveFromFooter()
+  {
+    if (_form is not null)
     {
-        Recalc();
+      await _form.Validate();
+      if (!_form.IsValid)
+        return;
     }
+    await HandleSaveAsync();
+  }
 
-    private void OnFieldChanged(object? _)
+  private Task HandleSaveAsync()
+  {
+    if (IsSaveDisabled) return Task.CompletedTask;
+
+    var result = new PurchaseTransactionResult
     {
-        StateHasChanged();
-    }
+      Vendor = _header.Vendor.Trim(),
+      Date = _header.Date.Date,
+      Lines = _lines.Select((l,i) => new PurchaseTransactionLine
+      {
+        LineNumber = i + 1,
+        EnvelopeId = l.EnvelopeId,
+        Amount = l.Amount,
+        Note = l.Note?.Trim() ?? string.Empty
+      }).ToList(),
+      TotalAmount = _header.TotalAmount
+    };
 
-    private void OnDateChanged(ChangedEventArgs<DateTime?> _)
-    {
-        StateHasChanged();
-    }
+    MudDialog.Close(DialogResult.Ok(result));
+    return Task.CompletedTask;
+  }
 
-    private void Recalc()
-    {
-        _header.TotalAmount = _lines.Sum(l => l.Amount);
-        StateHasChanged();
-    }
+  private void Cancel() => MudDialog.Cancel();
 
-    private async Task SaveFromFooter()
-    {
-        if (_editContext is not null && !_editContext.Validate())
-            return;
-        await HandleSaveAsync();
-    }
+  private class PurchaseHeader
+  {
+    [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MaxLength(100)] public string Vendor { get; set; } = string.Empty;
+    [System.ComponentModel.DataAnnotations.Required] public DateTime Date { get; set; } = DateTime.Today;
+    public decimal TotalAmount { get; set; }
+  }
 
-    private async Task HandleSaveAsync()
-    {
-        if (IsSaveDisabled) return;
+  private class PurchaseLine
+  {
+    public int EnvelopeId { get; set; }
+    [System.ComponentModel.DataAnnotations.Range(0, double.MaxValue)] public decimal Amount { get; set; }
+    public string? Note { get; set; }
+  }
 
-        var result = new PurchaseTransactionResult
-        {
-            Vendor = _header.Vendor.Trim(),
-            Date = _header.Date.Date,
-            Lines = _lines.Select((l,i) => new PurchaseTransactionLine
-            {
-                LineNumber = i + 1,
-                EnvelopeId = l.EnvelopeId,
-                Amount = l.Amount,
-                Note = l.Note?.Trim() ?? string.Empty
-            }).ToList(),
-            TotalAmount = _header.TotalAmount
-        };
+  public sealed class PurchaseTransactionResult
+  {
+    public string Vendor { get; set; } = string.Empty;
+    public DateTime Date { get; set; }
+    public decimal TotalAmount { get; set; }
+    public List<PurchaseTransactionLine> Lines { get; set; } = new();
+  }
 
-        await OnSaved.InvokeAsync(result);
-        await CloseAsync();
-    }
-
-    private async Task Cancel()
-    {
-        await OnCancelled.InvokeAsync();
-        await CloseAsync();
-    }
-
-    private async Task CloseAsync()
-    {
-        _lines.Clear();
-        _header = new PurchaseHeader();
-        _editContext = new EditContext(_header);
-        _editContext.OnFieldChanged += (_, __) => StateHasChanged();
-        await VisibleChanged.InvokeAsync(false);
-    }
-
-    private class PurchaseHeader
-    {
-        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MaxLength(100)] public string Vendor { get; set; } = string.Empty;
-        [System.ComponentModel.DataAnnotations.Required] public DateTime Date { get; set; } = DateTime.Today;
-        public decimal TotalAmount { get; set; }
-    }
-
-    private class PurchaseLine
-    {
-        public int EnvelopeId { get; set; }
-        [System.ComponentModel.DataAnnotations.Range(0, double.MaxValue)] public decimal Amount { get; set; }
-        public string? Note { get; set; }
-    }
-
-    public sealed class PurchaseTransactionResult
-    {
-        public string Vendor { get; set; } = string.Empty;
-        public DateTime Date { get; set; }
-        public decimal TotalAmount { get; set; }
-        public List<PurchaseTransactionLine> Lines { get; set; } = new();
-    }
-
-    public sealed class PurchaseTransactionLine
-    {
-        public int LineNumber { get; set; }
-        public int EnvelopeId { get; set; }
-        public decimal Amount { get; set; }
-        public string Note { get; set; } = string.Empty;
-    }
+  public sealed class PurchaseTransactionLine
+  {
+    public int LineNumber { get; set; }
+    public int EnvelopeId { get; set; }
+    public decimal Amount { get; set; }
+    public string Note { get; set; } = string.Empty;
+  }
 }
 
 <style>
-    .purchase-dialog .e-dlg-content { padding-top: .75rem; }
-    .purchase-dialog table td { vertical-align: middle; }
+  .purchase-dialog .e-dlg-content { padding-top: .75rem; }
+  .purchase-dialog table td { vertical-align: middle; }
 </style>

@@ -4,7 +4,6 @@ using Budget.Shared.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using Syncfusion.Blazor.Grids;
 
 namespace Budget.Client.Components.Envelopes;
 
@@ -14,17 +13,15 @@ public partial class EnvelopePage : ComponentBase
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
+  [Inject] private IDialogService DialogService { get; set; } = default!;
 
   public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
   public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
   public List<TransactionDto>? TransactionData { get; set; } = [];
 
   private bool ShowTransactionDialog { get; set; }
-  private TransactionDto? SelectedTransaction { get; set; }
   private OneTransactionDetail? SelectedTransactionDetail { get; set; }
 
-  private bool ShowPurchaseDialog { get; set; }
-  private int InitialEnvelopeIdForNew { get; set; }
   private bool _loading = true;
   private string? _loadError;
   private bool _afterRenderInit;
@@ -37,7 +34,7 @@ public partial class EnvelopePage : ComponentBase
     
     try
     {
-      await State.EnsureLoadedAsync(); // API only; no JS
+      await State.EnsureLoadedAsync();
       ApplySelection();
     }
     catch (Exception ex)
@@ -58,10 +55,10 @@ public partial class EnvelopePage : ComponentBase
       
       try
       {
-        await State.TryLoadFromCacheAsync(); // hydrate from localStorage if present
+        await State.TryLoadFromCacheAsync();
         if (!State.IsLoaded)
         {
-          await State.RefreshAsync(); // fallback (also persists after cache attempt)
+          await State.RefreshAsync();
         }
         ApplySelection();
       }
@@ -102,16 +99,14 @@ public partial class EnvelopePage : ComponentBase
     await State.SaveAsync();
   }
 
-  private async Task RecordDoubleClickHandler(RecordDoubleClickEventArgs<TransactionDto> args)
+  private async Task OnTransactionRowClick(TableRowClickEventArgs<TransactionDto> args)
   {
-    if (args?.RowData is null) return;
-
-    SelectedTransaction = args.RowData;
-    ShowTransactionDialog = true;
+    if (args?.Item is null) return;
 
     try
     {
-      SelectedTransactionDetail = await Api.GetOneTransactionDetailAsync(args.RowData.TransactionId);
+      ShowTransactionDialog = true;
+      SelectedTransactionDetail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
     }
     catch (Exception ex)
     {
@@ -119,16 +114,15 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
-  private async Task RowSelectHandler(RowSelectEventArgs<EnvelopeResult> args)
+  private async Task OnEnvelopeRowClick(int envelopeId) 
   {
-    if (args?.Data is null)
-      return;
+
 
     try
     {
-      var rslt = await Api.GetTransactionsByEnvelopeAsync(args.Data.EnvelopeId);
+      var rslt = await Api.GetTransactionsByEnvelopeAsync(envelopeId);
       TransactionData = rslt.ToList();
-      InitialEnvelopeIdForNew = args.Data.EnvelopeId; // track for new transaction default
+      await InvokeAsync(StateHasChanged);
     }
     catch (Exception ex)
     {
@@ -137,37 +131,36 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
-  private void OnShowTransactionDialogChanged(bool value) => ShowTransactionDialog = value;
-
-  private void NewTransaction(int envelopeId)
+  private async Task NewTransactionAsync(int envelopeId)
   {
-    InitialEnvelopeIdForNew = envelopeId;
-    ShowPurchaseDialog = true;
-  }
+    //private async Task BeginEdit(int id)
+    //{
+    //  var parameters = new DialogParameters { [nameof(EnvelopeEdit.Id)] = id };
+    //  var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+    //  var dialogRef = await DialogService.ShowAsync<EnvelopeEdit>("Edit Envelope", parameters, options);
+    //  var result = await dialogRef.Result;
+    //  if(!result.Canceled)
+    //    await LoadAsync();
+    //}
 
-  private void OnPurchaseDialogVisibleChanged(bool value) => ShowPurchaseDialog = value;
 
-  private Task HandlePurchaseSaved(PurchaseTransactionDialog.PurchaseTransactionResult result)
-  {
-    _ = RefreshTransactionsAsync();
-    return Task.CompletedTask;
-  }
-
-  private Task HandlePurchaseCancelled() => Task.CompletedTask;
-
-  private async Task RefreshTransactionsAsync()
-  {
-    if (InitialEnvelopeIdForNew > 0)
+  var parameters = new DialogParameters { [nameof(PurchaseTransactionDialog.InitialEnvelopeId)] = envelopeId };
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+    var dialog = await DialogService.ShowAsync<PurchaseTransactionDialog>("New Purchase", parameters, options);
+    var result = await dialog.Result;
+    if (!(result is { Canceled: true }))
     {
       try
-      {
-        var list = await Api.GetTransactionsByEnvelopeAsync(InitialEnvelopeIdForNew);
+      { 
+        var list = await Api.GetTransactionsByEnvelopeAsync(envelopeId);
         TransactionData = list.ToList();
       }
       catch (Exception ex)
       {
-        Console.Error.WriteLine($"Refresh transactions failed: {ex.Message}");
+        Console.Error.WriteLine($"Refresh after new purchase failed: {ex.Message}");
       }
     }
   }
+
+  private void OnShowTransactionDialogChanged(bool value) => ShowTransactionDialog = value;
 }
