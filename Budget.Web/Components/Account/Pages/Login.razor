@@ -1,14 +1,19 @@
-﻿@page "/Account/Login"
-
+﻿@attribute [AllowAnonymous]
+@page "/Account/Login"
 @using System.ComponentModel.DataAnnotations
 @using Budget.Web.Data
 @using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 
 @inject SignInManager<BudgetUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+
+<HeadContent>
+    <meta name="blazor-enhanced-nav" content="none" />
+</HeadContent>
 
 <PageTitle>Log in</PageTitle>
 
@@ -80,68 +85,46 @@
     {
         Logger.LogInformation("Login page initializing. Current URL: {CurrentUrl}, ReturnUrl: {ReturnUrl}", 
             NavigationManager.Uri, ReturnUrl);
-            
+
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
-            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         }
     }
 
     public async Task LoginUser()
     {
-        // This doesn't count login failures towards account lockout
-        // To enable password failures to trigger account lockout, set lockoutOnFailure: true
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
-            Logger.LogInformation("User logged in.");
-            
-            // Handle ReturnUrl safely to prevent redirect loops
             var redirectUrl = GetSafeRedirectUrl();
-            Logger.LogInformation("Redirecting after login to: {RedirectUrl}", redirectUrl);
-            
-            // Use NavigationManager directly instead of IdentityRedirectManager for post-login redirects
             NavigationManager.NavigateTo(redirectUrl, forceLoad: true);
+            return;
         }
-        else if (result.RequiresTwoFactor)
+        if (result.RequiresTwoFactor)
         {
-            RedirectManager.RedirectTo(
-                "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+            RedirectManager.RedirectTo("Account/LoginWith2fa", new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+            return;
         }
-        else if (result.IsLockedOut)
+        if (result.IsLockedOut)
         {
-            Logger.LogWarning("User account locked out.");
             RedirectManager.RedirectTo("Account/Lockout");
+            return;
         }
-        else
-        {
-            errorMessage = "Error: Invalid login attempt.";
-        }
+
+        errorMessage = "Error: Invalid login attempt.";
     }
 
     private string GetSafeRedirectUrl()
     {
-        // If no ReturnUrl or it's empty, redirect to home
         if (string.IsNullOrWhiteSpace(ReturnUrl))
-        {
             return "/";
-        }
 
-        // Prevent redirect loops by checking if ReturnUrl points to login or auth pages
-        if (ReturnUrl.Contains("/Account/Login", StringComparison.OrdinalIgnoreCase) ||
-            ReturnUrl.Contains("/Account/Register", StringComparison.OrdinalIgnoreCase) ||
-            ReturnUrl.Contains("/Account/", StringComparison.OrdinalIgnoreCase))
-        {
+        if (ReturnUrl.Contains("/Account/", StringComparison.OrdinalIgnoreCase))
             return "/";
-        }
 
-        // Make sure it's a relative URL to prevent open redirects
         if (Uri.IsWellFormedUriString(ReturnUrl, UriKind.Absolute))
-        {
             return "/";
-        }
 
         return ReturnUrl;
     }

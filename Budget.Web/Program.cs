@@ -57,7 +57,26 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
   })
-  .AddIdentityCookies();
+  .AddIdentityCookies(options =>
+  {
+    // Prevent automatic redirects for Blazor Server - let components handle auth
+    options.ApplicationCookie.Configure(cookieOptions =>
+    {
+      cookieOptions.Events.OnRedirectToLogin = context =>
+      {
+        // Don't redirect, just return 401
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+      };
+      
+      cookieOptions.Events.OnRedirectToAccessDenied = context =>
+      {
+        // Don't redirect, just return 403
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+      };
+    });
+  });
 
 var budgetConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Budget);
 var authConnectionString = Misc.SetupConfigurationSources(builder.Configuration, builder.Configuration, typeof(Program).Assembly, Misc.ConnectionStringType.Identity);
