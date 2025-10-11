@@ -16,6 +16,8 @@ public static class GetOneTransactionDetail
   {
     public int Id { get; set; }
     public DateTime Date { get; set; }
+    public string Vendor { get; set; }
+      
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public string UserInitials { get; set; } = string.Empty;
@@ -36,6 +38,7 @@ public static class GetOneTransactionDetail
         {
           Id = t.Id,
           Date = t.Date,
+          Vendor = t.Vendor,
           TotalAmount = t.TotalAmount,
           UserInitials = (t.User.FirstName.Substring(0,1) + t.User.LastName.Substring(0,1)),
           BalanceAfterTransaction = t.BalanceAfterTransaction,

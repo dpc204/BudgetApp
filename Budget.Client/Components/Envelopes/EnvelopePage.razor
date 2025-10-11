@@ -40,7 +40,7 @@ else
             <MudTh class="text-end">Balance</MudTh>
             <MudTh></MudTh>
           </HeaderContent>
-          <RowTemplate>
+          <RowTemplate >
             <MudTd>
               <MudIconButton Icon="@Icons.Material.Filled.Add"
                              Size="Size.Small"
@@ -65,14 +65,19 @@ else
         <MudTable Items="@TransactionData" Hover="true" Dense="true" RowClick="OnTransactionRowClick">
           <HeaderContent>
             <MudTh>Line#</MudTh>
+            <MudTh>Vendor</MudTh>
             <MudTh>Description</MudTh>
             <MudTh class="text-end">Amount</MudTh>
           </HeaderContent>
           <RowTemplate>
             <MudTd DataLabel="Line#">@context.LineId</MudTd>
+            <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
           </RowTemplate>
+          <NoRecordsContent>
+            <MudText Color="Color.Secondary">Nothing to show</MudText>
+          </NoRecordsContent>
         </MudTable>
       </MudPaper>
     </MudStack>
