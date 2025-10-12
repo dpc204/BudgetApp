@@ -6,6 +6,7 @@ using Budget.Shared.Services;
 using Budget.Web.Components;
 using Budget.Web.Components.Account;
 using Budget.Web.Data;
+using Budget.Web.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -121,6 +122,7 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
 builder.Services.AddMudServices();
+builder.Services.AddSingleton<ThemeService>();
 var app = builder.Build();
 
 // Initialize ServiceAccessor with built service provider for parameterless constructors
