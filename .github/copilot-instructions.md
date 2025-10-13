@@ -5,6 +5,7 @@ Architecture priorities:
 - Use component parameters, not cascading values, unless state truly cross-cuts.
 - Prefer `@key` when rendering dynamic lists.
 - Favor `IJSRuntime` abstractions for browser interop; avoid direct DOM assumptions.
+- If you make changes in agent mode, ALWAYS run `dotnet build` and fix any issues 
 - Your task is not complete until the solution builds cleanly
 
 Coding conventions:

@@ -1,11 +1,12 @@
 @using MudBlazor
+@using InputType = MudBlazor.InputType
 
-<MudDialog>
+<MudDialog >
   <DialogContent>
     <MudForm @ref="_form" Model="_header">
       <MudGrid Class="mb-2">
         <MudItem xs="12" md="5">
-          <MudTextField @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" />
+          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true"  />
         </MudItem>
         <MudItem xs="12" md="3">
           <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" />
@@ -32,7 +33,7 @@
         </HeaderContent>
         <RowTemplate>
           <MudTd>
-            <MudSelect T="int" @bind-Value="context.EnvelopeId" Dense="true">
+            <MudSelect T="int" @bind-Value="context.EnvelopeId"  Dense="true">
               @foreach (var e in Envelopes)
               {
                 <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
@@ -42,11 +43,17 @@
           <MudTd Class="text-end">
             <MudNumericField T="decimal"
                              @bind-Value="context.Amount"
+                             For="@(() => context.Amount)"
                              @bind-Value:after="() => NormalizeAmount(context)"
                              Immediate="true"
-                             Min="0"
+                             Min="0.01m"
                              Format="C2"
-                             HideSpinButtons="true" />
+                             HideSpinButtons="true"
+                             Validation="ValidateAmount"
+                 />
+            
+        
+
           </MudTd>
           <MudTd>
             <MudTextField @bind-Value="context.Note" Immediate="true" Placeholder="Note (optional)" />
@@ -82,9 +89,19 @@
     _header.Vendor.Length > 100 ||
     _header.Date.Date > DateTime.Today ||
     !_lines.Any() ||
-    _lines.Any(l => l.Amount < 0);
+    _lines.Any(l => l.Amount <= 0);
 
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
+
+  private MudTextField<string>? _vendorField;
+
+  protected override void OnAfterRender(bool firstRender)
+  {
+    base.OnAfterRender(firstRender);
+
+    // if(_vendorField != null)
+    //   _vendorField.FocusAsync();
+  }
 
   protected override async Task OnInitializedAsync()
   {
@@ -170,6 +187,23 @@
     return Task.CompletedTask;
   }
 
+
+  private decimal Allowance { get; set; } = 0.00m;
+
+  private string AllowanceString
+  {
+    get => Allowance.ToString("0.00");
+    set
+    {
+      if (decimal.TryParse(value, out var result))
+        Allowance = Math.Truncate(result * 100) / 100m;
+    }
+  }
+
+  private Dictionary<string, object> inputAttributes = new()
+  {
+    { "oninput", "limitDecimalPlaces(this, 2)" }
+  };
   private void Cancel() => MudDialog.Cancel();
 
   private class PurchaseHeader
@@ -201,6 +235,19 @@
     public decimal Amount { get; set; }
     public string Note { get; set; } = string.Empty;
   }
+
+
+
+  private string? ValidateAmount(decimal value)
+  {
+    if (value <= 0m)
+      return "Amount must be greater than 0.";
+    // allow at most 2 decimal places
+    if ((value * 100m) % 1m != 0m)
+      return "Maximum of two decimal places.";
+    return null;
+  }
+
 }
 
 <style>

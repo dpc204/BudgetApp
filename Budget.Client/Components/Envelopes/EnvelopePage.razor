@@ -3,7 +3,6 @@
 @using Budget.Shared
 @using Budget.Shared.Models
 @using Budget.Shared.Services
-
 <h1>Envelopes!</h1>
 @if (_loading)
 {
@@ -30,56 +29,60 @@ else
           </MudSelect>
         </MudStack>
       </MudPaper>
-
-      <MudPaper Elevation="0">
-        <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" RowClick="OnEnvelopeRowClick">
-          <HeaderContent>
-            <MudTh></MudTh>```
-            <MudTh>Category</MudTh>
-            <MudTh>Envelope</MudTh>
-            <MudTh class="text-end">Balance</MudTh>
-            <MudTh></MudTh>
-          </HeaderContent>
-          <RowTemplate >
-            <MudTd>
-              <MudIconButton Icon="@Icons.Material.Filled.Add"
-                             Size="Size.Small"
-                             Variant="Variant.Outlined"
-                             Color="Color.Primary"
-                             OnClick="@(() => NewTransactionAsync(context.EnvelopeId))" />
-            </MudTd>
-            <MudTd DataLabel="Category">@context.CategoryName</MudTd>
-            <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
-            <MudTd DataLabel="Balance" Class="text-end">@context.Balance.ToString("N2")</MudTd>
-            <MudTd>
-              <MudIconButton Icon="@Icons.Material.Filled.ReadMore"
-                             Size="Size.Small"
-                             Variant="Variant.Outlined"
-                             Color="Color.Primary"
-                             OnClick="@(() => OnEnvelopeRowClick(context.EnvelopeId))" />
-            </MudTd>   </RowTemplate>
-        </MudTable>
-      </MudPaper>
-
-      <MudPaper Elevation="0" Class="mt-3">
-        <MudTable Items="@TransactionData" Hover="true" Dense="true" RowClick="OnTransactionRowClick">
-          <HeaderContent>
-            <MudTh>Line#</MudTh>
-            <MudTh>Vendor</MudTh>
-            <MudTh>Description</MudTh>
-            <MudTh class="text-end">Amount</MudTh>
-          </HeaderContent>
-          <RowTemplate>
-            <MudTd DataLabel="Line#">@context.LineId</MudTd>
-            <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
-          </RowTemplate>
-          <NoRecordsContent>
-            <MudText Color="Color.Secondary">Nothing to show</MudText>
-          </NoRecordsContent>
-        </MudTable>
-      </MudPaper>
+      <MudGrid >
+        <MudItem  >
+          <MudPaper Elevation="0">
+            <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" RowClick="OnEnvelopeRowClick">
+              <HeaderContent>
+                <MudTh></MudTh>```
+                <MudTh>Category</MudTh>
+                <MudTh>Envelope</MudTh>
+                <MudTh class="text-end">Balance</MudTh>
+                <MudTh></MudTh>
+              </HeaderContent>
+              <RowTemplate >
+                <MudTd>
+                  <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Primary"
+                                 OnClick="@(() => NewTransactionAsync(context.EnvelopeId))"/>
+                </MudTd>
+                <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+                <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
+                <MudTd DataLabel="Balance" Class="text-end">@context.Balance.ToString("N2")</MudTd>
+                <MudTd>
+                  <MudIconButton Icon="@Icons.Material.Filled.ReadMore"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Primary"
+                                 OnClick="@(() => OnEnvelopeRowClick(context.EnvelopeId))"/>
+                </MudTd> </RowTemplate>
+            </MudTable>
+          </MudPaper>
+        </MudItem>
+        <MudItem>
+        <MudPaper Elevation="0" Class="mt-3">
+          <MudTable Items="@TransactionData" Hover="true" Dense="true" RowClick="OnTransactionRowClick">
+            <HeaderContent>
+              <MudTh>Line#</MudTh>
+              <MudTh>Vendor</MudTh>
+              <MudTh>Description</MudTh>
+              <MudTh class="text-end">Amount</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+              <MudTd DataLabel="Line#">@context.LineId</MudTd>
+              <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+              <MudTd DataLabel="Description">@context.Description</MudTd>
+              <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+              <MudText Color="Color.Secondary">Nothing to show</MudText>
+            </NoRecordsContent>
+          </MudTable>
+        </MudPaper>
+        </MudItem>
+      </MudGrid>
     </MudStack>
   </MudContainer>
 }
