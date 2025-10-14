@@ -142,6 +142,7 @@ public partial class EnvelopePage : ComponentBase
     SelectedEnvelope = args.Item;
   }
 
+
   private async Task OnSelectedEnvelopeChangedAsync(EnvelopeResult? envelope)
   {
     if (envelope is null)
@@ -158,6 +159,7 @@ public partial class EnvelopePage : ComponentBase
       await InvokeAsync(StateHasChanged);
     }
     catch (Exception ex)
+
     {
       Console.Error.WriteLine($"Failed loading transactions: {ex.Message}");
       TransactionData = [];
@@ -175,8 +177,11 @@ public partial class EnvelopePage : ComponentBase
     {
       try
       { 
-        var list = await Api.GetTransactionsByEnvelopeAsync(envelopeId);
-        TransactionData = list.ToList();
+      //  var list = await Api.GetTransactionsByEnvelopeAsync(envelopeId);
+        EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelopeId };
+      await  OnSelectedEnvelopeChangedAsync(er);
+        //TransactionData = list.ToList();
+        //await InvokeAsync(StateHasChanged);
       }
       catch (Exception ex)
       {
