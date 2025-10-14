@@ -10,27 +10,33 @@ namespace Budget.Api.Features.Accounts.AccountMaint;
 public static class AddNewTransaction
 {
   public sealed record Command(OneTransactionDetail Trans) : IRequest;
+
   public sealed record Response(OneTransactionDetail newTransaction);
 
   public class Handler(BudgetContext db) : IRequestHandler<Command>
   {
     public async Task Handle(Command request, CancellationToken cancellationToken)
     {
-      var trans = new Transaction() {
+      var trans = new Transaction()
+      {
         Date = request.Trans.Date,
         Vendor = request.Trans.Vendor,
-        TotalAmount = request.Trans.TotalAmount,
         UserId = request.Trans.UserId
       };
 
-      foreach(var detail in request.Trans.Details)
+      var lineId = 1;
+
+      foreach (var detail in request.Trans.Details)
       {
-        var dtl = new TransactionDetail() {
+        var dtl = new TransactionDetail()
+        {
+          LineId = lineId++,
           Amount = detail.Amount,
           EnvelopeId = detail.EnvelopeId,
           Notes = detail.Description
         };
 
+        trans.TotalAmount += detail.Amount;
         trans.Details.Add(dtl);
       }
 
@@ -45,8 +51,8 @@ public static class AddNewTransaction
     {
       app.MapPost("/Transaction/Insert", async (ISender sender, Command command) =>
       {
-         await sender.Send(command);
-         return Results.Accepted();
+        await sender.Send(command);
+        return Results.Accepted();
       });
     }
   }

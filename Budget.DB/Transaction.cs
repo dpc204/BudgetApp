@@ -15,7 +15,7 @@ namespace Budget.DB
     public decimal TotalAmount { get; set; }
     public int UserId { get; set; }
     public User User { get; set; } = null!;
-    
+
     public decimal BalanceAfterTransaction { get; set; }
     public List<TransactionDetail> Details { get; set; } = [];
 
@@ -33,10 +33,13 @@ namespace Budget.DB
           .HasPrecision(18, 2);
 
         entity.HasData(
-          new Transaction { Id = 1, Date = new DateTime(2023, 1, 1), Vendor = "Giant", TotalAmount = 104.00m, UserId = 1 },
-          new Transaction { Id = 2, Date = new DateTime(2023, 1, 1), Vendor = "Bonefish", TotalAmount = 48m, UserId = 1 },
+          new Transaction
+            { Id = 1, Date = new DateTime(2023, 1, 1), Vendor = "Giant", TotalAmount = 104.00m, UserId = 1 },
+          new Transaction
+            { Id = 2, Date = new DateTime(2023, 1, 1), Vendor = "Bonefish", TotalAmount = 48m, UserId = 1 },
           new Transaction { Id = 3, Date = new DateTime(2023, 1, 2), Vendor = "Gas", TotalAmount = 12.50m, UserId = 1 },
-          new Transaction { Id = 4, Date = new DateTime(2023, 1, 3), Vendor = "Home Depot", TotalAmount = 30.00m, UserId = 2 },
+          new Transaction
+            { Id = 4, Date = new DateTime(2023, 1, 3), Vendor = "Home Depot", TotalAmount = 30.00m, UserId = 2 },
           new Transaction { Id = 5, Date = new DateTime(2023, 1, 3), Vendor = "CVS", TotalAmount = 32.00m, UserId = 2 }
         );
       }
@@ -64,16 +67,18 @@ namespace Budget.DB
           .HasPrecision(18, 2);
 
         entity.HasData(
-          new TransactionDetail { TransactionId = 1,LineId = 1, Amount = 52m,    EnvelopeId = 2, Notes = "Yasso"},
-          new TransactionDetail { TransactionId = 1,LineId = 2, Amount = 52m,    EnvelopeId = 6, Notes = "Cough supresent" },
-          new TransactionDetail { TransactionId = 2,LineId = 1, Amount = 48m,    EnvelopeId = 1, Notes = "din din" },
-          new TransactionDetail { TransactionId = 3,LineId = 1, Amount = 10m,    EnvelopeId = 3 },
-          new TransactionDetail { TransactionId = 3,LineId = 2, Amount = 2.5m,  EnvelopeId = 2, Notes = "Tic Tacs" },
-          new TransactionDetail { TransactionId = 4,LineId = 1, Amount = 27m,    EnvelopeId = 5, Notes = "Plumbing" },
-          new TransactionDetail { TransactionId = 4,LineId = 2, Amount = 3m,      EnvelopeId = 2, Notes = "Candy" },
-          new TransactionDetail { TransactionId = 5,LineId = 1, Amount = 20m,    EnvelopeId = 6, Notes = "Prescriptions" },
-          new TransactionDetail { TransactionId = 5,LineId = 2, Amount = 4,        EnvelopeId = 2, Notes = "Gum" },
-          new TransactionDetail { TransactionId = 5,LineId = 3, Amount = 8m,      EnvelopeId = 5, Notes = "Light Bulbs" }
+          new TransactionDetail { TransactionId = 1, LineId = 1, Amount = 52m, EnvelopeId = 2, Notes = "Yasso" },
+          new TransactionDetail
+            { TransactionId = 1, LineId = 2, Amount = 52m, EnvelopeId = 6, Notes = "Cough supresent" },
+          new TransactionDetail { TransactionId = 2, LineId = 1, Amount = 48m, EnvelopeId = 1, Notes = "din din" },
+          new TransactionDetail { TransactionId = 3, LineId = 1, Amount = 10m, EnvelopeId = 3 },
+          new TransactionDetail { TransactionId = 3, LineId = 2, Amount = 2.5m, EnvelopeId = 2, Notes = "Tic Tacs" },
+          new TransactionDetail { TransactionId = 4, LineId = 1, Amount = 27m, EnvelopeId = 5, Notes = "Plumbing" },
+          new TransactionDetail { TransactionId = 4, LineId = 2, Amount = 3m, EnvelopeId = 2, Notes = "Candy" },
+          new TransactionDetail
+            { TransactionId = 5, LineId = 1, Amount = 20m, EnvelopeId = 6, Notes = "Prescriptions" },
+          new TransactionDetail { TransactionId = 5, LineId = 2, Amount = 4, EnvelopeId = 2, Notes = "Gum" },
+          new TransactionDetail { TransactionId = 5, LineId = 3, Amount = 8m, EnvelopeId = 5, Notes = "Light Bulbs" }
         );
       }
     }

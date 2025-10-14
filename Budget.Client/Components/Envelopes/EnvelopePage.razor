@@ -16,12 +16,12 @@ else if (!string.IsNullOrEmpty(_loadError))
 }
 else
 {
-  <MudContainer MaxWidth="MaxWidth.False" Class="pa-2">
-    <MudStack Spacing="2">
+  <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
+    <MudStack Spacing="2" Class="envelope-page-stack">
       <MudPaper Elevation="0" Class="sb-property-border">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="pa-2">
           <MudSelect T="int?" Label="Choose Category" Variant="Variant.Outlined" Dense="true"
-                     Value="@SelectedCategoryId" ValueChanged="@CatChanged">
+                     @bind-Value="SelectedCategoryId" @bind-Value:after="@(() => _ = CatChanged(SelectedCategoryId))">
             @foreach (var c in Cats)
             {
               <MudSelectItem @key="c.CategoryId" Value="@((int?)c.CategoryId)">@c.CategoryName</MudSelectItem>
@@ -29,10 +29,10 @@ else
           </MudSelect>
         </MudStack>
       </MudPaper>
-      <MudGrid >
+      <MudGrid Class="envelope-grid-grow">
         <MudItem >
-          <MudPaper Elevation="0">
-            <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" RowClick="OnEnvelopeRowClick" @bind-SelectedItem="SelectedEnvelope" RowStyleFunc="GetEnvelopeRowStyle" Class="envelopes-table">
+          <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
+            <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" FixedHeader="true" Height="100%" OnRowClick="@((TableRowClickEventArgs<EnvelopeResult> e) => OnEnvelopeRowClick(e))" @bind-SelectedItem="SelectedEnvelope" RowStyleFunc="GetEnvelopeRowStyle" Class="envelopes-table flex-grow-1">
               <HeaderContent>
                 <MudTh></MudTh>
                 <MudTh>Category</MudTh>
@@ -63,8 +63,8 @@ else
           </MudPaper>
         </MudItem>
         <MudItem>
-          <MudPaper Elevation="0" Class="mt-3">
-            <MudTable Items="@TransactionData" Hover="true" Dense="true" RowClick="OnTransactionRowClick">
+          <MudPaper Elevation="0" Class="mt-3 h-100 d-flex flex-column">
+            <MudTable Items="@TransactionData" Hover="true" Dense="true" OnRowClick="@( (TableRowClickEventArgs<TransactionDto> e) => OnTransactionRowClick(e) )" FixedHeader="true" Height="100%" Class="flex-grow-1">
               <HeaderContent>
                 <MudTh>Line#</MudTh>
                 <MudTh>Vendor</MudTh>
@@ -87,5 +87,3 @@ else
     </MudStack>
   </MudContainer>
 }
-
-<ShowOneTransaction Transaction="@SelectedTransactionDetail" Visible="@ShowTransactionDialog" VisibleChanged="@OnShowTransactionDialogChanged"/>

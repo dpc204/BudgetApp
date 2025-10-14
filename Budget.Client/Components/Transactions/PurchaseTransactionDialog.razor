@@ -6,10 +6,10 @@
     <MudForm @ref="_form" Model="_header">
       <MudGrid Class="mb-2">
         <MudItem xs="12" md="5">
-          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true"  />
+          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true"/>
         </MudItem>
         <MudItem xs="12" md="3">
-          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" />
+          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today"/>
         </MudItem>
         <MudItem xs="12" md="2">
           <MudText Class="form-label mb-0 small text-muted">Total</MudText>
@@ -20,10 +20,9 @@
         </MudItem>
       </MudGrid>
 
-      <MudTable Items="@_lines" Dense="true" Hover="true" Elevation="0">
+      @* Show at most 5 visible data rows (dense mode) with a scrollable body instead of paging *@
+      <MudTable Items="@_lines" Dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="230px">
         <ToolBarContent>
-          <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
-                     StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
         </ToolBarContent>
         <HeaderContent>
           <MudTh>Envelope</MudTh>
@@ -33,7 +32,7 @@
         </HeaderContent>
         <RowTemplate>
           <MudTd>
-            <MudSelect T="int" @bind-Value="context.EnvelopeId"  Dense="true">
+            <MudSelect T="int" @bind-Value="context.EnvelopeId" Dense="true">
               @foreach (var e in Envelopes)
               {
                 <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
@@ -49,18 +48,16 @@
                              Min="0.01m"
                              Format="C2"
                              HideSpinButtons="true"
-                             Validation="ValidateAmount"
-                 />
-            
-        
+                             Validation="ValidateAmount"/>
+
 
           </MudTd>
           <MudTd>
-            <MudTextField @bind-Value="context.Description" Immediate="true" Placeholder="Note (optional)" />
+            <MudTextField @bind-Value="context.Description" Immediate="true" Placeholder="Note (optional)"/>
           </MudTd>
           <MudTd Class="text-end">
             <MudIconButton Icon="@Icons.Material.Filled.Remove" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error"
-                           OnClick="@(() => DeleteLine(context))" Disabled="@(_lines.Count <= 1)" />
+                           OnClick="@(() => DeleteLine(context))" Disabled="@(_lines.Count <= 1)"/>
           </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -70,8 +67,17 @@
     </MudForm>
   </DialogContent>
   <DialogActions>
-    <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsSaveDisabled" OnClick="SaveFromFooter">Save</MudButton>
+    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+      <MudItem>
+        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
+      </MudItem>
+      <MudItem>
+        <MudStack Row="true" Spacing="2">
+          <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+          <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsSaveDisabled" OnClick="SaveFromFooter">Save</MudButton>
+        </MudStack>
+      </MudItem>
+    </MudGrid>
   </DialogActions>
 </MudDialog>
 

@@ -1,14 +1,10 @@
 ﻿using System.Collections;
 using System.Linq;
 using Budget.Client.Services;
-using Budget.Shared.Services;
 
 namespace Budget.Api.Features.Envelopes.EnvelopeMaint
 {
-  using Budget.Shared.Models;
-  using Syncfusion.Blazor;
   using Syncfusion.Blazor.Data;
-  using Syncfusion.Blazor.Grids;
 
   public class CustomAdaptor : DataAdaptor
   {

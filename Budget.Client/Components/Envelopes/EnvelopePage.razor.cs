@@ -1,9 +1,4 @@
-using Budget.Client.Components.Transactions;
-using Budget.Shared.Models;
-using Budget.Shared.Services;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
-using Microsoft.JSInterop;
 
 namespace Budget.Client.Components.Envelopes;
 
@@ -19,14 +14,8 @@ public partial class EnvelopePage : ComponentBase
   public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
   public List<TransactionDto>? TransactionData { get; set; } = [];
 
-  private bool ShowTransactionDialog { get; set; }
-  private OneTransactionDetail? SelectedTransactionDetail { get; set; }
-
-  private bool _loading = true;
-  private string? _loadError;
-  private bool _afterRenderInit;
-
   private EnvelopeResult? _selectedEnvelope;
+
   public EnvelopeResult? SelectedEnvelope
   {
     get => _selectedEnvelope;
@@ -38,12 +27,16 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
+  private bool _loading = true;
+  private string? _loadError;
+  private bool _afterRenderInit;
+
   protected override async Task OnInitializedAsync()
   {
     var runtimeType = JSRuntime.GetType().Name;
     Logger.LogInformation("EnvelopePage.OnInitializedAsync - Runtime: {Runtime}", runtimeType);
     Console.WriteLine($"EnvelopePage running on: {runtimeType}");
-    
+
     try
     {
       await State.EnsureLoadedAsync();
@@ -66,7 +59,7 @@ public partial class EnvelopePage : ComponentBase
       var runtimeType = JSRuntime.GetType().Name;
       Logger.LogInformation("EnvelopePage.OnAfterRenderAsync - Runtime: {Runtime}", runtimeType);
       Console.WriteLine($"OnAfterRenderAsync running on: {runtimeType}");
-      
+
       try
       {
         await State.TryLoadFromCacheAsync();
@@ -74,6 +67,7 @@ public partial class EnvelopePage : ComponentBase
         {
           await State.RefreshAsync();
         }
+
         ApplySelection();
       }
       catch (Exception ex)
@@ -127,8 +121,10 @@ public partial class EnvelopePage : ComponentBase
 
     try
     {
-      ShowTransactionDialog = true;
-      SelectedTransactionDetail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
+      var detail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
+      var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
+      var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+      await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
     }
     catch (Exception ex)
     {
@@ -141,7 +137,6 @@ public partial class EnvelopePage : ComponentBase
     if (args?.Item is null) return;
     SelectedEnvelope = args.Item;
   }
-
 
   private async Task OnSelectedEnvelopeChangedAsync(EnvelopeResult? envelope)
   {
@@ -159,7 +154,6 @@ public partial class EnvelopePage : ComponentBase
       await InvokeAsync(StateHasChanged);
     }
     catch (Exception ex)
-
     {
       Console.Error.WriteLine($"Failed loading transactions: {ex.Message}");
       TransactionData = [];
@@ -170,18 +164,16 @@ public partial class EnvelopePage : ComponentBase
   private async Task NewTransactionAsync(int envelopeId)
   {
     var parameters = new DialogParameters { [nameof(PurchaseTransactionDialog.InitialEnvelopeId)] = envelopeId };
-    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+    var options = new DialogOptions
+      { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
     var dialog = await DialogService.ShowAsync<PurchaseTransactionDialog>("New Purchase", parameters, options);
     var result = await dialog.Result;
     if (!(result is { Canceled: true }))
     {
       try
-      { 
-      //  var list = await Api.GetTransactionsByEnvelopeAsync(envelopeId);
+      {
         EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelopeId };
-      await  OnSelectedEnvelopeChangedAsync(er);
-        //TransactionData = list.ToList();
-        //await InvokeAsync(StateHasChanged);
+        await OnSelectedEnvelopeChangedAsync(er);
       }
       catch (Exception ex)
       {
@@ -194,7 +186,7 @@ public partial class EnvelopePage : ComponentBase
     => SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "row-selected-secondary" : null;
 
   private string? GetEnvelopeRowStyle(EnvelopeResult item, int rowNumber)
-    => SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "background-color: var(--mud-palette-secondary); color: var(--mud-palette-secondary-contrastText);" : null;
-
-  private void OnShowTransactionDialogChanged(bool value) => ShowTransactionDialog = value;
+    => SelectedEnvelope?.EnvelopeId == item.EnvelopeId
+      ? "background-color: var(--mud-palette-secondary); color: var(--mud-palette-secondary-contrastText);"
+      : null;
 }

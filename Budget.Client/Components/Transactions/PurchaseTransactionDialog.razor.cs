@@ -1,8 +1,4 @@
-﻿using Budget.Shared.Models;
-using Budget.Shared.Services;
-using Microsoft.AspNetCore.Components;
-
-namespace Budget.Client.Components.Transactions;
+﻿namespace Budget.Client.Components.Transactions;
 
 public partial class PurchaseTransactionDialog
 {
@@ -141,10 +137,10 @@ public partial class PurchaseTransactionDialog
 
   private class PurchaseHeader
   {
-    [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MaxLength(100)]
+    [Required, MaxLength(100)]
     public string Vendor { get; set; } = string.Empty;
 
-    [System.ComponentModel.DataAnnotations.Required]
+    [Required]
     public DateTime Date { get; set; } = DateTime.Today;
 
     public decimal TotalAmount { get; set; }
@@ -154,7 +150,7 @@ public partial class PurchaseTransactionDialog
   {
     public int EnvelopeId { get; set; }
 
-    [System.ComponentModel.DataAnnotations.Range(0, double.MaxValue)]
+    [Range(0, double.MaxValue)]
     public decimal Amount { get; set; }
 
     public string? Note { get; set; }
