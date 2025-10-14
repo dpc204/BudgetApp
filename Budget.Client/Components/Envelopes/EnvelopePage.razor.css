@@ -38,3 +38,16 @@
 ::deep .e-ddl .e-input-value {
   font-weight: 700 !important;
 }
+
+/* Highlight selected row in the envelopes MudTable using the theme Secondary color */
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary,
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary > td {
+  background-color: var(--mud-palette-secondary) !important;
+  color: var(--mud-palette-secondary-contrastText) !important;
+}
+
+/* Keep hover visible but not override selected */
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover,
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover > td {
+  filter: brightness(0.98);
+}

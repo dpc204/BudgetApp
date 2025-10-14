@@ -26,6 +26,18 @@ public partial class EnvelopePage : ComponentBase
   private string? _loadError;
   private bool _afterRenderInit;
 
+  private EnvelopeResult? _selectedEnvelope;
+  public EnvelopeResult? SelectedEnvelope
+  {
+    get => _selectedEnvelope;
+    set
+    {
+      if (ReferenceEquals(_selectedEnvelope, value)) return;
+      _selectedEnvelope = value;
+      _ = OnSelectedEnvelopeChangedAsync(value);
+    }
+  }
+
   protected override async Task OnInitializedAsync()
   {
     var runtimeType = JSRuntime.GetType().Name;
@@ -36,6 +48,8 @@ public partial class EnvelopePage : ComponentBase
     {
       await State.EnsureLoadedAsync();
       ApplySelection();
+      // Ensure selection class applied on first render when an item is already selected
+      await InvokeAsync(StateHasChanged);
     }
     catch (Exception ex)
     {
@@ -78,9 +92,17 @@ public partial class EnvelopePage : ComponentBase
   private void ApplySelection()
   {
     var selected = SelectedCategoryId ?? 0;
-    SelectedEnvelopeData = selected == 0
+    var list = selected == 0
       ? AllEnvelopeData?.ToList() ?? []
       : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList() ?? [];
+
+    SelectedEnvelopeData = list;
+
+    if (_selectedEnvelope is not null && !list.Any(e => e.EnvelopeId == _selectedEnvelope.EnvelopeId))
+    {
+      // Clear selection if it's no longer in the filtered list; will also clear transactions
+      SelectedEnvelope = null;
+    }
   }
 
   internal List<Cat> Cats => State.Cats;
@@ -114,13 +136,24 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
-  private async Task OnEnvelopeRowClick(int envelopeId) 
+  private void OnEnvelopeRowClick(TableRowClickEventArgs<EnvelopeResult> args)
   {
+    if (args?.Item is null) return;
+    SelectedEnvelope = args.Item;
+  }
 
+  private async Task OnSelectedEnvelopeChangedAsync(EnvelopeResult? envelope)
+  {
+    if (envelope is null)
+    {
+      TransactionData = [];
+      await InvokeAsync(StateHasChanged);
+      return;
+    }
 
     try
     {
-      var rslt = await Api.GetTransactionsByEnvelopeAsync(envelopeId);
+      var rslt = await Api.GetTransactionsByEnvelopeAsync(envelope.EnvelopeId);
       TransactionData = rslt.ToList();
       await InvokeAsync(StateHasChanged);
     }
@@ -128,23 +161,13 @@ public partial class EnvelopePage : ComponentBase
     {
       Console.Error.WriteLine($"Failed loading transactions: {ex.Message}");
       TransactionData = [];
+      await InvokeAsync(StateHasChanged);
     }
   }
 
   private async Task NewTransactionAsync(int envelopeId)
   {
-    //private async Task BeginEdit(int id)
-    //{
-    //  var parameters = new DialogParameters { [nameof(EnvelopeEdit.Id)] = id };
-    //  var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-    //  var dialogRef = await DialogService.ShowAsync<EnvelopeEdit>("Edit Envelope", parameters, options);
-    //  var result = await dialogRef.Result;
-    //  if(!result.Canceled)
-    //    await LoadAsync();
-    //}
-
-
-  var parameters = new DialogParameters { [nameof(PurchaseTransactionDialog.InitialEnvelopeId)] = envelopeId };
+    var parameters = new DialogParameters { [nameof(PurchaseTransactionDialog.InitialEnvelopeId)] = envelopeId };
     var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
     var dialog = await DialogService.ShowAsync<PurchaseTransactionDialog>("New Purchase", parameters, options);
     var result = await dialog.Result;
@@ -161,6 +184,12 @@ public partial class EnvelopePage : ComponentBase
       }
     }
   }
+
+  private string? GetEnvelopeRowClass(EnvelopeResult item, int rowNumber)
+    => SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "row-selected-secondary" : null;
+
+  private string? GetEnvelopeRowStyle(EnvelopeResult item, int rowNumber)
+    => SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "background-color: var(--mud-palette-secondary); color: var(--mud-palette-secondary-contrastText);" : null;
 
   private void OnShowTransactionDialogChanged(bool value) => ShowTransactionDialog = value;
 }

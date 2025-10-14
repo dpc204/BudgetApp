@@ -32,9 +32,9 @@ else
       <MudGrid >
         <MudItem  >
           <MudPaper Elevation="0">
-            <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" RowClick="OnEnvelopeRowClick">
+            <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" RowClick="OnEnvelopeRowClick" @bind-SelectedItem="SelectedEnvelope"  RowStyleFunc="GetEnvelopeRowStyle" Class="envelopes-table">
               <HeaderContent>
-                <MudTh></MudTh>```
+                <MudTh></MudTh>
                 <MudTh>Category</MudTh>
                 <MudTh>Envelope</MudTh>
                 <MudTh class="text-end">Balance</MudTh>
@@ -56,7 +56,7 @@ else
                                  Size="Size.Small"
                                  Variant="Variant.Outlined"
                                  Color="Color.Primary"
-                                 OnClick="@(() => OnEnvelopeRowClick(context.EnvelopeId))"/>
+                                 OnClick="@(() => SelectedEnvelope = context)"/>
                 </MudTd> </RowTemplate>
             </MudTable>
           </MudPaper>
