@@ -1,3 +1,4 @@
+@using System.Globalization
 @using MudBlazor
 @using InputType = MudBlazor.InputType
 @inject IBudgetApiClient BudgetApi
@@ -46,11 +47,13 @@
                              @bind-Value:after="() => NormalizeAmount(context)"
                              Immediate="true"
                              Min="0.01m"
-                             Format="C2"
+                             Format="N2"
+                             Culture="@CultureInfo.CurrentCulture"
                              HideSpinButtons="true"
                              Validation="ValidateAmount"/>
+            
 
-
+            
           </MudTd>
           <MudTd>
             <MudTextField @bind-Value="context.Description" Immediate="true" Placeholder="Note (optional)"/>

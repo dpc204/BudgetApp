@@ -8,14 +8,14 @@
     }
     else
     {
-      <ul class="list-unstyled">
-        <li><strong>Transaction Id:</strong> @Transaction.Id</li>
-        <li><strong>Line:</strong> </li>
-        <li><strong>Date:</strong> @Transaction.Date</li>
-        <li><strong>Description:</strong> @Transaction.Description</li>
-        <li><strong>Amount:</strong> @Transaction.TotalAmount</li>
-      </ul>
-
+      <MudSimpleTable Dense="true">
+      <MudTr><MudTd><MudText Align="Align.Right"><strong>Transaction Id:</strong></MudText></MudTd><MudTd>@Transaction.Id</MudTd></MudTr>
+      <MudTr><MudTd><MudText Align="Align.Right"><strong>User:</strong> </MudText></MudTd><MudTd></MudTd></MudTr>
+      <MudTr><MudTd><MudText Align="Align.Right"><strong>Account:</strong> </MudText></MudTd><MudTd></MudTd></MudTr>
+        <MudTr><MudTd><MudText Align="Align.Right"><strong>Date:</strong> </MudText></MudTd><MudTd> @Transaction.Date</MudTd></MudTr>
+        <MudTr><MudTd><MudText Align="Align.Right"><strong>Description:</strong></MudText></MudTd><MudTd> @Transaction.Description</MudTd></MudTr>
+        <MudTr><MudTd><MudText Align="Align.Right"><strong>Amount:</strong></MudText></MudTd><MudTd> @Transaction.TotalAmount</MudTd></MudTr>
+      </MudSimpleTable>
       <MudTable Items="@Transaction.Details" Hover="true" Dense="true" Elevation="0">
         <HeaderContent>
           <MudTh>Line#</MudTh>
@@ -25,7 +25,7 @@
         </HeaderContent>
         <RowTemplate>
           <MudTd DataLabel="Line#">@context.LineId</MudTd>
-          <MudTd DataLabel="Envelope">@context.EnvelopeId</MudTd>
+          <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
           <MudTd DataLabel="Description">@context.Description</MudTd>
           <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
         </RowTemplate>

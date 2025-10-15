@@ -10,5 +10,6 @@ public class TransactionDto
   public decimal Amount { get; set; }
   public DateTime Date { get; set; }
   public int EnvelopeId { get; set; }
+  public string EnvelopeName { get; set; }
   public int UserId { get; set; }
 }

@@ -51,7 +51,8 @@ public static class GetOneTransactionDetail
               Description = d.Notes,
               Amount = d.Amount,
               Date = t.Date,
-              EnvelopeId = d.Envelope.Id
+              EnvelopeId = d.Envelope.Id,
+              EnvelopeName = d.Envelope.Name
             })
             .ToList()
         })
