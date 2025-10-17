@@ -8,6 +8,7 @@ public partial class PurchaseTransactionDialog
   private PurchaseHeader _header = new();
   private readonly List<TransactionDto> _lines = new();
   private List<EnvelopeDto> Envelopes = new();
+  private List<BankAccountDto> Accounts = new();
 
   private bool IsSaveDisabled =>
     string.IsNullOrWhiteSpace(_header.Vendor) ||
@@ -19,22 +20,27 @@ public partial class PurchaseTransactionDialog
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   private MudTextField<string>? _vendorField;
 
-  protected override void OnAfterRender(bool firstRender)
+  protected override async  Task OnAfterRenderAsync(bool firstRender)
   {
-    base.OnAfterRender(firstRender);
+    await base.OnAfterRenderAsync(firstRender);
 
-    // if(_vendorField != null)
-    //   _vendorField.FocusAsync();
+ 
   }
-
+  [Inject] IJSRuntime JS { get; set; }
   protected override async Task OnInitializedAsync()
   {
-    if (!Envelopes.Any())
+    if(!Envelopes.Any())
     {
       Envelopes = await Api.GetEnvelopesAsync();
     }
 
-    if (!_lines.Any())
+    if(!Accounts.Any())
+    {
+      Accounts = await Api.GetAccountsAsync();
+      _header.AccountId = Accounts.Min(e => e.Id);
+    }
+
+    if(!_lines.Any())
     {
       _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
       Recalc();
@@ -79,7 +85,7 @@ public partial class PurchaseTransactionDialog
     StateHasChanged();
   }
 
-  private async Task SaveFromFooter()
+  private async Task Save()
   {
     if (_form is not null)
     {
@@ -97,6 +103,7 @@ public partial class PurchaseTransactionDialog
 
     var result = new OneTransactionDetail()
     {
+      AccountId = _header.AccountId,
       Vendor = _header.Vendor.Trim(),
       Date = _header.Date.Date,
       UserId = 1,
@@ -139,6 +146,10 @@ public partial class PurchaseTransactionDialog
   {
     [Required, MaxLength(100)]
     public string Vendor { get; set; } = string.Empty;
+
+    [Required]
+    public int AccountId { get; set; }
+    public string AccountName { get; set; }
 
     [Required]
     public DateTime Date { get; set; } = DateTime.Today;

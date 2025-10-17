@@ -6,9 +6,21 @@
   <DialogContent>
     <MudForm @ref="_form" Model="_header">
       <MudGrid Class="mb-2">
+        <MudItem xs="3" md="2">
+          <MudPaper Outlined="true" Class="pa-3">
+          <MudSelect T="int" @bind-Value="_header.AccountId" id="AccountSelect">
+            @foreach (var e in Accounts)
+            {
+              <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
+            }
+          </MudSelect>
+          </MudPaper>
+        </MudItem> 
+        <MudPaper Outlined="true" Class="pa-3">
         <MudItem xs="12" md="5">
-          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true"/>
+          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" />
         </MudItem>
+        </MudPaper>
         <MudItem xs="12" md="3">
           <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today"/>
         </MudItem>
@@ -77,7 +89,7 @@
       <MudItem>
         <MudStack Row="true" Spacing="2">
           <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
-          <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsSaveDisabled" OnClick="SaveFromFooter">Save</MudButton>
+          <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsSaveDisabled" OnClick="Save">Save</MudButton>
         </MudStack>
       </MudItem>
     </MudGrid>

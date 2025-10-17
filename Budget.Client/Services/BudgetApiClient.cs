@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Transactions;
 using static System.Net.WebRequestMethods;
 
 //using CategoryDto = Budget.Shared.Models.CategoryDto;
@@ -27,9 +28,12 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return readOnlyList;
   }
 
-  public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId,
-    CancellationToken cancellationToken = default)
+  public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default)
     => await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);
+
+  public async Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
+    => await GetListAsync<BankAccountDto>($"accounts/maint/getall", cancellationToken);
+
 
   private async Task<List<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {

@@ -16,4 +16,6 @@ set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Datab
 :run
 dotnet ef  database update   --project Budget.DB   --startup-project Budget.Web   --context Budget.DB.BudgetContext
 
+
+:eof
 set LocalBudgetConnection=
