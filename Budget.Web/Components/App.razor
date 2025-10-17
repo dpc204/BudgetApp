@@ -8,6 +8,10 @@
     <base href="/" />  
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href=@Assets["_content/MudBlazor/MudBlazor.min.css"] rel="stylesheet" />
+    <!-- Block search engine indexing and link following -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <meta name="bingbot" content="noindex, nofollow" />
     <ImportMap />
     <link rel="icon" type="image/ico" href="favicon.ico" />
   <HeadOutlet @rendermode="InteractiveServer" />
@@ -17,6 +21,7 @@
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src=@Assets["_content/MudBlazor/MudBlazor.min.js"]></script>
+  
 </body>
 
 </html>

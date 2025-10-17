@@ -15,6 +15,12 @@ namespace Budget.DB
     public decimal Balance { get; set; } = 0m;
     public AccountTypes AccountType { get; set; } = AccountTypes.Checking;
 
+    public DateTime LastTransactionDate { get; set; }
+    public int LastTransactionId { get; set; }
+
+    public List<Transaction> Transactions { get; set; } = [];
+
+
     public class BankAccountConfiguration : IEntityTypeConfiguration<BankAccount>
     {
       public void Configure(EntityTypeBuilder<BankAccount> entity)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +14,13 @@ namespace Budget.DB
     public DateTime Date { get; set; }
     public string Vendor { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
-    public int UserId { get; set; }
+
+    [ForeignKey("Account")]
+    public int AccountId { get; set; }
+    public BankAccount Account { get; set; } = null!;
+    [ForeignKey("User")] public int UserId { get; set; }
     public User User { get; set; } = null!;
+
 
     public decimal BalanceAfterTransaction { get; set; }
     public List<TransactionDetail> Details { get; set; } = [];
@@ -25,22 +31,44 @@ namespace Budget.DB
       {
         entity.Property(t => t.Vendor)
           .HasMaxLength(200);
-        entity.Property(t => t.UserId)
-          .HasMaxLength(50);
         entity.Property(t => t.TotalAmount)
           .HasPrecision(18, 2);
         entity.Property(t => t.BalanceAfterTransaction)
           .HasPrecision(18, 2);
 
+
+
+        // Explicit relationships ensure principal data is seeded first
+        entity.HasOne(t => t.Account)
+              .WithMany(ba => ba.Transactions)
+              .HasForeignKey(t => t.AccountId)
+              .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(t => t.User)
+              .WithMany(u => u.Transactions)
+              .HasForeignKey(t => t.UserId)
+              .OnDelete(DeleteBehavior.Restrict);
+
         entity.HasData(
           new Transaction
-            { Id = 1, Date = new DateTime(2023, 1, 1), Vendor = "Giant", TotalAmount = 104.00m, UserId = 1 },
+          {
+            Id = 1, AccountId = 1, Date = new DateTime(2023, 1, 1), Vendor = "Giant", TotalAmount = 104.00m, UserId = 1
+          },
           new Transaction
-            { Id = 2, Date = new DateTime(2023, 1, 1), Vendor = "Bonefish", TotalAmount = 48m, UserId = 1 },
-          new Transaction { Id = 3, Date = new DateTime(2023, 1, 2), Vendor = "Gas", TotalAmount = 12.50m, UserId = 1 },
+          {
+            Id = 2, AccountId = 2, Date = new DateTime(2023, 1, 1), Vendor = "Bonefish", TotalAmount = 48m, UserId = 1
+          },
           new Transaction
-            { Id = 4, Date = new DateTime(2023, 1, 3), Vendor = "Home Depot", TotalAmount = 30.00m, UserId = 2 },
-          new Transaction { Id = 5, Date = new DateTime(2023, 1, 3), Vendor = "CVS", TotalAmount = 32.00m, UserId = 2 }
+          {
+            Id = 3, AccountId = 1, Date = new DateTime(2023, 1, 2), Vendor = "Gas", TotalAmount = 12.50m, UserId = 1
+          },
+          new Transaction
+          {
+            Id = 4, AccountId = 2, Date = new DateTime(2023, 1, 3), Vendor = "Home Depot", TotalAmount = 30.00m,
+            UserId = 2
+          },
+          new Transaction
+            { Id = 5, AccountId = 1, Date = new DateTime(2023, 1, 3), Vendor = "CVS", TotalAmount = 32.00m, UserId = 2 }
         );
       }
     }

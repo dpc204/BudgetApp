@@ -1,4 +1,5 @@
-﻿using Budget.DB;
+﻿using Budget.Api.Features.Envelopes.EnvelopeMaint;
+using Budget.DB;
 using Budget.Shared.Models;
 using Carter;
 using MediatR;
@@ -17,8 +18,38 @@ public static class AddNewTransaction
   {
     public async Task Handle(Command request, CancellationToken cancellationToken)
     {
+      var trans = InsertTransaction(request);
+      await UpdateAccountAsync(trans);
+
+      await UpdateEnvelopeAsync(trans).ConfigureAwait(false);
+      db.Transactions.Add(trans);
+      await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task UpdateEnvelopeAsync(Transaction trans)
+    {
+      foreach (var dtl in trans.Details)
+      {
+        var find = db.Envelopes.FindAsync([dtl.EnvelopeId]);
+        var env = await find;
+
+        env?.Balance -= trans.TotalAmount;
+      }
+    }
+
+    private async Task UpdateAccountAsync(Transaction trans)
+    {
+      var find = db.BankAccounts.FindAsync([trans.AccountId]);
+      var acct = await find;
+
+      acct?.Balance -= trans.TotalAmount;
+    }
+
+    private static Transaction InsertTransaction(Command request)
+    {
       var trans = new Transaction()
       {
+        AccountId = request.Trans.AccountId,
         Date = request.Trans.Date,
         Vendor = request.Trans.Vendor,
         UserId = request.Trans.UserId
@@ -40,8 +71,7 @@ public static class AddNewTransaction
         trans.Details.Add(dtl);
       }
 
-      db.Transactions.Add(trans);
-      await db.SaveChangesAsync(cancellationToken);
+      return trans;
     }
   }
 
