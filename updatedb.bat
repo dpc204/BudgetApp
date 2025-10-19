@@ -1,5 +1,6 @@
 echo %1
 
+echo on
 
 if %1 == local goto local
 if %1 == azure goto azure

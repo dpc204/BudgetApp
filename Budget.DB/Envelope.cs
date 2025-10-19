@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,11 @@ namespace Budget.DB
     public decimal Balance { get; set; }
     public string Description { get; set; } = string.Empty;
     public int SortOrder { get; set; }
+    public DateTime LastTransactionDate { get; set; }
+
+    public int? LastTransactionId { get; set; }
+    public int? LastTransactionLineId { get; set; }
+    public TransactionDetail? LastTransactionDetail { get; set; }
 
 
     public List<TransactionDetail> Details { get; set; } = [];
@@ -34,19 +40,23 @@ namespace Budget.DB
         entity.Property(u => u.Budget)
           .HasPrecision(18, 2); // translates to decimal(18,2)
 
+        // Configure one-to-one pointer to the last transaction detail
+        // FK lives on Envelope (LastTransactionId, LastTransactionLineId) -> TransactionDetail (TransactionId, LineId)
+        entity.HasOne(e => e.LastTransactionDetail)
+              .WithMany()
+              .HasForeignKey(e => new { e.LastTransactionId, e.LastTransactionLineId })
+              .OnDelete(DeleteBehavior.SetNull);
+
         // Seed only scalar + FK values; no navigation instances
         entity.HasData(
           new Envelope { Id = 1, Name = "Dining Out", CategoryId = 1, SortOrder = 1 },
           new Envelope { Id = 2, Name = "Groceries", CategoryId = 1, SortOrder = 2 },
           new Envelope { Id = 3, Name = "Gas", CategoryId = 1, SortOrder = 3 },
           new Envelope { Id = 4, Name = "Car Maint", CategoryId = 2, SortOrder = 4 },
-          new Envelope { Id = 5, Name = "House Maint", CategoryId = 2, SortOrder = 5 },                                                                     
-          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5 } 
+          new Envelope { Id = 5, Name = "House Maint", CategoryId = 2, SortOrder = 5 },
+          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5 }
         );
       }
     }
   }
 }
-
-
-

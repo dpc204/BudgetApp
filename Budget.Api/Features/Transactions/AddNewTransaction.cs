@@ -19,30 +19,37 @@ public static class AddNewTransaction
     public async Task Handle(Command request, CancellationToken cancellationToken)
     {
       var trans = InsertTransaction(request);
-      await UpdateAccountAsync(trans);
-
-      await UpdateEnvelopeAsync(trans).ConfigureAwait(false);
       db.Transactions.Add(trans);
+      
+      await UpdateAccountAsync(trans);
+      await UpdateEnvelopeAsync(trans).ConfigureAwait(false);
+
       await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task UpdateEnvelopeAsync(Transaction trans)
     {
-      foreach (var dtl in trans.Details)
+      // Group by envelope to ensure only one "last" detail is set per envelope
+      var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
+      foreach (var grp in grouped)
       {
-        var find = db.Envelopes.FindAsync([dtl.EnvelopeId]);
-        var env = await find;
-
-        env?.Balance -= trans.TotalAmount;
+        var env = await db.Envelopes.FindAsync([grp.Key]);
+        if (env is null) continue;
+        env.LastTransactionDate = DateTime.UtcNow;
+        // pick the highest line id as last within this transaction for the envelope
+        var lastDtl = grp.OrderByDescending(d => d.LineId).First();
+        env.LastTransactionDetail = lastDtl; // EF will map FK on Envelope
+        env.Balance -= grp.Sum(d => d.Amount); // subtract total amount for this envelope
       }
     }
 
     private async Task UpdateAccountAsync(Transaction trans)
     {
-      var find = db.BankAccounts.FindAsync([trans.AccountId]);
-      var acct = await find;
-
-      acct?.Balance -= trans.TotalAmount;
+      var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
+      if (acct is null) return;
+      acct.LastTransactionDate = DateTime.UtcNow;
+      acct.LastTransaction = trans; // set navigation, EF will set FK after save
+      acct.Balance -= trans.TotalAmount;
     }
 
     private static Transaction InsertTransaction(Command request)

@@ -97,9 +97,9 @@ public partial class PurchaseTransactionDialog
     await HandleSaveAsync();
   }
 
-  private Task HandleSaveAsync()
+  private async Task HandleSaveAsync()
   {
-    if (IsSaveDisabled) return Task.CompletedTask;
+    if (IsSaveDisabled) return;
 
     var result = new OneTransactionDetail()
     {
@@ -117,10 +117,10 @@ public partial class PurchaseTransactionDialog
       TotalAmount = _header.TotalAmount
     };
 
-    BudgetApi.AddTransactionAsync(result);
+    // Await the API call to ensure the transaction is persisted before closing the dialog
+    await BudgetApi.AddTransactionAsync(result);
 
     MudDialog.Close(DialogResult.Ok(result));
-    return Task.CompletedTask;
   }
 
   private decimal Allowance { get; set; } = 0.00m;

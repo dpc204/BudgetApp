@@ -40,14 +40,14 @@ namespace Budget.DB
 
         // Explicit relationships ensure principal data is seeded first
         entity.HasOne(t => t.Account)
-              .WithMany(ba => ba.Transactions)
+              .WithMany() // no navigation collection on BankAccount
               .HasForeignKey(t => t.AccountId)
               .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(t => t.User)
-              .WithMany(u => u.Transactions)
-              .HasForeignKey(t => t.UserId)
-              .OnDelete(DeleteBehavior.Restrict);
+          .WithMany(u => u.Transactions)
+          .HasForeignKey(t => t.UserId)
+          .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasData(
           new Transaction
@@ -93,6 +93,11 @@ namespace Budget.DB
         entity.HasKey(c => new { c.TransactionId, c.LineId });
         entity.Property(t => t.Amount)
           .HasPrecision(18, 2);
+
+        entity.HasOne(t => t.Envelope)
+          .WithMany(en => en.Details)
+          .HasForeignKey(t => t.EnvelopeId)
+          .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasData(
           new TransactionDetail { TransactionId = 1, LineId = 1, Amount = 52m, EnvelopeId = 2, Notes = "Yasso" },

@@ -41,7 +41,7 @@ namespace Budget.DB.Migrations
                     b.Property<DateTime>("LastTransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("LastTransactionId")
+                    b.Property<int?>("LastTransactionId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -50,6 +50,8 @@ namespace Budget.DB.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LastTransactionId");
 
                     b.ToTable("BankAccounts", "budget");
 
@@ -60,7 +62,6 @@ namespace Budget.DB.Migrations
                             AccountType = 0,
                             Balance = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            LastTransactionId = 0,
                             Name = "Citizens"
                         },
                         new
@@ -69,7 +70,6 @@ namespace Budget.DB.Migrations
                             AccountType = 1,
                             Balance = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            LastTransactionId = 0,
                             Name = "Discover"
                         });
                 });
@@ -140,6 +140,15 @@ namespace Budget.DB.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime>("LastTransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("LastTransactionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LastTransactionLineId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -152,6 +161,8 @@ namespace Budget.DB.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("LastTransactionId", "LastTransactionLineId");
+
                     b.ToTable("Envelopes", "budget");
 
                     b.HasData(
@@ -162,6 +173,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 1,
                             Description = "",
+                            LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Dining Out",
                             SortOrder = 1
                         },
@@ -172,6 +184,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 1,
                             Description = "",
+                            LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Groceries",
                             SortOrder = 2
                         },
@@ -182,6 +195,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 1,
                             Description = "",
+                            LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Gas",
                             SortOrder = 3
                         },
@@ -192,6 +206,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 2,
                             Description = "",
+                            LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Car Maint",
                             SortOrder = 4
                         },
@@ -202,6 +217,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 2,
                             Description = "",
+                            LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "House Maint",
                             SortOrder = 5
                         },
@@ -212,6 +228,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 2,
                             Description = "",
+                            LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Medical",
                             SortOrder = 5
                         });
@@ -477,6 +494,16 @@ namespace Budget.DB.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Budget.DB.BankAccount", b =>
+                {
+                    b.HasOne("Budget.DB.Transaction", "LastTransaction")
+                        .WithMany()
+                        .HasForeignKey("LastTransactionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("LastTransaction");
+                });
+
             modelBuilder.Entity("Budget.DB.Envelope", b =>
                 {
                     b.HasOne("Budget.DB.Category", "Category")
@@ -485,7 +512,14 @@ namespace Budget.DB.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Budget.DB.TransactionDetail", "LastTransactionDetail")
+                        .WithMany()
+                        .HasForeignKey("LastTransactionId", "LastTransactionLineId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Category");
+
+                    b.Navigation("LastTransactionDetail");
                 });
 
             modelBuilder.Entity("Budget.DB.Favorite", b =>
@@ -502,7 +536,7 @@ namespace Budget.DB.Migrations
             modelBuilder.Entity("Budget.DB.Transaction", b =>
                 {
                     b.HasOne("Budget.DB.BankAccount", "Account")
-                        .WithMany("Transactions")
+                        .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -523,7 +557,7 @@ namespace Budget.DB.Migrations
                     b.HasOne("Budget.DB.Envelope", "Envelope")
                         .WithMany("Details")
                         .HasForeignKey("EnvelopeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Budget.DB.Transaction", "Transaction")
@@ -535,11 +569,6 @@ namespace Budget.DB.Migrations
                     b.Navigation("Envelope");
 
                     b.Navigation("Transaction");
-                });
-
-            modelBuilder.Entity("Budget.DB.BankAccount", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("Budget.DB.Category", b =>

@@ -56,10 +56,23 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   public async Task<OneTransactionDetail> AddTransactionAsync(OneTransactionDetail newTransaction,
     CancellationToken cancellationToken = default)
   {
-    var payload = new {  Trans=newTransaction};
+    // The API currently returns 202 Accepted with no body. Post and ensure success; if no JSON body, return the request object.
+    var payload = new { Trans = newTransaction };
 
-    var created = await PostAsync<object, OneTransactionDetail>("/Transaction/Insert", payload, CancellationToken.None);
-    return created;
+    using var resp = await http.PostAsJsonAsync("/Transaction/Insert", payload, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+
+    try
+    {
+      var created = await resp.Content.ReadFromJsonAsync<OneTransactionDetail>(cancellationToken: cancellationToken);
+      return created ?? newTransaction;
+    }
+    catch (Exception ex)
+    {
+      // Log at debug level and return the submitted transaction to maintain API contract
+      logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
+      return newTransaction;
+    }
   }
 
 
