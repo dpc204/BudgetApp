@@ -10,9 +10,9 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.13.0" />
-    <PackageReference Include="Syncfusion.Blazor" Version="31.1.21" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.21" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Syncfusion.Blazor" Version="31.2.2" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.0-rc.2.25502.107" />
   </ItemGroup>
 
   <ItemGroup>
