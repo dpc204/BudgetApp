@@ -17,8 +17,8 @@
           </MudPaper>
         </MudItem> 
         <MudPaper Outlined="true" Class="pa-3">
-        <MudItem xs="12" md="5">
-          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" />
+        <MudItem xs="12" md="12" >
+          <MudTextField  @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" />
         </MudItem>
         </MudPaper>
         <MudItem xs="12" md="3">
@@ -52,7 +52,7 @@
               }
             </MudSelect>
           </MudTd>
-          <MudTd Class="text-end">
+          <MudTd Class="text-end" xs="5" md="5">
             <MudNumericField T="decimal"
                              @bind-Value="context.Amount"
                              For="@(() => context.Amount)"
