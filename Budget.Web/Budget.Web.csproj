@@ -20,6 +20,7 @@
     <ProjectReference Include="..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
     <ProjectReference Include="..\Budget.Client\Budget.Client.csproj" ReferenceOutputAssembly="true" SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="..\Budget.Api\Budget.Api.csproj" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
     <PackageReference Include="Azure.Identity" Version="1.17.0" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.8.0" />

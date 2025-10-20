@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Syncfusion.Blazor;
+using Budget.Api; // host API in-proc
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,11 +27,14 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddCascadingAuthenticationState();
 
-var apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
-             ?? builder.Configuration["ApiBaseUrl"]
-             ?? builder.Configuration["Api:BaseUrl"]
-             ?? builder.Configuration["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
-             ?? "https://localhost:5001"; // final fallback
+string apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
+               ?? builder.Configuration["ApiBaseUrl"]
+               ?? builder.Configuration["Api:BaseUrl"]
+               ?? builder.Configuration["ASPNETCORE_URLS"]?.Split(';').FirstOrDefault()
+               ?? "http://127.0.0.1:8080"; // final fallback to loopback inside container
+
+// Normalize wildcard binds (0.0.0.0 or +) to loopback so HttpClient can connect in-proc
+apiBase = NormalizeBaseAddress(apiBase);
 
 builder.Services.AddHttpClient<IBudgetApiClient, Budget.Client.Services.BudgetApiClient>(client =>
 {
@@ -45,6 +49,9 @@ builder.Services.AddHttpClient<IBudgetMaintApiClient, Budget.Client.Services.Bud
     apiBase += "/";
   client.BaseAddress = new Uri(apiBase);
 });
+
+// Host the API in-proc so endpoints are exposed by this same app
+builder.Services.AddBudgetApi(builder.Configuration, builder.Environment);
 
 builder.Services.AddScoped<EnvelopeState>();
 
@@ -176,6 +183,9 @@ if (app.Environment.IsDevelopment())
 }
 app.MapStaticAssets();
 
+// Map API endpoints in-proc
+app.MapBudgetApi(app.Environment);
+
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode()
   .AddAdditionalAssemblies(typeof(Budget.Client.Pages.Home).Assembly); // enable routes from Budget.Client RCL
@@ -198,5 +208,25 @@ static string? ParseDataSource(string cs)
     }
   }
   return null;
+}
+
+static string NormalizeBaseAddress(string value)
+{
+  try
+  {
+    if (string.IsNullOrWhiteSpace(value)) return "http://127.0.0.1:8080";
+    if (value.Contains("0.0.0.0", StringComparison.Ordinal) || value.Contains("+", StringComparison.Ordinal))
+    {
+      var uri = new Uri(value);
+      var port = uri.IsDefaultPort ? 80 : uri.Port;
+      var scheme = string.IsNullOrEmpty(uri.Scheme) ? "http" : uri.Scheme;
+      return $"{scheme}://127.0.0.1:{port}";
+    }
+    return value;
+  }
+  catch
+  {
+    return "http://127.0.0.1:8080";
+  }
 }
 
