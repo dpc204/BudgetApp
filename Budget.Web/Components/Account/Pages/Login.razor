@@ -86,10 +86,10 @@
         Logger.LogInformation("Login page initializing. Current URL: {CurrentUrl}, ReturnUrl: {ReturnUrl}", 
             NavigationManager.Uri, ReturnUrl);
 
-        if (HttpMethods.IsGet(HttpContext.Request.Method))
-        {
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-        }
+        // if (HttpMethods.IsGet(HttpContext.Request.Method))
+        // {
+        //     await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        // }
     }
 
     public async Task LoginUser()
