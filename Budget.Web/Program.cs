@@ -105,7 +105,8 @@ builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Logging.AddFilter("Budget.Client.Components.Maintenance.AccountCRUD", LogLevel.Debug);
 
 builder.Services.AddDbContext<IdentityDBContext>(options =>
-  options.UseSqlServer(authConnectionString));
+  
+  options.UseSqlServer(authConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "BudgetIdentity")));
 
 Console.WriteLine($"Right after Add IdentityDBContext {authConnectionString}");
 

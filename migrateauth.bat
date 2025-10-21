@@ -14,11 +14,11 @@ echo Use update local|azure
 goto end
 
 :local 
-set LocalIdentityConnection=Data Source=(localdb)\MSSQLLocalDB;Database=AuthDB;Trusted_Connection=True;TrustServerCertificate=True
+set LocalIdentityConnection=Data Source=(localdb)\MSSQLLocalDB;Database=BudgetDB;Trusted_Connection=True;TrustServerCertificate=True
 goto run
 
 :azure
-set LocalIdentityConnection=Data Source=fantumsqlserver.database.windows.net;Initial Catalog=authDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+set LocalIdentityConnection=Data Source=fantumsqlserver.database.windows.net;Initial Catalog=BudgetDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
 
 :run
 @echo dotnet ef migrations %2 %3  --project Budget.Web  --startup-project Budget.Web   --context IdentityDBContext
@@ -30,9 +30,6 @@ echo
 echo Example: migratedb local add "migration name"
 
 :end
-
-
-
-
+e 
 
 
