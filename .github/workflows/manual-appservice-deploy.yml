@@ -1,4 +1,4 @@
-name: Manual Deploy to Azure App Service
+name: Manual Deploy to Azure App Service.
 
 on:
   workflow_dispatch:
