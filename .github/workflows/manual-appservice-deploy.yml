@@ -1,0 +1,73 @@
+name: Manual Deploy to Azure App Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      webapp_name:
+        description: 'Azure Web App name (e.g., as-myenv)'
+        required: true
+      resource_group:
+        description: 'Resource group name (optional)'
+        required: false
+      dotnet_version:
+        description: '.NET SDK version to use'
+        required: false
+        default: '10.0.x'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ github.event.inputs.dotnet_version }}
+          include-prerelease: true
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Publish Budget.Web
+        run: dotnet publish Budget.Web/Budget.Web.csproj -c Release -o $RUNNER_TEMP/publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp
+          path: ${{ runner.temp }}/publish
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ github.event.inputs.webapp_name }}.azurewebsites.net
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp
+          path: ${{ runner.temp }}/webapp
+
+      - name: Azure login (federated)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ github.event.inputs.webapp_name }}
+          package: ${{ runner.temp }}/webapp

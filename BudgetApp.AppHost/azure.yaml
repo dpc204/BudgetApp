@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-name: budgetapp-apphost
-services:  
-  app:
+name: budgetapp-appservice
+services:
+  web:
     language: dotnet
-    project: ./BudgetApp.AppHost.csproj
-    host: containerapp
+    project: ../Budget.Web/Budget.Web.csproj
+    host: appservice
