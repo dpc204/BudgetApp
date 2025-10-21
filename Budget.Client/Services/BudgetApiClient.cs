@@ -1,7 +1,7 @@
-using System.Net.Http.Json;
-using Budget.Shared.Models;
-using Budget.Shared.Services;
 using Microsoft.Extensions.Logging;
+using System.Transactions;
+using static System.Net.WebRequestMethods;
+
 //using CategoryDto = Budget.Shared.Models.CategoryDto;
 //using EnvelopeDto = Budget.Shared.Models.EnvelopeDto;
 
@@ -9,8 +9,6 @@ namespace Budget.Client.Services;
 
 public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> logger) : Shared.Services.IBudgetApiClient
 {
-  
-
   public async Task<List<EnvelopeDto>> GetEnvelopesAsync(CancellationToken cancellationToken = default)
   {
     var readOnlyList = await GetListAsync<EnvelopeDto>("envelopes/getall", cancellationToken);
@@ -23,7 +21,8 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return readOnlyList;
   }
 
-  public async Task<List<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, CancellationToken cancellationToken = default)
+  public async Task<List<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId,
+    CancellationToken cancellationToken = default)
   {
     var readOnlyList = await GetListAsync<TransactionDto>($"transactions/{envelopeId}", cancellationToken);
     return readOnlyList;
@@ -31,6 +30,10 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
   public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default)
     => await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);
+
+  public async Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
+    => await GetListAsync<BankAccountDto>($"accounts/maint/getall", cancellationToken);
+
 
   private async Task<List<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
@@ -46,6 +49,43 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
     }
+
     return result!;
+  }
+
+  public async Task<OneTransactionDetail> AddTransactionAsync(OneTransactionDetail newTransaction,
+    CancellationToken cancellationToken = default)
+  {
+    // The API currently returns 202 Accepted with no body. Post and ensure success; if no JSON body, return the request object.
+    var payload = new { Trans = newTransaction };
+
+    using var resp = await http.PostAsJsonAsync("/Transaction/Insert", payload, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+
+    try
+    {
+      var created = await resp.Content.ReadFromJsonAsync<OneTransactionDetail>(cancellationToken: cancellationToken);
+      return created ?? newTransaction;
+    }
+    catch (Exception ex)
+    {
+      // Log at debug level and return the submitted transaction to maintain API contract
+      logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
+      return newTransaction;
+    }
+  }
+
+
+  private async Task<TResponse> PostAsync<TRequest, TResponse>(string relativeUrl, TRequest payload, CancellationToken ct)
+  {
+    using var resp = await http.PostAsJsonAsync(relativeUrl, payload, ct);
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
+    if(result is null)
+    {
+      logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
+      throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
+    }
+    return result;
   }
 }

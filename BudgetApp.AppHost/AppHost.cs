@@ -1,14 +1,10 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// API project (expose external endpoints so it can be reached directly in local dev / Azure)
-var api = builder.AddProject<Projects.Budget_Api>("budget-api")
+// Web app (server-side Blazor only). Host API in the same process.
+var web = builder.AddProject<Projects.Budget_Web>("budget")
                  .WithExternalHttpEndpoints();
 
-// Web app hosts the Blazor WASM client (Budget.Client is a project reference in Budget.Web)
-// Provide the API base URL via environment variable
-var web = builder.AddProject<Projects.Budget_Web>("budget")
-                 .WithReference(api)
-                 .WithEnvironment("BUDGET_API_BASE_URL", api.GetEndpoint("https"))
-                 .WithExternalHttpEndpoints();
+// Point API base URL at the web app itself (same-process hosting)
+web.WithEnvironment("BUDGET_API_BASE_URL", web.GetEndpoint("https"));
 
 builder.Build().Run();

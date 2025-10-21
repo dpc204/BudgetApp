@@ -1,9 +1,9 @@
-﻿using Budget.Web.Data;
+﻿using System.Security.Claims;
+using Budget.Web.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 
 namespace Budget.Web.Components.Account
 {

@@ -1,65 +1,55 @@
-@using Budget.Shared.Models
-@using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
+<MudDialog >
+  <DialogContent>
 
-<div class="account-create-form">
     @if (_account is null)
     {
-        <p><em>Loading...</em></p>
+      <MudProgressCircular Indeterminate="true"/>
     }
     else
     {
-        <EditForm Model="_account" OnValidSubmit="CreateAsync">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <div class="mb-3">
-                <label class="form-label">Name</label>
-                <InputText class="form-control form-control-lg" @bind-Value="_account.Name" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Balance</label>
-                <InputNumber class="form-control form-control-lg" @bind-Value="_account.Balance" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Type</label>
-                <InputSelect class="form-select form-select-lg" @bind-Value="_account.AccountType">
-                    @foreach (var t in Enum.GetValues<BankAccountType>())
-                    {
-                        <option value="@t">@t</option>
-                    }
-                </InputSelect>
-            </div>
-            <div class="mt-2">
-                <button class="btn btn-primary btn-lg me-2" type="submit">Create</button>
-                <button type="button" class="btn btn-secondary btn-lg" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
-            </div>
-        </EditForm>
+      <EditForm Model="_account" OnValidSubmit="CreateAsync">
+        <DataAnnotationsValidator/>
+        <MudStack Spacing="2">
+          <MudTextField @bind-Value="_account.Name" Label="Name" For="() => _account.Name" Required="true"/>
+          <MudNumericField @bind-Value="_account.Balance" Label="Balance" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Variant="Variant.Outlined"/>
+          <MudSelect T="BankAccountType" @bind-Value="_account.AccountType" Label="Type" Required="true">
+            @foreach (var t in Enum.GetValues<BankAccountType>())
+            {
+              <MudSelectItem Value="@t">@t</MudSelectItem>
+            }
+          </MudSelect>
+          <MudStack Row Spacing="1" Class="mt-2 justify-end">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit">Create</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+          </MudStack>
+        </MudStack>
+      </EditForm>
     }
-</div>
+  </DialogContent>
+ 
+</MudDialog>
 
 @code {
-    [Parameter] public EventCallback<BankAccountDto> OnCreated { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+  private BankAccountDto? _account;
+  private void Close() => MudDialog.Close(DialogResult.Cancel());
 
-    private BankAccountDto? _account;
+  protected override Task OnInitializedAsync()
+  {
+    _account = new BankAccountDto();
+    return Task.CompletedTask;
+  }
 
-    protected override Task OnInitializedAsync()
-    {
-        _account = new BankAccountDto();
-        return Task.CompletedTask;
-    }
+  private async Task CreateAsync()
+  {
+    var created = await MaintApi.AddAccountAsync(_account!);
+    MudDialog.Close(DialogResult.Ok(true));
+  }
 
-    private async Task CreateAsync()
-    {
-        var created = await MaintApi.AddAccountAsync(_account!);
-        await OnCreated.InvokeAsync(created);
-    }
+  private void Cancel()
+  {
+    MudDialog.Close(DialogResult.Cancel());
+  }
+
 }
-
-<style>
-.account-create-form { width:100%; }
-.account-create-form .form-control-lg, .account-create-form .form-select-lg { font-size:1rem; }
-.account-create-form .form-label { font-weight:500; }
-.account-create-form .mb-3 { margin-bottom:1rem !important; }
-.account-create-form .btn-lg { padding:.55rem 1.2rem; }
-</style>

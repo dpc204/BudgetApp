@@ -1,6 +1,3 @@
-using System.Net.Http.Json;
-using Budget.Shared.Models;
-using Budget.Shared.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Budget.Client.Services;

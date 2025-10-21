@@ -3,13 +3,17 @@
 @code {
     protected override void OnInitialized()
     {
-        var returnUrl = Uri.EscapeDataString(NavigationManager.Uri);
-        var loginUrl = $"Account/Login?returnUrl={returnUrl}";
+        var currentUri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         
         // Check if we're already on the login page to prevent redirect loops
-        if (!NavigationManager.Uri.Contains("/Account/Login"))
+        if (currentUri.AbsolutePath.Contains("/Account/Login", StringComparison.OrdinalIgnoreCase))
         {
-            NavigationManager.NavigateTo(loginUrl);
+            return;
         }
+        
+        var returnUrl = Uri.EscapeDataString(NavigationManager.Uri);
+        var loginUrl = $"/Account/Login?returnUrl={returnUrl}";
+        
+        NavigationManager.NavigateTo(loginUrl);
     }
 }

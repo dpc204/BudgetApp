@@ -1,23 +1,62 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject Budget.Web.Services.ThemeService ThemeService
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudLayout>
+  <MudThemeProvider Theme="@ThemeService.Theme" IsDarkMode="@ThemeService.IsDarkMode" />
+  <MudPopoverProvider />
+  <MudDialogProvider />
+  <MudSnackbarProvider />
+  <MudAppBar Elevation="1">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
+    <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
+  </MudAppBar>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+  <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
+    @*  <MudDrawerHeader>
+            <MudText Typo="Typo.h6">Fantum Budgetx</MudText>
+        </MudDrawerHeader> *@
+    <NavMenuMud/>
+  </MudDrawer>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+  <MudMainContent>
+    <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+      @Body
+    </MudContainer>
+  </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+  An unhandled error has occurred.
+  <a href="." class="reload">Reload</a>
+  <span class="dismiss">🗙</span>
 </div>
+
+@code {
+  private bool _drawerOpen = true;
+
+  protected override void OnInitialized()
+  {
+    base.OnInitialized();
+  }
+
+  private void DrawerToggle()
+  {
+    _drawerOpen = !_drawerOpen;
+  }
+
+  private void DarkModeToggle()
+  {
+    ThemeService.IsDarkMode = !ThemeService.IsDarkMode;
+  }
+
+  public string DarkLightModeButtonIcon => ThemeService.IsDarkMode switch
+  {
+    true => Icons.Material.Rounded.AutoMode,
+    false => Icons.Material.Outlined.DarkMode,
+  };
+
+}
+
+

@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: budgetapp
+services:
+  web:
+    language: dotnet
+    project: ./Budget.Web.csproj
+    host: appservice
+infra:
+  provider: bicep
+  path: ./infra
+  module: main
+  parameters:
+    environmentName: ${AZURE_ENV_NAME}
+    location: ${AZURE_LOCATION}
+    appServiceSku: ${appServiceSku}

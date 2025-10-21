@@ -21,6 +21,14 @@ builder.AddServiceDefaults();
 builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
+// Add HTTP logging services
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
+    logging.RequestBodyLogLimit = 4096;
+    logging.ResponseBodyLogLimit = 4096;
+});
+
 builder.Services.AddOpenApi();
 builder.Services.AddCarter();
 
@@ -93,6 +101,60 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
+// Add CORS policy using Aspire-provided origins
+builder.Services.AddCors(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        // In development, read allowed origins from configuration (set by Aspire)
+        var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
+        
+        if (!string.IsNullOrWhiteSpace(allowedOrigins))
+        {
+            // Split if multiple origins are provided (comma-separated)
+            var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            
+            options.AddPolicy("AllowBudgetWeb", policy =>
+            {
+                policy.WithOrigins(origins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+        }
+        else
+        {
+            // Fallback: allow all origins in development if not configured
+            options.AddPolicy("AllowBudgetWeb", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        }
+    }
+    else
+    {
+        // In production, read from configuration (Azure Container Apps, etc.)
+        var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
+        
+        if (string.IsNullOrWhiteSpace(allowedOrigins))
+        {
+            throw new InvalidOperationException("ALLOWED_ORIGINS environment variable must be set in production.");
+        }
+        
+        var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        
+        options.AddPolicy("AllowBudgetWeb", policy =>
+        {
+            policy.WithOrigins(origins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
+    }
+});
+
 var app = builder.Build();
 
 // Always ensure databases exist at startup (idempotent)
@@ -103,8 +165,10 @@ using (var scope = app.Services.CreateScope())
     services.GetRequiredService<BudgetContext>().Database.EnsureCreated();
 }
 
+// Add HTTP request logging (logs all incoming requests)
 if (app.Environment.IsDevelopment())
 {
+    app.UseHttpLogging();
     app.MapOpenApi();
     app.MapScalarApiReference(options =>
       options.WithTheme(ScalarTheme.DeepSpace)
@@ -112,6 +176,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable CORS before authentication/authorization
+app.UseCors("AllowBudgetWeb");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

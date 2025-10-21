@@ -1,48 +1,89 @@
 @page "/envelopes"
 @rendermode InteractiveServer
 @using Budget.Shared
-@using Syncfusion.Blazor.Grids
-@using Syncfusion.Blazor
-@using Syncfusion.Blazor.DropDowns
-@using Syncfusion.Blazor.Popups
 @using Budget.Shared.Models
 @using Budget.Shared.Services
-
 <h1>Envelopes!</h1>
-<div class="col-lg-12 control-section">
-  <div class="content-wrapper" >
-	  <div class="col-lg-8 control-section sb-property-border">
-      <div class="control-wrapper">
-        <label class="example-label">Choose Category</label>
-        <SfDropDownList TItem="Cat" TValue="int?" PopupHeight="230px" Value="@SelectedCategoryId" ValueChanged="@CatChanged" DataSource="@Cats" >
-          <DropDownListFieldSettings Text="CategoryName" Value="CategoryId" />
-        </SfDropDownList>
-      </div>
-    </div>
-    <p/>
-    <div class="row">
-	    <SfGrid TItem="EnvelopeResult" AllowEditing="false" DataSource="@SelectedEnvelopeData" AllowPaging="true" aria-label="Order Details Table">
-		    <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single"></GridSelectionSettings>
-		    <GridEvents TValue="EnvelopeResult" RowSelected="RowSelectHandler"/>
-		    <GridColumns>
-			    <GridColumn Field=@nameof(EnvelopeResult.CategoryName) HeaderText="Category" TextAlign="TextAlign.Left" Width="130" AllowEditing="false"></GridColumn>
-			    <GridColumn Field=@nameof(EnvelopeResult.EnvelopeName) HeaderText="Envelope" TextAlign="TextAlign.Left" Width="120"></GridColumn>
-			    <GridColumn Field=@nameof(EnvelopeResult.Balance) HeaderText="Balance" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
-		    </GridColumns>
-	    </SfGrid>
-    </div>
-    <div class="row">
-	    <SfGrid TItem="TransactionDto" AllowEditing="false" DataSource="@TransactionData" AllowPaging="true" aria-label="Order Details Table">
-		    <GridSelectionSettings Mode="Syncfusion.Blazor.Grids.SelectionMode.Row" Type="SelectionType.Single" ></GridSelectionSettings>
-		    <GridEvents TValue="TransactionDto" OnRecordDoubleClick="RecordDoubleClickHandler"/>
-		    <GridColumns>
-			    <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="ColumnType.Integer" TextAlign="TextAlign.Left"></GridColumn>
-			    <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="140"></GridColumn>
-			    <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="ColumnType.Decimal" TextAlign="TextAlign.Right"></GridColumn>
-		    </GridColumns>
-	    </SfGrid>
-    </div>
-  </div>
-</div>
-
-<ShowOneTransaction Transaction="@SelectedTransactionDetail" Visible="@ShowTransactionDialog" VisibleChanged="@OnShowTransactionDialogChanged" />
+@if (_loading)
+{
+  <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-4">
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+  </MudStack>
+}
+else if (!string.IsNullOrEmpty(_loadError))
+{
+  <MudAlert Severity="Severity.Error">Failed to load: @_loadError</MudAlert>
+}
+else
+{
+  <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
+    <MudStack Spacing="2" Class="envelope-page-stack">
+      <MudPaper Elevation="0" Class="sb-property-border">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="pa-2">
+          <MudSelect T="int?" Label="Choose Category" Variant="Variant.Outlined" Dense="true"
+                     @bind-Value="SelectedCategoryId" @bind-Value:after="@(() => _ = CatChanged(SelectedCategoryId))">
+            @foreach (var c in Cats)
+            {
+              <MudSelectItem @key="c.CategoryId" Value="@((int?)c.CategoryId)">@c.CategoryName</MudSelectItem>
+            }
+          </MudSelect>
+        </MudStack>
+      </MudPaper>
+      <MudGrid Class="envelope-grid-grow">
+        <MudItem >
+          <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
+            <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" FixedHeader="true" Height="100%" OnRowClick="@((TableRowClickEventArgs<EnvelopeResult> e) => OnEnvelopeRowClick(e))" @bind-SelectedItem="SelectedEnvelope" RowStyleFunc="GetEnvelopeRowStyle" Class="envelopes-table flex-grow-1">
+              <HeaderContent>
+                <MudTh></MudTh>
+                <MudTh>Category</MudTh>
+                <MudTh>Envelope</MudTh>
+                <MudTh class="text-end">Balance</MudTh>
+                <MudTh></MudTh>
+              </HeaderContent>
+              <RowTemplate >
+                <MudTd>
+                  <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Primary"
+                                 OnClick="@(() => NewTransactionAsync(context.EnvelopeId))"/>
+                </MudTd>
+                <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+                <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
+                <MudTd DataLabel="Balance" Class="text-end">@context.Balance.ToString("N2")</MudTd>
+                <MudTd>
+                  <MudIconButton Icon="@Icons.Material.Filled.ReadMore"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Primary"
+                                 OnClick="@(() => SelectedEnvelope = context)"/>
+                </MudTd>
+              </RowTemplate>
+            </MudTable>
+          </MudPaper>
+        </MudItem>
+        <MudItem>
+          <MudPaper Elevation="0" Class="mt-3 h-100 d-flex flex-column">
+            <MudTable Items="@TransactionData" Hover="true" Dense="true" OnRowClick="@( (TableRowClickEventArgs<TransactionDto> e) => OnTransactionRowClick(e) )" FixedHeader="true" Height="100%" Class="flex-grow-1">
+              <HeaderContent>
+                <MudTh>Line#</MudTh>
+                <MudTh>Vendor</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh class="text-end">Amount</MudTh>
+              </HeaderContent>
+              <RowTemplate>
+                <MudTd DataLabel="Line#">@context.LineId</MudTd>
+                <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                <MudTd DataLabel="Description">@context.Description</MudTd>
+                <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
+              </RowTemplate>
+              <NoRecordsContent>
+                <MudText Color="Color.Secondary">Nothing to show</MudText>
+              </NoRecordsContent>
+            </MudTable>
+          </MudPaper>
+        </MudItem>
+      </MudGrid>
+    </MudStack>
+  </MudContainer>
+}

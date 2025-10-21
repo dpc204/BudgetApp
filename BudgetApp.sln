@@ -17,8 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Api", "Budget.Api\Bu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Shared", "Budget.Shared\Budget.Shared.csproj", "{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Client2", "Budget.Client2\Budget.Client2.csproj", "{B42057B0-86C5-4509-BD75-555051F12DC7}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.ApiTests", "Budget.ApiTests\Budget.ApiTests.csproj", "{9C9BB541-9669-A1FD-3620-956AD663C988}"
 EndProject
 Global
@@ -55,10 +53,6 @@ Global
 		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57785284-61E2-4E5E-B3F1-D3334F3C0B0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B42057B0-86C5-4509-BD75-555051F12DC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B42057B0-86C5-4509-BD75-555051F12DC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B42057B0-86C5-4509-BD75-555051F12DC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B42057B0-86C5-4509-BD75-555051F12DC7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9C9BB541-9669-A1FD-3620-956AD663C988}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9C9BB541-9669-A1FD-3620-956AD663C988}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C9BB541-9669-A1FD-3620-956AD663C988}.Release|Any CPU.ActiveCfg = Release|Any CPU

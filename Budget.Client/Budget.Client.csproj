@@ -1,28 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
-
+  
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-    <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
-    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <IsPackable>false</IsPackable>
+    <RazorLangVersion>Latest</RazorLangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Components\EnvelopePagesCRUD\**" />
-    <Content Remove="Components\EnvelopePagesCRUD\**" />
-    <EmbeddedResource Remove="Components\EnvelopePagesCRUD\**" />
-    <None Remove="Components\EnvelopePagesCRUD\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Syncfusion.Blazor" Version="31.1.21" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.1.21" />
+    <PackageReference Include="MudBlazor" Version="8.13.0" />
+    <PackageReference Include="Syncfusion.Blazor" Version="31.2.2" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.0-rc.2.25502.107" />
   </ItemGroup>
 
   <ItemGroup>

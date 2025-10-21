@@ -2,40 +2,32 @@
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 
-<div class="category-create-form">
+<MudDialog>
+  <DialogContent>
     @if (_category is null)
     {
-        <p><em>Loading...</em></p>
+        <MudProgressCircular Indeterminate="true" />
     }
     else
     {
         <EditForm Model="_category" OnValidSubmit="CreateAsync">
             <DataAnnotationsValidator />
-            <ValidationSummary />
-            <div class="mb-3">
-                <label class="form-label">Name</label>
-                <InputText class="form-control form-control-lg" @bind-Value="_category.Name" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <InputText class="form-control form-control-lg" @bind-Value="_category.Description" />
-            </div>
-            <div class="mb-3" style="max-width:160px;">
-                <label class="form-label">Sort</label>
-                <InputNumber class="form-control form-control-lg" @bind-Value="_category.SortOrder" />
-            </div>
-            <div class="mt-2">
-                <button class="btn btn-primary btn-lg me-2" type="submit">Create</button>
-                <button type="button" class="btn btn-secondary btn-lg" @onclick="() => OnCancel.InvokeAsync()">Cancel</button>
-            </div>
+            <MudStack Spacing="2">
+                <MudTextField @bind-Value="_category.Name" Label="Name" For="() => _category.Name" Required="true" />
+                <MudTextField @bind-Value="_category.Description" Label="Description" For="() => _category.Description" />
+                <MudNumericField @bind-Value="_category.SortOrder" Label="Sort" />
+            </MudStack>
         </EditForm>
     }
-</div>
+  </DialogContent>
+  <DialogActions>
+      <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="@(_category is null)" OnClick="CreateAsync">Create</MudButton>
+      <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+  </DialogActions>
+</MudDialog>
 
 @code {
-    [Parameter] public EventCallback<CategoryDto> OnCreated { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
-
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
     private CategoryDto? _category;
 
     protected override Task OnInitializedAsync()
@@ -46,15 +38,10 @@
 
     private async Task CreateAsync()
     {
-        var created = await MaintApi.AddCategoryAsync(_category!);
-        await OnCreated.InvokeAsync(created);
+        if (_category is null) return;
+        var created = await MaintApi.AddCategoryAsync(_category);
+        MudDialog.Close(DialogResult.Ok(created));
     }
-}
 
-<style>
-.category-create-form { width:100%; }
-.category-create-form .form-control-lg { font-size:1rem; }
-.category-create-form .form-label { font-weight:500; }
-.category-create-form .mb-3 { margin-bottom:1rem !important; }
-.category-create-form .btn-lg { padding:.55rem 1.2rem; }
-</style>
+    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+}

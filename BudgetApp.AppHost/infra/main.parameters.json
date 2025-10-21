@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "environmentName": { "value": "prod" },
-    "location": { "value": "eastus" },
+    "location": { "value": "centralus" },
     "containerAppName": { "value": "budget" },
     "containerImage": { "value": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" },
     "containerMemory": { "value": "2Gi" },

@@ -1,0 +1,19 @@
+﻿@using MudBlazor
+@typeparam T
+
+<MudNumericField T="T"
+                 Value="Value"
+                 ValueChanged="ValueChanged"
+                 ValueExpression="ValueExpression"
+                 For="For"
+                 @attributes="AdditionalAttributes" />
+
+@code {
+    [Parameter] public T? Value { get; set; }
+    [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    [Parameter] public System.Linq.Expressions.Expression<System.Func<T>>? ValueExpression { get; set; }
+    [Parameter] public System.Linq.Expressions.Expression<System.Func<T>>? For { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}
+
+@namespace Budget.Shared.FDComponents

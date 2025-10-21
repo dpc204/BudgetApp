@@ -4,6 +4,36 @@
   padding: 1rem;                  /* ~16px */
 }
 
+.envelope-page-container, .envelope-page-stack, .envelope-grid-grow {
+  height: 100%;
+}
+
+/* Ensure the body/html allow full-height flex usage */
+:root, body, html {
+  height: 100%;
+}
+
+.envelope-page-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.envelope-page-stack {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow children to shrink */
+}
+
+.envelope-grid-grow {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.envelopes-table .mud-table-container {
+  height: 100%;
+}
+
 /* Keep row selection highlight, remove per-cell focus box */
 ::deep .e-grid .e-rowcell:focus,
 ::deep .e-grid .e-rowcell:focus-visible,
@@ -37,4 +67,17 @@
 ::deep .e-ddl .e-input-group .e-input,
 ::deep .e-ddl .e-input-value {
   font-weight: 700 !important;
+}
+
+/* Highlight selected row in the envelopes MudTable using the theme Secondary color */
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary,
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary > td {
+  background-color: var(--mud-palette-secondary) !important;
+  color: var(--mud-palette-secondary-contrastText) !important;
+}
+
+/* Keep hover visible but not override selected */
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover,
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover > td {
+  filter: brightness(0.98);
 }

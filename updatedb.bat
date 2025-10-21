@@ -1,5 +1,6 @@
 echo %1
 
+echo on
 
 if %1 == local goto local
 if %1 == azure goto azure
@@ -16,4 +17,6 @@ set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Datab
 :run
 dotnet ef  database update   --project Budget.DB   --startup-project Budget.Web   --context Budget.DB.BudgetContext
 
+
+:eof
 set LocalBudgetConnection=

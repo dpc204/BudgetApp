@@ -2,28 +2,31 @@
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 
-<h3>Account Details</h3>
-<hr />
-@if (_account is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <dl class="row">
-        <dt class="col-sm-2">Name</dt>
-        <dd class="col-sm-10">@_account.Name</dd>
-        <dt class="col-sm-2">Balance</dt>
-        <dd class="col-sm-10">@_account.Balance</dd>
-        <dt class="col-sm-2">Type</dt>
-        <dd class="col-sm-10">@_account.AccountType</dd>
-    </dl>
-    <button class="btn btn-secondary" @onclick="() => OnClose.InvokeAsync()">Close</button>
-}
+<MudDialog>
+  <DialogContent>
+    @if (_account is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h6">Account Details</MudText>
+            <MudDivider Class="mb-2" />
+            <MudText><strong>Name:</strong> @_account.Name</MudText>
+            <MudText><strong>Balance:</strong> @_account.Balance.ToString("C")</MudText>
+            <MudText><strong>Type:</strong> @_account.AccountType</MudText>
+        </MudStack>
+    }
+  </DialogContent>
+  <DialogActions>
+      <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="Close">Close</MudButton>
+  </DialogActions>
+</MudDialog>
 
 @code {
     [Parameter] public int Id { get; set; }
-    [Parameter] public EventCallback OnClose { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private BankAccountDto? _account;
 
@@ -32,4 +35,6 @@ else
         var list = await MaintApi.GetAccountsAsync();
         _account = list.FirstOrDefault(a => a.Id == Id);
     }
+
+    private void Close() => MudDialog.Close();
 }

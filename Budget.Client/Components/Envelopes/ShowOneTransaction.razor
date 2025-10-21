@@ -1,37 +1,41 @@
 @using Budget.Shared.Models
-@using Budget.Shared.Services
-@using Syncfusion.Blazor.Grids
-@using Syncfusion.Blazor.Popups
 
-@if (Visible)
-{
-  <SfDialog Visible="true" Width="480px" IsModal="true" ShowCloseIcon="true" Header="Transaction Details">
-    <DialogContent>
-      @if (Transaction is null)
-      {
-        <p>No transaction selected.</p>
-      }
-      else
-      {
-	      <ul class="list-unstyled">
-		      <li><strong>Transaction Id:</strong> @Transaction.Id</li>
-		      <li><strong>Line:</strong> @Transaction.UserInitials</li>
-		      <li><strong>Date:</strong> @Transaction.Date</li>
-		      <li><strong>Description:</strong> @Transaction.Description</li>
-		      <li><strong>Amount:</strong> @Transaction.TotalAmount</li>
-	      </ul>
-        <SfGrid TItem="TransactionDto" AllowPaging="false"  DataSource="@Transaction.Details" >
-        <GridColumns>
-	        <GridColumn Field=@nameof(TransactionDto.LineId) HeaderText="Line#" Width="60" Type="Syncfusion.Blazor.Grids.ColumnType.Integer" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left"></GridColumn>
-          <GridColumn Field=@nameof(TransactionDto.EnvelopeName) HeaderText="Envelope" Width="100" Type=ColumnType.String TextAlign=TextAlign.Left></GridColumn>
-	        <GridColumn Field=@nameof(TransactionDto.Description) HeaderText="Description" Type="Syncfusion.Blazor.Grids.ColumnType.String" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Left" Width="140"></GridColumn>
-	        <GridColumn Field=@nameof(TransactionDto.Amount) HeaderText="Amount" Width="60" Type="Syncfusion.Blazor.Grids.ColumnType.Decimal" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GridColumn>
-        </GridColumns>
-        </SfGrid>
-      }
-    </DialogContent>
-    <DialogButtons>
-      <DialogButton Content="Close" IsPrimary="true" OnClick="Close" />
-    </DialogButtons>
-  </SfDialog>
-}
+<MudDialog>
+  <DialogContent>
+    @if (Transaction is null)
+    {
+      <MudText>No transaction selected.</MudText>
+    }
+    else
+    {
+      <MudSimpleTable Dense="true">
+      <MudTr><MudTd><MudText Align="Align.Right"><strong>Transaction Id:</strong></MudText></MudTd><MudTd>@Transaction.Id</MudTd></MudTr>
+      <MudTr><MudTd><MudText Align="Align.Right"><strong>User:</strong> </MudText></MudTd><MudTd></MudTd></MudTr>
+      <MudTr><MudTd><MudText Align="Align.Right"><strong>Account:</strong> </MudText></MudTd><MudTd></MudTd></MudTr>
+        <MudTr><MudTd><MudText Align="Align.Right"><strong>Date:</strong> </MudText></MudTd><MudTd> @Transaction.Date</MudTd></MudTr>
+        <MudTr><MudTd><MudText Align="Align.Right"><strong>Description:</strong></MudText></MudTd><MudTd> @Transaction.Description</MudTd></MudTr>
+        <MudTr><MudTd><MudText Align="Align.Right"><strong>Amount:</strong></MudText></MudTd><MudTd> @Transaction.TotalAmount</MudTd></MudTr>
+      </MudSimpleTable>
+      <MudTable Items="@Transaction.Details" Hover="true" Dense="true" Elevation="0">
+        <HeaderContent>
+          <MudTh>Line#</MudTh>
+          <MudTh>Envelope</MudTh>
+          <MudTh>Description</MudTh>
+          <MudTh class="text-end">Amount</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+          <MudTd DataLabel="Line#">@context.LineId</MudTd>
+          <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
+          <MudTd DataLabel="Description">@context.Description</MudTd>
+          <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+          <MudText Color="Color.Secondary">No details</MudText>
+        </NoRecordsContent>
+      </MudTable>
+    }
+  </DialogContent>
+  <DialogActions>
+    <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+  </DialogActions>
+</MudDialog>
