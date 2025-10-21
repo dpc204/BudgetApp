@@ -30,8 +30,8 @@ jobs:
       - name: Build Budget.Web
         run: dotnet build Budget.Web/Budget.Web.csproj --no-restore -c Release
 
-      - name: Publish self-contained for Linux
-        run: dotnet publish Budget.Web/Budget.Web.csproj -c Release -r linux-x64 -p:SelfContained=true -o $RUNNER_TEMP/publish
+      - name: Publish framework-dependent (Linux)
+        run: dotnet publish Budget.Web/Budget.Web.csproj -c Release -r linux-x64 --no-self-contained -o $RUNNER_TEMP/publish
 
       - name: Create deployment zip
         run: |
@@ -72,3 +72,4 @@ jobs:
           app-name: 'as-budgetappcenus'
           slot-name: 'Production'
           package: ${{ runner.temp }}/webapp.zip
+          startup-command: 'dotnet ./Budget.Web.dll'
