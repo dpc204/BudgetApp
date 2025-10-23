@@ -8,6 +8,13 @@ public sealed class AuthEndpoints : CarterModule
 {
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
+        // Only register these endpoints if the API Identity stack is present
+        var canResolve = app.ServiceProvider.GetService<UserManager<IdentityUser>>() is not null;
+        if (!canResolve)
+        {
+            return; // Host app manages identity; skip JWT auth endpoints
+        }
+
         var group = app.MapGroup("/api/auth").WithTags("Auth");
 
         group.MapPost("register", async ([FromBody] RegisterRequest req, UserManager<IdentityUser> userManager) =>

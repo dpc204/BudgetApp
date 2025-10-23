@@ -21,6 +21,48 @@ namespace Microsoft.AspNetCore.Routing
 
             var accountGroup = endpoints.MapGroup("/Account");
 
+            // Login via HTTP POST so cookies can be written safely
+            accountGroup.MapPost("/Login", async (
+                HttpContext context,
+                [FromServices] SignInManager<BudgetUser> signInManager,
+                [FromForm] string email,
+                [FromForm] string password,
+                [FromForm] string? rememberMe,
+                [FromForm] string? returnUrl) =>
+            {
+                var persistent = string.Equals(rememberMe, "true", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(rememberMe, "on", StringComparison.OrdinalIgnoreCase);
+                var result = await signInManager.PasswordSignInAsync(email, password, persistent, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    var dest = GetSafeRedirect(returnUrl);
+                    return TypedResults.LocalRedirect(dest);
+                }
+                if (result.RequiresTwoFactor)
+                {
+                    var dest = UriHelper.BuildRelative(
+                        context.Request.PathBase,
+                        "/Account/LoginWith2fa",
+                        QueryString.Create(new[]
+                        {
+                            new KeyValuePair<string, StringValues>("ReturnUrl", returnUrl ?? "/"),
+                            new KeyValuePair<string, StringValues>("RememberMe", persistent.ToString())
+                        }));
+                    return TypedResults.LocalRedirect(dest);
+                }
+                if (result.IsLockedOut)
+                {
+                    return TypedResults.LocalRedirect("~/Account/Lockout");
+                }
+
+                // Back to login with status
+                var failed = UriHelper.BuildRelative(
+                    context.Request.PathBase,
+                    "/Account/Login",
+                    QueryString.Create("status", "Error: Invalid login attempt."));
+                return TypedResults.LocalRedirect(failed);
+            });
+
             accountGroup.MapPost("/PerformExternalLogin", (
                 HttpContext context,
                 [FromServices] SignInManager<BudgetUser> signInManager,
@@ -46,7 +88,17 @@ namespace Microsoft.AspNetCore.Routing
                 [FromForm] string returnUrl) =>
             {
                 await signInManager.SignOutAsync();
-                return TypedResults.LocalRedirect($"~/{returnUrl}");
+                // Always go home after logout
+                return TypedResults.LocalRedirect("~/");
+            });
+
+            // Support GET-based logout to work with navigation links. Always go home.
+            accountGroup.MapGet("/Logout", async (
+                SignInManager<BudgetUser> signInManager,
+                [FromQuery] string? returnUrl) =>
+            {
+                await signInManager.SignOutAsync();
+                return TypedResults.LocalRedirect("~/");
             });
 
             var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
@@ -108,6 +160,17 @@ namespace Microsoft.AspNetCore.Routing
             });
 
             return accountGroup;
+
+            static string GetSafeRedirect(string? returnUrl)
+            {
+                if (string.IsNullOrWhiteSpace(returnUrl))
+                    return "~/";
+                if (returnUrl.Contains("/Account/", StringComparison.OrdinalIgnoreCase))
+                    return "~/";
+                if (Uri.IsWellFormedUriString(returnUrl, UriKind.Absolute))
+                    return "~/";
+                return "~" + (returnUrl.StartsWith('/') ? returnUrl : "/" + returnUrl);
+            }
         }
     }
 }

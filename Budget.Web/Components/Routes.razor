@@ -1,17 +1,22 @@
 ﻿@using Budget.Web.Components.Account.Shared
+@inject NavigationManager NavigationManager
 <Router AppAssembly="typeof(Program).Assembly"
         AdditionalAssemblies="new[] { typeof(Budget.Client.RedirectToLogin).Assembly }"
-        NotFoundPage="typeof(Pages.NotFound)">
+          NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
             <Authorizing>
                 <p>Authorizing...</p>
             </Authorizing>
             <NotAuthorized>
-              <Budget.Web.Components.Account.Shared.RedirectToLogin />
-
+              @* Only render redirect when not already on the login or account pages to avoid loops *@
+              @if (!NavigationManager.ToAbsoluteUri(NavigationManager.Uri).AbsolutePath.StartsWith("/Account", StringComparison.OrdinalIgnoreCase))
+              {
+                  <Budget.Web.Components.Account.Shared.RedirectToLogin @rendermode="InteractiveServer" />
+              }
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
+

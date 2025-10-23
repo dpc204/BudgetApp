@@ -39,22 +39,33 @@
     private string? phoneNumber;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext? HttpContext { get; set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
+        if (HttpContext is null)
+        {
+            // If HttpContext is not available, do not proceed. Optionally, show a message or redirect.
+            username = "(not available)";
+            phoneNumber = null;
+            return;
+        }
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
-
         Input.PhoneNumber ??= phoneNumber;
     }
 
     private async Task OnValidSubmitAsync()
     {
+        if (HttpContext is null)
+        {
+            // Optionally, show an error or ignore submit if HttpContext is missing
+            return;
+        }
         if (Input.PhoneNumber != phoneNumber)
         {
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
