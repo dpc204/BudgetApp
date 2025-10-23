@@ -24,3 +24,5 @@ namespace Budget.Web.Data
         }
     }
 }
+
+

@@ -20,7 +20,7 @@ builder.AddServiceDefaults();
 
 // Ensure EF Core command logs go through ILogger and to structured logs
 builder.Logging.AddJsonConsole();
-builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Trace);
 
 builder.Services.AddRazorComponents()
   .AddInteractiveServerComponents();
@@ -49,9 +49,6 @@ builder.Services.AddHttpClient<IBudgetMaintApiClient, Budget.Client.Services.Bud
     apiBase += "/";
   client.BaseAddress = new Uri(apiBase);
 });
-
-// Host the API in-proc so endpoints are exposed by this same app
-builder.Services.AddBudgetApi(builder.Configuration, builder.Environment);
 
 builder.Services.AddScoped<EnvelopeState>();
 
@@ -104,11 +101,10 @@ builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Logging.AddFilter("Budget.Client.Components.Maintenance.AccountCRUD", LogLevel.Debug);
 
+// Use the SAME database for Identity as BudgetContext (Identity schema within the same DB)
 builder.Services.AddDbContext<IdentityDBContext>(options =>
-  
-  options.UseSqlServer(authConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "BudgetIdentity")));
+  options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "BudgetIdentity")));
 
-Console.WriteLine($"Right after Add IdentityDBContext {authConnectionString}");
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddSyncfusionBlazor();
@@ -131,6 +127,10 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<ThemeService>();
+
+// Host the API in-proc so endpoints are exposed by this same app (moved here, after Identity)
+builder.Services.AddBudgetApi(builder.Configuration, builder.Environment);
+
 var app = builder.Build();
 
 // Initialize ServiceAccessor with built service provider for parameterless constructors
@@ -143,7 +143,23 @@ startupLogger.LogInformation(
 
 startupLogger.LogInformation(
   "Application starting at {UtcTime} with IdentityDB host parsed from connection string: {DataSource}", DateTime.UtcNow,
-  ParseDataSource(authConnectionString));
+  ParseDataSource(budgetConnectionString));
+
+// Ensure Identity schema is created/migrated so 'BudgetIdentity.AspNetUsers' exists
+using (var scope = app.Services.CreateScope())
+{
+  try
+  {
+    var idDb = scope.ServiceProvider.GetRequiredService<IdentityDBContext>();
+    idDb.Database.Migrate();
+  }
+  catch (Exception ex)
+  {
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Error applying IdentityDBContext migrations");
+    throw;
+  }
+}
 
 app.MapDefaultEndpoints();
 
@@ -189,7 +205,7 @@ app.MapBudgetApi(app.Environment);
 
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode()
-  .AddAdditionalAssemblies(typeof(Budget.Client.Pages.Home).Assembly); // enable routes from Budget.Client RCL
+  .AddAdditionalAssemblies(typeof(Budget.Client.Pages.Home).Assembly);
 
 app.MapAdditionalIdentityEndpoints();
 

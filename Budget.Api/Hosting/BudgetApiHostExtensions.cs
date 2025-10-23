@@ -48,22 +48,29 @@ public static class BudgetApiHostExtensions
             });
         }
 
-        // API Identity context (separate from web identity)
-        services.AddDbContext<ApiIdentityContext>(options =>
-        {
-            options.UseSqlServer(identityConnectionString);
-            if (isDev)
-            {
-                options.EnableDetailedErrors();
-                options.EnableSensitiveDataLogging();
-            }
-        });
+        // If the host app already has an Identity stack (e.g., IdentityDBContext with roles), skip registering API Identity
+        var hasRoleStore = services.Any(d => d.ServiceType == typeof(IRoleStore<IdentityRole>))
+                        || services.Any(d => d.ImplementationType?.Name.Contains("RoleStore") == true);
 
-        services
-            .AddIdentityCore<IdentityUser>(o => { o.User.RequireUniqueEmail = true; })
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApiIdentityContext>()
-            .AddSignInManager();
+        if (!hasRoleStore)
+        {
+            // API Identity context (separate from web identity)
+            services.AddDbContext<ApiIdentityContext>(options =>
+            {
+                options.UseSqlServer(identityConnectionString);
+                if (isDev)
+                {
+                    options.EnableDetailedErrors();
+                    options.EnableSensitiveDataLogging();
+                }
+            });
+
+            services
+                .AddIdentityCore<IdentityUser>(o => { o.User.RequireUniqueEmail = true; })
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<ApiIdentityContext>()
+                .AddSignInManager();
+        }
 
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         var jwtOpt = configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
@@ -97,7 +104,8 @@ public static class BudgetApiHostExtensions
         // Ensure databases exist
         using (var scope = endpoints.ServiceProvider.CreateScope())
         {
-            scope.ServiceProvider.GetRequiredService<ApiIdentityContext>().Database.EnsureCreated();
+            var apiIdentity = scope.ServiceProvider.GetService<ApiIdentityContext>();
+            apiIdentity?.Database.EnsureCreated();
             var ctxOptions = scope.ServiceProvider.GetService<DbContextOptions<BudgetContext>>();
             if (ctxOptions is not null)
             {

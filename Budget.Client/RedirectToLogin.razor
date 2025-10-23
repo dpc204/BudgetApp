@@ -1,19 +1,28 @@
 ﻿@inject NavigationManager NavigationManager
 
 @code {
-    protected override void OnInitialized()
+    private bool _navigated;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _navigated)
+            return;
+
         var currentUri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        
-        // Check if we're already on the login page to prevent redirect loops
-        if (currentUri.AbsolutePath.Contains("/Account/Login", StringComparison.OrdinalIgnoreCase))
+
+        // If we're already on any /Account page, do nothing to avoid loops
+        if (currentUri.AbsolutePath.StartsWith("/Account", StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
-        
+
+        _navigated = true;
+
         var returnUrl = Uri.EscapeDataString(NavigationManager.Uri);
         var loginUrl = $"/Account/Login?returnUrl={returnUrl}";
-        
-        NavigationManager.NavigateTo(loginUrl);
+
+        // Navigate after the circuit is established to avoid prerender refresh loops
+        NavigationManager.NavigateTo(loginUrl, forceLoad: true);
+        await Task.CompletedTask;
     }
 }
