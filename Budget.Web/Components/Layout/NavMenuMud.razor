@@ -1,19 +1,20 @@
 <MudNavMenu>
+  <AuthorizeView Roles="User">
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
     <MudNavLink Href="envelopes" Icon="@Icons.Material.Filled.Folder">Envelopes</MudNavLink>
     <MudNavLink Href="maintenance" Icon="@Icons.Material.Filled.Build">Maintenance</MudNavLink>
     <MudNavLink Href="auth" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
-    
-    <AuthorizeView>
-        <Authorized>
-            <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
-            <MudNavLink Href="Admin/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
-            <MudNavLink Href="Admin/Roles" Icon="@Icons.Material.Filled.Shield">Roles</MudNavLink>
-            <MudNavLink OnClick="@HandleLogoutAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
-        </Authorized>
-        <NotAuthorized>
-            <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
-            <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
-        </NotAuthorized>
-    </AuthorizeView>
+  </AuthorizeView>
+  <AuthorizeView >
+    <Authorized>
+      <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
+      <MudNavLink Href="Admin/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+      <MudNavLink Href="Admin/Roles" Icon="@Icons.Material.Filled.Shield">Roles</MudNavLink>
+      <MudNavLink OnClick="@HandleLogoutAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
+    </Authorized>
+    <NotAuthorized>
+      <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+      <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+    </NotAuthorized>
+  </AuthorizeView>
 </MudNavMenu>
