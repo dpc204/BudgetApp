@@ -1,4 +1,7 @@
-﻿namespace Budget.Client.Components.Transactions;
+﻿using Budget.Client.Services;
+using IBudgetApiClient = Budget.Shared.Services.IBudgetApiClient;
+
+namespace Budget.Client.Components.Transactions;
 
 public partial class PurchaseTransactionDialog
 {
@@ -19,7 +22,7 @@ public partial class PurchaseTransactionDialog
 
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   private MudTextField<string>? _vendorField;
-
+  UserInfoDto _currentUser = new();
   protected override async  Task OnAfterRenderAsync(bool firstRender)
   {
     await base.OnAfterRenderAsync(firstRender);
@@ -31,21 +34,29 @@ public partial class PurchaseTransactionDialog
   {
     if(!Envelopes.Any())
     {
-      Envelopes = await Api.GetEnvelopesAsync();
+        Envelopes = await Api.GetEnvelopesAsync();
     }
 
     if(!Accounts.Any())
     {
-      Accounts = await Api.GetAccountsAsync();
-      _header.AccountId = Accounts.Min(e => e.Id);
+        Accounts = await Api.GetAccountsAsync();
+        _header.AccountId = Accounts.Min(e => e.Id);
     }
 
     if(!_lines.Any())
     {
-      _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
-      Recalc();
+        _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
+        Recalc();
     }
+
+    var user = await Api.GetCurrentUserInfoAsync();
+    if (user == null)
+      throw new Exception("User not found.  Only logged in users should be at this point");
+
+    
+    _currentUser = user ?? new UserInfoDto();
   }
+
 
   private DateTime? HeaderDate
   {
