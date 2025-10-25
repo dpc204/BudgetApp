@@ -31,8 +31,7 @@ else
       </MudPaper>
       <MudGrid Class="envelope-grid-grow">
         <MudItem>
-
-            <MudPaper Elevation="0" Class="h-100 d-flex flex-column" Style="position:sticky; top:0; z-index:1;">
+            <MudPaper Elevation="0" Class="h-100 d-flex flex-column" >
               <MudDataGrid Items="@SelectedEnvelopeData"
                            Hover="true"
                            Dense="true"
@@ -70,23 +69,28 @@ else
         </MudItem>
         <MudItem>
           <MudPaper Elevation="0" Class="mt-3 h-100 d-flex flex-column">
-            <MudTable Items="@TransactionData" Hover="true" Dense="true" OnRowClick="@( (TableRowClickEventArgs<TransactionDto> e) => OnTransactionRowClick(e) )" FixedHeader="true" Height="100%" Class="flex-grow-1">
-              <HeaderContent>
-                <MudTh>Line#</MudTh>
-                <MudTh>Vendor</MudTh>
-                <MudTh>Description</MudTh>
-                <MudTh class="text-end">Amount</MudTh>
-              </HeaderContent>
-              <RowTemplate>
-                <MudTd DataLabel="Line#">@context.LineId</MudTd>
-                <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-                <MudTd DataLabel="Description">@context.Description</MudTd>
-                <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
-              </RowTemplate>
-              <NoRecordsContent>
-                <MudText Color="Color.Secondary">Nothing to show</MudText>
-              </NoRecordsContent>
-            </MudTable>
+            <MudDataGrid Items="@TransactionData"
+                         Hover="true"
+                         Dense="true"
+                         FixedHeader="true"
+                         Height="@TransactionGridHeightPx"
+                         RowClick="@((DataGridRowClickEventArgs<TransactionDto> e) => OnTransactionRowClick(e))"
+                         Class="envelopes-table">
+              <Columns>
+                <PropertyColumn Property="x => x.LineId" Title="Line#" />
+                <PropertyColumn Property="x => x.Vendor" Title="Vendor" />
+                <PropertyColumn Property="x => x.Description" Title="Description" />
+                <TemplateColumn Title="Amount"
+                                TitleClass="text-end"
+                                CellClass="text-end"
+                                HeaderStyle="text-align: right;"
+                                CellStyle="text-align: right;">
+                  <CellTemplate Context="ctx">
+                    @ctx.Item.Amount.ToString("N2")
+                  </CellTemplate>
+                </TemplateColumn>
+              </Columns>
+            </MudDataGrid>
           </MudPaper>
         </MudItem>
       </MudGrid>

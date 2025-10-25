@@ -31,7 +31,12 @@ public partial class EnvelopePage : ComponentBase
   // Dense row height in MudBlazor is ~33px; header is ~56px. Adjust if theme differs.
   private const int EnvelopeRowHeightPx = 38;
   private const int EnvelopeHeaderHeightPx = 56;
-  private string EnvelopeGridHeightPx => $"{(EnvelopeRowHeightPx * 3) + EnvelopeHeaderHeightPx}px";
+  private string EnvelopeGridHeightPx => $"{(EnvelopeRowHeightPx * 5) + EnvelopeHeaderHeightPx}px";
+
+  private const int TransactionRowHeightPx = 38;
+  private const int TransactionHeaderHeightPx = 56;
+  private string TransactionGridHeightPx => $"{(TransactionRowHeightPx * 5) + TransactionHeaderHeightPx}px";
+
 
   private bool _loading = true;
   private string? _loadError;
@@ -128,6 +133,24 @@ public partial class EnvelopePage : ComponentBase
   }
 
   private async Task OnTransactionRowClick(TableRowClickEventArgs<TransactionDto> args)
+  {
+    if (args?.Item is null) return;
+
+    try
+    {
+      var detail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
+      var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
+      var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+      await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
+    }
+    catch (Exception ex)
+    {
+      Console.Error.WriteLine($"Failed loading transaction detail: {ex.Message}");
+    }
+  }
+
+  // Overload for MudDataGrid RowClick
+  private async Task OnTransactionRowClick(DataGridRowClickEventArgs<TransactionDto> args)
   {
     if (args?.Item is null) return;
 
