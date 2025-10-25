@@ -27,6 +27,12 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
+  // Height calculation so the MudDataGrid shows exactly3 rows and scrolls for more
+  // Dense row height in MudBlazor is ~33px; header is ~56px. Adjust if theme differs.
+  private const int EnvelopeRowHeightPx = 38;
+  private const int EnvelopeHeaderHeightPx = 56;
+  private string EnvelopeGridHeightPx => $"{(EnvelopeRowHeightPx * 3) + EnvelopeHeaderHeightPx}px";
+
   private bool _loading = true;
   private string? _loadError;
   private bool _afterRenderInit;
@@ -83,6 +89,12 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
+  private void OnRowClicked(DataGridRowClickEventArgs<EnvelopeResult> args)
+  {
+    var clickedItem = args.Item;
+    if (args?.Item is null) return;
+    SelectedEnvelope = args.Item;
+  }
   private void ApplySelection()
   {
     var selected = SelectedCategoryId ?? 0;

@@ -30,37 +30,43 @@ else
         </MudStack>
       </MudPaper>
       <MudGrid Class="envelope-grid-grow">
-        <MudItem >
-          <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
-            <MudTable Items="@SelectedEnvelopeData" Hover="true" Dense="true" FixedHeader="true" Height="100%" OnRowClick="@((TableRowClickEventArgs<EnvelopeResult> e) => OnEnvelopeRowClick(e))" @bind-SelectedItem="SelectedEnvelope" RowStyleFunc="GetEnvelopeRowStyle" Class="envelopes-table flex-grow-1">
-              <HeaderContent>
-                <MudTh></MudTh>
-                <MudTh>Category</MudTh>
-                <MudTh>Envelope</MudTh>
-                <MudTh class="text-end">Balance</MudTh>
-                <MudTh></MudTh>
-              </HeaderContent>
-              <RowTemplate >
-                <MudTd>
-                  <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                 Size="Size.Small"
-                                 Variant="Variant.Outlined"
-                                 Color="Color.Primary"
-                                 OnClick="@(() => NewTransactionAsync(context.EnvelopeId))"/>
-                </MudTd>
-                <MudTd DataLabel="Category">@context.CategoryName</MudTd>
-                <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
-                <MudTd DataLabel="Balance" Class="text-end">@context.Balance.ToString("N2")</MudTd>
-                <MudTd>
-                  <MudIconButton Icon="@Icons.Material.Filled.ReadMore"
-                                 Size="Size.Small"
-                                 Variant="Variant.Outlined"
-                                 Color="Color.Primary"
-                                 OnClick="@(() => SelectedEnvelope = context)"/>
-                </MudTd>
-              </RowTemplate>
-            </MudTable>
-          </MudPaper>
+        <MudItem>
+
+            <MudPaper Elevation="0" Class="h-100 d-flex flex-column" Style="position:sticky; top:0; z-index:1;">
+              <MudDataGrid Items="@SelectedEnvelopeData"
+                           Hover="true"
+                           Dense="true"
+                           FixedHeader="true"
+                           Height="@EnvelopeGridHeightPx"
+                           RowClick="@((DataGridRowClickEventArgs<EnvelopeResult> args) => OnRowClicked(args))"
+                           RowClassFunc="GetEnvelopeRowClass"
+                           RowStyleFunc="GetEnvelopeRowStyle"
+                           @bind-SelectedItem="SelectedEnvelope"
+                           Class="envelopes-table">
+                <Columns>
+                  <TemplateColumn Title="">
+                    <CellTemplate Context="ctx">
+                      <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                     Size="Size.Small"
+                                     Variant="Variant.Outlined"
+                                     Color="Color.Primary"
+                                     OnClick="@(() => NewTransactionAsync(ctx.Item.EnvelopeId))"/>
+                    </CellTemplate>
+                  </TemplateColumn>
+                  <PropertyColumn Property="x => x.EnvelopeName" Title="Envelope"/>
+                  <TemplateColumn Title="Balance"
+                                  TitleClass="text-end"
+                                  CellClass="text-end"
+                                  HeaderStyle="text-align: right;"
+                                  CellStyle="text-align: right;">
+                    <CellTemplate Context="ctx">
+                      @ctx.Item.Balance.ToString("N2")
+                    </CellTemplate>
+                  </TemplateColumn>
+
+                </Columns>
+              </MudDataGrid>
+            </MudPaper>
         </MudItem>
         <MudItem>
           <MudPaper Elevation="0" Class="mt-3 h-100 d-flex flex-column">
