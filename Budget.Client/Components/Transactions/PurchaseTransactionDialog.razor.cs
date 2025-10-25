@@ -118,6 +118,7 @@ public partial class PurchaseTransactionDialog
       Vendor = _header.Vendor.Trim(),
       Date = _header.Date.Date,
       UserId = 1,
+      UserName = _currentUser.Email,
       Details = _lines.Select((l, i) => new TransactionDto()
       {
         LineId = i + 1,

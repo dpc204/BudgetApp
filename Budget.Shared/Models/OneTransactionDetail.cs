@@ -9,6 +9,7 @@ public sealed class OneTransactionDetail
   public string Description { get; set; } = string.Empty;
   public decimal TotalAmount { get; set; }
   public int UserId { get; set; }
+  public string UserName { get; set; }
   
   public decimal BalanceAfterTransaction { get; set; }
   public List<TransactionDto> Details { get; set; } = [];

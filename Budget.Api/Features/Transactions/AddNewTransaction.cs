@@ -18,7 +18,7 @@ public static class AddNewTransaction
   {
     public async Task Handle(Command request, CancellationToken cancellationToken)
     {
-      var trans = InsertTransaction(request);
+      var trans = CreateTransaction(request);
       db.Transactions.Add(trans);
       
       await UpdateAccountAsync(trans);
@@ -52,14 +52,15 @@ public static class AddNewTransaction
       acct.Balance -= trans.TotalAmount;
     }
 
-    private static Transaction InsertTransaction(Command request)
+    private static Transaction CreateTransaction(Command request)
     {
       var trans = new Transaction()
       {
         AccountId = request.Trans.AccountId,
         Date = request.Trans.Date,
         Vendor = request.Trans.Vendor,
-        UserId = request.Trans.UserId
+        UserId = request.Trans.UserId,
+        UserName = request.Trans.UserName
       };
 
       var lineId = 1;
