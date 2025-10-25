@@ -213,6 +213,6 @@ public partial class EnvelopePage : ComponentBase
 
   private string? GetEnvelopeRowStyle(EnvelopeResult item, int rowNumber)
     => SelectedEnvelope?.EnvelopeId == item.EnvelopeId
-      ? "background-color: var(--mud-palette-secondary); color: var(--mud-palette-secondary-contrastText);"
+      ? "background-color: var(--mud-palette-gray-dark); color: var(--mud-palette-secondary-contrastText);"
       : null;
 }
