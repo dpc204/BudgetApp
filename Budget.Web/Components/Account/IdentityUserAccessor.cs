@@ -1,4 +1,5 @@
-﻿using Budget.Web.Data;
+﻿using Budget.Shared;
+using Budget.Web.Data;
 using Microsoft.AspNetCore.Identity;
 
 namespace Budget.Web.Components.Account
