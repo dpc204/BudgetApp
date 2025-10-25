@@ -172,13 +172,39 @@ public partial class EnvelopePage : ComponentBase
     {
       try
       {
-        EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelopeId };
-        await OnSelectedEnvelopeChangedAsync(er);
+        // If dialog returned updated envelope DTOs, we can update state directly
+
+        var envResult = result.Data as List<EnvelopeDto>;
+
+        if (envResult is not null)
+        {
+          UpdateEnvelopeBalances(envResult); // or merge if there's a method; keeping simple by refresh
+          ApplySelection();
+          await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+          EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelopeId };
+          await OnSelectedEnvelopeChangedAsync(er);
+        }
       }
       catch (Exception ex)
       {
         Console.Error.WriteLine($"Refresh after new purchase failed: {ex.Message}");
       }
+    }
+  }
+
+  private void UpdateEnvelopeBalances(List<EnvelopeDto> envelopes)
+  {
+    foreach (var env in envelopes)
+    {
+      // Find the matching EnvelopeResult by EnvelopeId
+      var rec = State.AllEnvelopeData?.Find(e => e.EnvelopeId == env.Id);
+      rec?.Balance = env.Balance;
+
+      // You can update properties here if EnvelopeResult is mutable, or handle as needed
+      // Example: if EnvelopeResult is immutable, you may need to replace the item in the list
     }
   }
 

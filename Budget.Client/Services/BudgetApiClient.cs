@@ -53,7 +53,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return result!;
   }
 
-  public async Task<OneTransactionDetail> AddTransactionAsync(OneTransactionDetail newTransaction,
+  public async Task<List<EnvelopeDto>> AddTransactionAsync(OneTransactionDetail newTransaction,
     CancellationToken cancellationToken = default)
   {
     // The API currently returns 202 Accepted with no body. Post and ensure success; if no JSON body, return the request object.
@@ -64,14 +64,14 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
     try
     {
-      var created = await resp.Content.ReadFromJsonAsync<OneTransactionDetail>(cancellationToken: cancellationToken);
-      return created ?? newTransaction;
+      var envelopes = await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
+      return envelopes ?? [];
     }
     catch (Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return newTransaction;
+      return [];
     }
   }
 

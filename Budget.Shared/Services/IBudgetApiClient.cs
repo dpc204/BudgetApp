@@ -10,7 +10,7 @@ public interface IBudgetApiClient
   Task<List<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, CancellationToken cancellationToken = default);
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
 
-  Task<OneTransactionDetail> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);
+  Task<List<EnvelopeDto>> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);
 
   Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default);
   Task<UserInfoDto?> GetCurrentUserInfoAsync(CancellationToken cancellationToken = default);

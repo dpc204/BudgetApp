@@ -10,25 +10,28 @@ namespace Budget.Api.Features.Accounts.AccountMaint;
 
 public static class AddNewTransaction
 {
-  public sealed record Command(OneTransactionDetail Trans) : IRequest;
+  public sealed record Command(OneTransactionDetail Trans) : IRequest<List<EnvelopeDto>>;
 
-  public sealed record Response(OneTransactionDetail newTransaction);
+  public sealed record Response(List<EnvelopeDto> envelopes); 
 
-  public class Handler(BudgetContext db) : IRequestHandler<Command>
+  public class Handler(BudgetContext db) : IRequestHandler<Command, List<EnvelopeDto>>
   {
-    public async Task Handle(Command request, CancellationToken cancellationToken)
+    public async Task<List<EnvelopeDto>> Handle(Command request, CancellationToken cancellationToken)
     {
       var trans = CreateTransaction(request);
       db.Transactions.Add(trans);
-      
+
       await UpdateAccountAsync(trans);
-      await UpdateEnvelopeAsync(trans).ConfigureAwait(false);
+      var rslt = await UpdateEnvelopeAsync(trans).ConfigureAwait(false);
 
       await db.SaveChangesAsync(cancellationToken);
+      return rslt;
     }
 
-    private async Task UpdateEnvelopeAsync(Transaction trans)
+    private async Task<List<EnvelopeDto>> UpdateEnvelopeAsync(Transaction trans)
     {
+      var rslt = new List<EnvelopeDto>();
+
       // Group by envelope to ensure only one "last" detail is set per envelope
       var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
       foreach (var grp in grouped)
@@ -40,7 +43,21 @@ public static class AddNewTransaction
         var lastDtl = grp.OrderByDescending(d => d.LineId).First();
         env.LastTransactionDetail = lastDtl; // EF will map FK on Envelope
         env.Balance -= grp.Sum(d => d.Amount); // subtract total amount for this envelope
+
+        // Map to DTO for return
+        rslt.Add(new EnvelopeDto
+        {
+          Id = env.Id,
+          CategoryId = env.CategoryId,
+          Name = env.Name,
+          Budget = env.Budget,
+          Balance = env.Balance,
+          Description = env.Description,
+          SortOrder = env.SortOrder
+        });
       }
+
+      return rslt;
     }
 
     private async Task UpdateAccountAsync(Transaction trans)
@@ -89,8 +106,8 @@ public static class AddNewTransaction
     {
       app.MapPost("/Transaction/Insert", async (ISender sender, Command command) =>
       {
-        await sender.Send(command);
-        return Results.Accepted();
+        var envelopes = await sender.Send(command);
+        return Results.Ok(envelopes);
       });
     }
   }

@@ -23,37 +23,38 @@ public partial class PurchaseTransactionDialog
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   private MudTextField<string>? _vendorField;
   UserInfoDto _currentUser = new();
-  protected override async  Task OnAfterRenderAsync(bool firstRender)
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     await base.OnAfterRenderAsync(firstRender);
-
- 
   }
+
   [Inject] IJSRuntime JS { get; set; }
+
   protected override async Task OnInitializedAsync()
   {
-    if(!Envelopes.Any())
+    if (!Envelopes.Any())
     {
-        Envelopes = await Api.GetEnvelopesAsync();
+      Envelopes = await Api.GetEnvelopesAsync();
     }
 
-    if(!Accounts.Any())
+    if (!Accounts.Any())
     {
-        Accounts = await Api.GetAccountsAsync();
-        _header.AccountId = Accounts.Min(e => e.Id);
+      Accounts = await Api.GetAccountsAsync();
+      _header.AccountId = Accounts.Min(e => e.Id);
     }
 
-    if(!_lines.Any())
+    if (!_lines.Any())
     {
-        _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
-        Recalc();
+      _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
+      Recalc();
     }
 
     var user = await Api.GetCurrentUserInfoAsync();
     if (user == null)
       throw new Exception("User not found.  Only logged in users should be at this point");
 
-    
+
     _currentUser = user ?? new UserInfoDto();
   }
 
@@ -130,9 +131,10 @@ public partial class PurchaseTransactionDialog
     };
 
     // Await the API call to ensure the transaction is persisted before closing the dialog
-    await BudgetApi.AddTransactionAsync(result);
+    var envelopes = await BudgetApi.AddTransactionAsync(result);
 
-    MudDialog.Close(DialogResult.Ok(result));
+    // Pass the updated envelopes back to the caller (EnvelopePage)
+    MudDialog.Close(DialogResult.Ok(envelopes));
   }
 
   private decimal Allowance { get; set; } = 0.00m;
@@ -156,15 +158,12 @@ public partial class PurchaseTransactionDialog
 
   private class PurchaseHeader
   {
-    [Required, MaxLength(100)]
-    public string Vendor { get; set; } = string.Empty;
+    [Required, MaxLength(100)] public string Vendor { get; set; } = string.Empty;
 
-    [Required]
-    public int AccountId { get; set; }
+    [Required] public int AccountId { get; set; }
     public string AccountName { get; set; }
 
-    [Required]
-    public DateTime Date { get; set; } = DateTime.Today;
+    [Required] public DateTime Date { get; set; } = DateTime.Today;
 
     public decimal TotalAmount { get; set; }
   }
@@ -173,13 +172,11 @@ public partial class PurchaseTransactionDialog
   {
     public int EnvelopeId { get; set; }
 
-    [Range(0, double.MaxValue)]
-    public decimal Amount { get; set; }
+    [Range(0, double.MaxValue)] public decimal Amount { get; set; }
 
     public string? Note { get; set; }
   }
 
- 
 
   private string? ValidateAmount(decimal value)
   {
