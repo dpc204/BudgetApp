@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
-using static System.Net.WebRequestMethods;
-
-//using CategoryDto = Budget.Shared.Models.CategoryDto;
-//using EnvelopeDto = Budget.Shared.Models.EnvelopeDto;
+using Microsoft.Extensions.Logging;
 
 namespace Budget.Client.Services;
 
@@ -87,5 +87,10 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
     }
     return result;
+  }
+
+  public async Task<UserInfoDto?> GetCurrentUserInfoAsync(CancellationToken cancellationToken = default)
+  {
+    return await http.GetFromJsonAsync<UserInfoDto>("api/auth/userinfo", cancellationToken);
   }
 }

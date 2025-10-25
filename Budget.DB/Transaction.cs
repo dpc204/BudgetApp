@@ -18,6 +18,8 @@ namespace Budget.DB
     [ForeignKey("Account")]
     public int AccountId { get; set; }
     public BankAccount Account { get; set; } = null!;
+    public string UserName { get; set; } = string.Empty;
+
     [ForeignKey("User")] public int UserId { get; set; }
     public User User { get; set; } = null!;
 

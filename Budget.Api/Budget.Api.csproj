@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <Folder Include="Features\Catagories\CategoryMaint\" />
-    <Folder Include="Features\Authentication\" />
   </ItemGroup>
 
   <!-- Prevent appsettings from being copied into referencing project's publish output to avoid NETSDK1152 collisions -->

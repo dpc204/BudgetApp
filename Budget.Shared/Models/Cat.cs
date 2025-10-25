@@ -5,4 +5,3 @@ namespace Budget.Shared.Models;
     public int CategoryId { get; init; }
     public string CategoryName { get; init; } = string.Empty;
   }
-

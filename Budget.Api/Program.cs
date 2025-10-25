@@ -24,9 +24,9 @@ builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogL
 // Add HTTP logging services
 builder.Services.AddHttpLogging(logging =>
 {
-    logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
-    logging.RequestBodyLogLimit = 4096;
-    logging.ResponseBodyLogLimit = 4096;
+ logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
+ logging.RequestBodyLogLimit =4096;
+ logging.ResponseBodyLogLimit =4096;
 });
 
 builder.Services.AddOpenApi();
@@ -40,11 +40,11 @@ var identityConnectionString = Misc.SetupConfigurationSources(builder.Configurat
 
 if (string.IsNullOrWhiteSpace(budgetConnectionString))
 {
-    throw new InvalidOperationException("Missing Budget DB connection string.");
+ throw new InvalidOperationException("Missing Budget DB connection string.");
 }
 if (string.IsNullOrWhiteSpace(identityConnectionString))
 {
-    throw new InvalidOperationException("Missing Identity DB connection string.");
+ throw new InvalidOperationException("Missing Identity DB connection string.");
 }
 
 var isDev = builder.Environment.IsDevelopment();
@@ -53,49 +53,50 @@ var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment
 // Domain data context (uses schema 'budget')
 builder.Services.AddDbContext<BudgetContext>(options =>
 {
-    options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget"));
-    if (isDev || isTest)
-    {
-        options.EnableDetailedErrors();
-        options.EnableSensitiveDataLogging();
-    }
+ options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget"));
+ if (isDev || isTest)
+ {
+ options.EnableDetailedErrors();
+ options.EnableSensitiveDataLogging();
+ }
 });
 
 // Identity context (separate or same DB)
 builder.Services.AddDbContext<ApiIdentityContext>(options =>
 {
-    options.UseSqlServer(identityConnectionString);
-    if (isDev || isTest)
-    {
-        options.EnableDetailedErrors();
-        options.EnableSensitiveDataLogging();
-    }
+ options.UseSqlServer(identityConnectionString);
+ if (isDev || isTest)
+ {
+ options.EnableDetailedErrors();
+ options.EnableSensitiveDataLogging();
+ }
 });
 
+// Register Identity services for BudgetUser
 builder.Services
-    .AddIdentityCore<IdentityUser>(o => { o.User.RequireUniqueEmail = true; })
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApiIdentityContext>()
-    .AddSignInManager();
+ .AddIdentityCore<BudgetUser>(o => { o.User.RequireUniqueEmail = true; })
+ .AddRoles<IdentityRole>()
+ .AddEntityFrameworkStores<ApiIdentityContext>()
+ .AddSignInManager();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwtOpt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.SigningKey));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOpt.Issuer,
-            ValidAudience = jwtOpt.Audience,
-            IssuerSigningKey = key,
-            ClockSkew = TimeSpan.FromMinutes(1)
-        };
-    });
+ .AddJwtBearer(options =>
+ {
+ options.TokenValidationParameters = new TokenValidationParameters
+ {
+ ValidateIssuer = true,
+ ValidateAudience = true,
+ ValidateIssuerSigningKey = true,
+ ValidIssuer = jwtOpt.Issuer,
+ ValidAudience = jwtOpt.Audience,
+ IssuerSigningKey = key,
+ ClockSkew = TimeSpan.FromMinutes(1)
+ };
+ });
 
 builder.Services.AddAuthorization();
 
@@ -104,55 +105,55 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 // Add CORS policy using Aspire-provided origins
 builder.Services.AddCors(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        // In development, read allowed origins from configuration (set by Aspire)
-        var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
-        
-        if (!string.IsNullOrWhiteSpace(allowedOrigins))
-        {
-            // Split if multiple origins are provided (comma-separated)
-            var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            
-            options.AddPolicy("AllowBudgetWeb", policy =>
-            {
-                policy.WithOrigins(origins)
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            });
-        }
-        else
-        {
-            // Fallback: allow all origins in development if not configured
-            options.AddPolicy("AllowBudgetWeb", policy =>
-            {
-                policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
-            });
-        }
-    }
-    else
-    {
-        // In production, read from configuration (Azure Container Apps, etc.)
-        var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
-        
-        if (string.IsNullOrWhiteSpace(allowedOrigins))
-        {
-            throw new InvalidOperationException("ALLOWED_ORIGINS environment variable must be set in production.");
-        }
-        
-        var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        
-        options.AddPolicy("AllowBudgetWeb", policy =>
-        {
-            policy.WithOrigins(origins)
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-        });
-    }
+ if (builder.Environment.IsDevelopment())
+ {
+ // In development, read allowed origins from configuration (set by Aspire)
+ var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
+ 
+ if (!string.IsNullOrWhiteSpace(allowedOrigins))
+ {
+ // Split if multiple origins are provided (comma-separated)
+ var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+ 
+ options.AddPolicy("AllowBudgetWeb", policy =>
+ {
+ policy.WithOrigins(origins)
+ .AllowAnyMethod()
+ .AllowAnyHeader()
+ .AllowCredentials();
+ });
+ }
+ else
+ {
+ // Fallback: allow all origins in development if not configured
+ options.AddPolicy("AllowBudgetWeb", policy =>
+ {
+ policy.AllowAnyOrigin()
+ .AllowAnyMethod()
+ .AllowAnyHeader();
+ });
+ }
+ }
+ else
+ {
+ // In production, read from configuration (Azure Container Apps, etc.)
+ var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
+ 
+ if (string.IsNullOrWhiteSpace(allowedOrigins))
+ {
+ throw new InvalidOperationException("ALLOWED_ORIGINS environment variable must be set in production.");
+ }
+ 
+ var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+ 
+ options.AddPolicy("AllowBudgetWeb", policy =>
+ {
+ policy.WithOrigins(origins)
+ .AllowAnyMethod()
+ .AllowAnyHeader()
+ .AllowCredentials();
+ });
+ }
 });
 
 var app = builder.Build();
@@ -160,19 +161,19 @@ var app = builder.Build();
 // Always ensure databases exist at startup (idempotent)
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    services.GetRequiredService<ApiIdentityContext>().Database.EnsureCreated();
-    services.GetRequiredService<BudgetContext>().Database.EnsureCreated();
+ var services = scope.ServiceProvider;
+ services.GetRequiredService<ApiIdentityContext>().Database.EnsureCreated();
+ services.GetRequiredService<BudgetContext>().Database.EnsureCreated();
 }
 
 // Add HTTP request logging (logs all incoming requests)
 if (app.Environment.IsDevelopment())
 {
-    app.UseHttpLogging();
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-      options.WithTheme(ScalarTheme.DeepSpace)
-        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
+ app.UseHttpLogging();
+ app.MapOpenApi();
+ app.MapScalarApiReference(options =>
+ options.WithTheme(ScalarTheme.DeepSpace)
+ .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
 }
 
 app.UseHttpsRedirection();
@@ -191,8 +192,8 @@ var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm",
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index => new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(index)), Random.Shared.Next(-20, 55), summaries[Random.Shared.Next(summaries.Length)])).ToArray();
-    return forecast;
+ var forecast = Enumerable.Range(1,5).Select(index => new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(index)), Random.Shared.Next(-20,55), summaries[Random.Shared.Next(summaries.Length)])).ToArray();
+ return forecast;
 }).WithName("GetWeatherForecast");
 
 app.Run();
@@ -201,5 +202,5 @@ public partial class Program { }
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+ public int TemperatureF =>32 + (int)(TemperatureC /0.5556);
 }

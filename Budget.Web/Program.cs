@@ -36,19 +36,25 @@ string apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
 // Normalize wildcard binds (0.0.0.0 or +) to loopback so HttpClient can connect in-proc
 apiBase = NormalizeBaseAddress(apiBase);
 
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddTransient<ForwardAuthCookiesHandler>();
+
 builder.Services.AddHttpClient<IBudgetApiClient, Budget.Client.Services.BudgetApiClient>(client =>
 {
   if(!apiBase.EndsWith('/'))
     apiBase += "/";
   client.BaseAddress = new Uri(apiBase);
-});
+})
+.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
 builder.Services.AddHttpClient<IBudgetMaintApiClient, Budget.Client.Services.BudgetMaintApiClient>(client =>
 {
   if(!apiBase.EndsWith('/'))
     apiBase += "/";
   client.BaseAddress = new Uri(apiBase);
-});
+})
+.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
 builder.Services.AddScoped<EnvelopeState>();
 
