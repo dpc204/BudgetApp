@@ -16,8 +16,6 @@ using Budget.Api; // host API in-proc
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
-
 // Ensure EF Core command logs go through ILogger and to structured logs
 builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Trace);
@@ -166,8 +164,6 @@ using (var scope = app.Services.CreateScope())
     throw;
   }
 }
-
-app.MapDefaultEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

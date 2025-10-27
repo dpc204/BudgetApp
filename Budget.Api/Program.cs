@@ -16,8 +16,6 @@ using Budget.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
-
 builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
@@ -102,19 +100,15 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Add CORS policy using Aspire-provided origins
+// Add CORS policy using configuration
 builder.Services.AddCors(options =>
 {
  if (builder.Environment.IsDevelopment())
  {
- // In development, read allowed origins from configuration (set by Aspire)
  var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
- 
  if (!string.IsNullOrWhiteSpace(allowedOrigins))
  {
- // Split if multiple origins are provided (comma-separated)
  var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
- 
  options.AddPolicy("AllowBudgetWeb", policy =>
  {
  policy.WithOrigins(origins)
@@ -125,7 +119,6 @@ builder.Services.AddCors(options =>
  }
  else
  {
- // Fallback: allow all origins in development if not configured
  options.AddPolicy("AllowBudgetWeb", policy =>
  {
  policy.AllowAnyOrigin()
@@ -136,16 +129,12 @@ builder.Services.AddCors(options =>
  }
  else
  {
- // In production, read from configuration (Azure Container Apps, etc.)
  var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
- 
  if (string.IsNullOrWhiteSpace(allowedOrigins))
  {
  throw new InvalidOperationException("ALLOWED_ORIGINS environment variable must be set in production.");
  }
- 
  var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
- 
  options.AddPolicy("AllowBudgetWeb", policy =>
  {
  policy.WithOrigins(origins)

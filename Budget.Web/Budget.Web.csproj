@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
-    <ProjectReference Include="..\BudgetApp.ServiceDefaults\BudgetApp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
     <ProjectReference Include="..\Budget.Client\Budget.Client.csproj" ReferenceOutputAssembly="true" SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\Budget.Api\Budget.Api.csproj" />
