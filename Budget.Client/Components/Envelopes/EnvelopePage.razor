@@ -29,45 +29,45 @@ else
           </MudSelect>
         </MudStack>
       </MudPaper>
-      <MudGrid Class="envelope-grid-grow">
-        <MudItem>
-            <MudPaper Elevation="0" Class="h-100 d-flex flex-column" >
-              <MudDataGrid Items="@SelectedEnvelopeData"
-                           Hover="true"
-                           Dense="true"
-                           FixedHeader="true"
-                           Height="@EnvelopeGridHeightPx"
-                           RowClick="@((DataGridRowClickEventArgs<EnvelopeResult> args) => OnRowClicked(args))"
-                           RowClassFunc="GetEnvelopeRowClass"
-                           RowStyleFunc="GetEnvelopeRowStyle"
-                           @bind-SelectedItem="SelectedEnvelope"
-                           Class="envelopes-table">
-                <Columns>
-                  <TemplateColumn Title="">
-                    <CellTemplate Context="ctx">
-                      <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                     Size="Size.Small"
-                                     Variant="Variant.Outlined"
-                                     Color="Color.Primary"
-                                     OnClick="@(() => NewTransactionAsync(ctx.Item.EnvelopeId))"/>
-                    </CellTemplate>
-                  </TemplateColumn>
-                  <PropertyColumn Property="x => x.EnvelopeName" Title="Envelope"/>
-                  <TemplateColumn Title="Balance"
-                                  TitleClass="text-end"
-                                  CellClass="text-end"
-                                  HeaderStyle="text-align: right;"
-                                  CellStyle="text-align: right;">
-                    <CellTemplate Context="ctx">
-                      @ctx.Item.Balance.ToString("N2")
-                    </CellTemplate>
-                  </TemplateColumn>
+      <MudStack Row="false" Breakpoint="Breakpoint.MdAndUp">
+        <MudItem xs = "12" sm="6">
+          <MudPaper Elevation="0" Class="h-100 d-flex flex-column" >
+            <MudDataGrid Items="@SelectedEnvelopeData"
+                         Hover="true"
+                         Dense="true"
+                         FixedHeader="true"
+                         Height="@EnvelopeGridHeightPx"
+                         RowClick="@((DataGridRowClickEventArgs<EnvelopeResult> args) => OnRowClicked(args))"
+                         RowClassFunc="GetEnvelopeRowClass"
+                         RowStyleFunc="GetEnvelopeRowStyle"
+                         @bind-SelectedItem="SelectedEnvelope"
+                         Class="envelopes-table">
+              <Columns>
+                <TemplateColumn Title="">
+                  <CellTemplate Context="ctx">
+                    <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                   Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   OnClick="@(() => NewTransactionAsync(ctx.Item.EnvelopeId))"/>
+                  </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.EnvelopeName" Title="Envelope" HeaderStyle="min-width: 16rem;" />
+                <TemplateColumn Title="Balance"
+                                TitleClass="text-end"
+                                CellClass="text-end"
+                                HeaderStyle="text-align: right;"
+                                CellStyle="text-align: right;">
+                  <CellTemplate Context="ctx">
+                    @ctx.Item.Balance.ToString("N2")
+                  </CellTemplate>
+                </TemplateColumn>
 
-                </Columns>
-              </MudDataGrid>
-            </MudPaper>
+              </Columns>
+            </MudDataGrid>
+          </MudPaper>
         </MudItem>
-        <MudItem>
+        <MudItem xs = "12" sm="6">
           <MudPaper Elevation="0" Class="mt-3 h-100 d-flex flex-column">
             <MudDataGrid Items="@TransactionData"
                          Hover="true"
@@ -93,7 +93,7 @@ else
             </MudDataGrid>
           </MudPaper>
         </MudItem>
-      </MudGrid>
+      </MudStack>
     </MudStack>
   </MudContainer>
 }

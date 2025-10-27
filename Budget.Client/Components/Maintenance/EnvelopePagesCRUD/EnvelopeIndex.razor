@@ -12,6 +12,45 @@
 else
 {
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
+    
+    <MudDataGrid Items="@_envelopes"
+                 Hover="true"
+                 Dense="true"
+                 FixedHeader="true"
+                 Class="envelopes-table">
+      <Columns>
+        <TemplateColumn Title="">
+          <CellTemplate Context="ctx">
+            <MudIconButton Icon="@Icons.Material.Filled.Add"
+                           Size="Size.Small"
+                           Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                          />
+          </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.Name" Title="Envelope" HeaderStyle="min-width: 16rem;" />
+        <TemplateColumn Title="Balance"
+                        TitleClass="text-end"
+                        CellClass="text-end"
+                    >
+          <CellTemplate Context="ctx">
+            @ctx.Item.Balance.ToString("N2")
+          </CellTemplate>
+
+        </TemplateColumn> <TemplateColumn Title="Budget"
+                                          TitleClass="text-end"
+                                          CellClass="text-end"
+                                          HeaderStyle="text-align: right;"
+                                          CellStyle="text-align: right;">
+          <CellTemplate Context="ctx">
+            @ctx.Item.Budget.ToString("N2")
+          </CellTemplate>
+        </TemplateColumn>
+
+      </Columns>
+    </MudDataGrid>
+    
+    
     <MudTable Items="_envelopes" Hover="true" Dense="true" Class="mt-2" Elevation="0">
         <HeaderContent>
             <MudTh>Category</MudTh>

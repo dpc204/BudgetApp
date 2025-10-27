@@ -10,9 +10,9 @@ public partial class EnvelopePage : ComponentBase
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
   [Inject] private IDialogService DialogService { get; set; } = default!;
 
-  public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
+public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
   public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
-  public List<TransactionDto>? TransactionData { get; set; } = [];
+  public List<TransactionDto>? TransactionData { get; set; } = [];  
 
   private EnvelopeResult? _selectedEnvelope;
 
@@ -22,6 +22,7 @@ public partial class EnvelopePage : ComponentBase
     set
     {
       if (ReferenceEquals(_selectedEnvelope, value)) return;
+
       _selectedEnvelope = value;
       _ = OnSelectedEnvelopeChangedAsync(value);
     }
@@ -51,7 +52,7 @@ public partial class EnvelopePage : ComponentBase
     try
     {
       await State.EnsureLoadedAsync();
-      ApplySelection();
+      ApplyCategorySelection();
       // Ensure selection class applied on first render when an item is already selected
       await InvokeAsync(StateHasChanged);
     }
@@ -79,7 +80,7 @@ public partial class EnvelopePage : ComponentBase
           await State.RefreshAsync();
         }
 
-        ApplySelection();
+        ApplyCategorySelection();
       }
       catch (Exception ex)
       {
@@ -100,7 +101,7 @@ public partial class EnvelopePage : ComponentBase
     if (args?.Item is null) return;
     SelectedEnvelope = args.Item;
   }
-  private void ApplySelection()
+  private void ApplyCategorySelection()
   {
     var selected = SelectedCategoryId ?? 0;
     var list = selected == 0
@@ -128,26 +129,26 @@ public partial class EnvelopePage : ComponentBase
   {
     var selected = value ?? 0;
     SelectedCategoryId = selected;
-    ApplySelection();
+    ApplyCategorySelection();
     await State.SaveAsync();
   }
 
-  private async Task OnTransactionRowClick(TableRowClickEventArgs<TransactionDto> args)
-  {
-    if (args?.Item is null) return;
+  //private async Task OnTransactionRowClick(TableRowClickEventArgs<TransactionDto> args)
+  //{
+  //  if (args?.Item is null) return;
 
-    try
-    {
-      var detail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
-      var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
-      var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-      await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
-    }
-    catch (Exception ex)
-    {
-      Console.Error.WriteLine($"Failed loading transaction detail: {ex.Message}");
-    }
-  }
+  //  try
+  //  {
+  //    var detail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
+  //    var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
+  //    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+  //    await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
+  //  }
+  //  catch (Exception ex)
+  //  {
+  //    Console.Error.WriteLine($"Failed loading transaction detail: {ex.Message}");
+  //  }
+  //}
 
   // Overload for MudDataGrid RowClick
   private async Task OnTransactionRowClick(DataGridRowClickEventArgs<TransactionDto> args)
@@ -214,11 +215,9 @@ public partial class EnvelopePage : ComponentBase
         if (envResult is not null)
         {
           UpdateEnvelopeBalances(envResult); // or merge if there's a method; keeping simple by refresh
-          ApplySelection();
+          ApplyCategorySelection();
           await InvokeAsync(StateHasChanged);
-        }
-        else
-        {
+          
           EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelopeId };
           await OnSelectedEnvelopeChangedAsync(er);
         }
