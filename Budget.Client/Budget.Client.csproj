@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
     <PackageReference Include="MudBlazor" Version="8.13.0" />
     <PackageReference Include="Syncfusion.Blazor" Version="31.2.2" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.2" />

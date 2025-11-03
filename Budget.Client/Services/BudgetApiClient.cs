@@ -34,6 +34,19 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   public async Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
     => await GetListAsync<BankAccountDto>($"accounts/maint/getall", cancellationToken);
 
+  public async Task<UserInfoDto?> GetCurrentUserInfoAsync(CancellationToken cancellationToken = default)
+    => await http.GetFromJsonAsync<UserInfoDto>("api/auth/userinfo", cancellationToken);
+
+  public async Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default)
+  {
+    using var resp = await http.PostAsync("/api/maintenance/backup-azure-sql", null, cancellationToken);
+    var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+    if (!resp.IsSuccessStatusCode)
+    {
+      throw new InvalidOperationException($"Backup failed ({(int)resp.StatusCode}): {body}");
+    }
+    return body;
+  }
 
   private async Task<List<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
@@ -73,24 +86,5 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
       return [];
     }
-  }
-
-
-  private async Task<TResponse> PostAsync<TRequest, TResponse>(string relativeUrl, TRequest payload, CancellationToken ct)
-  {
-    using var resp = await http.PostAsJsonAsync(relativeUrl, payload, ct);
-    resp.EnsureSuccessStatusCode();
-    var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
-    if(result is null)
-    {
-      logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
-      throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
-    }
-    return result;
-  }
-
-  public async Task<UserInfoDto?> GetCurrentUserInfoAsync(CancellationToken cancellationToken = default)
-  {
-    return await http.GetFromJsonAsync<UserInfoDto>("api/auth/userinfo", cancellationToken);
   }
 }

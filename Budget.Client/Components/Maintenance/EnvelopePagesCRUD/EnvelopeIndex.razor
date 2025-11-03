@@ -1,3 +1,5 @@
+@using System.Diagnostics
+@using BlazorBootstrap
 @using Budget.Shared.Models
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
@@ -5,129 +7,143 @@
 
 <MudText Typo="Typo.h5" Class="mb-2">Envelopes</MudText>
 
-@if (_envelopes is null)
-{
-    <MudProgressCircular Indeterminate="true" />
-}
-else
-{
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
-    
-    <MudDataGrid Items="@_envelopes"
-                 Hover="true"
-                 Dense="true"
-                 FixedHeader="true"
-                 Class="envelopes-table">
-      <Columns>
-        <TemplateColumn Title="">
-          <CellTemplate Context="ctx">
-            <MudIconButton Icon="@Icons.Material.Filled.Add"
-                           Size="Size.Small"
-                           Variant="Variant.Outlined"
-                           Color="Color.Primary"
-                          />
-          </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => x.Name" Title="Envelope" HeaderStyle="min-width: 16rem;" />
-        <TemplateColumn Title="Balance"
-                        TitleClass="text-end"
-                        CellClass="text-end"
-                    >
-          <CellTemplate Context="ctx">
-            @ctx.Item.Balance.ToString("N2")
-          </CellTemplate>
 
-        </TemplateColumn> <TemplateColumn Title="Budget"
-                                          TitleClass="text-end"
-                                          CellClass="text-end"
-                                          HeaderStyle="text-align: right;"
-                                          CellStyle="text-align: right;">
-          <CellTemplate Context="ctx">
-            @ctx.Item.Budget.ToString("N2")
-          </CellTemplate>
-        </TemplateColumn>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
 
-      </Columns>
-    </MudDataGrid>
-    
-    
-    <MudTable Items="_envelopes" Hover="true" Dense="true" Class="mt-2" Elevation="0">
-        <HeaderContent>
-            <MudTh>Category</MudTh>
-            <MudTh>Name</MudTh>
-            <MudTh>Budget</MudTh>
-            <MudTh>Balance</MudTh>
-            <MudTh>Description</MudTh>
-            <MudTh>Sort</MudTh>
-            <MudTh style="width:240px;"></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Category">@GetCategoryName(context.CategoryId)</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Budget">@context.Budget</MudTd>
-            <MudTd DataLabel="Balance">@context.Balance</MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
-            <MudTd Class="d-flex gap-1 justify-end">
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.Id)">Details</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.Id)">Delete</MudButton>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText Class="pa-4" Color="Color.Secondary">No envelopes</MudText>
-        </NoRecordsContent>
-    </MudTable>
-}
+<MudDataGrid Items="@_envelopes"
+             Hover="true"
+             Dense="true"
+             FixedHeader="true"
+             Class="envelopes-table"
+             ReadOnly="false"
+             EditMode="DataGridEditMode.Cell">
+  <Columns>
+    <PropertyColumn Property="x => x.Id" Title="Env. Id" Editable="false" />
+
+
+    <!-- Make this column editable and provide an EditTemplate with a MudSelect bound to the current row's CategoryId -->
+    <TemplateColumn Title="Category" Editable="true">
+      <CellTemplate Context="ctx">
+        @_categoryLookup.GetValueOrDefault(ctx.Item.CategoryId)
+      </CellTemplate>
+      <EditTemplate Context="ctx">
+        <MudSelect T="int" @bind-Value="ctx.Item.CategoryId" Dense="true">
+          @foreach (var c in _categoryLookup)
+          {
+            <MudSelectItem Value="@c.Key">@c.Value</MudSelectItem>
+          }
+        </MudSelect>
+      </EditTemplate>
+    </TemplateColumn>
+
+    <PropertyColumn Property="x => x.Name" Title="Envelope"  HeaderStyle="min-width:16rem;"/>
+   
+    <TemplateColumn Title="Balance"
+                    TitleClass="text-end"
+                    CellClass="text-end">
+      <CellTemplate Context="ctx">
+        @ctx.Item.Balance.ToString("C2")
+      </CellTemplate>
+      <EditTemplate Context="ctx">
+        <MudNumericField T="decimal" @bind-Value="ctx.Item.Balance" Format="F2" Step="0.01M" HideSpinButtons="true" InputMode="InputMode.numeric" Class="text-end"/>
+      </EditTemplate>
+    </TemplateColumn>
+    <TemplateColumn Title="Budget"
+                    TitleClass="text-end"
+                    CellClass="text-end"
+                    HeaderStyle="text-align: right;"
+                    CellStyle="text-align: right;">
+      <CellTemplate Context="ctx">
+        @ctx.Item.Budget.ToString("N2")
+      </CellTemplate>
+    </TemplateColumn>
+
+  </Columns>
+</MudDataGrid>
+<br/>
+<br/>
+
+<MudTable Items="_envelopes" Hover="true" Dense="true" Class="mt-2" Elevation="0">
+  <HeaderContent>
+    <MudTh>Category</MudTh>
+    <MudTh>Name</MudTh>
+    <MudTh>Budget</MudTh>
+    <MudTh>Balance</MudTh>
+    <MudTh>Description</MudTh>
+    <MudTh>Sort</MudTh>
+    <MudTh style="width:240px;"></MudTh>
+  </HeaderContent>
+  <RowTemplate>
+    <MudTd DataLabel="Category">@GetCategoryName(context.CategoryId)</MudTd>
+    <MudTd DataLabel="Name">@context.Name</MudTd>
+    <MudTd DataLabel="Budget">@context.Budget</MudTd>
+    <MudTd DataLabel="Balance">@context.Balance</MudTd>
+    <MudTd DataLabel="Description">@context.Description</MudTd>
+    <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
+    <MudTd Class="d-flex gap-1 justify-end">
+      <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>
+      <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.Id)">Details</MudButton>
+      <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.Id)">Delete</MudButton>
+    </MudTd>
+  </RowTemplate>
+  <NoRecordsContent>
+    <MudText Class="pa-4" Color="Color.Secondary">No envelopes</MudText>
+  </NoRecordsContent>
+</MudTable>
+
 
 @code {
-    private List<EnvelopeDto>? _envelopes;
-    private Dictionary<int,string> _categoryLookup = new();
+  private List<EnvelopeDto>? _envelopes;
+  private Dictionary<int, string> _categoryLookup = new();
+  private string columnName => $"cat count {_categoryLookup.Count}";
+  protected override async Task OnInitializedAsync() => await LoadAsync();
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+  private async Task LoadAsync()
+  {
+    var categories = await MaintApi.GetCategoriesAsync();
+    _categoryLookup = categories.ToDictionary(c => c.Id, c => c.Name);
+    _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
+  }
 
-    private async Task LoadAsync()
-    {
-        var categories = await MaintApi.GetCategoriesAsync();
-        _categoryLookup = categories.ToDictionary(c => c.Id, c => c.Name);
-        _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
-    }
+  private string GetCategoryName(int id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
 
-    private string GetCategoryName(int id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
+  private async Task ShowCreate()
+  {
+    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+    var dialogRef = await DialogService.ShowAsync<EnvelopeCreate>("Create Envelope", options);
+    var result = await dialogRef.Result;
+    if (!result.Canceled)
+      await LoadAsync();
+  }
 
-    private async Task ShowCreate()
-    {
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var dialogRef = await DialogService.ShowAsync<EnvelopeCreate>("Create Envelope", options);
-        var result = await dialogRef.Result;
-        if (!result.Canceled)
-            await LoadAsync();
-    }
+  // make a new FDNumeric input component.  It should have a single embedded MudNumericField.  Put an event handler for 
+  // OnKeyUp that filters out non-numeric input except for two decimal points and an optional leading minus sign.
+  // add a parameter for number of decimal places
+  private async Task BeginEdit(int id)
+  {
+    var parameters = new DialogParameters { [nameof(EnvelopeEdit.Id)] = id };
+    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+    var dialogRef = await DialogService.ShowAsync<EnvelopeEdit>("Edit Envelope", parameters, options);
+    var result = await dialogRef.Result;
+    if (!result.Canceled)
+      await LoadAsync();
+  }
 
-    private async Task BeginEdit(int id)
-    {
-        var parameters = new DialogParameters { [nameof(EnvelopeEdit.Id)] = id };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var dialogRef = await DialogService.ShowAsync<EnvelopeEdit>("Edit Envelope", parameters, options);
-        var result = await dialogRef.Result;
-        if (!result.Canceled)
-            await LoadAsync();
-    }
+  private async Task ViewDetails(int id)
+  {
+    var parameters = new DialogParameters { [nameof(EnvelopeDetails.Id)] = id };
+    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+    await DialogService.ShowAsync<EnvelopeDetails>("Envelope Details", parameters, options);
+  }
 
-    private async Task ViewDetails(int id)
-    {
-        var parameters = new DialogParameters { [nameof(EnvelopeDetails.Id)] = id };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        await DialogService.ShowAsync<EnvelopeDetails>("Envelope Details", parameters, options);
-    }
+  private async Task BeginDelete(int id)
+  {
+    var parameters = new DialogParameters { [nameof(EnvelopeDelete.Id)] = id };
+    var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };
+    var dialogRef = await DialogService.ShowAsync<EnvelopeDelete>("Delete Envelope", parameters, options);
+    var result = await dialogRef.Result;
+    if (!result.Canceled)
+      await LoadAsync();
+  }
 
-    private async Task BeginDelete(int id)
-    {
-        var parameters = new DialogParameters { [nameof(EnvelopeDelete.Id)] = id };
-        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };
-        var dialogRef = await DialogService.ShowAsync<EnvelopeDelete>("Delete Envelope", parameters, options);
-        var result = await dialogRef.Result;
-        if (!result.Canceled)
-            await LoadAsync();
-    }
 }

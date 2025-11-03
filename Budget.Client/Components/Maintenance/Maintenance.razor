@@ -7,7 +7,21 @@
 
 <MudText Typo="Typo.h5" Class="mb-4">Maintenance</MudText>
 
-<MudTabs Elevation="1" Rounded="true" >
+<MudStack Row="true" Spacing="2" Class="mb-4" AlignItems="AlignItems.Center">
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TriggerBackupAsync" Disabled="@Busy">
+        @ButtonText
+    </MudButton>
+    @if (Busy)
+    {
+        <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Primary" />
+    }
+    @if (!string.IsNullOrWhiteSpace(Status))
+    {
+        <MudText>@Status</MudText>
+    }
+</MudStack>
+
+<MudTabs Elevation="1" Rounded="true">
     <MudTabPanel Text="Accounts">
         <AccountIndex />
     </MudTabPanel>
@@ -18,6 +32,6 @@
         <EnvelopeIndex />
     </MudTabPanel>
     <MudTabPanel Text="Users">
-        <div>Content of tab 3</div>
+        <div>Content of tab3</div>
     </MudTabPanel>
 </MudTabs>
