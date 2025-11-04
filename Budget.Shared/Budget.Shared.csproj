@@ -20,4 +20,8 @@
     <PackageReference Include="MudBlazor" Version="8.13.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>

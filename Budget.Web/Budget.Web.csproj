@@ -42,5 +42,8 @@
     <PackageReference Include="Syncfusion.Blazor" Version="31.2.2" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.2" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Startup\" />
+  </ItemGroup>
 
 </Project>

@@ -24,8 +24,8 @@ public static class BudgetApiHostExtensions
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
 
         // Connection strings (reuse API assembly for configuration keys)
-        var budgetConnectionString = Budget.Shared.Misc.SetupConfigurationSources(configuration, configuration, typeof(Program).Assembly, Budget.Shared.Misc.ConnectionStringType.Budget);
-        var identityConnectionString = Budget.Shared.Misc.SetupConfigurationSources(configuration, configuration, typeof(Program).Assembly, Budget.Shared.Misc.ConnectionStringType.Identity);
+        var budgetConnectionString = Budget.Shared.Misc.GetConnectionString(configuration, Budget.Shared.Misc.ConnectionStringType.Budget);
+        var identityConnectionString = budgetConnectionString;;
 
         if (string.IsNullOrWhiteSpace(budgetConnectionString))
             throw new InvalidOperationException("Missing Budget DB connection string.");

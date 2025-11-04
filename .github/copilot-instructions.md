@@ -27,10 +27,12 @@ Goal: Apply smallest possible code change to fix a stated symptom.
 If a single helper/service change resolves an issue, stop there.
 
 Priorities (in order): 
-1. Correctness (fix the bug)
-2. Minimal diff (surgical change)
-3. Preserve existing public APIs
-4. Maintain current UX
+1. Code must compile cleanly
+2. If I tell you to do something in agent mode, don't tell me the steps, do it yourself
+3. Correctness (fix the bug)
+4. Minimal diff (surgical change)
+5. Preserve existing public APIs
+6. Maintain current UX
 
 Constraints:
 - Do not introduce new libraries without explicit request.

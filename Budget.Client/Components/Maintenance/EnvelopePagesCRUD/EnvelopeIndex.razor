@@ -1,5 +1,5 @@
 @using System.Diagnostics
-@using BlazorBootstrap
+@using Budget.Client.Components.Shared
 @using Budget.Shared.Models
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
@@ -38,14 +38,14 @@
 
     <PropertyColumn Property="x => x.Name" Title="Envelope"  HeaderStyle="min-width:16rem;"/>
    
-    <TemplateColumn Title="Balance"
+    <TemplateColumn Title="Balancex"
                     TitleClass="text-end"
                     CellClass="text-end">
       <CellTemplate Context="ctx">
         @ctx.Item.Balance.ToString("C2")
       </CellTemplate>
       <EditTemplate Context="ctx">
-        <MudNumericField T="decimal" @bind-Value="ctx.Item.Balance" Format="F2" Step="0.01M" HideSpinButtons="true" InputMode="InputMode.numeric" Class="text-end"/>
+        <FDNumericInput T="decimal" @bind-Value="ctx.Item.Balance" Format="C2" Step="0.01M" HideSpinButtons="true" InputMode="InputMode.numeric" Class="text-end"/>
       </EditTemplate>
     </TemplateColumn>
     <TemplateColumn Title="Budget"
@@ -146,4 +146,4 @@
       await LoadAsync();
   }
 
-}
+}}
