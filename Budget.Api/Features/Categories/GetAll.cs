@@ -1,4 +1,5 @@
 ﻿using Budget.DB;
+using Budget.Shared.Enums;
 using Carter;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,13 +11,13 @@ public static class GetByEnvelopeId
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
 
-  public sealed record Response(int Id, string Name,string Description, int SortOrder );
+  public sealed record Response(int Id, string Name,string Description, int SortOrder , CatTypes CatType);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {
     public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken) =>
       await db.Categories
-        .Select(e => new Response(e.Id, e.Name, e.Description, e.SortOrder))
+        .Select(e => new Response(e.Id, e.Name, e.Description, e.SortOrder, e.CategoryType))
         .ToListAsync(cancellationToken);
   }
 

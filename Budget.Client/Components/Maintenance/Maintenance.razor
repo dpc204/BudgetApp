@@ -4,6 +4,7 @@
 @using Budget.Client.Components.Maintenance.CategoryCRUD
 @using Budget.Client.Components.Maintenance.EnvelopeMaint
 @using Budget.Client.Components.Maintenance.EnvelopePagesCRUD
+@using Budget.Client.Components.Import
 
 <MudText Typo="Typo.h5" Class="mb-4">Maintenance</MudText>
 
@@ -30,6 +31,9 @@
     </MudTabPanel>
     <MudTabPanel Text="Envelopes">
         <EnvelopeIndex />
+    </MudTabPanel>
+    <MudTabPanel Text="Import">
+        <TransactionsCsvImport />
     </MudTabPanel>
     <MudTabPanel Text="Users">
         <div>Content of tab3</div>

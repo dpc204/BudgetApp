@@ -6,7 +6,7 @@
                  ValueChanged="ValueChanged"
                  ValueExpression="ValueExpression"
                  For="For"
-                 @attributes="AdditionalAttributes" />
+                 @attributes="FilteredAttributes" />
 
 @code {
     [Parameter] public T? Value { get; set; }
@@ -14,6 +14,28 @@
     [Parameter] public System.Linq.Expressions.Expression<System.Func<T>>? ValueExpression { get; set; }
     [Parameter] public System.Linq.Expressions.Expression<System.Func<T>>? For { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    // Prevent Razor directive-like attributes (e.g., @bind) from being forwarded to DOM
+    private IReadOnlyDictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes is null || AdditionalAttributes.Count == 0)
+                return null;
+
+            var dict = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                var key = kvp.Key ?? string.Empty;
+                // Drop anything that starts with '@' (e.g., @bind, @bind-Value, etc.)
+                if (key.Length > 0 && key[0] == '@')
+                    continue;
+
+                dict[key] = kvp.Value;
+            }
+            return dict;
+        }
+    }
 }
 
 @namespace Budget.Shared.FDComponents

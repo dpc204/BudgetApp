@@ -1,3 +1,4 @@
+using Budget.Shared.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace Budget.Client.Components.Envelopes;
@@ -9,10 +10,11 @@ public partial class EnvelopePage : ComponentBase
   [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
   [Inject] private IDialogService DialogService { get; set; } = default!;
+  [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
 
-public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
+  public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
   public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
-  public List<TransactionDto>? TransactionData { get; set; } = [];  
+  public List<TransactionDto>? TransactionData { get; set; } = [];
 
   private EnvelopeResult? _selectedEnvelope;
 
@@ -101,6 +103,7 @@ public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
     if (args?.Item is null) return;
     SelectedEnvelope = args.Item;
   }
+
   private void ApplyCategorySelection()
   {
     var selected = SelectedCategoryId ?? 0;
@@ -125,6 +128,14 @@ public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
     set => State.SelectedCategoryId = value;
   }
 
+  public List<Cat> GetCategoriesForSelect()
+  {
+    if (!UserOptions.IsAdminUser())
+      return State.Cats.Where(a => a.CatType != CatTypes.System).ToList();
+
+    return State.Cats;
+  }
+
   private async Task CatChanged(int? value)
   {
     var selected = value ?? 0;
@@ -133,23 +144,7 @@ public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
     await State.SaveAsync();
   }
 
-  //private async Task OnTransactionRowClick(TableRowClickEventArgs<TransactionDto> args)
-  //{
-  //  if (args?.Item is null) return;
-
-  //  try
-  //  {
-  //    var detail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
-  //    var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
-  //    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-  //    await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
-  //  }
-  //  catch (Exception ex)
-  //  {
-  //    Console.Error.WriteLine($"Failed loading transaction detail: {ex.Message}");
-  //  }
-  //}
-
+  
   // Overload for MudDataGrid RowClick
   private async Task OnTransactionRowClick(DataGridRowClickEventArgs<TransactionDto> args)
   {
@@ -217,7 +212,7 @@ public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
           UpdateEnvelopeBalances(envResult); // or merge if there's a method; keeping simple by refresh
           ApplyCategorySelection();
           await InvokeAsync(StateHasChanged);
-          
+
           EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelopeId };
           await OnSelectedEnvelopeChangedAsync(er);
         }

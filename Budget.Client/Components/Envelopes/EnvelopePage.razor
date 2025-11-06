@@ -1,5 +1,6 @@
 @page "/envelopes"
 @rendermode InteractiveServer
+@using System.Diagnostics
 @using Budget.Shared
 @using Budget.Shared.Models
 @using Budget.Shared.Services
@@ -26,12 +27,12 @@ else
             {
               <MudSelectItem @key="c.CategoryId" Value="@((int?)c.CategoryId)">@c.CategoryName</MudSelectItem>
             }
-          </MudSelect>
-        </MudStack>
-      </MudPaper>
+          </MudSelect >
+        </MudStack >
+      </MudPaper >
       <MudStack Row="false" Breakpoint="Breakpoint.MdAndUp">
-        <MudItem xs = "12" sm="6">
-          <MudPaper Elevation="0" Class="h-100 d-flex flex-column" >
+        <MudItem xs="12" sm="6">
+          <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
             <MudDataGrid Items="@SelectedEnvelopeData"
                          Hover="true"
                          Dense="true"
@@ -42,7 +43,7 @@ else
                          RowStyleFunc="GetEnvelopeRowStyle"
                          @bind-SelectedItem="SelectedEnvelope"
                          Class="envelopes-table">
-              <Columns>
+              <Columns >
                 <TemplateColumn Title="">
                   <CellTemplate Context="ctx">
                     <MudIconButton Icon="@Icons.Material.Filled.Add"
@@ -50,9 +51,9 @@ else
                                    Variant="Variant.Outlined"
                                    Color="Color.Primary"
                                    OnClick="@(() => NewTransactionAsync(ctx.Item.EnvelopeId))"/>
-                  </CellTemplate>
-                </TemplateColumn>
-                <PropertyColumn Property="x => x.EnvelopeName" Title="Envelope" HeaderStyle="min-width: 16rem;" />
+                  </CellTemplate >
+                </TemplateColumn >
+                <PropertyColumn Property="x => x.EnvelopeName" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
                 <TemplateColumn Title="Balance"
                                 TitleClass="text-end"
                                 CellClass="text-end"
@@ -60,14 +61,13 @@ else
                                 CellStyle="text-align: right;">
                   <CellTemplate Context="ctx">
                     @ctx.Item.Balance.ToString("N2")
-                  </CellTemplate>
-                </TemplateColumn>
-
-              </Columns>
-            </MudDataGrid>
-          </MudPaper>
-        </MudItem>
-        <MudItem xs = "12" sm="6">
+                  </CellTemplate >
+                </TemplateColumn >
+              </Columns >
+            </MudDataGrid >
+          </MudPaper >
+        </MudItem >
+        <MudItem xs="12" sm="6">
           <MudPaper Elevation="0" Class="mt-3 h-100 d-flex flex-column">
             <MudDataGrid Items="@TransactionData"
                          Hover="true"
@@ -76,10 +76,10 @@ else
                          Height="@TransactionGridHeightPx"
                          RowClick="@((DataGridRowClickEventArgs<TransactionDto> e) => OnTransactionRowClick(e))"
                          Class="envelopes-table">
-              <Columns>
-                <PropertyColumn Property="x => x.LineId" Title="Line#" />
-                <PropertyColumn Property="x => x.Vendor" Title="Vendor" />
-                <PropertyColumn Property="x => x.Description" Title="Description" />
+              <Columns >
+                <PropertyColumn Property="x => x.LineId" Title="Line#"/>
+                <PropertyColumn Property="x => x.Vendor" Title="Vendor"/>
+                <PropertyColumn Property="x => x.Description" Title="Description"/>
                 <TemplateColumn Title="Amount"
                                 TitleClass="text-end"
                                 CellClass="text-end"
@@ -87,13 +87,13 @@ else
                                 CellStyle="text-align: right;">
                   <CellTemplate Context="ctx">
                     @ctx.Item.Amount.ToString("N2")
-                  </CellTemplate>
-                </TemplateColumn>
-              </Columns>
-            </MudDataGrid>
-          </MudPaper>
-        </MudItem>
-      </MudStack>
-    </MudStack>
-  </MudContainer>
+                  </CellTemplate >
+                </TemplateColumn >
+              </Columns >
+            </MudDataGrid >
+          </MudPaper >
+        </MudItem >
+      </MudStack >
+    </MudStack >
+  </MudContainer >
 }

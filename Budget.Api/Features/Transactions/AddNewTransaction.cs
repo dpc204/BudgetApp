@@ -76,8 +76,7 @@ public static class AddNewTransaction
         AccountId = request.Trans.AccountId,
         Date = request.Trans.Date,
         Vendor = request.Trans.Vendor,
-        UserId = request.Trans.UserId,
-        UserName = request.Trans.UserName
+        UserId = request.Trans.UserId
       };
 
       var lineId = 1;

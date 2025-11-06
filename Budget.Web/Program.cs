@@ -138,6 +138,7 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<ThemeService>();
+builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
 
 // Host the API in-proc so endpoints are exposed by this same app (moved here, after Identity)
 builder.Services.AddBudgetApi(builder.Configuration, builder.Environment);
