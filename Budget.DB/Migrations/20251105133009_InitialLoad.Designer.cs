@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    [Migration("20251019005825_InitialLoad")]
+    [Migration("20251105133009_InitialLoad")]
     partial class InitialLoad
     {
         /// <inheritdoc />
@@ -21,7 +21,7 @@ namespace Budget.DB.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("budget")
-                .HasAnnotation("ProductVersion", "10.0.0-rc.1.25451.107")
+                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -85,6 +85,9 @@ namespace Budget.DB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CategoryType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -106,6 +109,7 @@ namespace Budget.DB.Migrations
                         new
                         {
                             Id = 1,
+                            CategoryType = 0,
                             Description = "",
                             Name = "Frequent",
                             SortOrder = 1
@@ -113,9 +117,26 @@ namespace Budget.DB.Migrations
                         new
                         {
                             Id = 2,
+                            CategoryType = 0,
                             Description = "",
                             Name = "Regular",
                             SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CategoryType = 0,
+                            Description = "",
+                            Name = "Infrequent",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = -1,
+                            CategoryType = 1,
+                            Description = "",
+                            Name = "System",
+                            SortOrder = 0
                         });
                 });
 
@@ -142,6 +163,9 @@ namespace Budget.DB.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("EnvelopeType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("LastTransactionDate")
                         .HasColumnType("datetime2");
@@ -176,6 +200,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 1,
                             Description = "",
+                            EnvelopeType = 0,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Dining Out",
                             SortOrder = 1
@@ -187,6 +212,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 1,
                             Description = "",
+                            EnvelopeType = 0,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Groceries",
                             SortOrder = 2
@@ -198,6 +224,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 1,
                             Description = "",
+                            EnvelopeType = 0,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Gas",
                             SortOrder = 3
@@ -209,6 +236,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 2,
                             Description = "",
+                            EnvelopeType = 0,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Car Maint",
                             SortOrder = 4
@@ -220,6 +248,7 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 2,
                             Description = "",
+                            EnvelopeType = 0,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "House Maint",
                             SortOrder = 5
@@ -231,9 +260,22 @@ namespace Budget.DB.Migrations
                             Budget = 0m,
                             CategoryId = 2,
                             Description = "",
+                            EnvelopeType = 0,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Medical",
                             SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = -1,
+                            Balance = 0m,
+                            Budget = 0m,
+                            CategoryId = -1,
+                            Description = "",
+                            EnvelopeType = 0,
+                            LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "UnAllocated",
+                            SortOrder = 6
                         });
                 });
 
@@ -285,6 +327,10 @@ namespace Budget.DB.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Vendor")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -307,6 +353,7 @@ namespace Budget.DB.Migrations
                             Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TotalAmount = 104.00m,
                             UserId = 1,
+                            UserName = "",
                             Vendor = "Giant"
                         },
                         new
@@ -317,6 +364,7 @@ namespace Budget.DB.Migrations
                             Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TotalAmount = 48m,
                             UserId = 1,
+                            UserName = "",
                             Vendor = "Bonefish"
                         },
                         new
@@ -327,6 +375,7 @@ namespace Budget.DB.Migrations
                             Date = new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TotalAmount = 12.50m,
                             UserId = 1,
+                            UserName = "",
                             Vendor = "Gas"
                         },
                         new
@@ -337,6 +386,7 @@ namespace Budget.DB.Migrations
                             Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TotalAmount = 30.00m,
                             UserId = 2,
+                            UserName = "",
                             Vendor = "Home Depot"
                         },
                         new
@@ -347,6 +397,7 @@ namespace Budget.DB.Migrations
                             Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TotalAmount = 32.00m,
                             UserId = 2,
+                            UserName = "",
                             Vendor = "CVS"
                         });
                 });

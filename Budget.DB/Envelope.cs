@@ -19,6 +19,7 @@ namespace Budget.DB
     public string Description { get; set; } = string.Empty;
     public int SortOrder { get; set; }
     public DateTime LastTransactionDate { get; set; }
+    public EnvelopeTypes EnvelopeType { get; set; }
 
     public int? LastTransactionId { get; set; }
     public int? LastTransactionLineId { get; set; }
@@ -54,9 +55,16 @@ namespace Budget.DB
           new Envelope { Id = 3, Name = "Gas", CategoryId = 1, SortOrder = 3 },
           new Envelope { Id = 4, Name = "Car Maint", CategoryId = 2, SortOrder = 4 },
           new Envelope { Id = 5, Name = "House Maint", CategoryId = 2, SortOrder = 5 },
-          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5 }
+          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5 },
+          new Envelope { Id = -1, Name = "UnAllocated", CategoryId = -1, SortOrder = 6 }
         );
       }
     }
+  }
+
+  public enum EnvelopeTypes
+  {
+    Unallocated,
+    Standard
   }
 }

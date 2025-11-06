@@ -25,7 +25,8 @@ namespace Budget.DB.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    SortOrder = table.Column<int>(type: "int", nullable: false)
+                    SortOrder = table.Column<int>(type: "int", nullable: false),
+                    CategoryType = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,6 +99,7 @@ namespace Budget.DB.Migrations
                     Vendor = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     BalanceAfterTransaction = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
@@ -134,6 +136,7 @@ namespace Budget.DB.Migrations
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
                     LastTransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EnvelopeType = table.Column<int>(type: "int", nullable: false),
                     LastTransactionId = table.Column<int>(type: "int", nullable: true),
                     LastTransactionLineId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -192,11 +195,13 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Categories",
-                columns: new[] { "Id", "Description", "Name", "SortOrder" },
+                columns: new[] { "Id", "CategoryType", "Description", "Name", "SortOrder" },
                 values: new object[,]
                 {
-                    { 1, "", "Frequent", 1 },
-                    { 2, "", "Regular", 2 }
+                    { -1, 1, "", "System", 0 },
+                    { 1, 0, "", "Frequent", 1 },
+                    { 2, 0, "", "Regular", 2 },
+                    { 3, 0, "", "Infrequent", 3 }
                 });
 
             migrationBuilder.InsertData(
@@ -212,28 +217,29 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Envelopes",
-                columns: new[] { "Id", "Balance", "Budget", "CategoryId", "Description", "LastTransactionDate", "LastTransactionId", "LastTransactionLineId", "Name", "SortOrder" },
+                columns: new[] { "Id", "Balance", "Budget", "CategoryId", "Description", "EnvelopeType", "LastTransactionDate", "LastTransactionId", "LastTransactionLineId", "Name", "SortOrder" },
                 values: new object[,]
                 {
-                    { 1, 0m, 0m, 1, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Dining Out", 1 },
-                    { 2, 0m, 0m, 1, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Groceries", 2 },
-                    { 3, 0m, 0m, 1, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Gas", 3 },
-                    { 4, 0m, 0m, 2, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Car Maint", 4 },
-                    { 5, 0m, 0m, 2, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "House Maint", 5 },
-                    { 6, 0m, 0m, 2, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Medical", 5 }
+                    { -1, 0m, 0m, -1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "UnAllocated", 6 },
+                    { 1, 0m, 0m, 1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Dining Out", 1 },
+                    { 2, 0m, 0m, 1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Groceries", 2 },
+                    { 3, 0m, 0m, 1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Gas", 3 },
+                    { 4, 0m, 0m, 2, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Car Maint", 4 },
+                    { 5, 0m, 0m, 2, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "House Maint", 5 },
+                    { 6, 0m, 0m, 2, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Medical", 5 }
                 });
 
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Transactions",
-                columns: new[] { "Id", "AccountId", "BalanceAfterTransaction", "Date", "TotalAmount", "UserId", "Vendor" },
+                columns: new[] { "Id", "AccountId", "BalanceAfterTransaction", "Date", "TotalAmount", "UserId", "UserName", "Vendor" },
                 values: new object[,]
                 {
-                    { 1, 1, 0m, new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 104.00m, 1, "Giant" },
-                    { 2, 2, 0m, new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 48m, 1, "Bonefish" },
-                    { 3, 1, 0m, new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 12.50m, 1, "Gas" },
-                    { 4, 2, 0m, new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 30.00m, 2, "Home Depot" },
-                    { 5, 1, 0m, new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 32.00m, 2, "CVS" }
+                    { 1, 1, 0m, new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 104.00m, 1, "", "Giant" },
+                    { 2, 2, 0m, new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 48m, 1, "", "Bonefish" },
+                    { 3, 1, 0m, new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 12.50m, 1, "", "Gas" },
+                    { 4, 2, 0m, new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 30.00m, 2, "", "Home Depot" },
+                    { 5, 1, 0m, new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 32.00m, 2, "", "CVS" }
                 });
 
             migrationBuilder.InsertData(
