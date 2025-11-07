@@ -12,7 +12,7 @@ public partial class EnvelopePage : ComponentBase
   [Inject] private IDialogService DialogService { get; set; } = default!;
   [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
 
-  public List<EnvelopeResult>? AllEnvelopeData => State.AllEnvelopeData;
+  public List<EnvelopeResult> AllEnvelopeData => State.AllEnvelopeData ?? new List<EnvelopeResult>();
   public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
   public List<TransactionDto>? TransactionData { get; set; } = [];
 
@@ -54,7 +54,8 @@ public partial class EnvelopePage : ComponentBase
     try
     {
       await State.EnsureLoadedAsync();
-      ApplyCategorySelection();
+
+
       // Ensure selection class applied on first render when an item is already selected
       await InvokeAsync(StateHasChanged);
     }
@@ -81,7 +82,7 @@ public partial class EnvelopePage : ComponentBase
         {
           await State.RefreshAsync();
         }
-
+        CategoriesForSelect = GetCategoriesForSelect();
         ApplyCategorySelection();
       }
       catch (Exception ex)
@@ -107,11 +108,20 @@ public partial class EnvelopePage : ComponentBase
   private void ApplyCategorySelection()
   {
     var selected = SelectedCategoryId ?? 0;
-    var list = selected == 0
-      ? AllEnvelopeData?.ToList() ?? []
-      : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList() ?? [];
 
-    SelectedEnvelopeData = list;
+    var list = new List<EnvelopeResult>();
+
+    //var list = selected == 0
+    //  ? AllEnvelopeData?.ToList() ?? []
+    //  : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList() ?? [];
+    if (SelectedCategoryId == 0)
+    {
+        list = (AllEnvelopeData!.Join(CategoriesForSelect, e => e.CategoryId, c => c.CategoryId, (e, c) => e)).ToList();
+    }
+    else
+      list = AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId).ToList();
+
+      SelectedEnvelopeData = list;
 
     if (_selectedEnvelope is not null && !list.Any(e => e.EnvelopeId == _selectedEnvelope.EnvelopeId))
     {
@@ -120,7 +130,7 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
-  internal List<Cat> Cats => State.Cats;
+  private List<Cat> CategoriesForSelect { get; set; } = new List<Cat>();
 
   public int? SelectedCategoryId
   {
@@ -128,10 +138,10 @@ public partial class EnvelopePage : ComponentBase
     set => State.SelectedCategoryId = value;
   }
 
-  public List<Cat> GetCategoriesForSelect()
+  public List<Cat>  GetCategoriesForSelect()
   {
     if (!UserOptions.IsAdminUser())
-      return State.Cats.Where(a => a.CatType != CatTypes.System).ToList();
+      return State.Cats.Where(a => a.CatType != CatTypes.System).OrderBy(a=> a.SortOrder).ToList();
 
     return State.Cats;
   }

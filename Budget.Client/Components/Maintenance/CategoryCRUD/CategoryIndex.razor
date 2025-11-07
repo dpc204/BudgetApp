@@ -16,12 +16,14 @@ else
         <HeaderContent>
             <MudTh>Name</MudTh>
             <MudTh>Description</MudTh>
+            <MudTh>Category Type</MudTh>
             <MudTh>Sort</MudTh>
             <MudTh style="width:220px;"></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Category Type">@context.CatType</MudTd>
             <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
             <MudTd Class="d-flex gap-1 justify-end">
                 <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>

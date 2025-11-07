@@ -68,7 +68,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
       var envelopes = await _api.GetEnvelopesAsync();
 
       Cats = [ new Cat { CategoryId = 0, CategoryName = "All" } ];
-      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.Id, CategoryName = c.Name }));
+      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.Id, SortOrder = c.SortOrder, CategoryName = c.Name }));
 
       var categoryNameLookup = categories.ToDictionary(c => c.Id, c => c.Name);
 
@@ -79,6 +79,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
           CategoryName = categoryNameLookup.TryGetValue(e.CategoryId, out var catName) ? catName : string.Empty,
           EnvelopeId = e.Id,
           EnvelopeName = e.Name,
+          SortOrder = e.SortOrder,
           Balance = e.Balance,
           Budget = e.Budget
         })

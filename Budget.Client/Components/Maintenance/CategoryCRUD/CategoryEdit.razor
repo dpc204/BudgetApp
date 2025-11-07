@@ -1,3 +1,4 @@
+@using Budget.Shared.Enums
 @using Budget.Shared.Models
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
@@ -6,44 +7,50 @@
   <DialogContent>
     @if (_category is null)
     {
-        <MudProgressCircular Indeterminate="true" />
+      <MudProgressCircular Indeterminate="true"/>
     }
     else
     {
-        <EditForm Model="_category" OnValidSubmit="SaveAsync">
-            <DataAnnotationsValidator />
-            <MudStack Spacing="2">
-                <MudTextField @bind-Value="_category.Name" Label="Name" For="() => _category.Name" Required="true" />
-                <MudTextField @bind-Value="_category.Description" Label="Description" />
-                <MudNumericField @bind-Value="_category.SortOrder" Label="Sort" />
-            </MudStack>
-        </EditForm>
+      <EditForm Model="_category" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator/>
+        <MudStack Spacing="2">
+          <MudTextField @bind-Value="_category.Name" Label="Name" For="() => _category.Name" Required="true"/>
+          <MudTextField @bind-Value="_category.Description" Label="Description"/>
+          <MudSelect T="CatTypes" @bind-Value="_category.CatType" Label="Type" Required="true">
+            @foreach (var type in Enum.GetValues<CatTypes>())
+            {
+              <MudSelectItem Value="type">@type</MudSelectItem>
+            }
+          </MudSelect>
+          <MudNumericField @bind-Value="_category.SortOrder" Label="Sort"/>
+        </MudStack>
+      </EditForm>
     }
   </DialogContent>
   <DialogActions>
-      <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="@(_category is null)" OnClick="SaveAsync">Save</MudButton>
-      <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="@(_category is null)" OnClick="SaveAsync">Save</MudButton>
+    <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
-    [Parameter] public int Id { get; set; }
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+  [Parameter] public int Id { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    private CategoryDto? _category;
+  private CategoryDto? _category;
 
-    protected override async Task OnParametersSetAsync()
-    {
-        var list = await MaintApi.GetCategoriesAsync();
-        _category = list.FirstOrDefault(c => c.Id == Id);
-    }
+  protected override async Task OnParametersSetAsync()
+  {
+    var list = await MaintApi.GetCategoriesAsync();
+    _category = list.FirstOrDefault(c => c.Id == Id);
+  }
 
-    private async Task SaveAsync()
-    {
-        if (_category is null) return;
-        var updated = await MaintApi.UpdateCategoryAsync(_category);
-        MudDialog.Close(DialogResult.Ok(updated));
-    }
+  private async Task SaveAsync()
+  {
+    if (_category is null) return;
+    var updated = await MaintApi.UpdateCategoryAsync(_category);
+    MudDialog.Close(DialogResult.Ok(updated));
+  }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+  private void Cancel() => MudDialog.Close(DialogResult.Cancel());
 }

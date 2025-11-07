@@ -10,9 +10,9 @@ public sealed partial class AuthStateSync : ComponentBase, IDisposable
 {
   [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
-  [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
-  [Inject] private IUserAndOptions UserAndOptions { get; set; } = default!;
-
+  [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+  [Inject] private IUserAndOptions UserAndOptions { get; set; } = null!;
+  [Inject] private EnvelopeState EnvelopeState { get; set; } = null!;
   private bool _initialized;
 
   protected override async Task OnInitializedAsync()
@@ -44,8 +44,10 @@ public sealed partial class AuthStateSync : ComponentBase, IDisposable
     await ApplyStateAsync(state);
   }
 
-  private Task ApplyStateAsync(AuthenticationState state)
+  private async Task<Task> ApplyStateAsync(AuthenticationState state)
   {
+
+
     var user = state.User;
     if (user?.Identity?.IsAuthenticated == true)
     {
@@ -56,6 +58,8 @@ public sealed partial class AuthStateSync : ComponentBase, IDisposable
     {
       UserAndOptions.ClearUserInfo();
     }
+
+    await EnvelopeState.RefreshAsync();
 
     return Task.CompletedTask;
   }
