@@ -66,13 +66,13 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
     {
       var categories = await _api.GetCategoriesAsync();
       var envelopes = await _api.GetEnvelopesAsync();
-
+      _cacheAttempted = false;
       Cats = [ new Cat { CategoryId = 0, CategoryName = "All" } ];
-      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.Id, SortOrder = c.SortOrder, CategoryName = c.Name }));
+      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.Id, SortOrder = c.SortOrder, CategoryName = c.Name , CatType = c.CatType}));
 
       var categoryNameLookup = categories.ToDictionary(c => c.Id, c => c.Name);
 
-      AllEnvelopeData = envelopes
+      AllEnvelopeData = [.. envelopes
         .Select(e => new EnvelopeResult
         {
           CategoryId = e.CategoryId,
@@ -84,8 +84,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
           Budget = e.Budget
         })
         .OrderBy(e => e.CategoryId)
-        .ThenBy(e => e.EnvelopeName)
-        .ToList();
+        .ThenBy(e => e.EnvelopeName)];
     }
     catch (Exception ex)
     {
@@ -100,8 +99,8 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
   public async Task SaveAsync()
   {
     // Only persist to localStorage after we've attempted cache load (i.e., interactive render occurred)
-    if (!_cacheAttempted)
-      return;
+    //if (!_cacheAttempted)
+    //  return;
 
     try
     {

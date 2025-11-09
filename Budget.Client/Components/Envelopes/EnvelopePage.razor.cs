@@ -12,9 +12,9 @@ public partial class EnvelopePage : ComponentBase
   [Inject] private IDialogService DialogService { get; set; } = default!;
   [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
 
-  public List<EnvelopeResult> AllEnvelopeData => State.AllEnvelopeData ?? new List<EnvelopeResult>();
-  public List<EnvelopeResult>? SelectedEnvelopeData { get; set; } = [];
-  public List<TransactionDto>? TransactionData { get; set; } = [];
+  public List<EnvelopeResult> AllEnvelopeData => State.AllEnvelopeData ?? [];
+  public List<EnvelopeResult> SelectedEnvelopeData { get; set; } = [];
+  public List<TransactionDto> TransactionData { get; set; } = [];
 
   private EnvelopeResult? _selectedEnvelope;
 
@@ -34,11 +34,11 @@ public partial class EnvelopePage : ComponentBase
   // Dense row height in MudBlazor is ~33px; header is ~56px. Adjust if theme differs.
   private const int EnvelopeRowHeightPx = 38;
   private const int EnvelopeHeaderHeightPx = 56;
-  private string EnvelopeGridHeightPx => $"{(EnvelopeRowHeightPx * 5) + EnvelopeHeaderHeightPx}px";
+  private static string EnvelopeGridHeightPx => $"{(EnvelopeRowHeightPx * 5) + EnvelopeHeaderHeightPx}px";
 
   private const int TransactionRowHeightPx = 38;
   private const int TransactionHeaderHeightPx = 56;
-  private string TransactionGridHeightPx => $"{(TransactionRowHeightPx * 5) + TransactionHeaderHeightPx}px";
+  private static string TransactionGridHeightPx => $"{(TransactionRowHeightPx * 5) + TransactionHeaderHeightPx}px";
 
 
   private bool _loading = true;
@@ -48,13 +48,16 @@ public partial class EnvelopePage : ComponentBase
   protected override async Task OnInitializedAsync()
   {
     var runtimeType = JSRuntime.GetType().Name;
-    Logger.LogInformation("EnvelopePage.OnInitializedAsync - Runtime: {Runtime}", runtimeType);
+    if (Logger.IsEnabled(LogLevel.Information))
+    {
+      Logger.LogInformation("EnvelopePage.OnInitializedAsync - Runtime: {Runtime}", runtimeType);
+    }
+
     Console.WriteLine($"EnvelopePage running on: {runtimeType}");
 
     try
     {
       await State.EnsureLoadedAsync();
-
 
       // Ensure selection class applied on first render when an item is already selected
       await InvokeAsync(StateHasChanged);
@@ -62,7 +65,10 @@ public partial class EnvelopePage : ComponentBase
     catch (Exception ex)
     {
       _loadError = ex.Message;
-      Logger.LogError(ex, "Error in OnInitializedAsync");
+      if (Logger.IsEnabled(LogLevel.Error))
+      {
+        Logger.LogError(ex, "Error in OnInitializedAsync");
+      }
     }
   }
 
@@ -72,7 +78,11 @@ public partial class EnvelopePage : ComponentBase
     {
       _afterRenderInit = true;
       var runtimeType = JSRuntime.GetType().Name;
-      Logger.LogInformation("EnvelopePage.OnAfterRenderAsync - Runtime: {Runtime}", runtimeType);
+      if (Logger.IsEnabled(LogLevel.Information))
+      {
+        Logger.LogInformation("EnvelopePage.OnAfterRenderAsync - Runtime: {Runtime}", runtimeType);
+      }
+
       Console.WriteLine($"OnAfterRenderAsync running on: {runtimeType}");
 
       try
@@ -82,6 +92,7 @@ public partial class EnvelopePage : ComponentBase
         {
           await State.RefreshAsync();
         }
+
         CategoriesForSelect = GetCategoriesForSelect();
         ApplyCategorySelection();
       }
@@ -100,7 +111,6 @@ public partial class EnvelopePage : ComponentBase
 
   private void OnRowClicked(DataGridRowClickEventArgs<EnvelopeResult> args)
   {
-    var clickedItem = args.Item;
     if (args?.Item is null) return;
     SelectedEnvelope = args.Item;
   }
@@ -116,21 +126,21 @@ public partial class EnvelopePage : ComponentBase
     //  : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList() ?? [];
     if (SelectedCategoryId == 0)
     {
-        list = (AllEnvelopeData!.Join(CategoriesForSelect, e => e.CategoryId, c => c.CategoryId, (e, c) => e)).ToList();
+      list = [.. (AllEnvelopeData!.Join(CategoriesForSelect, e => e.CategoryId, c => c.CategoryId, (e, c) => e))];
     }
     else
-      list = AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId).ToList();
+      list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
 
-      SelectedEnvelopeData = list;
+    SelectedEnvelopeData = list;
 
-    if (_selectedEnvelope is not null && !list.Any(e => e.EnvelopeId == _selectedEnvelope.EnvelopeId))
+    if (_selectedEnvelope is not null && list.All(e => e.EnvelopeId != _selectedEnvelope.EnvelopeId))
     {
       // Clear selection if it's no longer in the filtered list; will also clear transactions
       SelectedEnvelope = null;
     }
   }
 
-  private List<Cat> CategoriesForSelect { get; set; } = new List<Cat>();
+  private List<Cat> CategoriesForSelect { get; set; } = [];
 
   public int? SelectedCategoryId
   {
@@ -138,10 +148,10 @@ public partial class EnvelopePage : ComponentBase
     set => State.SelectedCategoryId = value;
   }
 
-  public List<Cat>  GetCategoriesForSelect()
+  public List<Cat> GetCategoriesForSelect()
   {
     if (!UserOptions.IsAdminUser())
-      return State.Cats.Where(a => a.CatType != CatTypes.System).OrderBy(a=> a.SortOrder).ToList();
+      return [.. State.Cats.Where(a => a.CatType != CatTypes.System).OrderBy(a => a.SortOrder)];
 
     return State.Cats;
   }
@@ -154,7 +164,7 @@ public partial class EnvelopePage : ComponentBase
     await State.SaveAsync();
   }
 
-  
+
   // Overload for MudDataGrid RowClick
   private async Task OnTransactionRowClick(DataGridRowClickEventArgs<TransactionDto> args)
   {
@@ -191,7 +201,7 @@ public partial class EnvelopePage : ComponentBase
     try
     {
       var rslt = await Api.GetTransactionsByEnvelopeAsync(envelope.EnvelopeId);
-      TransactionData = rslt.ToList();
+      TransactionData = [.. rslt];
       await InvokeAsync(StateHasChanged);
     }
     catch (Exception ex)
@@ -215,9 +225,7 @@ public partial class EnvelopePage : ComponentBase
       {
         // If dialog returned updated envelope DTOs, we can update state directly
 
-        var envResult = result.Data as List<EnvelopeDto>;
-
-        if (envResult is not null)
+        if (result?.Data is List<EnvelopeDto> envResult)
         {
           UpdateEnvelopeBalances(envResult); // or merge if there's a method; keeping simple by refresh
           ApplyCategorySelection();

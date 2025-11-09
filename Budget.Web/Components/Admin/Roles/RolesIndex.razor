@@ -87,15 +87,8 @@ else
 
     private async Task LoadDependentsAsync(IdentityRole r)
     {
-        var list = new List<BudgetUser>();
-        foreach (var u in UserManager.Users)
-        {
-            if (await UserManager.IsInRoleAsync(u, r.Name!))
-            {
-                list.Add(u);
-            }
-        }
-        dependentUsers = list;
+        // Use optimized Identity API instead of nested queries during streaming enumeration to avoid open DataReader conflicts.
+        dependentUsers = (await UserManager.GetUsersInRoleAsync(r.Name!)).ToList();
         StateHasChanged();
     }
 
