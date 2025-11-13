@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Controls whether the app automatically restarts for rude edits during Hot Reload. Set to true to enable auto restart. -->
+    <HotReloadAutoRestart>true</HotReloadAutoRestart>
+  </PropertyGroup>
+</Project>
