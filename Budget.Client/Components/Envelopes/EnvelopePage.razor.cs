@@ -130,6 +130,7 @@ public partial class EnvelopePage : ComponentBase
     }
     else
       list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
+      list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
 
     SelectedEnvelopeData = list;
 

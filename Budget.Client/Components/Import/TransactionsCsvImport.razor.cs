@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Components;
@@ -82,6 +83,7 @@ public partial class TransactionsCsvImport : ComponentBase
 
         try
         {
+          Debug.WriteLine($"Line {i}");
           var dto = MapRowToTransactionDto(row, map);
           Preview.Add(dto);
         }
@@ -138,154 +140,153 @@ public partial class TransactionsCsvImport : ComponentBase
           EnvelopeName = rec.EnvelopeName,
           UserId = rec.UserId
         });
-   
 
 
-      await Api.AddTransactionAsync(trans);
-   }
-    Snackbar.Add($"Imported {Preview.Count} items across  transactions", Severity.Success);
-    Status = "Import complete.";
-    Preview.Clear();
-    SelectedFile = null;
-  }
-  catch (Exception ex)
-  {
-    Errors.Add(ex.Message);
-  }
+        await Api.AddTransactionAsync(trans);
+      }
 
-  finally
-  {
-    Busy = false;
-    InvokeAsync(StateHasChanged);
-  }
-}
-
-private static Dictionary<string, int> BuildHeaderMap(IReadOnlyList<string> headers)
-{
-  var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-
-  for (int i = 0; i < headers.Count; i++)
-  {
-    var h = headers[i].Trim();
-    if (string.IsNullOrEmpty(h)) continue;
-    map[h] = i;
-
-    // alias common names
-    if (h.Equals("date", StringComparison.OrdinalIgnoreCase)) map["date"] = i;
-    if (h.Equals("vendor", StringComparison.OrdinalIgnoreCase)) map["vendor"] = i;
-    if (h.Equals("description", StringComparison.OrdinalIgnoreCase)) map["description"] = i;
-    if (h.Equals("notes", StringComparison.OrdinalIgnoreCase)) map["notes"] = i;
-    if (h.Equals("amount", StringComparison.OrdinalIgnoreCase) ||
-        h.Equals("total", StringComparison.OrdinalIgnoreCase) ||
-        h.Equals("debit", StringComparison.OrdinalIgnoreCase)) map["amount"] = i;
-    if (h.Equals("envelope", StringComparison.OrdinalIgnoreCase)) map["envelope"] = i;
-    if (h.Equals("category", StringComparison.OrdinalIgnoreCase)) map["category"] = i;
-    if (h.Equals("envelopeid", StringComparison.OrdinalIgnoreCase)) map["envelopeid"] = i;
-    if (h.Equals("categoryid", StringComparison.OrdinalIgnoreCase)) map["categoryid"] = i;
-    if (h.Equals("userid", StringComparison.OrdinalIgnoreCase)) map["userid"] = i;
-  }
-
-  return map;
-}
-
-private static TransactionDto MapRowToTransactionDto(IReadOnlyList<string> row, Dictionary<string, int> map)
-{
-  DateTime date = DateTime.Today;
-  string vendor = string.Empty;
-  string desc = string.Empty;
-  decimal amount = 0m;
-  string envelopeName = string.Empty;
-  int envelopeId = 0;
-  int userId = 0;
-
-  if (map.TryGetValue("date", out var idxDate) && idxDate < row.Count)
-  {
-    var txt = row[idxDate];
-    if (!DateTime.TryParse(txt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out date))
+      Snackbar.Add($"Imported {Preview.Count} items across  transactions", Severity.Success);
+      Status = "Import complete.";
+      Preview.Clear();
+      SelectedFile = null;
+    }
+    catch (Exception ex)
     {
-      // try current culture too
-      date = DateTime.Parse(txt, CultureInfo.CurrentCulture);
+      Errors.Add(ex.Message);
+    }
+
+    finally
+    {
+      Busy = false;
+      InvokeAsync(StateHasChanged);
     }
   }
 
-  if (map.TryGetValue("vendor", out var idxVendor) && idxVendor < row.Count)
-    vendor = row[idxVendor];
-
-  if (map.TryGetValue("description", out var idxDesc) && idxDesc < row.Count)
-    desc = row[idxDesc];
-
-  if (map.TryGetValue("amount", out var idxAmt) && idxAmt < row.Count)
+  private static Dictionary<string, int> BuildHeaderMap(IReadOnlyList<string> headers)
   {
-    var raw = row[idxAmt].Replace("$", string.Empty).Replace(",", string.Empty);
-    amount = decimal.Parse(raw, NumberStyles.Number | NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
-      CultureInfo.InvariantCulture);
+    var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+    for (int i = 0; i < headers.Count; i++)
+    {
+      var h = headers[i].Trim();
+      if (string.IsNullOrEmpty(h)) continue;
+      map[h] = i;
+
+      // alias common names
+      if (h.Equals("date", StringComparison.OrdinalIgnoreCase)) map["date"] = i;
+      if (h.Equals("vendor", StringComparison.OrdinalIgnoreCase)) map["vendor"] = i;
+      if (h.Equals("description", StringComparison.OrdinalIgnoreCase)) map["description"] = i;
+      if (h.Equals("notes", StringComparison.OrdinalIgnoreCase)) map["notes"] = i;
+      if (h.Equals("amount", StringComparison.OrdinalIgnoreCase) ||
+          h.Equals("total", StringComparison.OrdinalIgnoreCase) ||
+          h.Equals("debit", StringComparison.OrdinalIgnoreCase)) map["amount"] = i;
+      if (h.Equals("envelope", StringComparison.OrdinalIgnoreCase)) map["envelope"] = i;
+      if (h.Equals("category", StringComparison.OrdinalIgnoreCase)) map["category"] = i;
+      if (h.Equals("envelopeid", StringComparison.OrdinalIgnoreCase)) map["envelopeid"] = i;
+      if (h.Equals("categoryid", StringComparison.OrdinalIgnoreCase)) map["categoryid"] = i;
+      if (h.Equals("userid", StringComparison.OrdinalIgnoreCase)) map["userid"] = i;
+    }
+
+    return map;
   }
 
-  if (map.TryGetValue("envelope", out var idxEnv) && idxEnv < row.Count)
-    envelopeName = row[idxEnv];
-
-  if (map.TryGetValue("envelopeid", out var idxEnvId) && idxEnvId < row.Count)
-    int.TryParse(row[idxEnvId], out envelopeId);
-
-  if (map.TryGetValue("userid", out var idxUserId) && idxUserId < row.Count)
-    int.TryParse(row[idxUserId], out userId);
-
-  return new TransactionDto
+  private static TransactionDto MapRowToTransactionDto(IReadOnlyList<string> row, Dictionary<string, int> map)
   {
-    Vendor = vendor,
-    Description = desc,
-    Amount = amount,
-    Date = date,
-    EnvelopeId = envelopeId,
-    EnvelopeName = envelopeName,
-    UserId = userId
-  };
-}
+    DateTime date = DateTime.Today;
+    string vendor = string.Empty;
+    string desc = string.Empty;
+    decimal amount = 0m;
+    string envelopeName = string.Empty;
+    int envelopeId = 0;
+    int userId = 0;
 
-private static List<string> ParseCsvLine(string line)
-{
-  var result = new List<string>();
-  if (string.IsNullOrEmpty(line)) return result;
-
-  var sb = new StringBuilder();
-  bool inQuotes = false;
-
-  for (int i = 0; i < line.Length; i++)
-  {
-    var c = line[i];
-    if (c == '"')
+    if (map.TryGetValue("date", out var idxDate) && idxDate < row.Count)
     {
-      if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+      var txt = row[idxDate];
+      if (!DateTime.TryParse(txt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out date))
       {
-        // escaped quote
-        sb.Append('"');
-        i++; // skip
+        // try current culture too
+        date = DateTime.Parse(txt, CultureInfo.CurrentCulture);
+      }
+    }
+
+    if (map.TryGetValue("vendor", out var idxVendor) && idxVendor < row.Count)
+      vendor = row[idxVendor];
+
+    if (map.TryGetValue("description", out var idxDesc) && idxDesc < row.Count)
+      desc = row[idxDesc];
+
+    if (map.TryGetValue("amount", out var idxAmt) && idxAmt < row.Count)
+    {
+      var raw = row[idxAmt].Replace("$", string.Empty).Replace(",", string.Empty);
+      amount = decimal.Parse(raw, NumberStyles.Number | NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+        CultureInfo.InvariantCulture);
+    }
+
+    if (map.TryGetValue("envelope", out var idxEnv) && idxEnv < row.Count)
+      envelopeName = row[idxEnv];
+
+    if (map.TryGetValue("envelopeid", out var idxEnvId) && idxEnvId < row.Count)
+      int.TryParse(row[idxEnvId], out envelopeId);
+
+    if (map.TryGetValue("userid", out var idxUserId) && idxUserId < row.Count)
+      int.TryParse(row[idxUserId], out userId);
+
+    return new TransactionDto
+    {
+      Vendor = vendor,
+      Description = desc,
+      Amount = amount,
+      Date = date,
+      EnvelopeId = envelopeId,
+      EnvelopeName = envelopeName,
+      UserId = userId
+    };
+  }
+
+  private static List<string> ParseCsvLine(string line)
+  {
+    var result = new List<string>();
+    if (string.IsNullOrEmpty(line)) return result;
+
+    var sb = new StringBuilder();
+    bool inQuotes = false;
+
+    for (int i = 0; i < line.Length; i++)
+    {
+      var c = line[i];
+      if (c == '"')
+      {
+        if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+        {
+          // escaped quote
+          sb.Append('"');
+          i++; // skip
+        }
+        else
+        {
+          inQuotes = !inQuotes;
+        }
+      }
+      else if (c == ',' && !inQuotes)
+      {
+        result.Add(sb.ToString());
+        sb.Clear();
       }
       else
       {
-        inQuotes = !inQuotes;
+        sb.Append(c);
       }
     }
-    else if (c == ',' && !inQuotes)
+
+    result.Add(sb.ToString());
+
+    // trim whitespace
+    for (int j = 0; j < result.Count; j++)
     {
-      result.Add(sb.ToString());
-      sb.Clear();
+      result[j] = result[j].Trim();
     }
-    else
-    {
-      sb.Append(c);
-    }
+
+    return result;
   }
-
-  result.Add(sb.ToString());
-
-  // trim whitespace
-  for (int j = 0; j < result.Count; j++)
-  {
-    result[j] = result[j].Trim();
-  }
-
-  return result;
-}
-
 }

@@ -28,6 +28,12 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return readOnlyList;
   }
 
+  public async Task<List<TransactionDto>> GetTransactionsUnallocatedAsync(CancellationToken cancellationToken = default)
+  {
+    var readOnlyList = await GetListAsync<TransactionDto>($"transactions/unallocated", cancellationToken);
+    return readOnlyList;
+  }
+
   public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default)
     => await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);
 

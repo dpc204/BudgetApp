@@ -1,0 +1,83 @@
+.content-wrapper {
+  border: 0.125rem solid #0d6efd; /* ~2px */
+  border-radius: 0.5rem;          /* ~8px */
+  padding: 1rem;                  /* ~16px */
+}
+
+.envelope-page-container, .envelope-page-stack, .envelope-grid-grow {
+  height: 100%;
+}
+
+/* Ensure the body/html allow full-height flex usage */
+:root, body, html {
+  height: 100%;
+}
+
+.envelope-page-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.envelope-page-stack {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow children to shrink */
+}
+
+.envelope-grid-grow {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.envelopes-table .mud-table-container {
+  height: 100%;
+}
+
+/* Keep row selection highlight, remove per-cell focus box */
+::deep .e-grid .e-rowcell:focus,
+::deep .e-grid .e-rowcell:focus-visible,
+::deep .e-grid .e-rowcell.e-focused,
+::deep .e-grid .e-rowcell.e-active {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Optional: emphasize the whole selected row */
+::deep .e-grid .e-row.e-selectionbackground > td {
+  background-color: rgba(13, 110, 253, 0.08); /* subtle */
+}
+
+/* Make the "Choose Category" label bold and a bit larger */
+.example-label {
+  font-weight: 700;      /* bold */
+  font-size: 1.125rem;   /* ~18px if root is 16px */
+  line-height: 1.2;
+}
+
+/* Bold the items in the DropDownList popup */
+::deep .e-dropdownbase .e-list-item {
+  font-weight: 700 !important;
+}
+
+/* Bold the selected value shown in the DropDownList input (display line) */
+::deep .e-ddl .e-input,
+::deep .e-dropdownlist .e-input,
+::deep .e-ddl .e-input-group .e-input,
+::deep .e-ddl .e-input-value {
+  font-weight: 700 !important;
+}
+
+/* Highlight selected row in the envelopes MudTable using the theme Secondary color */
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary,
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary > td {
+  background-color: var(--mud-palette-secondary) !important;
+  color: var(--mud-palette-secondary-contrastText) !important;
+}
+
+/* Keep hover visible but not override selected */
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover,
+::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover > td {
+  filter: brightness(0.98);
+}
