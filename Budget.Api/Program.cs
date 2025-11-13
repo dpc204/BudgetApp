@@ -13,13 +13,58 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Budget.Api;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using Microsoft.Extensions.ServiceDiscovery;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
+static void ConfigureTelemetryAndServiceDefaults(WebApplicationBuilder builder)
+{
+ builder.Logging.AddOpenTelemetry(o =>
+ {
+  o.IncludeFormattedMessage = true;
+  o.IncludeScopes = true;
+ });
+ builder.Services.AddOpenTelemetry()
+  .WithMetrics(metrics =>
+  {
+   metrics.AddAspNetCoreInstrumentation()
+          .AddHttpClientInstrumentation()
+          .AddRuntimeInstrumentation();
+  })
+  .WithTracing(tracing =>
+  {
+   tracing.AddSource(builder.Environment.ApplicationName)
+          .AddAspNetCoreInstrumentation(cfg =>
+          {
+            cfg.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health") && !ctx.Request.Path.StartsWithSegments("/alive");
+          })
+          .AddHttpClientInstrumentation();
+  });
+ var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+ if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+ {
+  builder.Services.AddOpenTelemetry().UseOtlpExporter();
+ }
+ builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), new[] { "live" });
+ builder.Services.AddServiceDiscovery();
+ builder.Services.ConfigureHttpClientDefaults(http =>
+ {
+  http.AddStandardResilienceHandler();
+  http.AddServiceDiscovery();
+ });
+}
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Manual Aspire-like service defaults: OpenTelemetry (logs/metrics/traces), health checks, service discovery
+ConfigureTelemetryAndServiceDefaults(builder);
 
 builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
-// Add HTTP logging services
 builder.Services.AddHttpLogging(logging =>
 {
  logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
@@ -32,23 +77,15 @@ builder.Services.AddCarter();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
 
-// Read connection strings (env overrides supported via SetupConfigurationSources)
 var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Budget);
 var identityConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Identity);
 
-if (string.IsNullOrWhiteSpace(budgetConnectionString))
-{
- throw new InvalidOperationException("Missing Budget DB connection string.");
-}
-if (string.IsNullOrWhiteSpace(identityConnectionString))
-{
- throw new InvalidOperationException("Missing Identity DB connection string.");
-}
+if (string.IsNullOrWhiteSpace(budgetConnectionString)) throw new InvalidOperationException("Missing Budget DB connection string.");
+if (string.IsNullOrWhiteSpace(identityConnectionString)) throw new InvalidOperationException("Missing Identity DB connection string.");
 
 var isDev = builder.Environment.IsDevelopment();
 var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Test");
 
-// Domain data context (uses schema 'budget')
 builder.Services.AddDbContext<BudgetContext>(options =>
 {
  options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget"));
@@ -59,7 +96,6 @@ builder.Services.AddDbContext<BudgetContext>(options =>
  }
 });
 
-// Identity context (separate or same DB)
 builder.Services.AddDbContext<ApiIdentityContext>(options =>
 {
  options.UseSqlServer(identityConnectionString);
@@ -70,7 +106,6 @@ builder.Services.AddDbContext<ApiIdentityContext>(options =>
  }
 });
 
-// Register Identity services for BudgetUser
 builder.Services
  .AddIdentityCore<BudgetUser>(o => { o.User.RequireUniqueEmail = true; })
  .AddRoles<IdentityRole>()
@@ -100,7 +135,6 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Add CORS policy using configuration
 builder.Services.AddCors(options =>
 {
  if (builder.Environment.IsDevelopment())
@@ -111,43 +145,27 @@ builder.Services.AddCors(options =>
  var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
  options.AddPolicy("AllowBudgetWeb", policy =>
  {
- policy.WithOrigins(origins)
- .AllowAnyMethod()
- .AllowAnyHeader()
- .AllowCredentials();
+ policy.WithOrigins(origins).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
  });
  }
  else
  {
- options.AddPolicy("AllowBudgetWeb", policy =>
- {
- policy.AllowAnyOrigin()
- .AllowAnyMethod()
- .AllowAnyHeader();
- });
+ options.AddPolicy("AllowBudgetWeb", policy => { policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
  }
  }
  else
  {
- var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
- if (string.IsNullOrWhiteSpace(allowedOrigins))
- {
- throw new InvalidOperationException("ALLOWED_ORIGINS environment variable must be set in production.");
- }
+ var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"] ?? throw new InvalidOperationException("ALLOWED_ORIGINS environment variable must be set in production.");
  var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
  options.AddPolicy("AllowBudgetWeb", policy =>
  {
- policy.WithOrigins(origins)
- .AllowAnyMethod()
- .AllowAnyHeader()
- .AllowCredentials();
+ policy.WithOrigins(origins).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
  });
  }
 });
 
 var app = builder.Build();
 
-// Always ensure databases exist at startup (idempotent)
 using (var scope = app.Services.CreateScope())
 {
  var services = scope.ServiceProvider;
@@ -155,7 +173,6 @@ using (var scope = app.Services.CreateScope())
  services.GetRequiredService<BudgetContext>().Database.EnsureCreated();
 }
 
-// Add HTTP request logging (logs all incoming requests)
 if (app.Environment.IsDevelopment())
 {
  app.UseHttpLogging();
@@ -166,15 +183,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Enable CORS before authentication/authorization
 app.UseCors("AllowBudgetWeb");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapCarter();
-
 app.MapGet("/healthz", () => Results.Ok("OK"));
 
 var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
@@ -184,6 +196,12 @@ app.MapGet("/weatherforecast", () =>
  var forecast = Enumerable.Range(1,5).Select(index => new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(index)), Random.Shared.Next(-20,55), summaries[Random.Shared.Next(summaries.Length)])).ToArray();
  return forecast;
 }).WithName("GetWeatherForecast");
+
+if (app.Environment.IsDevelopment())
+{
+ app.MapHealthChecks("/health");
+ app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
+}
 
 app.Run();
 

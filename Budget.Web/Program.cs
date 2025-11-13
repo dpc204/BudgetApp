@@ -16,10 +16,21 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Syncfusion.Blazor;
 using Budget.Api;
+using Microsoft.Extensions.Hosting;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.ServiceDiscovery;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var assembly = typeof(Program).Assembly;
 Misc.SetupConfigurationSources(builder, assembly);
+
+// Manual Aspire defaults (structured logs, traces, metrics, health, discovery)
+ConfigureTelemetryAndServiceDefaults(builder);
 
 // Ensure EF Core command logs go through ILogger and to structured logs
 builder.Logging.AddJsonConsole();
@@ -29,7 +40,6 @@ builder.Services.AddRazorComponents()
   .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
-// builder.Services.AddBlazorBootstrap();
 string apiBase = builder.Configuration["BUDGET_API_BASE_URL"]
                  ?? builder.Configuration["ApiBaseUrl"]
                  ?? builder.Configuration["Api:BaseUrl"]
@@ -63,7 +73,7 @@ builder.Services.AddHttpClient<IBudgetMaintApiClient, Budget.Client.Services.Bud
 builder.Services.AddScoped<EnvelopeState>();
 
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
-  "Ngo9BigBOggjGyl/Vkd+XU9FcVRDX3xKf0x/TGpQb19xflBPallYVBYiSV9jS3tTf0VkW35ecHFcRGdeUk91Xg==");
+  "Ngo9BigBOggjGyl/Vkd+XU9FcVRDX3xflBPallYVBYiSV9jS3tTf0VkW35ecHFcRGdeUk91Xg==");
 
 builder.Services.AddAuthorization(options => { options.AddPolicy("Admin", policy => policy.RequireRole("Admin")); });
 
@@ -74,7 +84,6 @@ builder.Services.AddAuthentication(options =>
   })
   .AddIdentityCookies(options =>
   {
-    // Prevent automatic redirects for Blazor Server - let components handle auth
     options.ApplicationCookie.Configure(cookieOptions =>
     {
       cookieOptions.Events.OnRedirectToLogin = context =>
@@ -366,6 +375,13 @@ app.MapPost("/api/maintenance/backup-azure-sql",
     }
   }).RequireAuthorization("Admin");
 
+// Health endpoints (development only for security)
+if (app.Environment.IsDevelopment())
+{
+  app.MapHealthChecks("/health");
+  app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
+}
+
 app.Run();
 
 static string? ParseDataSource(string cs)
@@ -381,7 +397,6 @@ static string? ParseDataSource(string cs)
         return part[(idx + 1)..];
     }
   }
-
   return null;
 }
 
@@ -397,12 +412,47 @@ static string NormalizeBaseAddress(string value)
       var scheme = string.IsNullOrEmpty(uri.Scheme) ? "http" : uri.Scheme;
       return $"{scheme}://127.0.0.1:{port}";
     }
-
     return value;
   }
-  catch
-  {
-    return "http://127.0.0.1:8080";
-  }
+  catch { return "http://127.0.0.1:8080"; }
 }
 
+static void ConfigureTelemetryAndServiceDefaults(WebApplicationBuilder builder)
+{
+  builder.Logging.AddOpenTelemetry(logging =>
+  {
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+  });
+
+  builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+      metrics.AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation();
+    })
+    .WithTracing(tracing =>
+    {
+      tracing.AddSource(builder.Environment.ApplicationName)
+        .AddAspNetCoreInstrumentation(o =>
+        {
+          o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health") && !ctx.Request.Path.StartsWithSegments("/alive");
+        })
+        .AddHttpClientInstrumentation();
+    });
+
+  var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]; // Aspire sets this when dashboard collects
+  if(!string.IsNullOrWhiteSpace(otlpEndpoint))
+  {
+    builder.Services.AddOpenTelemetry().UseOtlpExporter();
+  }
+
+  builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), new[] { "live" });
+  builder.Services.AddServiceDiscovery();
+  builder.Services.ConfigureHttpClientDefaults(http =>
+  {
+    http.AddStandardResilienceHandler();
+    http.AddServiceDiscovery();
+  });
+}
