@@ -5,7 +5,6 @@
 @using Budget.Shared.Models
 @using Budget.Shared.Services
 @using Budget.Shared.FDComponents
-@using MudExtensions
 
 
 
@@ -39,40 +38,32 @@ else
           <TemplateColumn Title="Date" Editable="false">
             <CellTemplate>@context.Item.Date.ToString("MM/dd/yy")</CellTemplate>
           </TemplateColumn>
-          <TemplateColumn Title="EnvelopeMudE">
+          <TemplateColumn Title="Envelope">
             <CellTemplate>
               @{
                 var envelope = _availableEnvelopes.GetValueOrDefault(context.Item.EnvelopeId);
               }
-              @envelope + "Envelope"
+              @(envelope?.Name ?? "")
             </CellTemplate>
             <EditTemplate>
-
-              <MudComboBox T="int" @bind-Value="@context.Item.EnvelopeId" 
-                           @bind-Text="@context.Item.EnvelopeName" 
-                           Variant="Variant.Filled" 
-                           ToggleSelection="true" 
-                           Clearable
-                           Label="Custom (StartsWith)" 
-                           Editable="true" 
-                           SearchFunc="@(new Func<int, string?, string?, bool>(SearchEnvelopeName))" 
-                           >
-                @foreach (var c in _availableEnvelopes)
-                {
-                  <MudComboBoxItem Value="c.Key" Text="@((string)c.Value.Name)">@c.Value.Name</MudComboBoxItem>
-                }
-              </MudComboBox>
-
-
-              <MudSelect T="int?" Variant="Variant.Outlined" Dense="true">
-                @foreach (var c in _availableEnvelopes)
-                {
-                  <MudSelectItem @key="c.Key" Value="@((int?)c.Key)">@c.Value</MudSelectItem>
-                }
-              </MudSelect>
-
+              <MudAutocomplete T="EnvelopeIdName"
+                               Value="@GetCurrentEnvelope(context.Item)"
+                               SearchFunc="@SearchEnvelopes"
+                               ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
+                               ToStringFunc="@(e => e?.Name ?? "")"
+                               ResetValueOnEmptyText="false"
+                               CoerceText="false" 
+                               CoerceValue="true"
+                               OpenOnFocus="true"
+                               Placeholder="Search Envelope"
+                               Immediate="true"
+                               AdornmentIcon="@Icons.Material.Filled.Search"
+                               AdornmentColor="Color.Primary"
+                               Variant="Variant.Outlined" 
+                               Dense="true"
+                               ShowProgressIndicator="true" 
+                               ProgressIndicatorColor="Color.Primary" />
             </EditTemplate>
-
           </TemplateColumn>
 
           <TemplateColumn Title="Vendor" Editable="false">

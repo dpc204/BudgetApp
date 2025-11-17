@@ -17,7 +17,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.ServiceDiscovery;
 using Microsoft.SqlServer.Dac;
 using MudBlazor.Services;
-using MudExtensions.Services;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -147,7 +146,6 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
 builder.Services.AddMudServices();
-builder.Services.AddMudExtensions();
 builder.Services.AddSingleton<ThemeService>();
 builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
 

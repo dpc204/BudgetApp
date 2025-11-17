@@ -83,6 +83,10 @@ public partial class TransactionAllocation : ComponentBase
     if (args?.Item is null) return;
   }
 
+  private EnvelopeIdName? GetCurrentEnvelope(TransactionDto transaction)
+  {
+    return _availableEnvelopes.GetValueOrDefault(transaction.EnvelopeId);
+  }
 
   private async Task OnEnvelopeSelectedAsync(TransactionDto transaction, EnvelopeIdName? selectedEnvelope)
   {
@@ -98,12 +102,9 @@ public partial class TransactionAllocation : ComponentBase
     StateHasChanged();
   }
 
-
-    
-
   private async Task<IEnumerable<EnvelopeIdName>> SearchEnvelopes(string? arg1, CancellationToken arg2)
   {
-    if (arg1 is null)
+    if (string.IsNullOrWhiteSpace(arg1))
     {
       return _availableEnvelopes.Values.ToList();
     }
@@ -122,14 +123,5 @@ public partial class TransactionAllocation : ComponentBase
 
     await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
     return contextItem;
-  }
-
-  private bool SearchEnvelopeName(int value, string? text, string? searchString)
-  {
-    if(text?.StartsWith(searchString ?? "", StringComparison.OrdinalIgnoreCase) == true)
-    {
-      return true;
-    }
-    return false;
   }
 }
