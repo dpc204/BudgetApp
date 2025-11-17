@@ -4,6 +4,12 @@
 @using Budget.Shared
 @using Budget.Shared.Models
 @using Budget.Shared.Services
+@using Budget.Shared.FDComponents
+@using MudExtensions
+
+
+
+
 <h1>Unallocated Transactions</h1>
 @if (_loading)
 {
@@ -18,28 +24,68 @@ else if (!string.IsNullOrEmpty(_loadError))
 else
 {
   <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
-    <MudStack Spacing="2" Class="envelope-page-stack">
-      <MudStack Row="false" Breakpoint="Breakpoint.MdAndUp">
-        <MudItem xs="12" sm="6">
-          <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
-            <MudDataGrid T="TransactionDto"
-                          Items="@Transactions"
-                         Hover="true"
-                         Dense="true"
-                         FixedHeader="true"
-                         Height="@EnvelopeGridHeightPx"
-                         RowClick="@((DataGridRowClickEventArgs<TransactionDto> args) => OnRowClicked(args))"
-                   @*       RowClassFunc="GetEnvelopeRowClass"
-                         RowStyleFunc="GetEnvelopeRowStyle"
-                         @bind-SelectedItem="SelectedEnvelope" *@
-                         Class="envelopes-table">
-              <Columns >
-                <PropertyColumn Property="x => x.EnvelopeName" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
-              </Columns >
-            </MudDataGrid >
-          </MudPaper >
-        </MudItem >
-      </MudStack >
-    </MudStack >
+    <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
+      <MudDataGrid T="TransactionDto"
+                   Items="@Transactions"
+                   ReadOnly="false"
+                   EditMode="DataGridEditMode.Cell"
+                   Hover="true"
+                   Dense="true"
+                   FixedHeader="true"
+                   Height="@EnvelopeGridHeightPx"
+                   RowClick="@((DataGridRowClickEventArgs<TransactionDto> args) => OnRowClicked(args))"
+                   Class="envelopes-table">
+        <Columns >
+          <TemplateColumn Title="Date" Editable="false">
+            <CellTemplate>@context.Item.Date.ToString("MM/dd/yy")</CellTemplate>
+          </TemplateColumn>
+          <TemplateColumn Title="EnvelopeMudE">
+            <CellTemplate>
+              @{
+                var envelope = _availableEnvelopes.GetValueOrDefault(context.Item.EnvelopeId);
+              }
+              @envelope + "Envelope"
+            </CellTemplate>
+            <EditTemplate>
+
+              <MudComboBox T="int" @bind-Value="@context.Item.EnvelopeId" 
+                           @bind-Text="@context.Item.EnvelopeName" 
+                           Variant="Variant.Filled" 
+                           ToggleSelection="true" 
+                           Clearable
+                           Label="Custom (StartsWith)" 
+                           Editable="true" 
+                           SearchFunc="@(new Func<int, string?, string?, bool>(SearchEnvelopeName))" 
+                           >
+                @foreach (var c in _availableEnvelopes)
+                {
+                  <MudComboBoxItem Value="c.Key" Text="@((string)c.Value.Name)">@c.Value.Name</MudComboBoxItem>
+                }
+              </MudComboBox>
+
+
+              <MudSelect T="int?" Variant="Variant.Outlined" Dense="true">
+                @foreach (var c in _availableEnvelopes)
+                {
+                  <MudSelectItem @key="c.Key" Value="@((int?)c.Key)">@c.Value</MudSelectItem>
+                }
+              </MudSelect>
+
+            </EditTemplate>
+
+          </TemplateColumn>
+
+          <TemplateColumn Title="Vendor" Editable="false">
+            <CellTemplate>@context.Item.Vendor</CellTemplate>
+          </TemplateColumn>
+          <TemplateColumn Title="Description" Editable="false">
+            <CellTemplate>@context.Item.Description</CellTemplate>
+          </TemplateColumn>
+          <TemplateColumn Title="Amount" Editable="false">
+            <CellTemplate>@context.Item.Amount.ToString("C2")</CellTemplate>
+          </TemplateColumn>
+        </Columns >
+      </MudDataGrid >
+    </MudPaper >
   </MudContainer>
 }

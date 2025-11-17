@@ -11,10 +11,9 @@ public partial class TransactionAllocation : ComponentBase
   [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
 
   public List<TransactionDto> Transactions { get; set; } = [];
+  private Dictionary<int, EnvelopeIdName> _availableEnvelopes = new();
 
   private EnvelopeResult? _selectedEnvelope;
-
- 
 
   // Height calculation so the MudDataGrid shows exactly3 rows and scrolls for more
   // Dense row height in MudBlazor is ~33px; header is ~56px. Adjust if theme differs.
@@ -26,7 +25,6 @@ public partial class TransactionAllocation : ComponentBase
   private const int TransactionHeaderHeightPx = 56;
   private static string TransactionGridHeightPx => $"{(TransactionRowHeightPx * 5) + TransactionHeaderHeightPx}px";
 
-
   private bool _loading = true;
   private string? _loadError;
   private bool _afterRenderInit;
@@ -35,8 +33,13 @@ public partial class TransactionAllocation : ComponentBase
   {
     try
     {
-      // Ensure selection class applied on first render when an item is already selected
-      await InvokeAsync(StateHasChanged);
+      // Load envelope state first
+      await State.EnsureLoadedAsync();
+
+      // Convert State.AllEnvelopeData to EnvelopeIdName list
+      _availableEnvelopes =
+        State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, e => new EnvelopeIdName(e.EnvelopeId, e.EnvelopeName)) ??
+        new();
 
       Transactions = await Api.GetTransactionsUnallocatedAsync();
     }
@@ -48,45 +51,31 @@ public partial class TransactionAllocation : ComponentBase
         Logger.LogError(ex, "Error in OnInitializedAsync");
       }
     }
+    finally
+    {
+      _loading = false;
+    }
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    //if (firstRender && !_afterRenderInit)
-    //{
-    //  _afterRenderInit = true;
-    //  var runtimeType = JSRuntime.GetType().Name;
-    //  if (Logger.IsEnabled(LogLevel.Information))
-    //  {
-    //    Logger.LogInformation("EnvelopePage.OnAfterRenderAsync - Runtime: {Runtime}", runtimeType);
-    //  }
+    if (firstRender && !_afterRenderInit)
+    {
+      _afterRenderInit = true;
+      await State.TryLoadFromCacheAsync();
+      if (!State.IsLoaded)
+      {
+        await State.RefreshAsync();
+      }
 
-    //  Console.WriteLine($"OnAfterRenderAsync running on: {runtimeType}");
+      // Refresh envelope list after state is loaded
+      _availableEnvelopes =
+        State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, x => new EnvelopeIdName(x.EnvelopeId, x.EnvelopeName)) ??
+        new();
 
-    //  try
-    //  {
-    //    await State.TryLoadFromCacheAsync();
-    //    if (!State.IsLoaded)
-    //    {
-    //      await State.RefreshAsync();
-    //    }
 
-    //    CategoriesForSelect = GetCategoriesForSelect();
-    //    ApplyCategorySelection();
-    //  }
-    //  catch (Exception ex)
-    //  {
-    //    _loadError = ex.Message;
-    //    Logger.LogError(ex, "Error in OnAfterRenderAsync");
-    //  }
-    //  finally
-    //  {
-    //    _loading = false;
-    //    StateHasChanged();
-    //  }
-    //}
-    _loading = false;
-    StateHasChanged();
+      StateHasChanged();
+    }
   }
 
   private void OnRowClicked(DataGridRowClickEventArgs<TransactionDto> args)
@@ -94,22 +83,53 @@ public partial class TransactionAllocation : ComponentBase
     if (args?.Item is null) return;
   }
 
-  private void OnEnvelopeRowClick(TableRowClickEventArgs<EnvelopeResult> args)
+
+  private async Task OnEnvelopeSelectedAsync(TransactionDto transaction, EnvelopeIdName? selectedEnvelope)
   {
-    if (args?.Item is null) return;
-//    SelectedEnvelope = args.Item;
+    if (selectedEnvelope is null) return;
+
+    // Update the transaction's envelope
+    transaction.EnvelopeId = selectedEnvelope.Id;
+    transaction.EnvelopeName = selectedEnvelope.Name;
+
+    // TODO: Call API to save the transaction envelope allocation
+    // await Api.UpdateTransactionEnvelopeAsync(transaction.TransactionId, selectedEnvelope.Id);
+
+    StateHasChanged();
   }
 
-  private async Task OnSelectedEnvelopeChangedAsync(EnvelopeResult? envelope)
+
+    
+
+  private async Task<IEnumerable<EnvelopeIdName>> SearchEnvelopes(string? arg1, CancellationToken arg2)
   {
-   
+    if (arg1 is null)
+    {
+      return _availableEnvelopes.Values.ToList();
+    }
+
+    return _availableEnvelopes.Values.Where(e =>
+      e.Name.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)).ToList();
   }
 
-  //private string? GetEnvelopeRowClass(EnvelopeResult item, int rowNumber)
-  //  => SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "row-selected-secondary" : null;
+  private async Task<object> OnEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val)
+  {
+    if (val is null) return contextItem;
 
-  //private string? GetEnvelopeRowStyle(EnvelopeResult item, int rowNumber)
-  //  => SelectedEnvelope?.EnvelopeId == item.EnvelopeId
-  //    ? "background-color: var(--mud-palette-gray-dark); color: var(--mud-palette-secondary-contrastText);"
-  //    : null;
+    var selectedEnvelope = _availableEnvelopes.GetValueOrDefault(val.Id);
+
+    if (selectedEnvelope is null) return contextItem;
+
+    await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
+    return contextItem;
+  }
+
+  private bool SearchEnvelopeName(int value, string? text, string? searchString)
+  {
+    if(text?.StartsWith(searchString ?? "", StringComparison.OrdinalIgnoreCase) == true)
+    {
+      return true;
+    }
+    return false;
+  }
 }

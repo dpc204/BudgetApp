@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using Microsoft.SqlServer.Dac;
-using Azure.Identity;
+﻿using Azure.Identity;
+using Budget.Api;
 using Budget.DB;
 using Budget.Shared;
 using Budget.Shared.Models;
@@ -11,18 +9,21 @@ using Budget.Web.Components.Account;
 using Budget.Web.Data;
 using Budget.Web.Services;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor.Services;
-using Syncfusion.Blazor;
-using Budget.Api;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.ServiceDiscovery;
+using Microsoft.SqlServer.Dac;
+using MudBlazor.Services;
+using MudExtensions.Services;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.ServiceDiscovery;
+using Syncfusion.Blazor;
+using System.Diagnostics;
+using System.Reflection;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -146,6 +147,7 @@ builder.Services.AddIdentityCore<BudgetUser>(options =>
 
 builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
 builder.Services.AddMudServices();
+builder.Services.AddMudExtensions();
 builder.Services.AddSingleton<ThemeService>();
 builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
 

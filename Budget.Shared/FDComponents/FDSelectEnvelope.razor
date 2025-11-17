@@ -1,0 +1,29 @@
+<MudSelect T="EnvelopeIdName"
+           Value="@Value"
+           ValueChanged="@ValueChanged"
+           Label="@Label"
+           Placeholder="@Placeholder"
+           Variant="@Variant"
+           Margin="@Margin"
+           Dense="@Dense"
+           Disabled="@Disabled"
+           Required="@Required"
+           ReadOnly="@ReadOnly"
+           Error="@Error"
+           ErrorText="@ErrorText"
+           HelperText="@HelperText"
+           Clearable="@Clearable"
+           AdornmentIcon="@AdornmentIcon"
+           AdornmentColor="@AdornmentColor"
+           Class="@Class"
+           ToStringFunc="@ConvertEnvelopeToString">
+    <ChildContent>
+        @if (Envelopes is not null)
+        {
+            @foreach (var envelope in Envelopes)
+            {
+                <MudSelectItem T="EnvelopeIdName" Value="@envelope">@envelope.Name</MudSelectItem>
+            }
+        }
+    </ChildContent>
+</MudSelect>

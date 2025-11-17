@@ -81,3 +81,36 @@
 ::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover > td {
   filter: brightness(0.98);
 }
+
+/* MudDataGrid column width control using ::deep - MudBlazor recommended approach for custom column sizing */
+::deep .envelopes-table table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+::deep .envelopes-table .mud-table-head th:nth-child(1),
+::deep .envelopes-table .mud-table-body td:nth-child(1) {
+  width: 100px;
+}
+
+::deep .envelopes-table .mud-table-head th:nth-child(2),
+::deep .envelopes-table .mud-table-body td:nth-child(2) {
+  width: 250px;
+}
+
+::deep .envelopes-table .mud-table-head th:nth-child(3),
+::deep .envelopes-table .mud-table-body td:nth-child(3) {
+  width: 250px;
+}
+
+::deep .envelopes-table .mud-table-head th:nth-child(4),
+::deep .envelopes-table .mud-table-body td:nth-child(4) {
+  width: 300px;
+}
+
+::deep .envelopes-table .mud-table-head th:nth-child(5),
+::deep .envelopes-table .mud-table-body td:nth-child(5) {
+  width: 120px;
+  text-align: right;
+}
+
