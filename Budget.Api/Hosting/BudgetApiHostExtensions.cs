@@ -95,6 +95,9 @@ public static class BudgetApiHostExtensions
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
+        // Register backup service
+        services.AddHttpClient<Budget.Api.Services.BackupAzureSql>();
+
         return services;
     }
 
