@@ -69,8 +69,16 @@ else
           <TemplateColumn Title="Vendor" Editable="false">
             <CellTemplate>@context.Item.Vendor</CellTemplate>
           </TemplateColumn>
-          <TemplateColumn Title="Description" Editable="false">
+          <TemplateColumn Title="Description" Editable="true">
             <CellTemplate>@context.Item.Description</CellTemplate>
+            <EditTemplate>
+              <MudTextField Value="@context.Item.Description"
+                            ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
+                            Variant="Variant.Outlined"
+                            Dense="true"
+                            Immediate="true"
+                            Placeholder="Description" />
+            </EditTemplate>
           </TemplateColumn>
           <TemplateColumn Title="Amount" Editable="false">
             <CellTemplate>@context.Item.Amount.ToString("C2")</CellTemplate>

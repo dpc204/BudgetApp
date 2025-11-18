@@ -96,8 +96,8 @@ public partial class TransactionAllocation : ComponentBase
     transaction.EnvelopeId = selectedEnvelope.Id;
     transaction.EnvelopeName = selectedEnvelope.Name;
 
-    // TODO: Call API to save the transaction envelope allocation
-    // await Api.UpdateTransactionEnvelopeAsync(transaction.TransactionId, selectedEnvelope.Id);
+    // Call API to save the transaction envelope allocation
+    await Api.AllocateTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
 
     StateHasChanged();
   }
@@ -124,4 +124,16 @@ public partial class TransactionAllocation : ComponentBase
     await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
     return contextItem;
   }
+
+  private async Task OnDescriptionChanged(TransactionDto transaction, string newDescription)
+  {
+    // Update the transaction's description
+    transaction.Description = newDescription;
+
+    // Call API to save the transaction description allocation
+    await Api.AllocateTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
+
+    StateHasChanged();
+  }
 }
+

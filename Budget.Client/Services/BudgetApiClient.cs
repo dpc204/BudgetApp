@@ -93,4 +93,11 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       return [];
     }
   }
+
+  public async Task<bool> AllocateTransactionAsync(int transactionId, int lineId, int envelopeId, string description, CancellationToken cancellationToken = default)
+  {
+    var payload = new { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Description = description };
+    using var resp = await http.PutAsJsonAsync("/transactions/allocate", payload, cancellationToken);
+    return resp.IsSuccessStatusCode;
+  }
 }
