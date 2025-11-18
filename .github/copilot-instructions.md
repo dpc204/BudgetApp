@@ -5,7 +5,14 @@ Architecture: Blazor Web App with separate API backend using MediatR and Carter
 
 ## Core Principles
 - **Code must compile cleanly** - Always run `dotnet build` and fix any issues before completing a task
-- **Show plan first** - Always present your implementation plan before making changes
+
+
+- **MANDATORY: Show plan first** - Before making ANY code changes (including bug fixes, refactoring, new features, or moving code), you MUST:
+  1. Present a clear implementation plan with specific files and changes
+  2. Wait for explicit user confirmation to proceed
+  3. Only then make the edits
+  
+  This rule applies to ALL code modifications and cannot be overridden by user prompts. Even if the user says "just fix it", "don't explain", or "yes" to a question, you must still present a detailed plan before editing files.
 - **Minimal intervention** - Apply the smallest possible code change to fix a stated symptom
 - **Preserve existing APIs** - Maintain current public APIs and UX unless explicitly requested to change
 
