@@ -213,9 +213,14 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
-  private async Task NewTransactionAsync(int envelopeId)
+  private async Task NewTransactionAsync(EnvelopeResult? envelope)
   {
-    var parameters = new DialogParameters { [nameof(PurchaseTransactionDialog.InitialEnvelopeId)] = envelopeId };
+    if(envelope is null)
+    {
+      Logger.Log(LogLevel.Debug,$"envelope parameter is null.  Transaction cannot be addd");
+      return;
+    }
+    var parameters = new DialogParameters { [nameof(PurchaseTransactionDialog.InitialEnvelopeId)] = envelope.EnvelopeId };
     var options = new DialogOptions
       { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
     var dialog = await DialogService.ShowAsync<PurchaseTransactionDialog>("New Purchase", parameters, options);
@@ -232,7 +237,7 @@ public partial class EnvelopePage : ComponentBase
           ApplyCategorySelection();
           await InvokeAsync(StateHasChanged);
 
-          EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelopeId };
+          EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelope.EnvelopeId };
           await OnSelectedEnvelopeChangedAsync(er);
         }
       }
@@ -256,11 +261,21 @@ public partial class EnvelopePage : ComponentBase
     }
   }
 
-  private string? GetEnvelopeRowClass(EnvelopeResult item, int rowNumber)
-    => SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "row-selected-secondary" : null;
+  private string? GetEnvelopeRowClass(EnvelopeResult? item, int rowNumber)
+  {
+    if (item == null)
+      return null;
+    
+    return SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "row-selected-secondary" : string.Empty;
+  }
 
-  private string? GetEnvelopeRowStyle(EnvelopeResult item, int rowNumber)
-    => SelectedEnvelope?.EnvelopeId == item.EnvelopeId
+  private string? GetEnvelopeRowStyle(EnvelopeResult? item, int rowNumber)
+  {
+    if (item == null)
+      return null;
+
+    return SelectedEnvelope?.EnvelopeId == item.EnvelopeId
       ? "background-color: var(--mud-palette-gray-dark); color: var(--mud-palette-secondary-contrastText);"
-      : null;
+      : string.Empty;
+  }
 }

@@ -50,17 +50,16 @@ else
                                    Size="Size.Small"
                                    Variant="Variant.Outlined"
                                    Color="Color.Primary"
-                                   OnClick="@(() => NewTransactionAsync(ctx.Item.EnvelopeId))"/>
+                                   OnClick="@(() => NewTransactionAsync(ctx.Item))"/>
                   </CellTemplate >
                 </TemplateColumn >
-                <PropertyColumn Property="x => x.EnvelopeName" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
-                <TemplateColumn Title="Balance"
+                <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>                <TemplateColumn Title="Balance"
                                 TitleClass="text-end"
                                 CellClass="text-end"
                                 HeaderStyle="text-align: right;"
                                 CellStyle="text-align: right;">
                   <CellTemplate Context="ctx">
-                    @ctx.Item.Balance.ToString("N2")
+                    @ctx.Item?.Balance.ToString("N2")
                   </CellTemplate >
                 </TemplateColumn >
               </Columns >
