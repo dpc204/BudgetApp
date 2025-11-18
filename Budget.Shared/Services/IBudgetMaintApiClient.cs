@@ -22,4 +22,9 @@ public interface IBudgetMaintApiClient
   Task<BankAccountDto> AddAccountAsync(BankAccountDto dto, CancellationToken cancellationToken = default);
   Task<BankAccountDto> UpdateAccountAsync(BankAccountDto dto, CancellationToken cancellationToken = default);
   Task<bool> RemoveAccountAsync(int id, CancellationToken cancellationToken = default);
+
+  // Backup maintenance
+  Task<BackupPlanDto> GetBackupPlanAsync(CancellationToken cancellationToken = default);
 }
+
+public sealed record BackupPlanDto(string FileName);

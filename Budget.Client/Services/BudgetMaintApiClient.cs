@@ -131,6 +131,17 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
     return true;
   }
 
+  public async Task<BackupPlanDto> GetBackupPlanAsync(CancellationToken cancellationToken = default)
+  {
+    var result = await _http.GetFromJsonAsync<BackupPlanDto>("/api/maintenance/backup-plan", cancellationToken);
+    if (result is null)
+    {
+      _logger.LogDebug("Null response for BackupPlanDto from /api/maintenance/backup-plan");
+      throw new InvalidOperationException("Expected non-null BackupPlanDto from '/api/maintenance/backup-plan'.");
+    }
+    return result;
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     var result = await _http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);

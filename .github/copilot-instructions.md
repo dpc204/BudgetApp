@@ -1,6 +1,85 @@
 # Repository Copilot Instructions
 
-Project: Blazor (.NET 9 / .NET 10 multi-target)
+Project: Blazor (.NET 9 / .NET 10 multi-target) with .NET Aspire
+Architecture: Blazor Web App with separate API backend using MediatR and Carter
+
+## Core Principles
+- **Code must compile cleanly** - Always run `dotnet build` and fix any issues before completing a task
+- **Show plan first** - Always present your implementation plan before making changes
+- **Minimal intervention** - Apply the smallest possible code change to fix a stated symptom
+- **Preserve existing APIs** - Maintain current public APIs and UX unless explicitly requested to change
+
+## API Development (Budget.Api Project)
+
+### Endpoint Structure
+- **Always use Minimal APIs** - No controllers
+- **Follow the feature folder structure**: `Budget.Api\Features\{FeatureName}\{OperationName}.cs`
+- **Use the Query/Command/Response pattern** with MediatR
+- **Include Carter module mapping** for endpoint registration
+
+### Pattern Template
+```csharp
+using Budget.DB;
+using Carter;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace Budget.Api.Features.{FeatureName};
+
+/// <summary>
+/// {Operation description}
+/// </summary>
+public static class {OperationName}
+{
+  // For queries (GET)
+  public sealed record Query({parameters}) : IRequest<Response>;
+  
+  // For commands (POST/PUT/DELETE)
+  public sealed record Command({parameters}) : IRequest<{ReturnType}>;
+  
+  // Response DTO
+  public sealed record Response({properties});
+  
+  /// <summary>
+  /// Handles {operation description}
+  /// </summary>
+  public class Handler(BudgetContext db) : IRequestHandler<Query/Command, Response/ReturnType>
+  {
+    public async Task<Response/ReturnType> Handle(Query/Command request, CancellationToken cancellationToken)
+    {
+      // Implementation using db directly (no repository pattern)
+    }
+  }
+  
+  /// <summary>
+  /// Maps the endpoint routes
+  /// </summary>
+  public class Endpoint : ICarterModule
+  {
+    public void AddRoutes(IEndpointRouteBuilder app)
+    {
+      app.MapGet/Post/Put/Delete("/path", async ([FromServices] ISender sender, ...) =>
+      {
+        var result = await sender.Send(new Query/Command(...));
+        return Results.Ok(result);
+      });
+    }
+  }
+}
+```
+
+### API Conventions
+- **No Repository Pattern** - Inject `BudgetContext` directly into handlers
+- **Always use dependency injection** - Constructor injection preferred
+- **DTOs for data transfer** - Use record types for Query/Command/Response
+- **Individual files** - One class/interface/DTO per file
+- **XML documentation** - Add `<summary>` comments to all public types and members
+- **Async all the way** - Use async/await with `CancellationToken` in public APIs
+- **File-scoped namespaces** - Use `namespace Budget.Api.Features.{FeatureName};`
+
+## Blazor Development (Budget.Client & Budget.Web Projects)
+
 Architecture priorities:
 - Use component parameters, not cascading values, unless state truly cross-cuts.
 - Prefer `@key` when rendering dynamic lists.
@@ -13,6 +92,7 @@ Coding conventions:
 - Async suffix on async methods.
 - Use `CancellationToken` in public async APIs.
 - Always use code-behind for .razor pages
+- **Individual files** - One class/interface/DTO per file
 - All using directives should be in the _imports.razor or globalusings.cs file.
 
 Testing:

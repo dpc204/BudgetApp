@@ -281,7 +281,7 @@ app.MapGet("/api/maintenance/backup-download",
       using (var stream = System.IO.File.OpenRead(tempPath))
       {
         fileBytes = new byte[stream.Length];
-        await stream.ReadAsync(fileBytes, 0, (int)stream.Length, ct);
+        await stream.ReadExactlyAsync(fileBytes, 0, (int)stream.Length, ct);
       }
 
       return Results.File(fileBytes, "application/octet-stream", fileName);
