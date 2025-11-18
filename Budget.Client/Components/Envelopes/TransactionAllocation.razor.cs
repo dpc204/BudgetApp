@@ -136,4 +136,3 @@ public partial class TransactionAllocation : ComponentBase
     StateHasChanged();
   }
 }
-
