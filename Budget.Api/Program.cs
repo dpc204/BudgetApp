@@ -205,7 +205,11 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
-public partial class Program { }
+// Program class for WebApplicationFactory in tests
+namespace Budget.Api
+{
+    public partial class Program { }
+}
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {

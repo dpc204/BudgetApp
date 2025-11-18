@@ -8,11 +8,11 @@ using Xunit;
 
 namespace Budget.ApiTests;
 
-public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Budget.Api.Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactory<Budget.Api.Program> _factory;
 
-    public AuthEndpointsTests(WebApplicationFactory<Program> factory)
+    public AuthEndpointsTests(WebApplicationFactory<Budget.Api.Program> factory)
     {
         _factory = factory.WithWebHostBuilder(_ => { });
     }

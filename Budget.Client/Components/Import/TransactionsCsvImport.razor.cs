@@ -109,7 +109,7 @@ public partial class TransactionsCsvImport : ComponentBase
     }
 
     Busy = true;
-    InvokeAsync(StateHasChanged);
+    await InvokeAsync(StateHasChanged);
 
     try
     {
@@ -158,7 +158,7 @@ public partial class TransactionsCsvImport : ComponentBase
     finally
     {
       Busy = false;
-      InvokeAsync(StateHasChanged);
+      await InvokeAsync(StateHasChanged);
     }
   }
 

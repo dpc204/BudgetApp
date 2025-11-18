@@ -26,7 +26,7 @@ using System.Reflection;
 
 
 var builder = WebApplication.CreateBuilder(args);
-var assembly = typeof(Program).Assembly;
+var assembly = typeof(App).Assembly;
 Misc.SetupConfigurationSources(builder, assembly);
 
 // Manual Aspire defaults (structured logs, traces, metrics, health, discovery)
@@ -84,7 +84,7 @@ builder.Services.AddAuthentication(options =>
   })
   .AddIdentityCookies(options =>
   {
-    options.ApplicationCookie.Configure(cookieOptions =>
+    options.ApplicationCookie?.Configure(cookieOptions =>
     {
       cookieOptions.Events.OnRedirectToLogin = context =>
       {
