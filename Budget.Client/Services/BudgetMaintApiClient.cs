@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace Budget.Client.Services;
 
 // Uses the typed HttpClient registered in Program.cs (line 41) via AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>

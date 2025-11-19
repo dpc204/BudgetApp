@@ -1,6 +1,4 @@
-﻿using Budget.Shared.Models;
-
-namespace Budget.Shared.Services
+﻿namespace Budget.Shared.Services
 {
   public class UserAndOptions : IUserAndOptions
   {

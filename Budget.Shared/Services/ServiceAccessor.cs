@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Budget.Shared.Services;
 
 public static class ServiceAccessor

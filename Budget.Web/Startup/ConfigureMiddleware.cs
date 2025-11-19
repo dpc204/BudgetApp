@@ -1,5 +1,3 @@
-using Budget.Api;
-using Budget.Web.Components;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Budget.Web.Startup;

@@ -1,5 +1,3 @@
-using Budget.Shared.Models;
-
 namespace Budget.Shared.Services;
 
 public interface IBudgetMaintApiClient

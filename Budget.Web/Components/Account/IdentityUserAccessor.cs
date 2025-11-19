@@ -1,8 +1,4 @@
-﻿using Budget.Shared;
-using Budget.Web.Data;
-using Microsoft.AspNetCore.Identity;
-
-namespace Budget.Web.Components.Account
+﻿namespace Budget.Web.Components.Account
 {
     internal sealed class IdentityUserAccessor(UserManager<BudgetUser> userManager, IdentityRedirectManager redirectManager)
     {

@@ -1,6 +1,4 @@
 using Budget.Api.Services;
-using Carter;
-using MediatR;
 
 namespace Budget.Api.Features.SqlBackup;
 

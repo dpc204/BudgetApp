@@ -1,6 +1,4 @@
 using Budget.DB;
-using Budget.Shared;
-using Budget.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Budget.Web.Startup;

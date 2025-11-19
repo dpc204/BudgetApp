@@ -2,11 +2,8 @@
 using System.Text.Json;
 using Budget.Web.Components.Account.Pages;
 using Budget.Web.Components.Account.Pages.Manage;
-using Budget.Web.Data;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 

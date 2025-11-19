@@ -1,9 +1,3 @@
-using Budget.DB;
-using Carter;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 namespace Budget.Api.Features.Categories.CategoryMaint;
 
 public static class RemoveCategory

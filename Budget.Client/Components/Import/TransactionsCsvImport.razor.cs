@@ -1,9 +1,3 @@
-using System.Diagnostics;
-using System.Globalization;
-using System.Text;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
-
 namespace Budget.Client.Components.Import;
 
 public partial class TransactionsCsvImport : ComponentBase

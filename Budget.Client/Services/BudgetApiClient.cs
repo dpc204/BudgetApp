@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
-using Microsoft.Extensions.Logging;
 
 namespace Budget.Client.Services;
 

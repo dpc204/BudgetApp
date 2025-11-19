@@ -1,9 +1,3 @@
-using Carter;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using Budget.Shared;
-
 namespace Budget.Api.Features.Authentication;
 
 public sealed class UserInfoDto

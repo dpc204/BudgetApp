@@ -1,8 +1,5 @@
 using System.Security.Claims;
-using Budget.Shared.Models;
-using Budget.Shared.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Budget.Web.Components.Auth;
 

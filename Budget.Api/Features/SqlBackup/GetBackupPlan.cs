@@ -1,8 +1,3 @@
-using Budget.DB;
-using Carter;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-
 namespace Budget.Api.Features.SqlBackup;
 
 /// <summary>

@@ -1,11 +1,6 @@
 // Ensure you have the following NuGet package installed in your project:
 // Microsoft.JSInterop
 
-using Microsoft.JSInterop;
-using System.Text.Json;
-using Budget.Shared.Models;
-using Microsoft.Extensions.Logging;
-
 namespace Budget.Shared.Services;
 
 // Client-side version using API client + localStorage (deferred until after first interactive render)

@@ -1,9 +1,6 @@
 namespace Budget.Client.Components.Maintenance;
 
-using Budget.Shared.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using MudBlazor;
 
 public partial class Maintenance
 {

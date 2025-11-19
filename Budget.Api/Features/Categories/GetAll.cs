@@ -1,9 +1,4 @@
-﻿using Budget.DB;
-using Budget.Shared.Enums;
-using Carter;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
+﻿using Budget.Shared.Enums;
 
 namespace Budget.Api.Features.Categories;
 

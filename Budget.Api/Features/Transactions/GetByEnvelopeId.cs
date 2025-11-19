@@ -1,10 +1,4 @@
-﻿using Budget.DB;
-using Carter;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
-
-namespace Budget.Api.Features.Transactions;
+﻿namespace Budget.Api.Features.Transactions;
 
 public static class GetByEnvelopeId
 {

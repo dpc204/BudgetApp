@@ -1,10 +1,5 @@
 namespace Budget.Api.Services;
 
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using Azure.Core;
-using Azure.Identity;
-
 /// <summary>
 /// Service to export an Azure SQL Database to a .bacpac in Azure Storage using Azure Resource Manager REST API.
 /// </summary>

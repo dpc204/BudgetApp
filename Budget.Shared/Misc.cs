@@ -1,12 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Reflection;
-using Azure.Identity;
-using Microsoft.Extensions.Configuration;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
-using Microsoft.Extensions.Logging;
-
-namespace Budget.Shared;
+﻿namespace Budget.Shared;
 
 public static class Misc
 {

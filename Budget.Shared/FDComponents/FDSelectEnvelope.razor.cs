@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using Budget.Shared.Models;
-
 namespace Budget.Shared.FDComponents;
 
 public partial class FDSelectEnvelope

@@ -1,7 +1,5 @@
 
 
-using Budget.Shared.Enums;
-
 namespace Budget.Shared.Models;
 
   public class Cat

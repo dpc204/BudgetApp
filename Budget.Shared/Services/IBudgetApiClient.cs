@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using Budget.Shared.Models;
-
 namespace Budget.Shared.Services;
 
 public interface IBudgetApiClient

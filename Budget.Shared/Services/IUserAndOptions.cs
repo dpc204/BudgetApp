@@ -1,9 +1,4 @@
-﻿using Budget.Shared.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Budget.Shared.Services
+﻿namespace Budget.Shared.Services
 {
   public interface IUserAndOptions
   {

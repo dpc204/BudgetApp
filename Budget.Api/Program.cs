@@ -1,17 +1,5 @@
 using Scalar.AspNetCore;
-using Microsoft.EntityFrameworkCore;
-using Carter;
-using MediatR;
-using Budget.DB;
-using Budget.Api.Features.Envelopes;
-using Budget.Shared;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Budget.Api.Features.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Budget.Api;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;

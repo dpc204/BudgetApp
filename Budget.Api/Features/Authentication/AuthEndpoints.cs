@@ -1,7 +1,3 @@
-using Carter;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Budget.Api.Features.Authentication;
 
 public sealed class AuthEndpoints : CarterModule

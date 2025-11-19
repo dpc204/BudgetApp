@@ -1,6 +1,3 @@
-using Budget.Shared.Enums;
-using Microsoft.Extensions.Logging;
-
 namespace Budget.Client.Components.Envelopes;
 
 public partial class EnvelopePage : ComponentBase

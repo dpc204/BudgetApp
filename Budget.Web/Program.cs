@@ -1,12 +1,4 @@
-﻿using Azure.Identity;
-using Budget.Api;
-using Budget.Shared;
-using Budget.Shared.Services;
-using Budget.Web.Components;
-using Budget.Web.Startup;
-using System.Reflection;
-
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 var assembly = typeof(App).Assembly;
 
 // Configure configuration sources (appsettings, secrets, environment, Key Vault)

@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using Microsoft.Extensions.Logging;
-
 namespace Budget.Client.Services;
 
 public sealed class LoggingHttpHandler(ILogger<LoggingHttpHandler> logger) : DelegatingHandler

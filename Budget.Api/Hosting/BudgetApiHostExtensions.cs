@@ -1,16 +1,5 @@
-using Carter;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Budget.DB;
-using Budget.Api.Features.Envelopes;
-using Budget.Api.Features.Authentication;
 
 namespace Budget.Api;
 

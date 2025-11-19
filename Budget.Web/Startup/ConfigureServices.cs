@@ -1,6 +1,4 @@
 using Budget.Client.Services;
-using Budget.Shared.Models;
-using Budget.Shared.Services;
 using Budget.Web.Services;
 using MudBlazor.Services;
 using Syncfusion.Blazor;

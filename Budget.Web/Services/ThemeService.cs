@@ -1,5 +1,3 @@
-using MudBlazor;
-
 namespace Budget.Web.Services;
 
 public class ThemeService

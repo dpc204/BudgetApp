@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace Budget.Shared;
 
 // Add profile data for application users by adding properties to the ApplicationUser class

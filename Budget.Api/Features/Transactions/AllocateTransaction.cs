@@ -1,9 +1,4 @@
 using System.Diagnostics;
-using Budget.DB;
-using Carter;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Budget.Api.Features.Transactions;
 
