@@ -23,6 +23,15 @@
     <MudText>@Status</MudText>
   }
 
+  @if (Busy)
+  {
+    <MudProgressCircular Color="Color.Primary" Value="@_value" Size="Size.Large">
+      <ChildContent>
+        @_value %
+      </ChildContent>
+    </MudProgressCircular>
+  }
+
   @if (Errors.Count > 0)
   {
     <MudAlert Severity="Severity.Error">
@@ -50,7 +59,7 @@
         <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
         <MudTd DataLabel="Description">@context.Description</MudTd>
         <MudTd DataLabel="Amount" Class="text-end">@context.Amount</MudTd>
-        <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
+        <MudTd DataLabel="Envelope">@context.EnvelopeId</MudTd>
       </RowTemplate>
     </MudTable>
   }

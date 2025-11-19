@@ -14,6 +14,7 @@ public partial class TransactionsCsvImport : ComponentBase
   protected bool Busy { get; set; }
   protected string Status { get; set; } = string.Empty;
   protected int ParsedRowsCount => Preview.Count;
+  protected int _value { get; set; }
 
   protected IBrowserFile? SelectedFile { get; set; }
   protected List<string> Errors { get; } = [];
@@ -109,12 +110,16 @@ public partial class TransactionsCsvImport : ComponentBase
     }
 
     Busy = true;
+    _value = 0;
     await InvokeAsync(StateHasChanged);
 
     try
     {
       var allEnvelopes = await Api.GetEnvelopesAsync();
       var envelopeByName = allEnvelopes.ToDictionary(e => e.Name, e => e.Id, StringComparer.OrdinalIgnoreCase);
+
+      int totalCount = Preview.Count;
+      int currentIndex = 0;
 
       foreach (var rec in Preview)
       {
@@ -143,6 +148,10 @@ public partial class TransactionsCsvImport : ComponentBase
 
 
         await Api.AddTransactionAsync(trans);
+
+        currentIndex++;
+        _value = (int)((currentIndex / (double)totalCount) * 100);
+        await InvokeAsync(StateHasChanged);
       }
 
       Snackbar.Add($"Imported {Preview.Count} items across  transactions", Severity.Success);
@@ -158,6 +167,7 @@ public partial class TransactionsCsvImport : ComponentBase
     finally
     {
       Busy = false;
+      _value = 0;
       await InvokeAsync(StateHasChanged);
     }
   }
