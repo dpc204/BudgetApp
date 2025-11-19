@@ -114,3 +114,40 @@
   text-align: right;
 }
 
+/* MudDataGrid row height control - target data grid cells specifically */
+::deep .envelopes-table .mud-table-row {
+    height: 60px !important;
+    max-height: 60px !important;
+}
+
+::deep .envelopes-table .mud-table-cell {
+    height: 60px !important;
+    max-height: 60px !important;
+    padding: 8px 12px !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+}
+
+/* Target header rows separately if needed */
+::deep .envelopes-table .mud-table-head .mud-table-row {
+    height: 48px !important;
+}
+
+::deep .envelopes-table .mud-table-head .mud-table-cell {
+    height: 48px !important;
+    padding: 8px 12px !important;
+}
+
+/* For edit mode cells - ensure inputs fit properly */
+::deep .envelopes-table .mud-table-cell .mud-input {
+    margin: 0 !important;
+}
+
+::deep .envelopes-table .mud-table-cell .mud-input-control {
+    min-height: 40px !important;
+}
+
+::deep .envelopes-table .mud-table-cell .mud-autocomplete {
+    min-height: 40px !important;
+}
+

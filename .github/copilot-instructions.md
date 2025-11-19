@@ -1,11 +1,12 @@
 # Repository Copilot Instructions
 
-Project: Blazor (.NET 9 / .NET 10 multi-target) with .NET Aspire
+Project: Blazor .NET 10  with .NET Aspire
 Architecture: Blazor Web App with separate API backend using MediatR and Carter
 
 ## Core Principles
 - **Code must compile cleanly** - Always run `dotnet build` and fix any issues before completing a task
 
+- ** You MUST Always check that the changes you recommend use the latest .NET 10 approaches. Don't assume that because something worked in .NET 9 that it will work in .NET 10
 
 - **MANDATORY: Show plan first** - Before making ANY code changes (including bug fixes, refactoring, new features, or moving code), you MUST:
   1. Present a clear implementation plan with specific files and changes
