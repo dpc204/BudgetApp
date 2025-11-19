@@ -88,4 +88,20 @@ public static class Misc
       return (bool)UseAzureDb;
     }
   }
+
+  public static string? ParseDataSource(string cs)
+  {
+    if(string.IsNullOrEmpty(cs)) return null;
+    foreach(var part in cs.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+      if(part.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) ||
+         part.StartsWith("Server=", StringComparison.OrdinalIgnoreCase))
+      {
+        var idx = part.IndexOf('=');
+        if(idx > -1 && idx < part.Length - 1)
+          return part[(idx + 1)..];
+      }
+    }
+    return null;
+  }
 }
