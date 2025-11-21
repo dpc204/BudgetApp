@@ -27,24 +27,20 @@ public static class ConfigureServices
   /// </summary>
   public static void AddHttpClients(WebApplicationBuilder builder)
   {
-    string apiBase = GetApiBaseAddress(builder.Configuration);
-
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddTransient<ForwardAuthCookiesHandler>();
 
+    // Use Aspire service discovery for Budget API
+    // The service name "budget-api" matches the name defined in AppHost
     builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
       {
-        if (!apiBase.EndsWith('/'))
-          apiBase += "/";
-        client.BaseAddress = new Uri(apiBase);
+        client.BaseAddress = new Uri("https+http://budget-api");
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
     builder.Services.AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>(client =>
       {
-        if (!apiBase.EndsWith('/'))
-          apiBase += "/";
-        client.BaseAddress = new Uri(apiBase);
+        client.BaseAddress = new Uri("https+http://budget-api");
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
   }

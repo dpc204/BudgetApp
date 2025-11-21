@@ -44,7 +44,7 @@ public static class Misc
       {
         webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri("https://fantumkeyvault.vault.azure.net/"),
           new DefaultAzureCredential());
-        Debug.WriteLine("SetupConfigurationSources - Kevault Done");
+        Debug.WriteLine("SetupConfigurationSources Using AzureDB - Kevault Done");
       }
       catch (Exception ex)
       {

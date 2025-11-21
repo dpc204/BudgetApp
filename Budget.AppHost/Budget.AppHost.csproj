@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Budget.Api\Budget.Api.csproj" />
     <ProjectReference Include="..\Budget.Web\Budget.Web.csproj" />
   </ItemGroup>
 
