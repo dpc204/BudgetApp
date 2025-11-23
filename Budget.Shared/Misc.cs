@@ -1,4 +1,6 @@
-﻿namespace Budget.Shared;
+﻿using Budget.Shared.Services;
+
+namespace Budget.Shared;
 
 public static class Misc
 {
@@ -12,9 +14,9 @@ public static class Misc
 
   public static string GetConnectionString(IConfiguration configuration, ConnectionStringType connectionStringType)
   {
-    Debug.WriteLine("SetupConfigurationSources - Begin");
+    Console.WriteLine("SetupConfigurationSources - Begin");
     var connectionType = connectionStringType.ToString();
-
+    Console.WriteLine($"SetupConfigurationSources - Type: {connectionType}");
 
     string? s;
 
@@ -25,10 +27,10 @@ public static class Misc
     if (string.IsNullOrWhiteSpace(s))
     {
       throw new InvalidOperationException(
-        $"Connection string '{connectionType}Connection' is null or empty. Checked: Local{connectionType}Connection, {connectionType}connection, ConnectionStrings:{connectionType}connection");
+        $"Connection string!@# '{connectionType}Connection' is null or empty. Checked: Local{connectionType}Connection, {connectionType}connection, ConnectionStrings:{connectionType}connection");
     }
 
-    Debug.WriteLine("SetupConfigurationsSources Done.  Conn Type: {0} Conn Str: {1} UseAzureDB {2}", connectionType, s,
+    Console.WriteLine("SetupConfigurationsSources Done.  Conn Type: {0} Conn Str: {1} UseAzureDB {2}", connectionType, s,
       UseAzureDB);
     return s;
   }
@@ -38,18 +40,20 @@ public static class Misc
     webApplicationBuilder.Configuration.AddJsonFile("appsettings.json");
     webApplicationBuilder.Configuration.AddUserSecrets(assembly1);
     webApplicationBuilder.Configuration.AddEnvironmentVariables();
+    Console.WriteLine("SetupConfigurationSources - Added Json, Secrets and Environment Vars");
 
     if (Misc.UseAzureDB)
       try
       {
+        Console.WriteLine($"Adding AzureKeyVault next");
         webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri("https://fantumkeyvault.vault.azure.net/"),
           new DefaultAzureCredential());
-        Debug.WriteLine("SetupConfigurationSources - Kevault Done");
+        Console.WriteLine("SetupConfigurationSources Using AzureDB - Kevault Done");
       }
       catch (Exception ex)
       {
         // Log the exception but don't fail startup in development
-        Debug.WriteLine($"Azure Key Vault access failed: {ex.Message}");
+        Console.WriteLine($"Azure Key Vault access failed: {ex.Message}");
         Console.WriteLine($"Azure Key Vault access failed: {ex.Message}");
       }
   }
@@ -59,6 +63,11 @@ public static class Misc
   {
     get
     {
+      Console.WriteLine($"Checking UseAzureDB");
+      if (AzureEnvironment.IsRunningOnAzure)
+        return true;
+
+      Console.WriteLine($"Checking UseAzureDB - Local");
       if (UseAzureDb is null)
       {
         var config = new ConfigurationBuilder()
@@ -77,6 +86,7 @@ public static class Misc
         }
       }
 
+      Console.WriteLine($"Checking UseAzureDB - Local");
       return (bool)UseAzureDb;
     }
   }

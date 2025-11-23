@@ -21,7 +21,6 @@
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
     <ProjectReference Include="..\Budget.Client\Budget.Client.csproj" ReferenceOutputAssembly="true" SkipGetTargetFrameworkProperties="true" />
-    <ProjectReference Include="..\Budget.Api\Budget.Api.csproj" />
     <!-- Aspire service defaults project reference for OpenTelemetry/service discovery -->
     <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />

@@ -12,7 +12,11 @@ public partial class TransactionAllocation : ComponentBase
 
   private EnvelopeResult? _selectedEnvelope;
 
-  // Height calculation so the MudDataGrid shows exactly3 rows and scrolls for more
+  // Multi-selection state
+  private HashSet<TransactionDto> _selectedTransactions = new();
+  private EnvelopeIdName? _bulkEnvelope;
+
+  // Height calculation so the MudDataGrid shows exactly 3 rows and scrolls for more
   // Dense row height in MudBlazor is ~33px; header is ~56px. Adjust if theme differs.
   private const int EnvelopeRowHeightPx = 38;
   private const int EnvelopeHeaderHeightPx = 56;
@@ -129,6 +133,37 @@ public partial class TransactionAllocation : ComponentBase
 
     // Call API to save the transaction description allocation
     await Api.AllocateTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
+
+    StateHasChanged();
+  }
+
+  private async Task BulkAllocateAsync()
+  {
+    if (_bulkEnvelope is null || _selectedTransactions.Count == 0)
+    {
+      return;
+    }
+
+    // Loop through selected transactions and allocate each one
+    var transactionsToAllocate = _selectedTransactions.ToList();
+    foreach (var transaction in transactionsToAllocate)
+    {
+      transaction.EnvelopeId = _bulkEnvelope.Id;
+      transaction.EnvelopeName = _bulkEnvelope.Name;
+
+      await Api.AllocateTransactionAsync(
+        transaction.TransactionId,
+        transaction.LineId,
+        transaction.EnvelopeId,
+        transaction.Description);
+
+      // Remove from the unallocated transactions list
+      Transactions.Remove(transaction);
+    }
+
+    // Clear selection after allocation
+    _selectedTransactions.Clear();
+    _bulkEnvelope = null;
 
     StateHasChanged();
   }

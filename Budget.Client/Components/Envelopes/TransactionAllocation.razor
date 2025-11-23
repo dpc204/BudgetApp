@@ -22,20 +22,56 @@ else
 {
   <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
     <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
+      
+      @* Bulk Allocation Section *@
+      <MudPaper Elevation="1" Class="pa-3 mb-3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+          <MudAutocomplete T="EnvelopeIdName"
+                           @bind-Value="_bulkEnvelope"
+                           SearchFunc="@SearchEnvelopes"
+                           ToStringFunc="@(e => e?.Name ?? "")"
+                           ResetValueOnEmptyText="false"
+                           CoerceText="false"
+                           CoerceValue="true"
+                           OpenOnFocus="true"
+                           SelectOnClick="true"
+                           Placeholder="Select Envelope for Bulk Allocation"
+                           Disabled="@(_selectedTransactions.Count == 0)"
+                           Immediate="true"
+                           AdornmentIcon="@Icons.Material.Filled.Search"
+                           AdornmentColor="Color.Primary"
+                           Variant="Variant.Outlined"
+                           Dense="true"
+                           ShowProgressIndicator="true"
+                           ProgressIndicatorColor="Color.Primary"
+                           Style="min-width: 300px;"/>
+          <MudButton Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     Disabled="@(_selectedTransactions.Count == 0 || _bulkEnvelope is null)"
+                     OnClick="BulkAllocateAsync">
+            Allocate (@(_selectedTransactions.Count) selected)
+          </MudButton>
+        </MudStack>
+      </MudPaper>
+
       <MudDataGrid T="TransactionDto"
                    Items="@Transactions"
                    ReadOnly="false"
                    EditMode="DataGridEditMode.Cell"
                    Hover="true"
+                   SortMode="SortMode.Multiple"
                    Dense="true"
                    FixedHeader="true"
+                   MultiSelection="true"
+                   @bind-SelectedItems="_selectedTransactions"
                    RowClick="@((DataGridRowClickEventArgs<TransactionDto> args) => OnRowClicked(args))"
                    Class="envelopes-table">
         <Columns >
-          <TemplateColumn Title="Date" Editable="false">
+          <SelectColumn T="TransactionDto" />
+          <TemplateColumn Title="Date" Editable="false" Sortable="true" SortBy="@(x => x.Date)">
             <CellTemplate>@context.Item.Date.ToString("MM/dd/yy")</CellTemplate>
           </TemplateColumn>
-          <TemplateColumn Title="Envelope">
+          <TemplateColumn Title="Envelope" Sortable="true" SortBy="@(x => x.EnvelopeName)">
             <CellTemplate>
               @{
                 var envelope = _availableEnvelopes.GetValueOrDefault(context.Item.EnvelopeId);
@@ -64,10 +100,10 @@ else
             </EditTemplate>
           </TemplateColumn>
 
-          <TemplateColumn Title="Vendor" Editable="false">
+          <TemplateColumn Title="Vendor" Editable="false" Sortable="true" SortBy="@(x => x.Vendor)">
             <CellTemplate>@context.Item.Vendor</CellTemplate>
           </TemplateColumn>
-          <TemplateColumn Title="Description" Editable="true">
+          <TemplateColumn Title="Description" Editable="true" Sortable="true" SortBy="@(x => x.Description)">
             <CellTemplate>@context.Item.Description</CellTemplate>
             <EditTemplate>
               <MudTextField Value="@context.Item.Description"
@@ -78,7 +114,7 @@ else
                             Placeholder="Description"/>
             </EditTemplate>
           </TemplateColumn>
-          <TemplateColumn Title="Amount" Editable="false">
+          <TemplateColumn Title="Amount" Editable="false" Sortable="true" SortBy="@(x => x.Amount)">
             <CellTemplate>@context.Item.Amount.ToString("C2")</CellTemplate>
           </TemplateColumn>
         </Columns >
