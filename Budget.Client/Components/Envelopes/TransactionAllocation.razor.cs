@@ -145,7 +145,8 @@ public partial class TransactionAllocation : ComponentBase
     }
 
     // Loop through selected transactions and allocate each one
-    foreach (var transaction in _selectedTransactions.ToList())
+    var transactionsToAllocate = _selectedTransactions.ToList();
+    foreach (var transaction in transactionsToAllocate)
     {
       transaction.EnvelopeId = _bulkEnvelope.Id;
       transaction.EnvelopeName = _bulkEnvelope.Name;
@@ -155,6 +156,9 @@ public partial class TransactionAllocation : ComponentBase
         transaction.LineId,
         transaction.EnvelopeId,
         transaction.Description);
+
+      // Remove from the unallocated transactions list
+      Transactions.Remove(transaction);
     }
 
     // Clear selection after allocation
