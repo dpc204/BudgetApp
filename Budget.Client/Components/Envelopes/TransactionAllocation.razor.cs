@@ -16,7 +16,7 @@ public partial class TransactionAllocation : ComponentBase
   private HashSet<TransactionDto> _selectedTransactions = new();
   private EnvelopeIdName? _bulkEnvelope;
 
-  // Height calculation so the MudDataGrid shows exactly3 rows and scrolls for more
+  // Height calculation so the MudDataGrid shows exactly 3 rows and scrolls for more
   // Dense row height in MudBlazor is ~33px; header is ~56px. Adjust if theme differs.
   private const int EnvelopeRowHeightPx = 38;
   private const int EnvelopeHeaderHeightPx = 56;
