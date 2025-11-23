@@ -5,10 +5,10 @@ namespace Budget.Api.Features.BudgetMonths;
 /// </summary>
 public static class GetBudgetMonth
 {
-  public sealed record Query(DateTime Month) : IRequest<IEnumerable<Response>>;
+  public sealed record Query(int AcctPeriod) : IRequest<IEnumerable<Response>>;
   
   public sealed record Response(
-    DateTime BudgetMonthDate,
+    int AcctPeriod,
     int EnvelopeId,
     string EnvelopeName,
     int CategoryId,
@@ -25,9 +25,6 @@ public static class GetBudgetMonth
   {
     public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken)
     {
-      // Normalize to first of month
-      var firstOfMonth = new DateTime(request.Month.Year, request.Month.Month, 1);
-
       // Get all envelopes with their categories
       var allEnvelopes = await db.Envelopes
         .AsNoTracking()
@@ -38,7 +35,7 @@ public static class GetBudgetMonth
       // Get existing budget data for this month
       var existingBudgets = await db.BudgetMonths
         .AsNoTracking()
-        .Where(b => b.BudgetMonthDate == firstOfMonth)
+        .Where(b => b.AcctPeriod == request.AcctPeriod)
         .ToListAsync(cancellationToken);
 
       // Build response ensuring all envelopes are included
@@ -49,7 +46,7 @@ public static class GetBudgetMonth
         var budgetData = existingBudgets.FirstOrDefault(b => b.EnvelopeId == envelope.Id);
         
         results.Add(new Response(
-          firstOfMonth,
+          request.AcctPeriod,
           envelope.Id,
           envelope.Name,
           envelope.CategoryId,
@@ -74,8 +71,8 @@ public static class GetBudgetMonth
         [FromRoute] int year,
         [FromRoute] int month) =>
       {
-        var date = new DateTime(year, month, 1);
-        var result = await sender.Send(new Query(date));
+        var acctPeriod = year * 100 + month;
+        var result = await sender.Send(new Query(acctPeriod));
         return Results.Ok(result);
       });
     }

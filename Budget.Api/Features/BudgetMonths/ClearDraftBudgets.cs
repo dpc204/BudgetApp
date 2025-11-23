@@ -16,12 +16,13 @@ public static class ClearDraftBudgets
   {
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
-      // Get current month (first of month)
-      var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+      // Get current month as AcctPeriod (YYYYMM)
+      var now = DateTime.Now;
+      var currentAcctPeriod = now.Year * 100 + now.Month;
 
       // Find all budget records with draft values in current or future months
       var budgetsWithDrafts = await db.BudgetMonths
-        .Where(b => b.BudgetMonthDate >= currentMonth && b.BudgetDraft != null)
+        .Where(b => b.AcctPeriod >= currentAcctPeriod && b.BudgetDraft != null)
         .ToListAsync(cancellationToken);
 
       // Clear the draft values

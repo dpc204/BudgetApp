@@ -12,6 +12,24 @@ public partial class Budget : ComponentBase
   private List<DateTime> _displayMonths = new();
   private int _currentScrollPosition = 0;
 
+  /// <summary>
+  /// Converts a DateTime to AcctPeriod format (YYYYMM)
+  /// </summary>
+  private static int DateToAcctPeriod(DateTime date)
+  {
+    return date.Year * 100 + date.Month;
+  }
+
+  /// <summary>
+  /// Converts AcctPeriod format (YYYYMM) to DateTime (first of month)
+  /// </summary>
+  private static DateTime AcctPeriodToDate(int acctPeriod)
+  {
+    var year = acctPeriod / 100;
+    var month = acctPeriod % 100;
+    return new DateTime(year, month, 1);
+  }
+
   protected override async Task OnInitializedAsync()
   {
     await LoadBudgetData();
@@ -207,7 +225,7 @@ public partial class Budget : ComponentBase
     {
       var command = new UpdateDraftCommand
       {
-        Month = month,
+        AcctPeriod = DateToAcctPeriod(month),
         EnvelopeId = envelopeId,
         DraftValue = draftValue
       };
@@ -378,7 +396,7 @@ public partial class Budget : ComponentBase
   }
 
   private record BudgetMonthResponse(
-    DateTime BudgetMonthDate,
+    int AcctPeriod,
     int EnvelopeId,
     string EnvelopeName,
     int CategoryId,
@@ -390,7 +408,7 @@ public partial class Budget : ComponentBase
 
   private record UpdateDraftCommand
   {
-    public DateTime Month { get; set; }
+    public int AcctPeriod { get; set; }
     public int EnvelopeId { get; set; }
     public decimal? DraftValue { get; set; }
   }

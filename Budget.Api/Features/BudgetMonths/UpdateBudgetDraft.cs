@@ -5,7 +5,7 @@ namespace Budget.Api.Features.BudgetMonths;
 /// </summary>
 public static class UpdateBudgetDraft
 {
-  public sealed record Command(DateTime Month, int EnvelopeId, decimal? DraftValue) : IRequest<Response>;
+  public sealed record Command(int AcctPeriod, int EnvelopeId, decimal? DraftValue) : IRequest<Response>;
   
   public sealed record Response(bool Success, string Message);
 
@@ -16,13 +16,10 @@ public static class UpdateBudgetDraft
   {
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
-      // Normalize to first of month
-      var firstOfMonth = new DateTime(request.Month.Year, request.Month.Month, 1);
-
       // Find or create the budget record
       var budgetMonth = await db.BudgetMonths
         .FirstOrDefaultAsync(
-          b => b.BudgetMonthDate == firstOfMonth && b.EnvelopeId == request.EnvelopeId,
+          b => b.AcctPeriod == request.AcctPeriod && b.EnvelopeId == request.EnvelopeId,
           cancellationToken);
 
       if (budgetMonth == null)
@@ -30,7 +27,7 @@ public static class UpdateBudgetDraft
         // Create new budget record
         budgetMonth = new BudgetMonth
         {
-          BudgetMonthDate = firstOfMonth,
+          AcctPeriod = request.AcctPeriod,
           EnvelopeId = request.EnvelopeId,
           Budget = 0,
           BudgetDraft = request.DraftValue
