@@ -63,14 +63,11 @@ public static class ConfigureMiddleware
   }
 
   /// <summary>
-  /// Maps endpoints including API, Razor Components, and health checks
+  /// Maps endpoints including Razor Components and health checks
   /// </summary>
   public static void MapEndpoints(WebApplication app)
   {
     app.MapStaticAssets();
-
-    // Map API endpoints in-proc
-    app.MapBudgetApi(app.Environment);
 
     app.MapRazorComponents<App>()
       .AddInteractiveServerRenderMode()

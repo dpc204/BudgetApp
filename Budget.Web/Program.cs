@@ -32,16 +32,13 @@ ConfigureDatabase.AddDatabaseContexts(builder);
 // Add Identity services
 ConfigureIdentity.AddIdentityCore(builder);
 
-// Host the API in-proc so endpoints are exposed by this same app
-builder.Services.AddBudgetApi(builder.Configuration, builder.Environment);
-
 var app = builder.Build();
 
 // Initialize ServiceAccessor with built service provider for parameterless constructors
 ServiceAccessor.Configure(app.Services);
 
 // Apply database migrations and log startup info
-var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Budget);
+var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Identity);
 ConfigureDatabase.ApplyMigrations(app, budgetConnectionString);
 
 // Configure exception handling
