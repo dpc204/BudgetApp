@@ -253,42 +253,51 @@ public partial class Budget : ComponentBase
     if (!_displayMonths.Contains(newMonth))
     {
       _displayMonths.Add(newMonth);
-      // Load data for new month
-      Task.Run(async () =>
-      {
-        var monthData = await Http.GetFromJsonAsync<List<BudgetMonthResponse>>(
-          $"/budgetmonths/{newMonth.Year}/{newMonth.Month}");
-        
-        if (monthData != null)
-        {
-          foreach (var item in monthData)
-          {
-            if (!_budgetData!.ContainsKey(item.EnvelopeId))
-            {
-              _budgetData[item.EnvelopeId] = new Dictionary<DateTime, BudgetMonthData>();
-            }
-            
-            _budgetData[item.EnvelopeId][newMonth] = new BudgetMonthData
-            {
-              EnvelopeId = item.EnvelopeId,
-              EnvelopeName = item.EnvelopeName,
-              CategoryId = item.CategoryId,
-              CategoryName = item.CategoryName,
-              CategoryType = item.CategoryType,
-              SortOrder = item.SortOrder,
-              BudgetValue = item.Budget,
-              DraftValue = item.BudgetDraft,
-              Month = newMonth
-            };
-          }
-          
-          BuildDisplayRows();
-          await InvokeAsync(StateHasChanged);
-        }
-      });
+      // Load data for new month asynchronously
+      _ = LoadMonthDataAsync(newMonth);
     }
     
     StateHasChanged();
+  }
+
+  private async Task LoadMonthDataAsync(DateTime month)
+  {
+    try
+    {
+      var monthData = await Http.GetFromJsonAsync<List<BudgetMonthResponse>>(
+        $"/budgetmonths/{month.Year}/{month.Month}");
+      
+      if (monthData != null && _budgetData != null)
+      {
+        foreach (var item in monthData)
+        {
+          if (!_budgetData.ContainsKey(item.EnvelopeId))
+          {
+            _budgetData[item.EnvelopeId] = new Dictionary<DateTime, BudgetMonthData>();
+          }
+          
+          _budgetData[item.EnvelopeId][month] = new BudgetMonthData
+          {
+            EnvelopeId = item.EnvelopeId,
+            EnvelopeName = item.EnvelopeName,
+            CategoryId = item.CategoryId,
+            CategoryName = item.CategoryName,
+            CategoryType = item.CategoryType,
+            SortOrder = item.SortOrder,
+            BudgetValue = item.Budget,
+            DraftValue = item.BudgetDraft,
+            Month = month
+          };
+        }
+        
+        BuildDisplayRows();
+        await InvokeAsync(StateHasChanged);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading month data: {ex.Message}", Severity.Error);
+    }
   }
 
   private async Task ClearDrafts()
