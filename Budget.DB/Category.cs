@@ -28,6 +28,7 @@ namespace Budget.DB
         entity.HasData(new Category() { Id = 1, Name = "Frequent",SortOrder = 1, CategoryType = CatTypes.User },
           new Category() { Id = 2, Name = "Regular" , SortOrder = 2, CategoryType = CatTypes.User },
           new Category() { Id = 3, Name = "Infrequent", SortOrder = 3 , CategoryType = CatTypes.User},
+          new Category() { Id = 4, Name = "Income", SortOrder = 4, CategoryType = CatTypes.Income},
           new Category() {Id = -1,Name = "System", SortOrder = 0, CategoryType = CatTypes.System}
         );
       }
