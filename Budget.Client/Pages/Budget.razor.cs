@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Budget.Client.Components.Dialogs;
 using Budget.Shared.Enums;
+using Budget.Shared.Utilities;
 
 namespace Budget.Client.Pages;
 
@@ -11,24 +12,6 @@ public partial class Budget : ComponentBase
   private List<BudgetDisplayRow> _displayRows = new();
   private List<DateTime> _displayMonths = new();
   private int _currentScrollPosition = 0;
-
-  /// <summary>
-  /// Converts a DateTime to AcctPeriod format (YYYYMM)
-  /// </summary>
-  private static int DateToAcctPeriod(DateTime date)
-  {
-    return date.Year * 100 + date.Month;
-  }
-
-  /// <summary>
-  /// Converts AcctPeriod format (YYYYMM) to DateTime (first of month)
-  /// </summary>
-  private static DateTime AcctPeriodToDate(int acctPeriod)
-  {
-    var year = acctPeriod / 100;
-    var month = acctPeriod % 100;
-    return new DateTime(year, month, 1);
-  }
 
   protected override async Task OnInitializedAsync()
   {
@@ -225,7 +208,7 @@ public partial class Budget : ComponentBase
     {
       var command = new UpdateDraftCommand
       {
-        AcctPeriod = DateToAcctPeriod(month),
+        AcctPeriod = AcctPeriodHelper.DateToAcctPeriod(month),
         EnvelopeId = envelopeId,
         DraftValue = draftValue
       };

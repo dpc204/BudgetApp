@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Budget.Shared.Utilities;
 
 namespace Budget.DB;
 
@@ -13,24 +14,6 @@ public class BudgetMonth
   public Envelope Envelope { get; set; } = null!;
   public decimal Budget { get; set; }
   public decimal? BudgetDraft { get; set; }
-
-  /// <summary>
-  /// Converts a DateTime to AcctPeriod format (YYYYMM)
-  /// </summary>
-  public static int DateToAcctPeriod(DateTime date)
-  {
-    return date.Year * 100 + date.Month;
-  }
-
-  /// <summary>
-  /// Converts AcctPeriod format (YYYYMM) to DateTime (first of month)
-  /// </summary>
-  public static DateTime AcctPeriodToDate(int acctPeriod)
-  {
-    var year = acctPeriod / 100;
-    var month = acctPeriod % 100;
-    return new DateTime(year, month, 1);
-  }
 
   public class BudgetMonthConfiguration : IEntityTypeConfiguration<BudgetMonth>
   {
