@@ -22,6 +22,38 @@ else
 {
   <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
     <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
+      
+      @* Bulk Allocation Section *@
+      <MudPaper Elevation="1" Class="pa-3 mb-3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+          <MudAutocomplete T="EnvelopeIdName"
+                           @bind-Value="_bulkEnvelope"
+                           SearchFunc="@SearchEnvelopes"
+                           ToStringFunc="@(e => e?.Name ?? "")"
+                           ResetValueOnEmptyText="false"
+                           CoerceText="false"
+                           CoerceValue="true"
+                           OpenOnFocus="true"
+                           SelectOnClick="true"
+                           Placeholder="Select Envelope for Bulk Allocation"
+                           Disabled="@(_selectedTransactions.Count == 0)"
+                           Immediate="true"
+                           AdornmentIcon="@Icons.Material.Filled.Search"
+                           AdornmentColor="Color.Primary"
+                           Variant="Variant.Outlined"
+                           Dense="true"
+                           ShowProgressIndicator="true"
+                           ProgressIndicatorColor="Color.Primary"
+                           Style="min-width: 300px;"/>
+          <MudButton Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     Disabled="@(_selectedTransactions.Count == 0 || _bulkEnvelope is null)"
+                     OnClick="BulkAllocateAsync">
+            Allocate (@(_selectedTransactions.Count) selected)
+          </MudButton>
+        </MudStack>
+      </MudPaper>
+
       <MudDataGrid T="TransactionDto"
                    Items="@Transactions"
                    ReadOnly="false"
@@ -29,9 +61,12 @@ else
                    Hover="true"
                    Dense="true"
                    FixedHeader="true"
+                   MultiSelection="true"
+                   @bind-SelectedItems="_selectedTransactions"
                    RowClick="@((DataGridRowClickEventArgs<TransactionDto> args) => OnRowClicked(args))"
                    Class="envelopes-table">
         <Columns >
+          <SelectColumn T="TransactionDto" />
           <TemplateColumn Title="Date" Editable="false">
             <CellTemplate>@context.Item.Date.ToString("MM/dd/yy")</CellTemplate>
           </TemplateColumn>
