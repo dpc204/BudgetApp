@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using Budget.Client.Components.Dialogs;
 using Budget.Shared.Enums;
 using Budget.Shared.Utilities;
@@ -31,9 +30,9 @@ public partial class Budget : ComponentBase
         .ToList();
 
       // Check if there are any draft values
-      var hasDraftsResponse = await Http.GetFromJsonAsync<CheckDraftsResponse>("/budgetmonths/hasdrafts");
+      var hasDraftsResponse = await BudgetMonthlyApi.CheckDraftBudgetsAsync();
       
-      if (hasDraftsResponse?.HasDrafts == true)
+      if (hasDraftsResponse.HasDrafts)
       {
         var parameters = new DialogParameters
         {
@@ -55,31 +54,27 @@ public partial class Budget : ComponentBase
       
       foreach (var month in _displayMonths)
       {
-        var monthData = await Http.GetFromJsonAsync<List<BudgetMonthResponse>>(
-          $"/budgetmonths/{month.Year}/{month.Month}");
+        var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(month.Year, month.Month);
         
-        if (monthData != null)
+        foreach (var item in monthData)
         {
-          foreach (var item in monthData)
+          if (!_budgetData.ContainsKey(item.EnvelopeId))
           {
-            if (!_budgetData.ContainsKey(item.EnvelopeId))
-            {
-              _budgetData[item.EnvelopeId] = new Dictionary<DateTime, BudgetMonthData>();
-            }
-            
-            _budgetData[item.EnvelopeId][month] = new BudgetMonthData
-            {
-              EnvelopeId = item.EnvelopeId,
-              EnvelopeName = item.EnvelopeName,
-              CategoryId = item.CategoryId,
-              CategoryName = item.CategoryName,
-              CategoryType = item.CategoryType,
-              SortOrder = item.SortOrder,
-              BudgetValue = item.Budget,
-              DraftValue = item.BudgetDraft,
-              Month = month
-            };
+            _budgetData[item.EnvelopeId] = new Dictionary<DateTime, BudgetMonthData>();
           }
+          
+          _budgetData[item.EnvelopeId][month] = new BudgetMonthData
+          {
+            EnvelopeId = item.EnvelopeId,
+            EnvelopeName = item.EnvelopeName,
+            CategoryId = item.CategoryId,
+            CategoryName = item.CategoryName,
+            CategoryType = item.CategoryType,
+            SortOrder = item.SortOrder,
+            BudgetValue = item.Budget,
+            DraftValue = item.BudgetDraft,
+            Month = month
+          };
         }
       }
 
@@ -206,16 +201,10 @@ public partial class Budget : ComponentBase
   {
     try
     {
-      var command = new UpdateDraftCommand
-      {
-        AcctPeriod = AcctPeriodHelper.DateToAcctPeriod(month),
-        EnvelopeId = envelopeId,
-        DraftValue = draftValue
-      };
-
-      var response = await Http.PutAsJsonAsync("/budgetmonths/draft", command);
+      var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
+      var response = await BudgetMonthlyApi.UpdateBudgetDraftAsync(acctPeriod, envelopeId, draftValue);
       
-      if (response.IsSuccessStatusCode)
+      if (response.Success)
       {
         // Update local data
         if (_budgetData!.ContainsKey(envelopeId) && _budgetData[envelopeId].ContainsKey(month))
@@ -265,10 +254,9 @@ public partial class Budget : ComponentBase
   {
     try
     {
-      var monthData = await Http.GetFromJsonAsync<List<BudgetMonthResponse>>(
-        $"/budgetmonths/{month.Year}/{month.Month}");
+      var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(month.Year, month.Month);
       
-      if (monthData != null && _budgetData != null)
+      if (_budgetData != null)
       {
         foreach (var item in monthData)
         {
@@ -305,9 +293,9 @@ public partial class Budget : ComponentBase
   {
     try
     {
-      var response = await Http.PostAsync("/budgetmonths/cleardrafts", null);
+      var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
       
-      if (response.IsSuccessStatusCode)
+      if (response.Success)
       {
         Snackbar.Add("Draft budgets cleared successfully", Severity.Success);
         await LoadBudgetData();
@@ -334,9 +322,9 @@ public partial class Budget : ComponentBase
     {
       try
       {
-        var response = await Http.PostAsync("/budgetmonths/applydrafts", null);
+        var response = await BudgetMonthlyApi.ApplyDraftBudgetsAsync();
         
-        if (response.IsSuccessStatusCode)
+        if (response.Success)
         {
           Snackbar.Add("Draft budgets applied successfully", Severity.Success);
           await LoadBudgetData();
@@ -377,24 +365,4 @@ public partial class Budget : ComponentBase
     public decimal? DraftValue { get; set; }
     public DateTime Month { get; set; }
   }
-
-  private record BudgetMonthResponse(
-    int AcctPeriod,
-    int EnvelopeId,
-    string EnvelopeName,
-    int CategoryId,
-    string CategoryName,
-    CatTypes CategoryType,
-    int SortOrder,
-    decimal Budget,
-    decimal? BudgetDraft);
-
-  private record UpdateDraftCommand
-  {
-    public int AcctPeriod { get; set; }
-    public int EnvelopeId { get; set; }
-    public decimal? DraftValue { get; set; }
-  }
-
-  private record CheckDraftsResponse(bool HasDrafts, int DraftCount);
 }

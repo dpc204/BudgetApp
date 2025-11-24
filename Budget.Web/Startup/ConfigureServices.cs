@@ -43,6 +43,12 @@ public static class ConfigureServices
         client.BaseAddress = new Uri("https+http://budget-api");
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    builder.Services.AddHttpClient<IBudgetMonthlyApiClient, BudgetMonthlyApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
   }
 
   /// <summary>
