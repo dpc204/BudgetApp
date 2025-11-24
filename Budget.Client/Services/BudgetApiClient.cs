@@ -26,9 +26,9 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return readOnlyList;
   }
 
-  public async Task<List<TransactionDto>> GetTransactionsUnallocatedAsync(CancellationToken cancellationToken = default)
+  public async Task<List<TransactionDto>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default)
   {
-    var readOnlyList = await GetListAsync<TransactionDto>($"transactions/unallocated", cancellationToken);
+    var readOnlyList = await GetListAsync<TransactionDto>($"transactions/unassigned", cancellationToken);
     return readOnlyList;
   }
 
@@ -92,10 +92,10 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     }
   }
 
-  public async Task<bool> AllocateTransactionAsync(int transactionId, int lineId, int envelopeId, string description, CancellationToken cancellationToken = default)
+  public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description, CancellationToken cancellationToken = default)
   {
     var payload = new { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Description = description };
-    using var resp = await http.PutAsJsonAsync("/transactions/allocate", payload, cancellationToken);
+    using var resp = await http.PutAsJsonAsync("/transactions/assign", payload, cancellationToken);
     return resp.IsSuccessStatusCode;
   }
 }

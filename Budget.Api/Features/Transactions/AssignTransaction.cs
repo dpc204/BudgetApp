@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace Budget.Api.Features.Transactions;
 
-public static class AllocateTransaction
+public static class AssignTransaction
 {
   public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Description) : IRequest<bool>;
 
@@ -17,7 +17,7 @@ public static class AllocateTransaction
       {
         return false;
       }
-      Debug.WriteLine($"Allocating TransactionId {request.TransactionId} LineId {request.LineId} to EnvelopeId From {transactionDetail.EnvelopeId} to {request.EnvelopeId} and Description From {transactionDetail.Notes} to {request.Description}'");
+      Debug.WriteLine($"Assigning TransactionId {request.TransactionId} LineId {request.LineId} to EnvelopeId From {transactionDetail.EnvelopeId} to {request.EnvelopeId} and Description From {transactionDetail.Notes} to {request.Description}'");
       transactionDetail.EnvelopeId = request.EnvelopeId;
       transactionDetail.Notes = request.Description;
 
@@ -30,7 +30,7 @@ public static class AllocateTransaction
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapPut("/transactions/allocate", async ([FromServices] ISender sender, Command command) =>
+      app.MapPut("/transactions/assign", async ([FromServices] ISender sender, Command command) =>
       {
         var result = await sender.Send(command);
         return result ? Results.Ok() : Results.NotFound();

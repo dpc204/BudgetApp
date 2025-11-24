@@ -1,6 +1,6 @@
 namespace Budget.Client.Components.Envelopes;
 
-public partial class TransactionAllocation : ComponentBase
+public partial class TransactionAssign : ComponentBase
 {
   [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
@@ -42,7 +42,7 @@ public partial class TransactionAllocation : ComponentBase
         State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, e => new EnvelopeIdName(e.EnvelopeId, e.EnvelopeName)) ??
         new();
 
-      Transactions = await Api.GetTransactionsUnallocatedAsync();
+      Transactions = await Api.GetTransactionsUnassignedAsync();
     }
     catch (Exception ex)
     {
@@ -97,8 +97,8 @@ public partial class TransactionAllocation : ComponentBase
     transaction.EnvelopeId = selectedEnvelope.Id;
     transaction.EnvelopeName = selectedEnvelope.Name;
 
-    // Call API to save the transaction envelope allocation
-    await Api.AllocateTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
+    // Call API to save the transaction envelope assignment
+    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
 
     StateHasChanged();
   }
@@ -131,37 +131,37 @@ public partial class TransactionAllocation : ComponentBase
     // Update the transaction's description
     transaction.Description = newDescription;
 
-    // Call API to save the transaction description allocation
-    await Api.AllocateTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
+    // Call API to save the transaction description assignment
+    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
 
     StateHasChanged();
   }
 
-  private async Task BulkAllocateAsync()
+  private async Task BulkAssignAsync()
   {
     if (_bulkEnvelope is null || _selectedTransactions.Count == 0)
     {
       return;
     }
 
-    // Loop through selected transactions and allocate each one
-    var transactionsToAllocate = _selectedTransactions.ToList();
-    foreach (var transaction in transactionsToAllocate)
+    // Loop through selected transactions and assign each one
+    var transactionsToAssign = _selectedTransactions.ToList();
+    foreach (var transaction in transactionsToAssign)
     {
       transaction.EnvelopeId = _bulkEnvelope.Id;
       transaction.EnvelopeName = _bulkEnvelope.Name;
 
-      await Api.AllocateTransactionAsync(
+      await Api.AssignTransactionAsync(
         transaction.TransactionId,
         transaction.LineId,
         transaction.EnvelopeId,
         transaction.Description);
 
-      // Remove from the unallocated transactions list
+      // Remove from the unassigned transactions list
       Transactions.Remove(transaction);
     }
 
-    // Clear selection after allocation
+    // Clear selection after assignment
     _selectedTransactions.Clear();
     _bulkEnvelope = null;
 

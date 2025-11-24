@@ -1,4 +1,4 @@
-@page "/allocation"
+@page "/assign"
 @rendermode InteractiveServer
 @using System.Diagnostics
 @using Budget.Shared
@@ -7,7 +7,7 @@
 @using Budget.Shared.FDComponents
 
 
-<h1>Unallocated Transactions</h1>
+<h1>Unassigned Transactions</h1>
 @if (_loading)
 {
   <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-4">
@@ -23,7 +23,7 @@ else
   <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
     <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
       
-      @* Bulk Allocation Section *@
+      @* Bulk Assignment Section *@
       <MudPaper Elevation="1" Class="pa-3 mb-3">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
           <MudAutocomplete T="EnvelopeIdName"
@@ -35,7 +35,7 @@ else
                            CoerceValue="true"
                            OpenOnFocus="true"
                            SelectOnClick="true"
-                           Placeholder="Select Envelope for Bulk Allocation"
+                           Placeholder="Select Envelope for Bulk Assignment"
                            Disabled="@(_selectedTransactions.Count == 0)"
                            Immediate="true"
                            AdornmentIcon="@Icons.Material.Filled.Search"
@@ -48,8 +48,8 @@ else
           <MudButton Variant="Variant.Filled"
                      Color="Color.Primary"
                      Disabled="@(_selectedTransactions.Count == 0 || _bulkEnvelope is null)"
-                     OnClick="BulkAllocateAsync">
-            Allocate (@(_selectedTransactions.Count) selected)
+                     OnClick="BulkAssignAsync">
+            Assign (@(_selectedTransactions.Count) selected)
           </MudButton>
         </MudStack>
       </MudPaper>
