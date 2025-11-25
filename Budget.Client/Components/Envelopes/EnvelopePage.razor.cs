@@ -112,6 +112,7 @@ public partial class EnvelopePage : ComponentBase
     SelectedEnvelope = args.Item;
   }
 
+
   private void ApplyCategorySelection()
   {
     var selected = SelectedCategoryId ?? 0;

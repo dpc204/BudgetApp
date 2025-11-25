@@ -20,9 +20,10 @@ public static class Misc
 
     string? s;
 
-    s = Misc.UseAzureDB
-      ? configuration[$"{connectionType}Connection"]
-      : configuration[$"Local{connectionType}Connection"];
+    if (Misc.UseAzureDB)
+      s = configuration[$"{connectionType}Connection"];
+    else
+      s = configuration[$"Local{connectionType}Connection"];
 
     if (string.IsNullOrWhiteSpace(s))
     {

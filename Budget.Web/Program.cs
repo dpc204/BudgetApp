@@ -1,6 +1,11 @@
-﻿var builder = WebApplication.CreateBuilder(args);
-var assembly = typeof(App).Assembly;
+﻿using System;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Builder;
 
+var builder = WebApplication.CreateBuilder(args);
+var assembly = typeof(App).Assembly;
+Debug.WriteLine($"debug$$$$$$$$$$$");
+Console.WriteLine($"console!!!!!!!!!!!!");
 // Configure configuration sources (appsettings, secrets, environment, Key Vault)
 Misc.SetupConfigurationSources(builder, assembly);
 
@@ -39,7 +44,6 @@ ServiceAccessor.Configure(app.Services);
 
 // Apply database migrations and log startup info
 var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Identity);
-ConfigureDatabase.ApplyMigrations(app, budgetConnectionString);
 
 // Configure exception handling
 ConfigureMiddleware.ConfigureExceptionHandling(app);
