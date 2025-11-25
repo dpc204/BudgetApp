@@ -15,12 +15,14 @@ else
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="ShowCreate" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
     <MudTable Items="_accounts" Hover="true" Dense="true" Class="mt-2" Elevation="0">
         <HeaderContent>
+            <MudTh>Id</MudTh>
             <MudTh>Name</MudTh>
             <MudTh>Balance</MudTh>
             <MudTh>Type</MudTh>
             <MudTh style="width:220px;"></MudTh>
         </HeaderContent>
         <RowTemplate>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Balance">@context.Balance.ToString("C")</MudTd>
             <MudTd DataLabel="Type">@context.AccountType</MudTd>

@@ -65,6 +65,7 @@
 
 <MudTable Items="_envelopes" Hover="true" Dense="true" Class="mt-2" Elevation="0">
   <HeaderContent>
+    <MudTh>Id</MudTh>
     <MudTh>Category</MudTh>
     <MudTh>Name</MudTh>
     <MudTh>Budget</MudTh>
@@ -74,6 +75,7 @@
     <MudTh style="width:240px;"></MudTh>
   </HeaderContent>
   <RowTemplate>
+    <MudTd DataLabel="Id">@context.Id</MudTd>
     <MudTd DataLabel="Category">@GetCategoryName(context.CategoryId)</MudTd>
     <MudTd DataLabel="Name">@context.Name</MudTd>
     <MudTd DataLabel="Budget">@context.Budget</MudTd>

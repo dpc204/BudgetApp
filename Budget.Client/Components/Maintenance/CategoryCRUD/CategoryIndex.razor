@@ -14,6 +14,7 @@ else
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
     <MudTable Items="_categories" Hover="true" Dense="true" Class="mt-2" Elevation="0">
         <HeaderContent>
+            <MudTh>Id</MudTh>
             <MudTh>Name</MudTh>
             <MudTh>Description</MudTh>
             <MudTh>Category Type</MudTh>
@@ -21,6 +22,7 @@ else
             <MudTh style="width:220px;"></MudTh>
         </HeaderContent>
         <RowTemplate>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Category Type">@context.CatType</MudTd>
