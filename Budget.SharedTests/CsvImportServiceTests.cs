@@ -406,4 +406,84 @@ public class CsvImportServiceTests : IDisposable
 
         public TestContextForIssue(DbContextOptions<TestContextForIssue> options) : base(options) { }
     }
+
+    #region List<string> Overload Tests
+
+    [Fact]
+    public async Task ImportAsync_FromListOfLines_ReturnsCorrectEntities()
+    {
+        // Arrange
+        var lines = new List<string>
+        {
+            "Id,Name,Budget,Balance,Description,SortOrder",
+            "1,Dining Out,100.50,50.25,Food expenses,1",
+            "2,Groceries,200.00,150.00,Weekly groceries,2"
+        };
+        using var context = CreateContext();
+
+        // Act
+        var result = await CsvImportService.ImportAsync(context.TestEntities, lines);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result[0].Id.Should().Be(1);
+        result[0].Name.Should().Be("Dining Out");
+        result[0].Budget.Should().Be(100.50m);
+        result[1].Id.Should().Be(2);
+        result[1].Name.Should().Be("Groceries");
+    }
+
+    [Fact]
+    public async Task ImportAsync_FromEmptyList_ThrowsArgumentException()
+    {
+        // Arrange
+        var lines = new List<string>();
+        using var context = CreateContext();
+
+        // Act & Assert
+        var act = () => CsvImportService.ImportAsync(context.TestEntities, lines);
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*empty*");
+    }
+
+    [Fact]
+    public async Task ImportAsync_FromListWithCustomSeparator_ParsesCorrectly()
+    {
+        // Arrange
+        var lines = new List<string>
+        {
+            "Id;Name;Budget;Balance;Description;SortOrder",
+            "1;Dining Out;100.00;50.00;Food;1"
+        };
+        using var context = CreateContext();
+
+        // Act
+        var result = await CsvImportService.ImportAsync(context.TestEntities, lines, ";");
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("Dining Out");
+    }
+
+    [Fact]
+    public async Task ImportAsync_FromListWithEmptyLines_SkipsEmptyLines()
+    {
+        // Arrange
+        var lines = new List<string>
+        {
+            "Id,Name,Budget,Balance,Description,SortOrder",
+            "1,First,100.00,50.00,Desc,1",
+            "",
+            "2,Second,200.00,100.00,Desc2,2"
+        };
+        using var context = CreateContext();
+
+        // Act
+        var result = await CsvImportService.ImportAsync(context.TestEntities, lines);
+
+        // Assert
+        result.Should().HaveCount(2);
+    }
+
+    #endregion
 }
