@@ -16,10 +16,30 @@ public static class ConfigureServices
   /// </summary>
   public static void AddBlazorServices(WebApplicationBuilder builder)
   {
+    // Get timeout from configuration for SignalR circuits (default 30 seconds if not specified)
+    var circuitTimeoutSeconds = builder.Configuration.GetValue<int>("CircuitOptions:DisconnectedCircuitRetentionPeriod", 180);
+    var circuitRetentionPeriod = TimeSpan.FromSeconds(circuitTimeoutSeconds);
+
     builder.Services.AddRazorComponents()
       .AddInteractiveServerComponents();
 
     builder.Services.AddCascadingAuthenticationState();
+
+    // Configure SignalR Hub options for longer-running operations
+    builder.Services.Configure<Microsoft.AspNetCore.SignalR.HubOptions>(options =>
+    {
+      options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
+      options.ClientTimeoutInterval = TimeSpan.FromMinutes(10); // Client must send message within this time
+      options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+    });
+
+    // Configure Blazor Server Circuit options
+    builder.Services.Configure<Microsoft.AspNetCore.Components.Server.CircuitOptions>(options =>
+    {
+      options.DisconnectedCircuitMaxRetained = 100;
+      options.DisconnectedCircuitRetentionPeriod = circuitRetentionPeriod;
+      options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(2);
+    });
   }
 
   /// <summary>
@@ -30,19 +50,71 @@ public static class ConfigureServices
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddTransient<ForwardAuthCookiesHandler>();
 
-    // Use Aspire service discovery for Budget API
-    // The service name "budget-api" matches the name defined in AppHost
+    // Get timeout from configuration (default 100 seconds if not specified)
+    var timeoutSeconds = builder.Configuration.GetValue<int>("HttpClient:TimeoutSeconds", 100);
+    var timeout = TimeSpan.FromSeconds(timeoutSeconds);
+
+    // Standard resilience options for normal operations
+    void ConfigureStandardResilience(Microsoft.Extensions.Http.Resilience.HttpStandardResilienceOptions options)
+    {
+      // Keep retries enabled for transient failures
+      options.Retry.MaxRetryAttempts = 3;
+      options.Retry.Delay = TimeSpan.FromSeconds(2);
+      
+      // Standard timeout (30 seconds per attempt, 100 seconds total)
+      options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
+      {
+        Timeout = TimeSpan.FromSeconds(30)
+      };
+      options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
+      {
+        Timeout = TimeSpan.FromSeconds(100)
+      };
+      options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(200);
+    }
+
+    // Long-running resilience options (minimal retries, VERY long timeouts)
+    void ConfigureLongRunningResilience(Microsoft.Extensions.Http.Resilience.HttpStandardResilienceOptions options)
+    {
+      // Minimal retries for long-running operations
+      options.Retry.MaxRetryAttempts = 1;
+      options.Retry.Delay = TimeSpan.FromSeconds(1);
+      
+      // CRITICAL: Both AttemptTimeout and TotalRequestTimeout must match the HttpClient timeout
+      options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
+      {
+        Timeout = timeout  // 10 minutes in dev, 5 minutes in prod
+      };
+      options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
+      {
+        Timeout = timeout  // Same as AttemptTimeout since we're not retrying
+      };
+      
+      // Circuit breaker sampling must be at least 2x the attempt timeout
+      options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(timeoutSeconds * 2);
+    }
+
+    // Use Aspire service discovery for Budget API - standard operations with retries
     builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = TimeSpan.FromSeconds(100); // Standard timeout for normal operations
       })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
+      .AddStandardResilienceHandler(ConfigureStandardResilience);
 
+    // Budget Maintenance API - long-running operations with extended timeouts
+    // MUST remove default resilience handler first, then add custom one
+#pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is experimental but required to override global defaults
     builder.Services.AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout; // Extended timeout for maintenance operations
       })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
+      .RemoveAllResilienceHandlers()  // Remove the default 30s handler from ConfigureHttpClientDefaults
+      .AddStandardResilienceHandler(ConfigureLongRunningResilience);  // Add our custom long-running handler
+#pragma warning restore EXTEXP0001
   }
 
   /// <summary>
@@ -76,6 +148,21 @@ public static class ConfigureServices
     builder.Logging.AddJsonConsole();
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Trace);
     builder.Logging.AddFilter("Budget.Client.Components.Maintenance.AccountCRUD", LogLevel.Debug);
+  }
+
+  /// <summary>
+  /// Configures Kestrel server limits
+  /// </summary>
+  public static void ConfigureKestrel(WebApplicationBuilder builder)
+  {
+    var requestHeadersTimeoutMinutes = builder.Configuration.GetValue<int>("Kestrel:Limits:RequestHeadersTimeoutMinutes", 5);
+    var keepAliveTimeoutMinutes = builder.Configuration.GetValue<int>("Kestrel:Limits:KeepAliveTimeoutMinutes", 5);
+
+    builder.WebHost.ConfigureKestrel(serverOptions =>
+    {
+      serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(requestHeadersTimeoutMinutes);
+      serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(keepAliveTimeoutMinutes);
+    });
   }
 
   /// <summary>

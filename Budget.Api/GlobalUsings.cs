@@ -12,6 +12,7 @@ global using Budget.Api.Features.Envelopes;
 global using Budget.DB;
 global using Budget.Shared;
 global using Budget.Shared.Models;
+global using Budget.Shared.Services;
 global using Carter;
 global using MediatR;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;

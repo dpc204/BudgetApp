@@ -10,6 +10,9 @@ AddTelemetry.ConfigureTelemetryAndServiceDefaults(builder);
 // Configure logging
 ConfigureServices.ConfigureLogging(builder);
 
+// Configure Kestrel server limits
+ConfigureServices.ConfigureKestrel(builder);
+
 // Add Blazor services
 ConfigureServices.AddBlazorServices(builder);
 
@@ -39,7 +42,6 @@ ServiceAccessor.Configure(app.Services);
 
 // Apply database migrations and log startup info
 var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Identity);
-ConfigureDatabase.ApplyMigrations(app, budgetConnectionString);
 
 // Configure exception handling
 ConfigureMiddleware.ConfigureExceptionHandling(app);

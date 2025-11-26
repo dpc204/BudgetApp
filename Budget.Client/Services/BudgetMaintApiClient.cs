@@ -77,6 +77,13 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
     return true;
   }
 
+  public async Task<EnvelopeImportResult> ImportEnvelopesAsync(string csvContent, CancellationToken cancellationToken = default)
+  {
+    var payload = new { csvContent };
+    var result = await PostAsync<object, EnvelopeImportResult>("envelopes/maint/import", payload, cancellationToken);
+    return result;
+  }
+
   // Category maintenance methods
   public async Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default)
   {
