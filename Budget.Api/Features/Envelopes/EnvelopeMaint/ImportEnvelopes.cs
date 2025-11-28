@@ -20,30 +20,18 @@ public static class ImportEnvelopes
       log.LogInformation("Starting envelope import from CSV");
       try
       {
-        var tempFile = Path.GetTempFileName();
-        await File.WriteAllTextAsync(tempFile, request.CsvContent, cancellationToken);
+        // Split the CSV content into lines
+        var lines = request.CsvContent
+          .Split(["\r\n", "\n", "\r"], StringSplitOptions.None)
+          .ToList();
 
-        try
-        {
-          var envelopes = await CsvImportService.ImportAsync(db.Envelopes, tempFile, log: log);
-          await db.SaveChangesAsync(cancellationToken);
-          importedCount = envelopes.Count;
-        }
-        catch (Exception ex)
-        {
-          errors.Add($"Import failed: {ex.Message}");
-        }
-        finally
-        {
-          if (File.Exists(tempFile))
-          {
-            File.Delete(tempFile);
-          }
-        }
+        var envelopes = await CsvImportService.ImportAsync(db.Envelopes, lines, log: log);
+        await db.SaveChangesAsync(cancellationToken);
+        importedCount = envelopes.Count;
       }
       catch (Exception ex)
       {
-        errors.Add($"File processing failed: {ex.Message}");
+        errors.Add($"Import failed: {ex.Message}");
       }
 
       return new Response(importedCount, errors);

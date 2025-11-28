@@ -14,6 +14,7 @@ public static class CsvImportService
   /// <param name="dbSet">The DbSet to import data into.</param>
   /// <param name="filename">The fully qualified path to the CSV file.</param>
   /// <param name="separator">The separator character used in the CSV file. Defaults to ",".</param>
+  /// <param name="log">Optional logger for debugging.</param>
   /// <returns>A list of entities imported from the CSV file.</returns>
   /// <exception cref="ArgumentException">Thrown when the file does not exist or headers don't match properties.</exception>
   /// <exception cref="InvalidOperationException">Thrown when column headers don't match entity properties.</exception>
@@ -30,9 +31,30 @@ public static class CsvImportService
     }
 
     var lines = await File.ReadAllLinesAsync(filename);
-    if (lines.Length == 0)
+    return await ImportAsync(dbSet, lines.ToList(), separator, log);
+  }
+
+  /// <summary>
+  /// Imports CSV data from a list of lines into the specified DbSet.
+  /// </summary>
+  /// <typeparam name="T">The entity type of the DbSet.</typeparam>
+  /// <param name="dbSet">The DbSet to import data into.</param>
+  /// <param name="lines">The CSV lines including the header line as the first element.</param>
+  /// <param name="separator">The separator character used in the CSV data. Defaults to ",".</param>
+  /// <param name="log">Optional logger for debugging.</param>
+  /// <returns>A list of entities imported from the CSV data.</returns>
+  /// <exception cref="ArgumentException">Thrown when lines are empty.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when column headers don't match entity properties.</exception>
+  public static async Task<List<T>> ImportAsync<T>(
+    DbSet<T> dbSet,
+    List<string> lines,
+    string separator = ",",
+    ILogger? log = null) where T : class, new()
+  {
+    log?.LogInformation("Starting CSV import from {LineCount} lines", lines.Count);
+    if (lines.Count == 0)
     {
-      throw new ArgumentException("CSV file is empty.", nameof(filename));
+      throw new ArgumentException("CSV data is empty.", nameof(lines));
     }
 
     // Parse header line
@@ -67,7 +89,7 @@ public static class CsvImportService
 
     // Parse data lines
     var entities = new List<T>();
-    for (int lineIndex = 1; lineIndex < lines.Length; lineIndex++)
+    for (int lineIndex = 1; lineIndex < lines.Count; lineIndex++)
     {
       var line = lines[lineIndex];
       log?.LogInformation("Processing line {LineIndex}: {LineContent}", lineIndex + 1, line);
