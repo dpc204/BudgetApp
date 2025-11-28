@@ -3,6 +3,7 @@
 @using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 @inject IDialogService DialogService
+@inject ILogger<AccountIndex> Logger
 
 <MudText Typo="Typo.h5" Class="mb-2">Accounts</MudText>
 
@@ -43,7 +44,10 @@ else
 
     private async Task LoadAsync()
     {
+        Logger.LogInformation("Loading accounts...");
         _accounts = (await MaintApi.GetAccountsAsync()).OrderBy(a => a.Name).ToList();
+
+    Logger.LogInformation("Loaded {Count} accounts.", _accounts.Count);
     }
 
     private async Task ShowCreate()

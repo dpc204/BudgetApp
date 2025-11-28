@@ -110,7 +110,9 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
   // Account maintenance methods
   public async Task<IEnumerable<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
   {
+    _logger.LogDebug("Fetching all bank accounts via BudgetMaintApiClient");
     var readOnlyList = await GetListAsync<BankAccountDto>("accounts/maint/getall", cancellationToken);
+    _logger.LogDebug("Fetched {Count} bank accounts", readOnlyList.Count());
     return readOnlyList;
   }
 
@@ -149,7 +151,9 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
+    _logger.LogDebug("Fetching list of {Type} from {Url}", typeof(T).Name, relativeUrl);
     var result = await _http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);
+    _logger.LogDebug("Fetched {Count} items of type {Type} from {Url}", result?.Count ?? 0, typeof(T).Name, relativeUrl);
     return result ?? [];
   }
 

@@ -1,5 +1,7 @@
 using Budget.DB;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Budget.Web.Startup;
 
@@ -11,7 +13,7 @@ public static class ConfigureDatabase
   /// <summary>
   /// Adds database contexts for Budget and Identity
   /// </summary>
-  public static void AddDatabaseContexts(WebApplicationBuilder builder)
+  public static void AddDatabaseContexts(WebApplicationBuilder builder, ILogger logger)
   {
     //var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Budget);
 
@@ -28,7 +30,7 @@ public static class ConfigureDatabase
 
     builder.Services.AddQuickGridEntityFrameworkAdapter();
 
-    var identityConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Identity);
+    var identityConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
 
 
     // Use the SAME database for Identity as BudgetContext (Identity schema within the same DB)

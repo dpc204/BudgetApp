@@ -83,7 +83,7 @@ public static class ConfigureServices
       // CRITICAL: Both AttemptTimeout and TotalRequestTimeout must match the HttpClient timeout
       options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
       {
-        Timeout = timeout  // 10 minutes in dev, 5 minutes in prod
+        Timeout = timeout  // 5 minutes
       };
       options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
       {
@@ -94,26 +94,25 @@ public static class ConfigureServices
       options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(timeoutSeconds * 2);
     }
 
-    // Use Aspire service discovery for Budget API - standard operations with retries
+    // Budget API Client - uses Aspire service discovery
     builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
-        client.Timeout = TimeSpan.FromSeconds(100); // Standard timeout for normal operations
+        client.Timeout = TimeSpan.FromSeconds(100);
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
       .AddStandardResilienceHandler(ConfigureStandardResilience);
 
-    // Budget Maintenance API - long-running operations with extended timeouts
-    // MUST remove default resilience handler first, then add custom one
-#pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is experimental but required to override global defaults
+    // Budget Maintenance API Client - uses Aspire service discovery with extended timeouts
+#pragma warning disable EXTEXP0001
     builder.Services.AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
-        client.Timeout = timeout; // Extended timeout for maintenance operations
+        client.Timeout = timeout;
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
-      .RemoveAllResilienceHandlers()  // Remove the default 30s handler from ConfigureHttpClientDefaults
-      .AddStandardResilienceHandler(ConfigureLongRunningResilience);  // Add our custom long-running handler
+      .RemoveAllResilienceHandlers()
+      .AddStandardResilienceHandler(ConfigureLongRunningResilience);
 #pragma warning restore EXTEXP0001
   }
 
