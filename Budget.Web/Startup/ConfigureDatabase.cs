@@ -1,5 +1,7 @@
 using Budget.DB;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Budget.Web.Startup;
 
@@ -11,7 +13,7 @@ public static class ConfigureDatabase
   /// <summary>
   /// Adds database contexts for Budget and Identity
   /// </summary>
-  public static void AddDatabaseContexts(WebApplicationBuilder builder)
+  public static void AddDatabaseContexts(WebApplicationBuilder builder, ILogger logger)
   {
     //var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Budget);
 
@@ -28,7 +30,7 @@ public static class ConfigureDatabase
 
     builder.Services.AddQuickGridEntityFrameworkAdapter();
 
-    var identityConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Identity);
+    var identityConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
 
 
     // Use the SAME database for Identity as BudgetContext (Identity schema within the same DB)
@@ -39,34 +41,4 @@ public static class ConfigureDatabase
     builder.Services.AddDatabaseDeveloperPageExceptionFilter();
   }
 
-  /// <summary>
-  /// Applies Identity database migrations and logs startup information
-  /// </summary>
-  public static void ApplyMigrations(WebApplication app, string budgetConnectionString)
-  {
-    var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
-    startupLogger.LogInformation(
-      "Application starting at {UtcTime} with BudgetDB host parsed from connection string: {DataSource}",
-      DateTime.UtcNow,
-      Misc.ParseDataSource(budgetConnectionString));
-
-    startupLogger.LogInformation(
-      "Application starting at {UtcTime} with IdentityDB host parsed from connection string: {DataSource}",
-      DateTime.UtcNow,
-      Misc.ParseDataSource(budgetConnectionString));
-
-    // Ensure Identity schema is created/migrated so 'BudgetIdentity.AspNetUsers' exists
-    using var scope = app.Services.CreateScope();
-    try
-    {
-      var idDb = scope.ServiceProvider.GetRequiredService<IdentityDBContext>();
-      idDb.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-      var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-      logger.LogError(ex, "Error applying IdentityDBContext migrations");
-      throw;
-    }
-  }
 }

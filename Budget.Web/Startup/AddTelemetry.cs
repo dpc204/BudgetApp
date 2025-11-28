@@ -33,12 +33,7 @@ namespace Budget.Web.Startup
             .AddHttpClientInstrumentation();
         });
 
-      var otlpEndpoint =
-        builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]; // Aspire sets this when dashboard collects
-      if (!string.IsNullOrWhiteSpace(otlpEndpoint))
-      {
-        builder.Services.AddOpenTelemetry().UseOtlpExporter();
-      }
+      builder.Services.AddOpenTelemetry().UseOtlpExporter();
 
       builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), new[] { "live" });
       builder.Services.AddServiceDiscovery();

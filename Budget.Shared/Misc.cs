@@ -12,15 +12,16 @@ public static class Misc
     Identity
   }
 
-  public static string GetConnectionString(IConfiguration configuration, ConnectionStringType connectionStringType)
+  public static string GetConnectionString(WebApplicationBuilder webApplicationBuilder,
+    ConnectionStringType connectionStringType, ILogger logger)
   {
-    Console.WriteLine("SetupConfigurationSources - Begin");
+    logger.Log(LogLevel.Information, "SetupConfigurationSources - Begin");
     var connectionType = connectionStringType.ToString();
-    Console.WriteLine($"SetupConfigurationSources - Type: {connectionType}");
+    logger.Log(LogLevel.Information, $"SetupConfigurationSources - Type: {connectionType}");
 
     string? s;
-
-    s = Misc.UseAzureDB
+    var configuration = webApplicationBuilder.Configuration;
+    s = Misc.UseAzureDB(webApplicationBuilder, logger)
       ? configuration[$"{connectionType}Connection"]
       : configuration[$"Local{connectionType}Connection"];
 
@@ -30,80 +31,97 @@ public static class Misc
         $"Connection string!@# '{connectionType}Connection' is null or empty. Checked: Local{connectionType}Connection, {connectionType}connection, ConnectionStrings:{connectionType}connection");
     }
 
-    Console.WriteLine("SetupConfigurationsSources Done.  Conn Type: {0} Conn Str: {1} UseAzureDB {2}", connectionType, s,
-      UseAzureDB);
+    logger.Log(LogLevel.Information, "SetupConfigurationsSources Done.  Conn Type: {0} Conn Str: {1} UseAzureDB {2}",
+      connectionType, s,
+      UseAzureDB(webApplicationBuilder, logger));
     return s;
   }
 
-  public static void SetupConfigurationSources(WebApplicationBuilder webApplicationBuilder, Assembly assembly1)
+  public static void SetupConfigurationSources(WebApplicationBuilder webApplicationBuilder, Assembly assembly1,
+    ILogger logger)
   {
     webApplicationBuilder.Configuration.AddJsonFile("appsettings.json");
     webApplicationBuilder.Configuration.AddUserSecrets(assembly1);
     webApplicationBuilder.Configuration.AddEnvironmentVariables();
-    Console.WriteLine("SetupConfigurationSources - Added Json, Secrets and Environment Vars");
+    logger.Log(LogLevel.Information, "SetupConfigurationSources - Added Json, Secrets and Environment Vars");
 
-    if (Misc.UseAzureDB)
+    if (Misc.UseAzureDB(webApplicationBuilder, logger))
+    {
       try
       {
-        Console.WriteLine($"Adding AzureKeyVault next");
-        webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri("https://fantumkeyvault.vault.azure.net/"),
+        logger.Log(LogLevel.Information, $"Adding AzureKeyVault next");
+
+        var keyVaultUri = webApplicationBuilder.Configuration["KeyVault:Uri"]
+          ?? "https://fantumkeyvault.vault.azure.net/";
+
+        webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri),
           new DefaultAzureCredential());
-        Console.WriteLine("SetupConfigurationSources Using AzureDB - Kevault Done");
+
+        logger.Log(LogLevel.Information, "SetupConfigurationSources Using AzureDB - KeyVault Done");
+      }
+      catch (Azure.RequestFailedException ex) when (ex.Status == 403)
+      {
+        // Log but don't fail if Key Vault access is denied
+        logger.LogWarning("Azure Key Vault access denied (403 Forbidden). This is expected if managed identity permissions are not configured yet. Continuing without Key Vault. Error: {Message}", ex.Message);
       }
       catch (Exception ex)
       {
-        // Log the exception but don't fail startup in development
-        Console.WriteLine($"Azure Key Vault access failed: {ex.Message}");
-        Console.WriteLine($"Azure Key Vault access failed: {ex.Message}");
+        // Log the exception but don't fail startup in development or when Key Vault is not critical
+        logger.LogWarning("Azure Key Vault access failed: {Message}. Continuing without Key Vault.", ex.Message);
       }
+    }
   }
 
 
-  public static bool UseAzureDB
+  public static bool UseAzureDB(WebApplicationBuilder webApplicationBuilder, ILogger logger)
   {
-    get
-    {
-      Console.WriteLine($"Checking UseAzureDB");
-      if (AzureEnvironment.IsRunningOnAzure)
-        return true;
+    logger.Log(LogLevel.Information, $"Checking UseAzureDB");
 
-      Console.WriteLine($"Checking UseAzureDB - Local");
-      if (UseAzureDb is null)
+
+    logger.Log(LogLevel.Information, $"Checking If UseAzureDB is null");
+    if (UseAzureDb is null)
+    {
+      logger.Log(LogLevel.Information, "UseAzureDb is null");
+      if (AzureEnvironment.IsRunningOnAzure)
       {
-        var config = new ConfigurationBuilder()
-          .SetBasePath(Directory.GetCurrentDirectory())
-          .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-          .AddEnvironmentVariables()
-          .Build();
-        var sValue = config["UseAzureDB"];
-        if (bool.TryParse(sValue, out var bValue))
-        {
-          UseAzureDb = bValue;
-        }
-        else
-        {
-          UseAzureDb = false;
-        }
+        UseAzureDb = true;
+        logger.Log(LogLevel.Information, $"IsRunningOnAzure = true");
+        return true;
+      }
+      else {
+        logger.Log(LogLevel.Information, $"IsRunningOnAzure = false");
       }
 
-      Console.WriteLine($"Checking UseAzureDB - Local");
-      return (bool)UseAzureDb;
+      var sValue = webApplicationBuilder.Configuration["UseAzureDB"];
+      logger.Log(LogLevel.Information, $"UseAzureDB from config: {sValue}");
+      if (bool.TryParse(sValue, out var bValue))
+      {
+        UseAzureDb = bValue;
+      }
+      else
+      {
+        UseAzureDb = false;
+      }
     }
+
+    Console.WriteLine($"Checking UseAzureDB - UserAzureDB: {UseAzureDb}");
+    return (bool)UseAzureDb;
   }
 
   public static string? ParseDataSource(string cs)
   {
-    if(string.IsNullOrEmpty(cs)) return null;
-    foreach(var part in cs.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    if (string.IsNullOrEmpty(cs)) return null;
+    foreach (var part in cs.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
     {
-      if(part.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) ||
-         part.StartsWith("Server=", StringComparison.OrdinalIgnoreCase))
+      if (part.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) ||
+          part.StartsWith("Server=", StringComparison.OrdinalIgnoreCase))
       {
         var idx = part.IndexOf('=');
-        if(idx > -1 && idx < part.Length - 1)
+        if (idx > -1 && idx < part.Length - 1)
           return part[(idx + 1)..];
       }
     }
+
     return null;
   }
 }
