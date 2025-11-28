@@ -1,6 +1,6 @@
 ﻿namespace Budget.Api.Features.Transactions;
 
-public static class GetUnallocated
+public static class GetUnassigned
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
   public sealed record Response(int TransactionId, int LineId, int envelopeId, string envelopeName,string Vendor, string Description, decimal Amount, DateTime Date);
@@ -26,7 +26,7 @@ public static class GetUnallocated
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapGet("transactions/unallocated", async ([FromServices] ISender sender) =>
+      app.MapGet("transactions/unassigned", async ([FromServices] ISender sender) =>
       {
         var result = await sender.Send(new Query());
         return Results.Ok(result);

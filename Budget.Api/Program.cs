@@ -5,6 +5,22 @@ using Budget.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
+{
+  loggingBuilder
+    .SetMinimumLevel(LogLevel.Information)
+    .AddConsole();
+});
+
+ILogger logger = loggerFactory.CreateLogger<Program>();
+
+// Log Azure environment detection
+logger.LogInformation("=== Azure Environment Detection ===");
+logger.LogInformation("IsRunningOnAzure: {IsAzure}", AzureEnvironment.IsRunningOnAzure);
+logger.LogInformation("Hosting Environment: {Environment}", AzureEnvironment.HostingEnvironment);
+logger.LogInformation("App Name: {AppName}", AzureEnvironment.AppName ?? "N/A");
+logger.LogInformation("Instance ID: {InstanceId}", AzureEnvironment.InstanceId ?? "N/A");
+
 // Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
 builder.AddServiceDefaults();
 
@@ -27,15 +43,15 @@ builder.Services.AddCarter();
 var assembly = typeof(Budget.Api.Program).Assembly;
 
 // Configure configuration sources (appsettings, secrets, environment, Key Vault)
-Misc.SetupConfigurationSources(builder, assembly);
+Misc.SetupConfigurationSources(builder, assembly, logger);
 
 
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
 
 // Get connection strings
-var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Budget);
-var identityConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Identity);
+var budgetConnectionString = Misc.GetConnectionString( builder,Misc.ConnectionStringType.Budget, logger);
+var identityConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
 
 if (string.IsNullOrWhiteSpace(budgetConnectionString)) 
     throw new InvalidOperationException("Missing Budget DB connection string.");
@@ -99,39 +115,6 @@ builder.Services.AddAuthorization();
 // Register JWT token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Configure CORS
-builder.Services.AddCors(options =>
-{
-    if (builder.Environment.IsDevelopment())
-    {
-        var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"];
-        if (!string.IsNullOrWhiteSpace(allowedOrigins))
-        {
-            var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            options.AddPolicy("AllowBudgetWeb", policy =>
-            {
-                policy.WithOrigins(origins).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
-            });
-        }
-        else
-        {
-            options.AddPolicy("AllowBudgetWeb", policy => 
-            { 
-                policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); 
-            });
-        }
-    }
-    else
-    {
-        var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"] 
-            ?? throw new InvalidOperationException("ALLOWED_ORIGINS environment variable must be set in production.");
-        var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        options.AddPolicy("AllowBudgetWeb", policy =>
-        {
-            policy.WithOrigins(origins).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
-        });
-    }
-});
 // Register BackupAzureSql service with HttpClient
 builder.Services.AddHttpClient<BackupAzureSql>();
 var app = builder.Build();
@@ -155,7 +138,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowBudgetWeb");
 app.UseAuthentication();
 app.UseAuthorization();
 
