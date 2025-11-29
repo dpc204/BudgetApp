@@ -28,7 +28,6 @@ public static class ConfigureDatabase
     //  }
     //});
 
-    builder.Services.AddQuickGridEntityFrameworkAdapter();
 
     var identityConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
 

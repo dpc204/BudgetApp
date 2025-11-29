@@ -4,15 +4,17 @@ public partial class TransactionAssign : ComponentBase
 {
   [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
-  [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
-  [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
+  [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!; 
+  [Inject] private IUserAndOptions UserOptions { get; set; } = default!; 
+  [Inject] private IJSRuntime JSRuntime { get; set; }
+
 
   public List<TransactionDto> Transactions { get; set; } = [];
   private Dictionary<int, EnvelopeIdName> _availableEnvelopes = new();
 
   private EnvelopeResult? _selectedEnvelope;
 
-  // Multi-selection state
+  // Multi-selection stat
   private HashSet<TransactionDto> _selectedTransactions = new();
   private EnvelopeIdName? _bulkEnvelope;
 
@@ -34,8 +36,14 @@ public partial class TransactionAssign : ComponentBase
   {
     try
     {
-      // Load envelope state first
-      await State.EnsureLoadedAsync();
+      var isPrerendering = JSRuntime is IJSInProcessRuntime == false;
+
+      if(!isPrerendering)
+      {
+        // Load envelope state first
+        await State.EnsureLoadedAsync();
+      }
+ 
 
       // Convert State.AllEnvelopeData to EnvelopeIdName list
       _availableEnvelopes =

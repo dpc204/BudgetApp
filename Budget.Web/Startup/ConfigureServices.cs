@@ -113,6 +113,16 @@ public static class ConfigureServices
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
       .RemoveAllResilienceHandlers()
       .AddStandardResilienceHandler(ConfigureLongRunningResilience);
+
+    builder.Services.AddHttpClient<IBudgetMonthlyApiClient, BudgetMonthlyApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout;
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
+      .RemoveAllResilienceHandlers()
+      .AddStandardResilienceHandler(ConfigureLongRunningResilience);
+
 #pragma warning restore EXTEXP0001
   }
 
@@ -137,6 +147,7 @@ public static class ConfigureServices
     builder.Services.AddScoped<EnvelopeState>();
     builder.Services.AddSingleton<ThemeService>();
     builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
+    // Do not register IBudgetMonthlyApiClient again here - configured by AddHttpClient
   }
 
   /// <summary>

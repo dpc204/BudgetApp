@@ -40,10 +40,8 @@ public static class Misc
   public static void SetupConfigurationSources(WebApplicationBuilder webApplicationBuilder, Assembly assembly1,
     ILogger logger)
   {
-    webApplicationBuilder.Configuration.AddJsonFile("appsettings.json");
     webApplicationBuilder.Configuration.AddUserSecrets(assembly1);
     webApplicationBuilder.Configuration.AddEnvironmentVariables();
-    logger.Log(LogLevel.Information, "SetupConfigurationSources - Added Json, Secrets and Environment Vars");
 
     if (Misc.UseAzureDB(webApplicationBuilder, logger))
     {
