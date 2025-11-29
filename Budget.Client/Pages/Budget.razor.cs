@@ -6,6 +6,8 @@ namespace Budget.Client.Pages;
 
 public partial class Budget : ComponentBase
 {
+  private const int MonthsToShow = 6;
+  
   private bool _loading = true;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
   private List<BudgetDisplayRow> _displayRows = new();
@@ -23,7 +25,7 @@ public partial class Budget : ComponentBase
     
     try
     {
-      // Generate 12 months starting from current month
+      // Generate 12 months starting from current month (buffer for scrolling)
       var currentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
       _displayMonths = Enumerable.Range(0, 12)
         .Select(i => currentDate.AddMonths(i))
@@ -49,7 +51,7 @@ public partial class Budget : ComponentBase
         }
       }
 
-      // Load all 12 months of data
+      // Load all months of data
       _budgetData = new Dictionary<int, Dictionary<DateTime, BudgetMonthData>>();
       
       foreach (var month in _displayMonths)
@@ -108,13 +110,13 @@ public partial class Budget : ComponentBase
     // Add Net Budget row
     _displayRows.Add(CreateSummaryRow("Net Budget", (month) =>
     {
-      var income = CalculateTotal(incomeEnvelopes, month);
-      var expenses = CalculateTotal(expenseEnvelopes, month);
-      return income - expenses;
+      var incomeTotals = CalculateTotals(incomeEnvelopes, month);
+      var expenseTotals = CalculateTotals(expenseEnvelopes, month);
+      return (incomeTotals.budget - expenseTotals.budget, incomeTotals.draft - expenseTotals.draft);
     }));
 
     // Add Total Income section
-    _displayRows.Add(CreateSummaryRow("Total Income", (month) => CalculateTotal(incomeEnvelopes, month)));
+    _displayRows.Add(CreateSummaryRow("Total Income", (month) => CalculateTotals(incomeEnvelopes, month)));
     
     foreach (var envelope in incomeEnvelopes)
     {
@@ -122,7 +124,7 @@ public partial class Budget : ComponentBase
     }
 
     // Add Total Expenses section
-    _displayRows.Add(CreateSummaryRow("Total Expenses", (month) => CalculateTotal(expenseEnvelopes, month)));
+    _displayRows.Add(CreateSummaryRow("Total Expenses", (month) => CalculateTotals(expenseEnvelopes, month)));
     
     foreach (var envelope in expenseEnvelopes)
     {
@@ -150,7 +152,7 @@ public partial class Budget : ComponentBase
         {
           DraftValue = data.DraftValue,
           BudgetValue = data.BudgetValue,
-          DisplayValue = (data.DraftValue ?? data.BudgetValue).ToString("C2")
+          DraftDisplayValue = data.DraftValue?.ToString("C2") ?? string.Empty
         };
       }
     }
@@ -158,7 +160,7 @@ public partial class Budget : ComponentBase
     return row;
   }
 
-  private BudgetDisplayRow CreateSummaryRow(string name, Func<DateTime, decimal> calculateTotal)
+  private BudgetDisplayRow CreateSummaryRow(string name, Func<DateTime, (decimal budget, decimal draft)> calculateTotals)
   {
     var row = new BudgetDisplayRow
     {
@@ -170,31 +172,35 @@ public partial class Budget : ComponentBase
 
     foreach (var month in _displayMonths)
     {
-      var total = calculateTotal(month);
+      var totals = calculateTotals(month);
       row.MonthlyData[month] = new MonthCellData
       {
         DraftValue = null,
-        BudgetValue = total,
-        DisplayValue = total.ToString("C2")
+        BudgetValue = totals.budget,
+        DraftDisplayValue = totals.draft.ToString("C2")
       };
     }
 
     return row;
   }
 
-  private decimal CalculateTotal(List<BudgetMonthData?> envelopes, DateTime month)
+  private (decimal budget, decimal draft) CalculateTotals(List<BudgetMonthData?> envelopes, DateTime month)
   {
-    decimal total = 0;
+    decimal budgetTotal = 0;
+    decimal draftTotal = 0;
+    
     foreach (var envelope in envelopes.Where(e => e != null))
     {
       if (_budgetData!.ContainsKey(envelope!.EnvelopeId) && 
           _budgetData[envelope.EnvelopeId].ContainsKey(month))
       {
         var data = _budgetData[envelope.EnvelopeId][month];
-        total += data.DraftValue ?? data.BudgetValue;
+        budgetTotal += data.BudgetValue;
+        draftTotal += data.DraftValue ?? data.BudgetValue;
       }
     }
-    return total;
+    
+    return (budgetTotal, draftTotal);
   }
 
   private async Task UpdateDraft(int envelopeId, DateTime month, decimal? draftValue)
@@ -233,15 +239,15 @@ public partial class Budget : ComponentBase
 
   private void ScrollRight()
   {
-    // Allow scrolling but keep at least 12 months visible
+    // Allow scrolling but keep at least MonthsToShow months visible
     _currentScrollPosition++;
     
     // Load more months if needed
-    var lastMonth = _displayMonths.Last();
-    var newMonth = lastMonth.AddMonths(1);
-    
-    if (!_displayMonths.Contains(newMonth))
+    var lastVisibleIndex = _currentScrollPosition + MonthsToShow - 1;
+    while (lastVisibleIndex >= _displayMonths.Count)
     {
+      var lastMonth = _displayMonths.Last();
+      var newMonth = lastMonth.AddMonths(1);
       _displayMonths.Add(newMonth);
       // Load data for new month asynchronously
       _ = LoadMonthDataAsync(newMonth);
@@ -350,7 +356,7 @@ public partial class Budget : ComponentBase
   {
     public decimal? DraftValue { get; set; }
     public decimal BudgetValue { get; set; }
-    public string DisplayValue { get; set; } = string.Empty;
+    public string DraftDisplayValue { get; set; } = string.Empty;
   }
 
   private class BudgetMonthData

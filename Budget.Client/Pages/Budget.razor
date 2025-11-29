@@ -23,7 +23,7 @@
                         Color="Color.Primary" />
           <MudText Typo="Typo.h6">
             @_displayMonths[_currentScrollPosition].ToString("MMM yyyy") - 
-            @_displayMonths[_currentScrollPosition + 11].ToString("MMM yyyy")
+            @_displayMonths[_currentScrollPosition + MonthsToShow - 1].ToString("MMM yyyy")
           </MudText>
           <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" 
                         OnClick="ScrollRight" 
@@ -47,10 +47,18 @@
     <MudTable Items="@_displayRows" Dense="true" Hover="true" Striped="true">
       <HeaderContent>
         <MudTh>Envelope</MudTh>
-        @for (int i = 0; i < 12; i++)
+        @for (int i = 0; i < MonthsToShow; i++)
         {
           var monthIndex = _currentScrollPosition + i;
-          <MudTh Style="text-align: right;">@_displayMonths[monthIndex].ToString("MMM")</MudTh>
+          <MudTh Style="text-align: center;" colspan="2">@_displayMonths[monthIndex].ToString("MMM yyyy")</MudTh>
+        }
+      </HeaderContent>
+      <HeaderContent>
+        <MudTh></MudTh>
+        @for (int i = 0; i < MonthsToShow; i++)
+        {
+          <MudTh Style="text-align: right; font-size: 0.85em;">Budget</MudTh>
+          <MudTh Style="text-align: right; font-size: 0.85em;">Draft</MudTh>
         }
       </HeaderContent>
       <RowTemplate>
@@ -64,18 +72,31 @@
             @context.EnvelopeName
           }
         </MudTd>
-        @for (int i = 0; i < 12; i++)
+        @for (int i = 0; i < MonthsToShow; i++)
         {
           var monthIndex = _currentScrollPosition + i;
           var monthKey = _displayMonths[monthIndex];
           var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
           
-          <MudTd DataLabel="@monthKey.ToString("MMM")" Style="text-align: right;">
+          @* Budget column (read-only) *@
+          <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right;">
             @if (context.IsSummaryRow)
             {
-              <strong>@(cellData?.DisplayValue ?? "$0.00")</strong>
+              <strong>@(cellData?.BudgetValue.ToString("C2") ?? "$0.00")</strong>
             }
-            else if (cellData != null && !context.IsSummaryRow)
+            else
+            {
+              @(cellData?.BudgetValue.ToString("C2") ?? "$0.00")
+            }
+          </MudTd>
+          
+          @* Draft column (editable for non-summary rows) *@
+          <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;">
+            @if (context.IsSummaryRow)
+            {
+              <strong>@(cellData?.DraftDisplayValue ?? "$0.00")</strong>
+            }
+            else if (cellData != null)
             {
               <MudNumericField T="decimal?" 
                               Value="@cellData.DraftValue" 
@@ -84,7 +105,7 @@
                               HideSpinButtons="true"
                               Immediate="false"
                               DebounceInterval="500"
-                              Style="width: 120px; text-align: right;"
+                              Style="width: 100px; text-align: right;"
                               Variant="Variant.Text"
                               Margin="Margin.Dense" />
             }
