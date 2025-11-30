@@ -57,8 +57,6 @@ public partial class PurchaseTransactionDialog
       {
         _lines.Add(new TransactionDto
         {
-          TransactionId = detail.TransactionId,
-          LineId = detail.LineId,
           EnvelopeId = detail.EnvelopeId,
           Amount = detail.Amount,
           Description = detail.Description
