@@ -1,0 +1,131 @@
+@page "/budget"
+@rendermode InteractiveServer
+@inject IBudgetMonthlyApiClient BudgetMonthlyApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<style>
+  .draft-input-right {
+    width: 100px;
+  }
+  .draft-input-right input {
+    text-align: right !important;
+  }
+</style>
+
+<PageTitle>Budget</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+  <MudText Typo="Typo.h4" Class="mb-4">Budget Maintenance</MudText>
+
+  @if (_loading)
+  {
+    <MudProgressCircular Indeterminate="true" />
+  }
+  else if (_budgetData != null)
+  {
+    <MudPaper Class="pa-4 mb-4">
+      <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+        <MudStack Row="true" Spacing="2">
+          <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" 
+                        OnClick="ScrollLeft" 
+                        Color="Color.Primary" />
+          <MudText Typo="Typo.h6">
+            @_displayMonths[_currentScrollPosition].ToString("MMM yyyy") - 
+            @_displayMonths[_currentScrollPosition + MonthsToShow - 1].ToString("MMM yyyy")
+          </MudText>
+          <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" 
+                        OnClick="ScrollRight" 
+                        Color="Color.Primary" />
+        </MudStack>
+        <MudStack Row="true" Spacing="2">
+          <MudButton Variant="Variant.Outlined" 
+                    Color="Color.Warning" 
+                    OnClick="ClearDrafts">
+            Clear Drafts
+          </MudButton>
+          <MudButton Variant="Variant.Filled" 
+                    Color="Color.Primary" 
+                    OnClick="ApplyDrafts">
+            Apply Budgets
+          </MudButton>
+        </MudStack>
+      </MudStack>
+    </MudPaper>
+
+    <MudTable Items="@_displayRows" Dense="true" Hover="true" Striped="true" CustomHeader="true">
+      <HeaderContent>
+        <tr>
+          <th rowspan="2" style="vertical-align: bottom; padding: 8px;">Envelope</th>
+          @for (int i = 0; i < MonthsToShow; i++)
+          {
+            var monthIndex = _currentScrollPosition + i;
+            <th colspan="2" style="text-align: center; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">@_displayMonths[monthIndex].ToString("MMM yyyy")</th>
+          }
+        </tr>
+        <tr>
+          @for (int i = 0; i < MonthsToShow; i++)
+          {
+            <th style="text-align: right; font-size: 0.85em; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">Budget</th>
+            <th style="text-align: right; font-size: 0.85em; padding: 8px;">Draft</th>
+          }
+        </tr>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd DataLabel="Envelope">
+          @if (context.IsSummaryRow)
+          {
+            <strong>@context.EnvelopeName</strong>
+          }
+          else
+          {
+            @context.EnvelopeName
+          }
+        </MudTd>
+        @for (int i = 0; i < MonthsToShow; i++)
+        {
+          var monthIndex = _currentScrollPosition + i;
+          var monthKey = _displayMonths[monthIndex];
+          var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
+          
+          @* Budget column (read-only) *@
+          <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
+            @if (context.IsSummaryRow)
+            {
+              <strong>@(cellData?.BudgetValue.ToString("C2") ?? "$0.00")</strong>
+            }
+            else
+            {
+              @(cellData?.BudgetValue.ToString("C2") ?? "$0.00")
+            }
+          </MudTd>
+          
+          @* Draft column (editable for non-summary rows) *@
+          <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;">
+            @if (context.IsSummaryRow)
+            {
+              <strong>@(cellData?.DraftDisplayValue ?? "$0.00")</strong>
+            }
+            else if (cellData != null)
+            {
+              <MudNumericField T="decimal?" 
+                              Value="@cellData.DraftValue" 
+                              ValueChanged="@((decimal? val) => UpdateDraft(context.EnvelopeId, monthKey, val))"
+                              Format="C2"
+                              HideSpinButtons="true"
+                              Immediate="false"
+                              DebounceInterval="500"
+                              Class="draft-input-right"
+                              Variant="Variant.Text"
+                              Margin="Margin.Dense" />
+            }
+          </MudTd>
+        }
+      </RowTemplate>
+    </MudTable>
+  }
+</MudContainer>
+
+@code {
+  // Code-behind in Budget.razor.cs
+}

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Budget.DB.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialLoad : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -123,6 +123,21 @@ namespace Budget.DB.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BudgetMonths",
+                schema: "budget",
+                columns: table => new
+                {
+                    AcctPeriod = table.Column<int>(type: "int", nullable: false),
+                    EnvelopeId = table.Column<int>(type: "int", nullable: false),
+                    Budget = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    BudgetDraft = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BudgetMonths", x => new { x.AcctPeriod, x.EnvelopeId });
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Envelopes",
                 schema: "budget",
                 columns: table => new
@@ -201,7 +216,8 @@ namespace Budget.DB.Migrations
                     { -1, 1, "", "System", 0 },
                     { 1, 0, "", "Frequent", 1 },
                     { 2, 0, "", "Regular", 2 },
-                    { 3, 0, "", "Infrequent", 3 }
+                    { 3, 0, "", "Infrequent", 3 },
+                    { 4, 2, "", "Income", 4 }
                 });
 
             migrationBuilder.InsertData(
@@ -267,6 +283,12 @@ namespace Budget.DB.Migrations
                 column: "LastTransactionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_BudgetMonths_EnvelopeId",
+                schema: "budget",
+                table: "BudgetMonths",
+                column: "EnvelopeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Envelopes_CategoryId",
                 schema: "budget",
                 table: "Envelopes",
@@ -313,6 +335,16 @@ namespace Budget.DB.Migrations
                 onDelete: ReferentialAction.SetNull);
 
             migrationBuilder.AddForeignKey(
+                name: "FK_BudgetMonths_Envelopes_EnvelopeId",
+                schema: "budget",
+                table: "BudgetMonths",
+                column: "EnvelopeId",
+                principalSchema: "budget",
+                principalTable: "Envelopes",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_Envelopes_TransactionDetails_LastTransactionId_LastTransactionLineId",
                 schema: "budget",
                 table: "Envelopes",
@@ -337,14 +369,13 @@ namespace Budget.DB.Migrations
                 table: "TransactionDetails");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_Envelopes_Categories_CategoryId",
+                name: "FK_TransactionDetails_Envelopes_EnvelopeId",
                 schema: "budget",
-                table: "Envelopes");
+                table: "TransactionDetails");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Envelopes_TransactionDetails_LastTransactionId_LastTransactionLineId",
-                schema: "budget",
-                table: "Envelopes");
+            migrationBuilder.DropTable(
+                name: "BudgetMonths",
+                schema: "budget");
 
             migrationBuilder.DropTable(
                 name: "Favorites",
@@ -363,15 +394,15 @@ namespace Budget.DB.Migrations
                 schema: "budget");
 
             migrationBuilder.DropTable(
+                name: "Envelopes",
+                schema: "budget");
+
+            migrationBuilder.DropTable(
                 name: "Categories",
                 schema: "budget");
 
             migrationBuilder.DropTable(
                 name: "TransactionDetails",
-                schema: "budget");
-
-            migrationBuilder.DropTable(
-                name: "Envelopes",
                 schema: "budget");
         }
     }

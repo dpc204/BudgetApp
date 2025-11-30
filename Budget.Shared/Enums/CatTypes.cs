@@ -3,6 +3,7 @@
   public enum CatTypes
   {
     User,
-    System
+    System,
+    Income
   }
 }

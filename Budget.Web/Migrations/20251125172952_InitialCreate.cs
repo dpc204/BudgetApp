@@ -6,13 +6,17 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Budget.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class initialcreate : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "BudgetIdentity");
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
+                schema: "BudgetIdentity",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -27,9 +31,11 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUsers",
+                schema: "BudgetIdentity",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserInitials = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -52,6 +58,7 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
+                schema: "BudgetIdentity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -66,6 +73,7 @@ namespace Budget.Web.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
+                        principalSchema: "BudgetIdentity",
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -73,6 +81,7 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
+                schema: "BudgetIdentity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -87,6 +96,7 @@ namespace Budget.Web.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserClaims_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "BudgetIdentity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -94,6 +104,7 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserLogins",
+                schema: "BudgetIdentity",
                 columns: table => new
                 {
                     LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -107,6 +118,7 @@ namespace Budget.Web.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserLogins_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "BudgetIdentity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -114,6 +126,7 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserRoles",
+                schema: "BudgetIdentity",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -125,12 +138,14 @@ namespace Budget.Web.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
                         column: x => x.RoleId,
+                        principalSchema: "BudgetIdentity",
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "BudgetIdentity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -138,6 +153,7 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserTokens",
+                schema: "BudgetIdentity",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -151,6 +167,7 @@ namespace Budget.Web.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "BudgetIdentity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -158,11 +175,13 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
+                schema: "BudgetIdentity",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
+                schema: "BudgetIdentity",
                 table: "AspNetRoles",
                 column: "NormalizedName",
                 unique: true,
@@ -170,26 +189,31 @@ namespace Budget.Web.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
+                schema: "BudgetIdentity",
                 table: "AspNetUserClaims",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserLogins_UserId",
+                schema: "BudgetIdentity",
                 table: "AspNetUserLogins",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserRoles_RoleId",
+                schema: "BudgetIdentity",
                 table: "AspNetUserRoles",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
+                schema: "BudgetIdentity",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
+                schema: "BudgetIdentity",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true,
@@ -200,25 +224,32 @@ namespace Budget.Web.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AspNetRoleClaims");
+                name: "AspNetRoleClaims",
+                schema: "BudgetIdentity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserClaims");
+                name: "AspNetUserClaims",
+                schema: "BudgetIdentity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserLogins");
+                name: "AspNetUserLogins",
+                schema: "BudgetIdentity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserRoles");
+                name: "AspNetUserRoles",
+                schema: "BudgetIdentity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserTokens");
+                name: "AspNetUserTokens",
+                schema: "BudgetIdentity");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
+                name: "AspNetRoles",
+                schema: "BudgetIdentity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "AspNetUsers",
+                schema: "BudgetIdentity");
         }
     }
 }

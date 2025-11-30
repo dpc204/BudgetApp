@@ -1,4 +1,4 @@
-DECLARE @Owner NVARCHAR(128) = 'budget'; -- Replace with the specific owner name
+DECLARE @Owner NVARCHAR(128) = 'BudgetIdentity'; -- Replace with the specific owner name
 DECLARE @sql NVARCHAR(MAX);
 
 -- Step 1: Drop Foreign Key Constraints

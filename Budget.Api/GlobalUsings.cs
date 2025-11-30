@@ -11,6 +11,7 @@ global using Budget.Api.Features.Authentication;
 global using Budget.Api.Features.Envelopes;
 global using Budget.DB;
 global using Budget.Shared;
+global using Budget.Shared.Enums;
 global using Budget.Shared.Models;
 global using Budget.Shared.Services;
 global using Carter;

@@ -18,7 +18,7 @@ namespace Budget.DB.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("budget")
-                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -74,6 +74,29 @@ namespace Budget.DB.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Budget.DB.BudgetMonth", b =>
+                {
+                    b.Property<int>("AcctPeriod")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EnvelopeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Budget")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("BudgetDraft")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("AcctPeriod", "EnvelopeId");
+
+                    b.HasIndex("EnvelopeId");
+
+                    b.ToTable("BudgetMonths", "budget");
+                });
+
             modelBuilder.Entity("Budget.DB.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -126,6 +149,14 @@ namespace Budget.DB.Migrations
                             Description = "",
                             Name = "Infrequent",
                             SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CategoryType = 2,
+                            Description = "",
+                            Name = "Income",
+                            SortOrder = 4
                         },
                         new
                         {
@@ -553,6 +584,17 @@ namespace Budget.DB.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("LastTransaction");
+                });
+
+            modelBuilder.Entity("Budget.DB.BudgetMonth", b =>
+                {
+                    b.HasOne("Budget.DB.Envelope", "Envelope")
+                        .WithMany()
+                        .HasForeignKey("EnvelopeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Envelope");
                 });
 
             modelBuilder.Entity("Budget.DB.Envelope", b =>

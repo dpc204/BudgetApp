@@ -15,7 +15,7 @@ goto run
 set LocalBudgetConnection=Data Source=fantumsqlserver.database.windows.net;Database=BudgetDB;User ID=dpc;Password=Fred1$HugoMarisaConnelly;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30
 
 :run
-dotnet ef  database update   --project Budget.DB   --startup-project Budget.Web   --context Budget.DB.BudgetContext
+dotnet ef  database update   --project Budget.DB   --startup-project Budget.Web   --context Budget.DB.BudgetContext -v --connection "%LocalBudgetConnection%"
 
 
 :eof
