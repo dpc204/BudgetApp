@@ -46,14 +46,21 @@
 
     <MudTable Items="@_displayRows" Dense="true" Hover="true" Striped="true">
       <HeaderContent>
-        <MudTh>Envelope</MudTh>
-        @for (int i = 0; i < MonthsToShow; i++)
-        {
-          var monthIndex = _currentScrollPosition + i;
-          var monthName = _displayMonths[monthIndex].ToString("MMM yyyy");
-          <MudTh Style="text-align: right;">@monthName Budget</MudTh>
-          <MudTh Style="text-align: right;">@monthName Draft</MudTh>
-        }
+        <MudTHeadRow>
+          <MudTh rowspan="2" Style="vertical-align: bottom;">Envelope</MudTh>
+          @for (int i = 0; i < MonthsToShow; i++)
+          {
+            var monthIndex = _currentScrollPosition + i;
+            <MudTh colspan="2" Style="text-align: center;">@_displayMonths[monthIndex].ToString("MMM yyyy")</MudTh>
+          }
+        </MudTHeadRow>
+        <MudTHeadRow>
+          @for (int i = 0; i < MonthsToShow; i++)
+          {
+            <MudTh Style="text-align: right; font-size: 0.85em;">Budget</MudTh>
+            <MudTh Style="text-align: right; font-size: 0.85em;">Draft</MudTh>
+          }
+        </MudTHeadRow>
       </HeaderContent>
       <RowTemplate>
         <MudTd DataLabel="Envelope">
