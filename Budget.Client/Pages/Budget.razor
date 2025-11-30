@@ -44,23 +44,23 @@
       </MudStack>
     </MudPaper>
 
-    <MudTable Items="@_displayRows" Dense="true" Hover="true" Striped="true">
+    <MudTable Items="@_displayRows" Dense="true" Hover="true" Striped="true" CustomHeader="true">
       <HeaderContent>
-        <MudTHeadRow>
-          <MudTh rowspan="2" Style="vertical-align: bottom;">Envelope</MudTh>
+        <tr>
+          <th rowspan="2" style="vertical-align: bottom; padding: 8px;">Envelope</th>
           @for (int i = 0; i < MonthsToShow; i++)
           {
             var monthIndex = _currentScrollPosition + i;
-            <MudTh colspan="2" Style="text-align: center;">@_displayMonths[monthIndex].ToString("MMM yyyy")</MudTh>
+            <th colspan="2" style="text-align: center; padding: 8px;">@_displayMonths[monthIndex].ToString("MMM yyyy")</th>
           }
-        </MudTHeadRow>
-        <MudTHeadRow>
+        </tr>
+        <tr>
           @for (int i = 0; i < MonthsToShow; i++)
           {
-            <MudTh Style="text-align: right; font-size: 0.85em;">Budget</MudTh>
-            <MudTh Style="text-align: right; font-size: 0.85em;">Draft</MudTh>
+            <th style="text-align: right; font-size: 0.85em; padding: 8px;">Budget</th>
+            <th style="text-align: right; font-size: 0.85em; padding: 8px;">Draft</th>
           }
-        </MudTHeadRow>
+        </tr>
       </HeaderContent>
       <RowTemplate>
         <MudTd DataLabel="Envelope">
