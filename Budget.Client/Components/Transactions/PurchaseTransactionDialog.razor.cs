@@ -7,6 +7,7 @@ public partial class PurchaseTransactionDialog
 {
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
   [Parameter] public int InitialEnvelopeId { get; set; }
+  [Parameter] public OneTransactionDetail? ExistingTransaction { get; set; }
   private MudForm? _form;
   private PurchaseHeader _header = new();
   private readonly List<TransactionDto> _lines = new();
@@ -44,7 +45,28 @@ public partial class PurchaseTransactionDialog
       _header.AccountId = Accounts.Min(e => e.Id);
     }
 
-    if (!_lines.Any())
+    // If editing an existing transaction, pre-populate the form
+    if (ExistingTransaction is not null)
+    {
+      _header.AccountId = ExistingTransaction.AccountId;
+      _header.Vendor = ExistingTransaction.Vendor;
+      _header.Date = ExistingTransaction.Date;
+      _header.TotalAmount = ExistingTransaction.TotalAmount;
+
+      foreach (var detail in ExistingTransaction.Details)
+      {
+        _lines.Add(new TransactionDto
+        {
+          TransactionId = detail.TransactionId,
+          LineId = detail.LineId,
+          EnvelopeId = detail.EnvelopeId,
+          Amount = detail.Amount,
+          Description = detail.Description
+        });
+      }
+      Recalc();
+    }
+    else if (!_lines.Any())
     {
       _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
       Recalc();
