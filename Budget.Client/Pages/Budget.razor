@@ -4,6 +4,15 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
+<style>
+  .draft-input-right {
+    width: 100px;
+  }
+  .draft-input-right input {
+    text-align: right !important;
+  }
+</style>
+
 <PageTitle>Budget</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
@@ -106,7 +115,7 @@
                               HideSpinButtons="true"
                               Immediate="false"
                               DebounceInterval="500"
-                              Style="width: 100px; text-align: right;"
+                              Class="draft-input-right"
                               Variant="Variant.Text"
                               Margin="Margin.Dense" />
             }
