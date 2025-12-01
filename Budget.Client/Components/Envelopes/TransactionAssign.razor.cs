@@ -36,14 +36,7 @@ public partial class TransactionAssign : ComponentBase
   {
     try
     {
-      var isPrerendering = JSRuntime is IJSInProcessRuntime == false;
-
-      if(!isPrerendering)
-      {
-        // Load envelope state first
-        await State.EnsureLoadedAsync();
-      }
- 
+      State.RefreshAsync();
 
       // Convert State.AllEnvelopeData to EnvelopeIdName list
       _availableEnvelopes =

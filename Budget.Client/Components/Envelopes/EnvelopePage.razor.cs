@@ -44,17 +44,11 @@ public partial class EnvelopePage : ComponentBase
 
   protected override async Task OnInitializedAsync()
   {
-    var runtimeType = JSRuntime.GetType().Name;
-    if (Logger.IsEnabled(LogLevel.Information))
-    {
-      Logger.LogInformation("EnvelopePage.OnInitializedAsync - Runtime: {Runtime}", runtimeType);
-    }
 
-    Console.WriteLine($"EnvelopePage running on: {runtimeType}");
 
     try
     {
-      await State.EnsureLoadedAsync();
+      await State.RefreshAsync();
 
       // Ensure selection class applied on first render when an item is already selected
       await InvokeAsync(StateHasChanged);
@@ -74,16 +68,10 @@ public partial class EnvelopePage : ComponentBase
     if (firstRender && !_afterRenderInit)
     {
       _afterRenderInit = true;
-      var runtimeType = JSRuntime.GetType().Name;
-      if (Logger.IsEnabled(LogLevel.Information))
-      {
-        Logger.LogInformation("EnvelopePage.OnAfterRenderAsync - Runtime: {Runtime}", runtimeType);
-      }
-
-      Console.WriteLine($"OnAfterRenderAsync running on: {runtimeType}");
 
       try
       {
+
         await State.TryLoadFromCacheAsync();
         if (!State.IsLoaded)
         {

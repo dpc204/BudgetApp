@@ -88,7 +88,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
       AllEnvelopeData ??= [];
     }
 
-    await SaveAsync();
+ 
   }
 
   public async Task SaveAsync()
