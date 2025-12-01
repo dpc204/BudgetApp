@@ -9,6 +9,7 @@ public static class GetOneTransactionDetail
   public sealed class Response
   {
     public int Id { get; set; }
+    public int AccountId { get; set; }
     public DateTime Date { get; set; }
     public string Vendor { get; set; }
       
@@ -31,6 +32,7 @@ public static class GetOneTransactionDetail
         .Select(t => new Response
         {
           Id = t.Id,
+          AccountId = t.AccountId,
           Date = t.Date,
           Vendor = t.Vendor,
           TotalAmount = t.TotalAmount,
