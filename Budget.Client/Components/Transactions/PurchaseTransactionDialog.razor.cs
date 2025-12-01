@@ -15,6 +15,11 @@ public partial class PurchaseTransactionDialog
   private List<BankAccountDto> Accounts = new();
 
   /// <summary>
+  /// Stores the transaction ID when editing
+  /// </summary>
+  private int _transactionId = 0;
+
+  /// <summary>
   /// Returns true if editing an existing transaction, false if adding new
   /// </summary>
   private bool IsEditMode => ExistingTransaction is not null;
@@ -58,6 +63,7 @@ public partial class PurchaseTransactionDialog
     // If editing an existing transaction, pre-populate the form
     if (ExistingTransaction is not null)
     {
+      _transactionId = ExistingTransaction.Id; // Store the transaction ID
       _header.AccountId = ExistingTransaction.AccountId;
       _header.Vendor = ExistingTransaction.Vendor;
       _header.Date = ExistingTransaction.Date;
@@ -145,7 +151,7 @@ public partial class PurchaseTransactionDialog
 
     var result = new OneTransactionDetail()
     {
-      Id = ExistingTransaction?.Id ?? 0, // Preserve ID for updates
+      Id = _transactionId, // Use stored transaction ID for updates
       AccountId = _header.AccountId,
       Vendor = _header.Vendor.Trim(),
       Date = _header.Date.Date,
