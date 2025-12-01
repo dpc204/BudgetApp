@@ -14,6 +14,16 @@ public partial class PurchaseTransactionDialog
   private List<EnvelopeDto> Envelopes = new();
   private List<BankAccountDto> Accounts = new();
 
+  /// <summary>
+  /// Returns true if editing an existing transaction, false if adding new
+  /// </summary>
+  private bool IsEditMode => ExistingTransaction is not null;
+
+  /// <summary>
+  /// Button text changes based on whether we're adding or updating
+  /// </summary>
+  private string SaveButtonText => IsEditMode ? "Update Transaction" : "Add Transaction";
+
   private bool IsSaveDisabled =>
     string.IsNullOrWhiteSpace(_header.Vendor) ||
     _header.Vendor.Length > 100 ||
@@ -135,6 +145,7 @@ public partial class PurchaseTransactionDialog
 
     var result = new OneTransactionDetail()
     {
+      Id = ExistingTransaction?.Id ?? 0, // Preserve ID for updates
       AccountId = _header.AccountId,
       Vendor = _header.Vendor.Trim(),
       Date = _header.Date.Date,
@@ -150,8 +161,16 @@ public partial class PurchaseTransactionDialog
       TotalAmount = _header.TotalAmount
     };
 
-    // Await the API call to ensure the transaction is persisted before closing the dialog
-    var envelopes = await BudgetApi.AddTransactionAsync(result);
+    // Call appropriate API based on whether we're adding or updating
+    List<EnvelopeDto> envelopes;
+    if (IsEditMode)
+    {
+      envelopes = await BudgetApi.UpdateTransactionAsync(result);
+    }
+    else
+    {
+      envelopes = await BudgetApi.AddTransactionAsync(result);
+    }
 
     // Pass the updated envelopes back to the caller (EnvelopePage)
     MudDialog.Close(DialogResult.Ok(envelopes));
