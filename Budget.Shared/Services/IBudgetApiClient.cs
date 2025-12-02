@@ -14,8 +14,7 @@ public interface IBudgetApiClient
   Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description, CancellationToken cancellationToken = default);
 
   Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default);
-  Task<UserInfoDto?> GetCurrentUserInfoAsync(CancellationToken cancellationToken = default);
-
+ 
   // Maintenance
   Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default);
 }

@@ -38,7 +38,6 @@ public partial class PurchaseTransactionDialog
 
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   private MudTextField<string>? _vendorField;
-  UserInfoDto _currentUser = new();
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -86,12 +85,7 @@ public partial class PurchaseTransactionDialog
       Recalc();
     }
 
-    var user = await Api.GetCurrentUserInfoAsync();
-    if (user == null)
-      throw new Exception("User not found.  Only logged in users should be at this point");
 
-
-    _currentUser = user ?? new UserInfoDto();
   }
 
 
@@ -149,6 +143,9 @@ public partial class PurchaseTransactionDialog
   {
     if (IsSaveDisabled) return;
 
+
+
+
     var result = new OneTransactionDetail()
     {
       Id = _transactionId, // Use stored transaction ID for updates
@@ -156,7 +153,7 @@ public partial class PurchaseTransactionDialog
       Vendor = _header.Vendor.Trim(),
       Date = _header.Date.Date,
       UserId = 1,
-      UserName = _currentUser.Email,
+      UserName = UserOptions.User.Email,
       Details = _lines.Select((l, i) => new TransactionDto()
       {
         LineId = i + 1,

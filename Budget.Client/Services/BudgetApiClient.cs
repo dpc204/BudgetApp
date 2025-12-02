@@ -38,8 +38,6 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   public async Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
     => await GetListAsync<BankAccountDto>($"accounts/maint/getall", cancellationToken);
 
-  public async Task<UserInfoDto?> GetCurrentUserInfoAsync(CancellationToken cancellationToken = default)
-    => await http.GetFromJsonAsync<UserInfoDto>("api/auth/userinfo", cancellationToken);
 
   public async Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default)
   {
