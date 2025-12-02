@@ -5,9 +5,9 @@ namespace Budget.Api.Features.BudgetMonths;
 /// </summary>
 public static class CopyBudgetToNextMonth
 {
-  public sealed record Command(int SourceAcctPeriod, bool CopyFromDraft) : IRequest<Response>;
+  public sealed record Command(int SourceAcctPeriod, bool CopyFromDraft, bool ConfirmOverwrite = false) : IRequest<Response>;
   
-  public sealed record Response(bool Success, string Message, int RecordsUpdated, bool HasOverwrittenData);
+  public sealed record Response(bool Success, string Message, int RecordsUpdated, bool WouldOverwriteData);
 
   /// <summary>
   /// Handles copying budget data to the next month
@@ -23,17 +23,23 @@ public static class CopyBudgetToNextMonth
       var targetDate = sourceDate.AddMonths(1);
       var targetAcctPeriod = targetDate.Year * 100 + targetDate.Month;
 
+      // Check if target month has any draft data
+      var targetDrafts = await db.BudgetMonths
+        .AsNoTracking()
+        .Where(b => b.AcctPeriod == targetAcctPeriod && b.BudgetDraft != null)
+        .AnyAsync(cancellationToken);
+
+      // If there's data to overwrite and user hasn't confirmed, return warning
+      if (targetDrafts && !request.ConfirmOverwrite)
+      {
+        return new Response(false, "Target month has draft data that would be overwritten", 0, true);
+      }
+
       // Get all source month data
       var sourceData = await db.BudgetMonths
         .AsNoTracking()
         .Where(b => b.AcctPeriod == request.SourceAcctPeriod)
         .ToListAsync(cancellationToken);
-
-      // Check if target month has any draft data (for confirmation)
-      var targetDrafts = await db.BudgetMonths
-        .AsNoTracking()
-        .Where(b => b.AcctPeriod == targetAcctPeriod && b.BudgetDraft != null)
-        .AnyAsync(cancellationToken);
 
       // Get existing target month data
       var existingTargetData = await db.BudgetMonths
@@ -81,7 +87,7 @@ public static class CopyBudgetToNextMonth
         ? $"Copied {recordsUpdated} draft values to next month"
         : $"Copied {recordsUpdated} budget values to next month";
 
-      return new Response(true, message, recordsUpdated, targetDrafts);
+      return new Response(true, message, recordsUpdated, false);
     }
   }
 

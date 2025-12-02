@@ -348,15 +348,13 @@ public partial class Budget : ComponentBase
     try
     {
       var sourceMonth = _displayMonths[monthIndex];
-      var targetMonth = sourceMonth.AddMonths(1);
       var sourceAcctPeriod = AcctPeriodHelper.DateToAcctPeriod(sourceMonth);
 
-      // Check if target month has draft data
-      var targetMonthData = await BudgetMonthlyApi.GetBudgetMonthAsync(targetMonth.Year, targetMonth.Month);
-      var hasTargetDrafts = targetMonthData.Any(m => m.BudgetDraft.HasValue);
-
-      // Show confirmation if there's data to overwrite
-      if (hasTargetDrafts)
+      // First attempt the copy (API will check for existing drafts)
+      var response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft);
+      
+      // If there's data to overwrite, show confirmation
+      if (!response.Success && response.WouldOverwriteData)
       {
         var parameters = new DialogParameters
         {
@@ -372,16 +370,19 @@ public partial class Budget : ComponentBase
         {
           return;
         }
+
+        // User confirmed, perform the copy with confirmation flag
+        response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft, confirmOverwrite: true);
       }
 
-      // Perform the copy operation
-      var response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft);
-      
-      if (response.Success)
+      if (!response.Success)
       {
-        Snackbar.Add(response.Message, Severity.Success);
-        await LoadBudgetData();
+        Snackbar.Add($"Error: {response.Message}", Severity.Error);
+        return;
       }
+
+      Snackbar.Add(response.Message, Severity.Success);
+      await LoadBudgetData();
     }
     catch (Exception ex)
     {

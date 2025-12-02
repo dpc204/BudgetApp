@@ -81,7 +81,12 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
 
   public async Task<CopyBudgetToNextMonthResponse> CopyBudgetToNextMonthAsync(int sourceAcctPeriod, bool copyFromDraft, CancellationToken cancellationToken = default)
   {
-    var command = new { SourceAcctPeriod = sourceAcctPeriod, CopyFromDraft = copyFromDraft };
+    return await CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft, false, cancellationToken);
+  }
+
+  public async Task<CopyBudgetToNextMonthResponse> CopyBudgetToNextMonthAsync(int sourceAcctPeriod, bool copyFromDraft, bool confirmOverwrite, CancellationToken cancellationToken = default)
+  {
+    var command = new { SourceAcctPeriod = sourceAcctPeriod, CopyFromDraft = copyFromDraft, ConfirmOverwrite = confirmOverwrite };
     
     using var response = await http.PostAsJsonAsync("budgetmonths/copytonextmonth", command, cancellationToken);
     response.EnsureSuccessStatusCode();

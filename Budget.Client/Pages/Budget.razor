@@ -66,7 +66,11 @@
                 <span>@_displayMonths[monthIndex].ToString("MMM yyyy")</span>
                 @if (!isLastVisible)
                 {
-                  <MudMenu Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" Dense="true" AnchorOrigin="Origin.BottomCenter">
+                  <MudMenu Icon="@Icons.Material.Filled.ArrowForward" 
+                           Size="Size.Small" 
+                           Dense="true" 
+                           AnchorOrigin="Origin.BottomCenter"
+                           AriaLabel="Copy budget to next month options">
                     <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, true))">Copy Draft to Next Month</MudMenuItem>
                     <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, false))">Copy Budget to Next Month</MudMenuItem>
                   </MudMenu>
