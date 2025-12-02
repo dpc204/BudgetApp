@@ -114,7 +114,7 @@
 </MudDataGrid>
 
 <MudStack Row="true" Spacing="2" Class="mt-4" Justify="Justify.FlexEnd">
-  <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelChangesAsync" Disabled="@(!HasPendingChanges || Busy)">Cancel</MudButton>
+  <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelChanges" Disabled="@(!HasPendingChanges || Busy)">Cancel</MudButton>
   <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="UpdateChangesAsync" Disabled="@(!HasPendingChanges || Busy)">Update</MudButton>
 </MudStack>
 
@@ -139,36 +139,52 @@
     var categories = await MaintApi.GetCategoriesAsync();
     _categoryLookup = categories.ToDictionary(c => c.Id, c => c.Name);
     _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
-    _originalEnvelopes = _envelopes.Select(e => new EnvelopeDto 
-    { 
-      Id = e.Id, 
-      CategoryId = e.CategoryId, 
-      Name = e.Name, 
-      Budget = e.Budget, 
-      Balance = e.Balance, 
-      Description = e.Description, 
-      SortOrder = e.SortOrder 
-    }).ToList();
+    _originalEnvelopes = _envelopes.Select(CloneEnvelope).ToList();
     _changedEnvelopeIds.Clear();
   }
 
+  private static EnvelopeDto CloneEnvelope(EnvelopeDto e) => new()
+  { 
+    Id = e.Id, 
+    CategoryId = e.CategoryId, 
+    Name = e.Name, 
+    Budget = e.Budget, 
+    Balance = e.Balance, 
+    Description = e.Description, 
+    SortOrder = e.SortOrder 
+  };
+
   private string GetCategoryName(int id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
+
+  private void MarkAsChanged(EnvelopeDto item) => _changedEnvelopeIds.Add(item.Id);
 
   private void OnCategoryChanged(EnvelopeDto item, int newCategoryId)
   {
     item.CategoryId = newCategoryId;
-    _changedEnvelopeIds.Add(item.Id);
+    MarkAsChanged(item);
   }
 
   private void OnNameChanged(EnvelopeDto item, string newName)
   {
     item.Name = newName;
-    _changedEnvelopeIds.Add(item.Id);
+    MarkAsChanged(item);
   }
 
-  private async Task CancelChangesAsync()
+  private void CancelChanges()
   {
-    await LoadAsync();
+    if (_originalEnvelopes is null || _envelopes is null) return;
+    
+    foreach (var changedId in _changedEnvelopeIds)
+    {
+      var original = _originalEnvelopes.FirstOrDefault(e => e.Id == changedId);
+      var current = _envelopes.FirstOrDefault(e => e.Id == changedId);
+      if (original is not null && current is not null)
+      {
+        current.CategoryId = original.CategoryId;
+        current.Name = original.Name;
+      }
+    }
+    _changedEnvelopeIds.Clear();
   }
 
   private async Task UpdateChangesAsync()
