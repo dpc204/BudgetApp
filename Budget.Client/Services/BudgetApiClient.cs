@@ -92,6 +92,26 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     }
   }
 
+  public async Task<List<EnvelopeDto>> UpdateTransactionAsync(OneTransactionDetail transaction,
+    CancellationToken cancellationToken = default)
+  {
+    var payload = new { Trans = transaction };
+
+    using var resp = await http.PutAsJsonAsync("/Transaction/Update", payload, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+
+    try
+    {
+      var envelopes = await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
+      return envelopes ?? [];
+    }
+    catch (Exception ex)
+    {
+      logger.LogDebug(ex, "No response body or invalid JSON for UpdateTransaction at {Url}", "/Transaction/Update");
+      return [];
+    }
+  }
+
   public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description, CancellationToken cancellationToken = default)
   {
     var payload = new { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Description = description };
