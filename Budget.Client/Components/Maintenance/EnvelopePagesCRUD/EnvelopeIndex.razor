@@ -45,7 +45,8 @@
   }
 </MudStack>
 
-<MudDataGrid Items="@_envelopes"
+<MudDataGrid T="EnvelopeDto"
+             Items="@_envelopes"
              Hover="true"
              Dense="true"
              FixedHeader="true"
@@ -55,14 +56,12 @@
   <Columns>
     <PropertyColumn Property="x => x.Id" Title="Env. Id" Editable="false" />
 
-
-    <!-- Make this column editable and provide an EditTemplate with a MudSelect bound to the current row's CategoryId -->
-    <TemplateColumn Title="Category" Editable="true">
+    <TemplateColumn T="EnvelopeDto" Title="Category" Editable="true">
       <CellTemplate Context="ctx">
         @_categoryLookup.GetValueOrDefault(ctx.Item.CategoryId)
       </CellTemplate>
       <EditTemplate Context="ctx">
-        <MudSelect T="int" @bind-Value="ctx.Item.CategoryId" Dense="true">
+        <MudSelect T="int" Value="ctx.Item.CategoryId" ValueChanged="@((int val) => OnCategoryChanged(ctx.Item, val))" Dense="true">
           @foreach (var c in _categoryLookup)
           {
             <MudSelectItem Value="@c.Key">@c.Value</MudSelectItem>
@@ -71,68 +70,61 @@
       </EditTemplate>
     </TemplateColumn>
 
-    <PropertyColumn Property="x => x.Name" Title="Envelope"  HeaderStyle="min-width:16rem;"/>
+    <TemplateColumn T="EnvelopeDto" Title="Envelope" HeaderStyle="min-width:16rem;" Editable="true">
+      <CellTemplate Context="ctx">
+        @ctx.Item.Name
+      </CellTemplate>
+      <EditTemplate Context="ctx">
+        <MudTextField T="string" Value="ctx.Item.Name" ValueChanged="@((string val) => OnNameChanged(ctx.Item, val))" Dense="true" />
+      </EditTemplate>
+    </TemplateColumn>
    
-    <TemplateColumn Title="Balancex"
-                    TitleClass="text-end"
-                    CellClass="text-end">
+    <TemplateColumn T="EnvelopeDto" Title="Balance"
+                    CellClass="text-end"
+                    HeaderStyle="text-align: right;"
+                    CellStyle="text-align: right;"
+                    Editable="false">
       <CellTemplate Context="ctx">
         @ctx.Item.Balance.ToString("C2")
       </CellTemplate>
-      <EditTemplate Context="ctx">
-        <FDNumericInput T="decimal" @bind-Value="ctx.Item.Balance" Format="C2" Step="0.01M" HideSpinButtons="true" InputMode="InputMode.numeric" Class="text-end"/>
-      </EditTemplate>
     </TemplateColumn>
-    <TemplateColumn Title="Budget"
-                    TitleClass="text-end"
+    
+    <TemplateColumn T="EnvelopeDto" Title="Budget"
                     CellClass="text-end"
                     HeaderStyle="text-align: right;"
-                    CellStyle="text-align: right;">
+                    CellStyle="text-align: right;"
+                    Editable="false">
       <CellTemplate Context="ctx">
         @ctx.Item.Budget.ToString("N2")
       </CellTemplate>
     </TemplateColumn>
 
+    <TemplateColumn T="EnvelopeDto" Title="" CellStyle="width: 50px;" Editable="false">
+      <CellTemplate Context="ctx">
+        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                       Size="Size.Small"
+                       Color="Color.Error"
+                       OnClick="@(() => BeginDeleteAsync(ctx.Item))" />
+      </CellTemplate>
+    </TemplateColumn>
   </Columns>
-</MudDataGrid>
-<br/>
-<br/>
-
-<MudTable Items="_envelopes" Hover="true" Dense="true" Class="mt-2" Elevation="0">
-  <HeaderContent>
-    <MudTh>Id</MudTh>
-    <MudTh>Category</MudTh>
-    <MudTh>Name</MudTh>
-    <MudTh>Budget</MudTh>
-    <MudTh>Balance</MudTh>
-    <MudTh>Description</MudTh>
-    <MudTh>Sort</MudTh>
-    <MudTh style="width:240px;"></MudTh>
-  </HeaderContent>
-  <RowTemplate>
-    <MudTd DataLabel="Id">@context.Id</MudTd>
-    <MudTd DataLabel="Category">@GetCategoryName(context.CategoryId)</MudTd>
-    <MudTd DataLabel="Name">@context.Name</MudTd>
-    <MudTd DataLabel="Budget">@context.Budget</MudTd>
-    <MudTd DataLabel="Balance">@context.Balance</MudTd>
-    <MudTd DataLabel="Description">@context.Description</MudTd>
-    <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
-    <MudTd Class="d-flex gap-1 justify-end">
-      <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>
-      <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.Id)">Details</MudButton>
-      <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.Id)">Delete</MudButton>
-    </MudTd>
-  </RowTemplate>
   <NoRecordsContent>
     <MudText Class="pa-4" Color="Color.Secondary">No envelopes</MudText>
   </NoRecordsContent>
-</MudTable>
+</MudDataGrid>
 
+<MudStack Row="true" Spacing="2" Class="mt-4" Justify="Justify.FlexEnd">
+  <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelChanges" Disabled="@(!HasPendingChanges || Busy)">Cancel</MudButton>
+  <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="UpdateChangesAsync" Disabled="@(!HasPendingChanges || Busy)">Update</MudButton>
+</MudStack>
 
 @code {
   private List<EnvelopeDto>? _envelopes;
+  private List<EnvelopeDto>? _originalEnvelopes;
   private Dictionary<int, string> _categoryLookup = new();
-  private string columnName => $"cat count {_categoryLookup.Count}";
+  private HashSet<int> _changedEnvelopeIds = new();
+  
+  private bool HasPendingChanges => _changedEnvelopeIds.Count > 0;
 
   protected bool Busy { get; set; }
   protected string Status { get; set; } = string.Empty;
@@ -147,43 +139,131 @@
     var categories = await MaintApi.GetCategoriesAsync();
     _categoryLookup = categories.ToDictionary(c => c.Id, c => c.Name);
     _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
+    _originalEnvelopes = _envelopes.Select(CloneEnvelope).ToList();
+    _changedEnvelopeIds.Clear();
   }
 
+  private static EnvelopeDto CloneEnvelope(EnvelopeDto e) => new()
+  { 
+    Id = e.Id, 
+    CategoryId = e.CategoryId, 
+    Name = e.Name, 
+    Budget = e.Budget, 
+    Balance = e.Balance, 
+    Description = e.Description, 
+    SortOrder = e.SortOrder 
+  };
+
   private string GetCategoryName(int id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
+
+  private void MarkAsChanged(EnvelopeDto item) => _changedEnvelopeIds.Add(item.Id);
+
+  private void OnCategoryChanged(EnvelopeDto item, int newCategoryId)
+  {
+    item.CategoryId = newCategoryId;
+    MarkAsChanged(item);
+  }
+
+  private void OnNameChanged(EnvelopeDto item, string newName)
+  {
+    item.Name = newName;
+    MarkAsChanged(item);
+  }
+
+  private void CancelChanges()
+  {
+    if (_originalEnvelopes is null || _envelopes is null) return;
+    
+    foreach (var changedId in _changedEnvelopeIds)
+    {
+      var original = _originalEnvelopes.FirstOrDefault(e => e.Id == changedId);
+      var current = _envelopes.FirstOrDefault(e => e.Id == changedId);
+      if (original is not null && current is not null)
+      {
+        current.CategoryId = original.CategoryId;
+        current.Name = original.Name;
+      }
+    }
+    _changedEnvelopeIds.Clear();
+  }
+
+  private async Task UpdateChangesAsync()
+  {
+    if (_envelopes is null) return;
+    
+    Busy = true;
+    try
+    {
+      var changedEnvelopes = _envelopes.Where(e => _changedEnvelopeIds.Contains(e.Id)).ToList();
+      foreach (var envelope in changedEnvelopes)
+      {
+        await MaintApi.UpdateAsync(envelope);
+      }
+      
+      Snackbar.Add($"Successfully updated {changedEnvelopes.Count} envelope(s).", Severity.Success);
+      await LoadAsync();
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Update failed: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      Busy = false;
+    }
+  }
+
+  private async Task BeginDeleteAsync(EnvelopeDto envelope)
+  {
+    // Check if the envelope has associated transactions
+    var transactionCount = await MaintApi.GetEnvelopeTransactionCountAsync(envelope.Id);
+    
+    if (transactionCount > 0)
+    {
+      // Show error dialog - cannot delete envelope with transactions
+      var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseButton = true };
+      await DialogService.ShowMessageBox(
+        "Cannot Delete Envelope",
+        $"The envelope \"{envelope.Name}\" has {transactionCount} transaction(s) assigned to it and cannot be deleted. Please reassign or remove the transactions first.",
+        yesText: "OK");
+      return;
+    }
+    
+    // Show confirmation dialog
+    var confirmed = await DialogService.ShowMessageBox(
+      "Delete Envelope",
+      $"Are you sure you want to delete the envelope \"{envelope.Name}\"? This action cannot be undone.",
+      yesText: "Delete",
+      cancelText: "Cancel");
+    
+    if (confirmed == true)
+    {
+      try
+      {
+        var deleted = await MaintApi.RemoveEnvelopeAsync(envelope.Id);
+        if (deleted)
+        {
+          Snackbar.Add($"Envelope \"{envelope.Name}\" deleted successfully.", Severity.Success);
+          await LoadAsync();
+        }
+        else
+        {
+          Snackbar.Add($"Failed to delete envelope \"{envelope.Name}\".", Severity.Error);
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error);
+      }
+    }
+  }
 
   private async Task ShowCreate()
   {
     var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
     var dialogRef = await DialogService.ShowAsync<EnvelopeCreate>("Create Envelope", options);
     var result = await dialogRef.Result;
-    if (!result.Canceled)
-      await LoadAsync();
-  }
-
-  private async Task BeginEdit(int id)
-  {
-    var parameters = new DialogParameters { [nameof(EnvelopeEdit.Id)] = id };
-    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-    var dialogRef = await DialogService.ShowAsync<EnvelopeEdit>("Edit Envelope", parameters, options);
-    var result = await dialogRef.Result;
-    if (!result.Canceled)
-      await LoadAsync();
-  }
-
-  private async Task ViewDetails(int id)
-  {
-    var parameters = new DialogParameters { [nameof(EnvelopeDetails.Id)] = id };
-    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-    await DialogService.ShowAsync<EnvelopeDetails>("Envelope Details", parameters, options);
-  }
-
-  private async Task BeginDelete(int id)
-  {
-    var parameters = new DialogParameters { [nameof(EnvelopeDelete.Id)] = id };
-    var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };
-    var dialogRef = await DialogService.ShowAsync<EnvelopeDelete>("Delete Envelope", parameters, options);
-    var result = await dialogRef.Result;
-    if (!result.Canceled)
+    if (result is not null && !result.Canceled)
       await LoadAsync();
   }
 
