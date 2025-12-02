@@ -160,9 +160,37 @@ public partial class EnvelopePage : ComponentBase
     try
     {
       var detail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
-      var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
-      var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-      await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
+
+      if (UserOptions.IsAdminUser())
+      {
+        // Admin users can edit transactions via PurchaseTransactionDialog
+        var parameters = new DialogParameters { [nameof(PurchaseTransactionDialog.ExistingTransaction)] = detail };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<PurchaseTransactionDialog>("Edit Transaction", parameters, options);
+        var result = await dialog.Result;
+        if (!(result is { Canceled: true }))
+        {
+          // Refresh envelope data after potential edit
+          if (result?.Data is List<EnvelopeDto> envResult)
+          {
+            UpdateEnvelopeBalances(envResult);
+            ApplyCategorySelection();
+            await InvokeAsync(StateHasChanged);
+
+            if (SelectedEnvelope is not null)
+            {
+              await OnSelectedEnvelopeChangedAsync(SelectedEnvelope);
+            }
+          }
+        }
+      }
+      else
+      {
+        // Non-admin users see read-only ShowOneTransaction dialog
+        var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
+      }
     }
     catch (Exception ex)
     {

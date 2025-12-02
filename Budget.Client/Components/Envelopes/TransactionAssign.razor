@@ -68,7 +68,7 @@ else
                    Class="envelopes-table">
         <Columns >
           <SelectColumn T="TransactionDto" />
-          <TemplateColumn Title="Date" Editable="false" Sortable="true" SortBy="@(x => x.Date)">
+          <TemplateColumn Title="Date" Editable="false" Sortable="true" SortBy="@(x => x.Date)" InitialDirection="MudBlazor.SortDirection.Descending">
             <CellTemplate>@context.Item.Date.ToString("MM/dd/yy")</CellTemplate>
           </TemplateColumn>
           <TemplateColumn Title="Envelope" Sortable="true" SortBy="@(x => x.EnvelopeName)">
