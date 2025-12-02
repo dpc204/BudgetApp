@@ -31,6 +31,11 @@ public interface IBudgetMonthlyApiClient
   /// Applies all draft budget values to actual budget values
   /// </summary>
   Task<ApplyDraftsResponse> ApplyDraftBudgetsAsync(CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Copies budget or draft data from one month to the next month
+  /// </summary>
+  Task<CopyBudgetToNextMonthResponse> CopyBudgetToNextMonthAsync(int sourceAcctPeriod, bool copyFromDraft, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -66,3 +71,8 @@ public record ClearDraftsResponse(bool Success, string Message, int RecordsUpdat
 /// Response for ApplyDraftBudgets endpoint
 /// </summary>
 public record ApplyDraftsResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for CopyBudgetToNextMonth endpoint
+/// </summary>
+public record CopyBudgetToNextMonthResponse(bool Success, string Message, int RecordsUpdated, bool HasOverwrittenData);

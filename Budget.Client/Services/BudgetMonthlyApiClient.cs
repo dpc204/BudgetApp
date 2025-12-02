@@ -78,4 +78,22 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     
     return result;
   }
+
+  public async Task<CopyBudgetToNextMonthResponse> CopyBudgetToNextMonthAsync(int sourceAcctPeriod, bool copyFromDraft, CancellationToken cancellationToken = default)
+  {
+    var command = new { SourceAcctPeriod = sourceAcctPeriod, CopyFromDraft = copyFromDraft };
+    
+    using var response = await http.PostAsJsonAsync("budgetmonths/copytonextmonth", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<CopyBudgetToNextMonthResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for CopyBudgetToNextMonthResponse from budgetmonths/copytonextmonth");
+      throw new InvalidOperationException("Expected non-null CopyBudgetToNextMonthResponse from 'budgetmonths/copytonextmonth'.");
+    }
+    
+    return result;
+  }
 }

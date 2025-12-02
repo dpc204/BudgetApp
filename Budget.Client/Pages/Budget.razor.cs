@@ -343,6 +343,51 @@ public partial class Budget : ComponentBase
     }
   }
 
+  private async Task CopyToNextMonth(int monthIndex, bool copyFromDraft)
+  {
+    try
+    {
+      var sourceMonth = _displayMonths[monthIndex];
+      var targetMonth = sourceMonth.AddMonths(1);
+      var sourceAcctPeriod = AcctPeriodHelper.DateToAcctPeriod(sourceMonth);
+
+      // Check if target month has draft data
+      var targetMonthData = await BudgetMonthlyApi.GetBudgetMonthAsync(targetMonth.Year, targetMonth.Month);
+      var hasTargetDrafts = targetMonthData.Any(m => m.BudgetDraft.HasValue);
+
+      // Show confirmation if there's data to overwrite
+      if (hasTargetDrafts)
+      {
+        var parameters = new DialogParameters
+        {
+          ["Message"] = "This action will overwrite data in the next month. Press Continue if this is what you want to do, otherwise press cancel."
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Overwrite", parameters, options);
+        var dialogResult = await dialog.Result;
+        
+        if (dialogResult == null || dialogResult.Canceled || (dialogResult.Data is bool continueAction && !continueAction))
+        {
+          return;
+        }
+      }
+
+      // Perform the copy operation
+      var response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft);
+      
+      if (response.Success)
+      {
+        Snackbar.Add(response.Message, Severity.Success);
+        await LoadBudgetData();
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error copying to next month: {ex.Message}", Severity.Error);
+    }
+  }
+
   // Data models
   private class BudgetDisplayRow
   {
