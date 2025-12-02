@@ -84,6 +84,12 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
     return result;
   }
 
+  public async Task<int> GetEnvelopeTransactionCountAsync(int envelopeId, CancellationToken cancellationToken = default)
+  {
+    var response = await _http.GetFromJsonAsync<EnvelopeTransactionCountResponse>($"envelopes/maint/{envelopeId}/transaction-count", cancellationToken);
+    return response?.TransactionCount ?? 0;
+  }
+
   // Category maintenance methods
   public async Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default)
   {
@@ -193,4 +199,6 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
     }
     return result;
   }
+
+  private sealed record EnvelopeTransactionCountResponse(int EnvelopeId, int TransactionCount);
 }
