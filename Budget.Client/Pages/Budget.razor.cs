@@ -360,7 +360,8 @@ public partial class Budget : ComponentBase
       {
         var parameters = new DialogParameters
         {
-          ["Message"] = "This action will overwrite data in the next month. Press Continue if this is what you want to do, otherwise press cancel."
+          ["Message"] = "This action will overwrite data in the next month. Press Continue if this is what you want to do, otherwise press cancel.",
+          ["ConfirmButtonText"] = "Continue"
         };
         
         var options = new DialogOptions { CloseOnEscapeKey = true };
