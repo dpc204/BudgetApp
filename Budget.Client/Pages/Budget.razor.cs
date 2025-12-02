@@ -347,6 +347,13 @@ public partial class Budget : ComponentBase
   {
     try
     {
+      // Bounds check
+      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      {
+        Snackbar.Add("Invalid month index", Severity.Error);
+        return;
+      }
+
       var sourceMonth = _displayMonths[monthIndex];
       var sourceAcctPeriod = AcctPeriodHelper.DateToAcctPeriod(sourceMonth);
 

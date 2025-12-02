@@ -16,9 +16,16 @@ public static class CopyBudgetToNextMonth
   {
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
-      // Calculate target month (next month)
+      // Validate AcctPeriod format
       var sourceYear = request.SourceAcctPeriod / 100;
       var sourceMonth = request.SourceAcctPeriod % 100;
+      
+      if (sourceMonth < 1 || sourceMonth > 12 || sourceYear < 1900)
+      {
+        return new Response(false, "Invalid accounting period format", 0, false);
+      }
+
+      // Calculate target month (next month)
       var sourceDate = new DateTime(sourceYear, sourceMonth, 1);
       var targetDate = sourceDate.AddMonths(1);
       var targetAcctPeriod = targetDate.Year * 100 + targetDate.Month;
@@ -62,12 +69,12 @@ public static class CopyBudgetToNextMonth
 
         if (target == null)
         {
-          // Create new record in target month
+          // Create new record in target month with zero budget
           target = new BudgetMonth
           {
             AcctPeriod = targetAcctPeriod,
             EnvelopeId = source.EnvelopeId,
-            Budget = 0,
+            Budget = 0m,
             BudgetDraft = valueToCopy
           };
           db.BudgetMonths.Add(target);
