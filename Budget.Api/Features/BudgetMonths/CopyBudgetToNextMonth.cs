@@ -69,12 +69,12 @@ public static class CopyBudgetToNextMonth
 
         if (target == null)
         {
-          // Create new record in target month with zero budget
+          // Create new record in target month with null budget
           target = new BudgetMonth
           {
             AcctPeriod = targetAcctPeriod,
             EnvelopeId = source.EnvelopeId,
-            Budget = 0m,
+            Budget = null,
             BudgetDraft = valueToCopy
           };
           db.BudgetMonths.Add(target);

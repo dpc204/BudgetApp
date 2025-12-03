@@ -54,7 +54,7 @@ public record BudgetMonthResponse(
   string CategoryName,
   CatTypes CategoryType,
   int SortOrder,
-  decimal Budget,
+  decimal? Budget,
   decimal? BudgetDraft);
 
 /// <summary>

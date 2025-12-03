@@ -195,8 +195,8 @@ public partial class Budget : ComponentBase
           _budgetData[envelope.EnvelopeId].ContainsKey(month))
       {
         var data = _budgetData[envelope.EnvelopeId][month];
-        budgetTotal += data.BudgetValue;
-        draftTotal += data.DraftValue ?? data.BudgetValue;
+        budgetTotal += data.BudgetValue ?? 0;
+        draftTotal += data.DraftValue ?? data.BudgetValue ?? 0;
       }
     }
     
@@ -409,7 +409,7 @@ public partial class Budget : ComponentBase
   private class MonthCellData
   {
     public decimal? DraftValue { get; set; }
-    public decimal BudgetValue { get; set; }
+    public decimal? BudgetValue { get; set; }
     public string DraftDisplayValue { get; set; } = string.Empty;
   }
 
@@ -421,7 +421,7 @@ public partial class Budget : ComponentBase
     public string CategoryName { get; set; } = string.Empty;
     public CatTypes CategoryType { get; set; }
     public int SortOrder { get; set; }
-    public decimal BudgetValue { get; set; }
+    public decimal? BudgetValue { get; set; }
     public decimal? DraftValue { get; set; }
     public DateTime Month { get; set; }
   }

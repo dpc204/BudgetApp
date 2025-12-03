@@ -108,11 +108,11 @@
           <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
             @if (context.IsSummaryRow)
             {
-              <strong>@(cellData?.BudgetValue.ToString("C2") ?? "$0.00")</strong>
+              <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
             }
             else
             {
-              @(cellData?.BudgetValue.ToString("C2") ?? "$0.00")
+              @(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")
             }
           </MudTd>
           

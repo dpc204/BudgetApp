@@ -24,7 +24,7 @@ public static class ApplyDraftBudgets
       // Apply draft values to budget and clear drafts
       foreach (var budget in budgetsWithDrafts)
       {
-        budget.Budget = budget.BudgetDraft!.Value;
+        budget.Budget = budget.BudgetDraft;
         budget.BudgetDraft = null;
       }
 
