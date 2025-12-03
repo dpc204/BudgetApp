@@ -23,6 +23,11 @@ public static class GetBudgetMonth
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {
+    /// <summary>
+    /// Assembles budget responses for every envelope for the requested accounting period.
+    /// </summary>
+    /// <param name="request">Query whose <see cref="Query.AcctPeriod"/> identifies the accounting period (year * 100 + month) to retrieve budgets for.</param>
+    /// <returns>A collection of <see cref="Response"/> records, one per envelope, containing envelope and category information plus the budget and budget draft for the specified accounting period; `Budget` is `null` when no budget exists for an envelope.</returns>
     public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken)
     {
       // Get all envelopes with their categories

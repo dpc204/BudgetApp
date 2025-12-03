@@ -14,6 +14,12 @@ public static class UpdateBudgetDraft
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
+    /// <summary>
+    /// Updates the draft budget for the specified account period and envelope, creating a new BudgetMonth if none exists.
+    /// </summary>
+    /// <param name="request">Command carrying the target AcctPeriod, EnvelopeId, and the DraftValue to set.</param>
+    /// <param name="cancellationToken">Token to observe while waiting for the asynchronous database operations to complete.</param>
+    /// <returns>A Response whose <c>Success</c> is true when the draft was persisted and whose <c>Message</c> describes the outcome.</returns>
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       // Find or create the budget record

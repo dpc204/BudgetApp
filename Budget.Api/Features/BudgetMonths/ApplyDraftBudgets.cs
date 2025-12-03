@@ -14,6 +14,12 @@ public static class ApplyDraftBudgets
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
+    /// <summary>
+    /// Applies all non-null draft budget values to their corresponding Budget fields, clears the drafts, and persists the changes.
+    /// </summary>
+    /// <param name="request">The command request (not used by this handler).</param>
+    /// <param name="cancellationToken">Cancellation token used for database operations.</param>
+    /// <returns>A <see cref="Response"/> containing a success flag, a message describing how many records were updated, and the count of records updated.</returns>
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       // Find all budget records with draft values

@@ -14,6 +14,20 @@ public static class CopyBudgetToNextMonth
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
+    /// <summary>
+    /// Copies budget or draft values from the specified source accounting period to the next month, with an option to prevent overwriting existing draft data in the target month.
+    /// </summary>
+    /// <param name="request">Command containing the operation parameters:
+    /// - <c>SourceAcctPeriod</c>: source accounting period in YYYYMM format (e.g., 202512).
+    /// - <c>CopyFromDraft</c>: if true, copy values from BudgetDraft; otherwise copy from Budget.
+    /// - <c>ConfirmOverwrite</c>: if true, allow overwriting existing draft values in the target month; otherwise the operation will return a warning if such data exists.</param>
+    /// <returns>
+    /// A <see cref="Response"/> where:
+    /// - <c>Success</c> indicates whether the copy completed,
+    /// - <c>Message</c> describes the outcome,
+    /// - <c>RecordsUpdated</c> is the number of records created or updated,
+    /// - <c>WouldOverwriteData</c> is true when the operation was declined because target month draft data would have been overwritten and <c>ConfirmOverwrite</c> was not set.
+    /// </returns>
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       // Validate AcctPeriod format
@@ -100,6 +114,10 @@ public static class CopyBudgetToNextMonth
 
   public class Endpoint : ICarterModule
   {
+    /// <summary>
+    /// Registers the POST /budgetmonths/copytonextmonth endpoint that triggers copying budget or draft values from a source month to the next month.
+    /// </summary>
+    /// <param name="app">The endpoint route builder to which the route will be added.</param>
     public void AddRoutes(IEndpointRouteBuilder app)
     {
       app.MapPost("/budgetmonths/copytonextmonth", async (

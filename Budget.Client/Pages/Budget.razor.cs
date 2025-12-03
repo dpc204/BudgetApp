@@ -184,6 +184,15 @@ public partial class Budget : ComponentBase
     return row;
   }
 
+  /// <summary>
+  /// Compute summed budgeted and draft amounts for the specified month across the provided envelopes.
+  /// </summary>
+  /// <param name="envelopes">List of envelope entries (may contain nulls) to include in the aggregation.</param>
+  /// <param name="month">The month for which totals are calculated.</param>
+  /// <returns>
+  /// A tuple where `budget` is the sum of each envelope's BudgetValue (treating null as 0) for the month,
+  /// and `draft` is the sum of each envelope's DraftValue when present or its BudgetValue when DraftValue is null (treating missing values as 0) for the month.
+  /// </returns>
   private (decimal budget, decimal draft) CalculateTotals(List<BudgetMonthData?> envelopes, DateTime month)
   {
     decimal budgetTotal = 0;
@@ -313,6 +322,9 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Shows a confirmation dialog and, if confirmed by the user, applies all draft budgets on the server, displays a success message, and reloads the budget data; on failure displays an error message.
+  /// </summary>
   private async Task ApplyDrafts()
   {
     var parameters = new DialogParameters
@@ -343,6 +355,11 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Copies budget data from the displayed month at the given index into the next month, optionally copying draft values instead of committed budgets.
+  /// </summary>
+  /// <param name="monthIndex">Zero-based index into the component's displayed months identifying the source month.</param>
+  /// <param name="copyFromDraft">If true, copy draft values; otherwise copy committed budget values.</param>
   private async Task CopyToNextMonth(int monthIndex, bool copyFromDraft)
   {
     try
