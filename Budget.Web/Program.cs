@@ -23,6 +23,9 @@ logger.LogInformation("Instance ID: {InstanceId}", AzureEnvironment.InstanceId ?
 // Configure configuration sources (appsettings, secrets, environment, Key Vault)
 Misc.SetupConfigurationSources(builder, assembly, logger);
 
+// Configure culture for consistent currency formatting across environments
+ConfigureServices.ConfigureGlobalization(builder);
+
 // Configure telemetry (logging, metrics, tracing, health checks, service discovery)
 AddTelemetry.ConfigureTelemetryAndServiceDefaults(builder);
 

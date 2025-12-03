@@ -15,7 +15,6 @@ public static class Misc
   public static string GetConnectionString(WebApplicationBuilder webApplicationBuilder,
     ConnectionStringType connectionStringType, ILogger logger)
   {
-    logger.Log(LogLevel.Information, "SetupConfigurationSources - Begin");
     var connectionType = connectionStringType.ToString();
     logger.Log(LogLevel.Information, $"SetupConfigurationSources - Type: {connectionType}");
 

@@ -3,6 +3,7 @@ using Budget.Web.Services;
 using MudBlazor.Services;
 using Syncfusion.Blazor;
 using Syncfusion.Licensing;
+using System.Globalization;
 
 namespace Budget.Web.Startup;
 
@@ -11,6 +12,25 @@ namespace Budget.Web.Startup;
 /// </summary>
 public static class ConfigureServices
 {
+  /// <summary>
+  /// Configures the default culture for the application to ensure consistent formatting
+  /// </summary>
+  public static void ConfigureGlobalization(WebApplicationBuilder builder)
+  {
+    // Set default culture to en-US for consistent currency formatting
+    var defaultCulture = new CultureInfo("en-US");
+    CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+    CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
+    builder.Services.Configure<RequestLocalizationOptions>(options =>
+    {
+      var supportedCultures = new[] { defaultCulture };
+      options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(defaultCulture);
+      options.SupportedCultures = supportedCultures;
+      options.SupportedUICultures = supportedCultures;
+    });
+  }
+
   /// <summary>
   /// Adds Blazor components and rendering modes
   /// </summary>

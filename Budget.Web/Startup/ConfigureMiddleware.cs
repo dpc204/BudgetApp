@@ -55,6 +55,9 @@ public static class ConfigureMiddleware
   /// </summary>
   public static void ConfigurePipeline(WebApplication app)
   {
+    // Apply request localization middleware for culture-specific formatting
+    app.UseRequestLocalization();
+    
     app.UseStatusCodePagesWithReExecute("/not-found");
     app.UseHttpsRedirection();
     app.UseAuthentication();
