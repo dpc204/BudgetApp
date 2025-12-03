@@ -12,7 +12,7 @@ public class BudgetMonth
   public int AcctPeriod { get; set; }
   public int EnvelopeId { get; set; }
   public Envelope Envelope { get; set; } = null!;
-  public decimal Budget { get; set; }
+  public decimal? Budget { get; set; }
   public decimal? BudgetDraft { get; set; }
 
   public class BudgetMonthConfiguration : IEntityTypeConfiguration<BudgetMonth>

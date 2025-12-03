@@ -195,8 +195,8 @@ public partial class Budget : ComponentBase
           _budgetData[envelope.EnvelopeId].ContainsKey(month))
       {
         var data = _budgetData[envelope.EnvelopeId][month];
-        budgetTotal += data.BudgetValue;
-        draftTotal += data.DraftValue ?? data.BudgetValue;
+        budgetTotal += data.BudgetValue ?? 0;
+        draftTotal += data.DraftValue ?? data.BudgetValue ?? 0;
       }
     }
     
@@ -343,6 +343,60 @@ public partial class Budget : ComponentBase
     }
   }
 
+  private async Task CopyToNextMonth(int monthIndex, bool copyFromDraft)
+  {
+    try
+    {
+      // Bounds check
+      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      {
+        Snackbar.Add("Invalid month index", Severity.Error);
+        return;
+      }
+
+      var sourceMonth = _displayMonths[monthIndex];
+      var sourceAcctPeriod = AcctPeriodHelper.DateToAcctPeriod(sourceMonth);
+
+      // First attempt the copy (API will check for existing drafts)
+      var response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft);
+      
+      // If there's data to overwrite, show confirmation
+      if (!response.Success && response.WouldOverwriteData)
+      {
+        var parameters = new DialogParameters
+        {
+          ["Message"] = "This action will overwrite data in the next month. Press Continue if this is what you want to do, otherwise press cancel.",
+          ["ConfirmButtonText"] = "Continue"
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Overwrite", parameters, options);
+        var dialogResult = await dialog.Result;
+        
+        if (dialogResult == null || dialogResult.Canceled || (dialogResult.Data is bool continueAction && !continueAction))
+        {
+          return;
+        }
+
+        // User confirmed, perform the copy with confirmation flag
+        response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft, confirmOverwrite: true);
+      }
+
+      if (!response.Success)
+      {
+        Snackbar.Add($"Error: {response.Message}", Severity.Error);
+        return;
+      }
+
+      Snackbar.Add(response.Message, Severity.Success);
+      await LoadBudgetData();
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error copying to next month: {ex.Message}", Severity.Error);
+    }
+  }
+
   // Data models
   private class BudgetDisplayRow
   {
@@ -355,7 +409,7 @@ public partial class Budget : ComponentBase
   private class MonthCellData
   {
     public decimal? DraftValue { get; set; }
-    public decimal BudgetValue { get; set; }
+    public decimal? BudgetValue { get; set; }
     public string DraftDisplayValue { get; set; } = string.Empty;
   }
 
@@ -367,7 +421,7 @@ public partial class Budget : ComponentBase
     public string CategoryName { get; set; } = string.Empty;
     public CatTypes CategoryType { get; set; }
     public int SortOrder { get; set; }
-    public decimal BudgetValue { get; set; }
+    public decimal? BudgetValue { get; set; }
     public decimal? DraftValue { get; set; }
     public DateTime Month { get; set; }
   }

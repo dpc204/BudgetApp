@@ -95,7 +95,7 @@
                     CellStyle="text-align: right;"
                     Editable="false">
       <CellTemplate Context="ctx">
-        @ctx.Item.Budget.ToString("N2")
+        @(ctx.Item.Budget?.ToString("N2") ?? "0.00")
       </CellTemplate>
     </TemplateColumn>
 
