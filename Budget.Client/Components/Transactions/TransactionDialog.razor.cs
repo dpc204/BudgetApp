@@ -3,7 +3,7 @@ using IBudgetApiClient = Budget.Shared.Services.IBudgetApiClient;
 
 namespace Budget.Client.Components.Transactions;
 
-public partial class PurchaseTransactionDialog
+public partial class TransactionDialog
 {
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
   [Parameter] public int InitialEnvelopeId { get; set; }
@@ -37,6 +37,7 @@ public partial class PurchaseTransactionDialog
     _lines.Any(l => l.Amount <= 0);
 
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
+  [Inject] private IDialogService DialogService { get; set; } = default!;
   private MudTextField<string>? _vendorField;
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -197,6 +198,31 @@ public partial class PurchaseTransactionDialog
   };
 
   private void Cancel() => MudDialog.Cancel();
+
+  private async Task VoidTransaction()
+  {
+    var result = await DialogService.ShowMessageBox(
+      "Confirm Void Transaction",
+      $"Are you sure you want to void this transaction? This will reverse the transaction in the budget and account balances.\n\nVendor: {_header.Vendor}\nAmount: {_header.TotalAmount:C}",
+      yesText: "Yes, Void Transaction",
+      cancelText: "Cancel");
+
+    if (result == true)
+    {
+      try
+      {
+        var envelopes = await BudgetApi.VoidTransactionAsync(_transactionId);
+        MudDialog.Close(DialogResult.Ok(envelopes));
+      }
+      catch (Exception ex)
+      {
+        await DialogService.ShowMessageBox(
+          "Error",
+          $"Failed to void transaction: {ex.Message}",
+          yesText: "OK");
+      }
+    }
+  }
 
   private class PurchaseHeader
   {

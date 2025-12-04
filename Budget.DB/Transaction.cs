@@ -25,6 +25,7 @@ namespace Budget.DB
 
 
     public decimal BalanceAfterTransaction { get; set; }
+    public bool IsVoided { get; set; }
     public List<TransactionDetail> Details { get; set; } = [];
 
     public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
