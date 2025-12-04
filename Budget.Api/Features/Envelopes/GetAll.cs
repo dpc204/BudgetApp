@@ -4,7 +4,7 @@
 public static class GetAll
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
-  public sealed record Response(int Id, string Name, decimal Balance, decimal Budget, int CategoryId, int SortOrder);
+  public sealed record Response(int Id, string Name, decimal Balance, decimal? Budget, int CategoryId, int SortOrder);
  
  public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {

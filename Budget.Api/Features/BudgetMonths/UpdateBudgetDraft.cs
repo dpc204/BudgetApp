@@ -29,7 +29,7 @@ public static class UpdateBudgetDraft
         {
           AcctPeriod = request.AcctPeriod,
           EnvelopeId = request.EnvelopeId,
-          Budget = 0,
+          Budget = null,
           BudgetDraft = request.DraftValue
         };
         db.BudgetMonths.Add(budgetMonth);

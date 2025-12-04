@@ -4,8 +4,8 @@
 
 public static class InsertEnvelope
 {
-  public sealed record Command(string Name, string Description, decimal balance, decimal Budget, int CategoryId, int SortOrder) : IRequest<Response>;
-  public sealed record Response(int Id, string Name, string Description, decimal Balance, decimal Budget, int CategoryId, int SortOrder);
+  public sealed record Command(string Name, string Description, decimal balance, decimal? Budget, int CategoryId, int SortOrder) : IRequest<Response>;
+  public sealed record Response(int Id, string Name, string Description, decimal Balance, decimal? Budget, int CategoryId, int SortOrder);
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {

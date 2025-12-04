@@ -9,6 +9,6 @@ namespace Budget.Shared.Models;
     public int SortOrder { get; set; }
     public string EnvelopeName { get; init; } = string.Empty;
     public decimal Balance { get; set; }
-    public decimal Budget { get; init; }
+    public decimal? Budget { get; init; }
   
 }

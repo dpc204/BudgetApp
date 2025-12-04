@@ -80,6 +80,9 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
         })
         .OrderBy(e => e.CategoryId)
         .ThenBy(e => e.EnvelopeName)];
+
+     _ = SaveAsync();
+
     }
     catch (Exception ex)
     {

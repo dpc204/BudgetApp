@@ -16,13 +16,13 @@ public static class AddNewTransaction
       db.Transactions.Add(trans);
 
       await UpdateAccountAsync(trans);
-      var rslt = await UpdateEnvelopeAsync(trans).ConfigureAwait(false);
+      var rslt = await UpdateEnvelopesAsync(trans).ConfigureAwait(false);
 
       await db.SaveChangesAsync(cancellationToken);
       return rslt;
     }
 
-    private async Task<List<EnvelopeDto>> UpdateEnvelopeAsync(Transaction trans)
+    private async Task<List<EnvelopeDto>> UpdateEnvelopesAsync(Transaction trans)
     {
       var rslt = new List<EnvelopeDto>();
 
@@ -30,28 +30,33 @@ public static class AddNewTransaction
       var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
       foreach (var grp in grouped)
       {
-        var env = await db.Envelopes.FindAsync([grp.Key]);
-        if (env is null) continue;
-        env.LastTransactionDate = DateTime.UtcNow;
-        // pick the highest line id as last within this transaction for the envelope
-        var lastDtl = grp.OrderByDescending(d => d.LineId).First();
-        env.LastTransactionDetail = lastDtl; // EF will map FK on Envelope
-        env.Balance -= grp.Sum(d => d.Amount); // subtract total amount for this envelope
-
-        // Map to DTO for return
-        rslt.Add(new EnvelopeDto
-        {
-          Id = env.Id,
-          CategoryId = env.CategoryId,
-          Name = env.Name,
-          Budget = env.Budget,
-          Balance = env.Balance,
-          Description = env.Description,
-          SortOrder = env.SortOrder
-        });
+        await UpdateOneEvelope(grp, rslt);
       }
 
       return rslt;
+    }
+
+    private async Task UpdateOneEvelope(IGrouping<int, TransactionDetail> grp, List<EnvelopeDto> rslt)
+    {
+      var env = await db.Envelopes.FindAsync([grp.Key]);
+      if (env is null) return;
+      env.LastTransactionDate = DateTime.UtcNow;
+      // pick the highest line id as last within this transaction for the envelope
+      var lastDtl = grp.OrderByDescending(d => d.LineId).First();
+      env.LastTransactionDetail = lastDtl; // EF will map FK on Envelope
+      env.Balance -= grp.Sum(d => d.Amount); // subtract total amount for this envelope
+
+      // Map to DTO for return
+      rslt.Add(new EnvelopeDto
+      {
+        Id = env.Id,
+        CategoryId = env.CategoryId,
+        Name = env.Name,
+        Budget = env.Budget,
+        Balance = env.Balance,
+        Description = env.Description,
+        SortOrder = env.SortOrder
+      });
     }
 
     private async Task UpdateAccountAsync(Transaction trans)

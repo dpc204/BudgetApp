@@ -60,7 +60,23 @@
           @for (int i = 0; i < MonthsToShow; i++)
           {
             var monthIndex = _currentScrollPosition + i;
-            <th colspan="2" style="text-align: center; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">@_displayMonths[monthIndex].ToString("MMM yyyy")</th>
+            var isLastVisible = i == MonthsToShow - 1;
+            <th colspan="2" style="text-align: center; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <span>@_displayMonths[monthIndex].ToString("MMM yyyy")</span>
+                @if (!isLastVisible)
+                {
+                  <MudMenu Icon="@Icons.Material.Filled.ArrowForward" 
+                           Size="Size.Small" 
+                           Dense="true" 
+                           AnchorOrigin="Origin.BottomCenter"
+                           AriaLabel="Copy budget to next month options">
+                    <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, true))">Copy Draft to Next Month</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, false))">Copy Budget to Next Month</MudMenuItem>
+                  </MudMenu>
+                }
+              </div>
+            </th>
           }
         </tr>
         <tr>
@@ -92,11 +108,11 @@
           <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
             @if (context.IsSummaryRow)
             {
-              <strong>@(cellData?.BudgetValue.ToString("C2") ?? "$0.00")</strong>
+              <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
             }
             else
             {
-              @(cellData?.BudgetValue.ToString("C2") ?? "$0.00")
+              @(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")
             }
           </MudTd>
           

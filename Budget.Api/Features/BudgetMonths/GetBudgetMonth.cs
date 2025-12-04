@@ -15,7 +15,7 @@ public static class GetBudgetMonth
     string CategoryName,
     CatTypes CategoryType,
     int SortOrder,
-    decimal Budget,
+    decimal? Budget,
     decimal? BudgetDraft);
 
   /// <summary>
@@ -53,7 +53,7 @@ public static class GetBudgetMonth
           envelope.Category.Name,
           envelope.Category.CategoryType,
           envelope.SortOrder,
-          budgetData?.Budget ?? 0,
+          budgetData?.Budget,
           budgetData?.BudgetDraft
         ));
       }

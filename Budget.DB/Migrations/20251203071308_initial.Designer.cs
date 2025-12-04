@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    [Migration("20251125055334_initial")]
+    [Migration("20251203071308_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -85,7 +85,7 @@ namespace Budget.DB.Migrations
                     b.Property<int>("EnvelopeId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Budget")
+                    b.Property<decimal?>("Budget")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -183,7 +183,7 @@ namespace Budget.DB.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("Budget")
+                    b.Property<decimal?>("Budget")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -228,7 +228,6 @@ namespace Budget.DB.Migrations
                         {
                             Id = 1,
                             Balance = 0m,
-                            Budget = 0m,
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
@@ -240,7 +239,6 @@ namespace Budget.DB.Migrations
                         {
                             Id = 2,
                             Balance = 0m,
-                            Budget = 0m,
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
@@ -252,7 +250,6 @@ namespace Budget.DB.Migrations
                         {
                             Id = 3,
                             Balance = 0m,
-                            Budget = 0m,
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
@@ -264,7 +261,6 @@ namespace Budget.DB.Migrations
                         {
                             Id = 4,
                             Balance = 0m,
-                            Budget = 0m,
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
@@ -276,7 +272,6 @@ namespace Budget.DB.Migrations
                         {
                             Id = 5,
                             Balance = 0m,
-                            Budget = 0m,
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
@@ -288,7 +283,6 @@ namespace Budget.DB.Migrations
                         {
                             Id = 6,
                             Balance = 0m,
-                            Budget = 0m,
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
@@ -300,7 +294,6 @@ namespace Budget.DB.Migrations
                         {
                             Id = -1,
                             Balance = 0m,
-                            Budget = 0m,
                             CategoryId = -1,
                             Description = "",
                             EnvelopeType = 0,
