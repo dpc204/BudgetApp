@@ -4,6 +4,7 @@ using Budget.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    partial class BudgetContextModelSnapshot : ModelSnapshot
+    [Migration("20251204041345_AddVoidFlag")]
+    partial class AddVoidFlag
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -341,9 +344,6 @@ namespace Budget.DB.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsVoided")
-                        .HasColumnType("bit");
-
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -378,7 +378,6 @@ namespace Budget.DB.Migrations
                             AccountId = 1,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
                             TotalAmount = 104.00m,
                             UserId = 1,
                             UserName = "",
@@ -391,7 +390,6 @@ namespace Budget.DB.Migrations
                             AccountId = 2,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
                             TotalAmount = 48m,
                             UserId = 1,
                             UserName = "",
@@ -404,7 +402,6 @@ namespace Budget.DB.Migrations
                             AccountId = 1,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
                             TotalAmount = 12.50m,
                             UserId = 1,
                             UserName = "",
@@ -417,7 +414,6 @@ namespace Budget.DB.Migrations
                             AccountId = 2,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
                             TotalAmount = 30.00m,
                             UserId = 2,
                             UserName = "",
@@ -430,7 +426,6 @@ namespace Budget.DB.Migrations
                             AccountId = 1,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
                             TotalAmount = 32.00m,
                             UserId = 2,
                             UserName = "",
