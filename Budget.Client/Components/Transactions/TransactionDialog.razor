@@ -94,7 +94,8 @@
             <MudButton Variant="Variant.Filled" 
                        Color="Color.Error" 
                        Style="background-color: red; color: white;"
-                       OnClick="VoidTransaction">Void</MudButton>
+                       Disabled="@(ExistingTransaction?.IsVoided ?? false)"
+                       OnClick="VoidTransaction">@(ExistingTransaction?.IsVoided == true ? "Voided" : "Void")</MudButton>
           }
           <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
           <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsSaveDisabled" OnClick="Save">@SaveButtonText</MudButton>

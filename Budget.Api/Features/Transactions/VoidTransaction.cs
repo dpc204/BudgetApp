@@ -48,8 +48,8 @@ public static class VoidTransaction
       var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
       if (acct is null) return;
       
-      // Deduct the amount (reverses the original deduction which subtracted from balance)
-      acct.Balance -= trans.TotalAmount;
+      // Add the amount back (reverses the original subtraction)
+      acct.Balance += trans.TotalAmount;
     }
 
     private async Task<List<EnvelopeDto>> ReverseEnvelopeBalancesAsync(Transaction trans)
@@ -62,8 +62,8 @@ public static class VoidTransaction
         var env = await db.Envelopes.FindAsync([grp.Key]);
         if (env is null) continue;
 
-        // Deduct the sum of amounts (reverses the original deduction which subtracted from balance)
-        env.Balance -= grp.Sum(d => d.Amount);
+        // Add the sum of amounts back (reverses the original subtraction)
+        env.Balance += grp.Sum(d => d.Amount);
 
         rslt.Add(new EnvelopeDto
         {

@@ -180,23 +180,6 @@ public partial class TransactionDialog
     MudDialog.Close(DialogResult.Ok(envelopes));
   }
 
-  private decimal Allowance { get; set; } = 0.00m;
-
-  private string AllowanceString
-  {
-    get => Allowance.ToString("0.00");
-    set
-    {
-      if (decimal.TryParse(value, out var result))
-        Allowance = Math.Truncate(result * 100) / 100m;
-    }
-  }
-
-  private Dictionary<string, object> inputAttributes = new()
-  {
-    { "oninput", "limitDecimalPlaces(this, 2)" }
-  };
-
   private void Cancel() => MudDialog.Cancel();
 
   private async Task VoidTransaction()
@@ -229,20 +212,10 @@ public partial class TransactionDialog
     [Required, MaxLength(100)] public string Vendor { get; set; } = string.Empty;
 
     [Required] public int AccountId { get; set; }
-    public string AccountName { get; set; }
 
     [Required] public DateTime Date { get; set; } = DateTime.Today;
 
     public decimal TotalAmount { get; set; }
-  }
-
-  private class PurchaseLine
-  {
-    public int EnvelopeId { get; set; }
-
-    [Range(0, double.MaxValue)] public decimal Amount { get; set; }
-
-    public string? Note { get; set; }
   }
 
 
