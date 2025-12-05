@@ -3,7 +3,7 @@ using IBudgetApiClient = Budget.Shared.Services.IBudgetApiClient;
 
 namespace Budget.Client.Components.Transactions;
 
-public partial class TransactionDialog
+public partial class EditTransactionDialog
 {
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
   [Parameter] public int InitialEnvelopeId { get; set; }
@@ -23,6 +23,11 @@ public partial class TransactionDialog
   /// Returns true if editing an existing transaction, false if adding new
   /// </summary>
   private bool IsEditMode => ExistingTransaction is not null;
+
+  /// <summary>
+  /// Returns true if the transaction is voided
+  /// </summary>
+  private bool IsVoided => ExistingTransaction?.IsVoided ?? false;
 
   /// <summary>
   /// Button text changes based on whether we're adding or updating

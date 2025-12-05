@@ -163,10 +163,10 @@ public partial class EnvelopePage : ComponentBase
 
       if (UserOptions.IsAdminUser())
       {
-        // Admin users can edit transactions via TransactionDialog
-        var parameters = new DialogParameters { [nameof(TransactionDialog.ExistingTransaction)] = detail };
+        // Admin users can edit transactions via EditTransactionDialog
+        var parameters = new DialogParameters { [nameof(EditTransactionDialog.ExistingTransaction)] = detail };
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
-        var dialog = await DialogService.ShowAsync<TransactionDialog>("Edit Transaction", parameters, options);
+        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", parameters, options);
         var result = await dialog.Result;
         if (!(result is { Canceled: true }))
         {
@@ -234,10 +234,10 @@ public partial class EnvelopePage : ComponentBase
       Logger.Log(LogLevel.Debug,$"envelope parameter is null.  Transaction cannot be addd");
       return;
     }
-    var parameters = new DialogParameters { [nameof(TransactionDialog.InitialEnvelopeId)] = envelope.EnvelopeId };
+    var parameters = new DialogParameters { [nameof(EditTransactionDialog.InitialEnvelopeId)] = envelope.EnvelopeId };
     var options = new DialogOptions
       { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
-    var dialog = await DialogService.ShowAsync<TransactionDialog>("New Purchase", parameters, options);
+    var dialog = await DialogService.ShowAsync<EditTransactionDialog>("New Purchase", parameters, options);
     var result = await dialog.Result;
     if (!(result is { Canceled: true }))
     {
