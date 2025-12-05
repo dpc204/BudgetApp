@@ -175,6 +175,7 @@ public partial class EnvelopePage : ComponentBase
           {
             UpdateEnvelopeBalances(envResult);
             ApplyCategorySelection();
+            await State.RefreshAsync();
             await InvokeAsync(StateHasChanged);
 
             if (SelectedEnvelope is not null)

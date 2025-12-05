@@ -77,6 +77,17 @@ else
                          Class="envelopes-table">
               <Columns >
                 <PropertyColumn Property="x => x.LineId" Title="Line#"/>
+
+                <TemplateColumn Title=""
+                                CellStyle="text-align: right;">
+                  <CellTemplate Context="ctx">
+                    @if (ctx.Item.IsVoided)
+                    {
+                      <MudText Color="Color.Error">Void</MudText>
+                    }
+                  </CellTemplate >
+                </TemplateColumn >
+
                 <PropertyColumn Property="x => x.Vendor" Title="Vendor"/>
                 <PropertyColumn Property="x => x.Description" Title="Description"/>
                 <TemplateColumn Title="Amount"

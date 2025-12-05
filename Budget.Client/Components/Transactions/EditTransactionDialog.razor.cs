@@ -80,7 +80,8 @@ public partial class EditTransactionDialog
         {
           EnvelopeId = detail.EnvelopeId,
           Amount = detail.Amount,
-          Description = detail.Description
+          Description = detail.Description,
+          IsVoided = detail.IsVoided
         });
       }
       Recalc();
