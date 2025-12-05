@@ -10,6 +10,7 @@ public class TransactionDto
   public decimal Amount { get; set; }
   public DateTime Date { get; set; }
   public int EnvelopeId { get; set; }
+  public bool IsVoided { get; set; }
   public string EnvelopeName { get; set; } = string.Empty;
   public int UserId { get; set; }
 }

@@ -36,7 +36,7 @@ public partial class TransactionAssign : ComponentBase
   {
     try
     {
-      State.RefreshAsync();
+      await State.RefreshAsync();
 
       // Convert State.AllEnvelopeData to EnvelopeIdName list
       _availableEnvelopes =
