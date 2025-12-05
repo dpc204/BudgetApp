@@ -100,3 +100,24 @@ h1:focus {
 .envelopes-table .mud-table-cell .mud-autocomplete {
     min-height: 140px !important;
 }
+
+/* Enhanced dialog styling for better visual separation from background */
+.mud-dialog-container {
+    backdrop-filter: blur(2px);
+}
+
+.mud-dialog {
+    box-shadow: 0 11px 15px -7px rgba(0,0,0,0.4),
+                0 24px 38px 3px rgba(0,0,0,0.28),
+                0 9px 46px 8px rgba(0,0,0,0.24) !important;
+}
+
+/* Enhanced backdrop opacity for better dialog prominence */
+.mud-overlay {
+    background-color: rgba(0,0,0,0.65) !important;
+}
+
+/* Add subtle border to dialogs in dark mode */
+.mud-theme-dark .mud-dialog {
+    border: 1px solid rgba(255,255,255,0.12);
+}
