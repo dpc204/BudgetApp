@@ -4,11 +4,7 @@
 <MudLayout>
   <MudThemeProvider Theme="@ThemeService.Theme" IsDarkMode="@ThemeService.IsDarkMode" />
   <MudPopoverProvider />
-  <MudDialogProvider BackdropClick="false" 
-                     DisableBackdropClick="false"
-                     CloseOnEscapeKey="true"
-                     Position="DialogPosition.Center"
-                     FullWidth="false" />
+  <MudDialogProvider />
   <MudSnackbarProvider />
   <MudAppBar Elevation="1">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
