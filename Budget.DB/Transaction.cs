@@ -51,27 +51,7 @@ namespace Budget.DB
           .HasForeignKey(t => t.UserId)
           .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasData(
-          new Transaction
-          {
-            Id = 1, AccountId = 1, Date = new DateTime(2023, 1, 1), Vendor = "Giant", TotalAmount = 104.00m, UserId = 1
-          },
-          new Transaction
-          {
-            Id = 2, AccountId = 2, Date = new DateTime(2023, 1, 1), Vendor = "Bonefish", TotalAmount = 48m, UserId = 1
-          },
-          new Transaction
-          {
-            Id = 3, AccountId = 1, Date = new DateTime(2023, 1, 2), Vendor = "Gas", TotalAmount = 12.50m, UserId = 1
-          },
-          new Transaction
-          {
-            Id = 4, AccountId = 2, Date = new DateTime(2023, 1, 3), Vendor = "Home Depot", TotalAmount = 30.00m,
-            UserId = 2
-          },
-          new Transaction
-            { Id = 5, AccountId = 1, Date = new DateTime(2023, 1, 3), Vendor = "CVS", TotalAmount = 32.00m, UserId = 2 }
-        );
+        
       }
     }
   }
