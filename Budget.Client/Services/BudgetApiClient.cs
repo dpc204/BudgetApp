@@ -110,6 +110,26 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     }
   }
 
+  public async Task<List<EnvelopeDto>> VoidTransactionAsync(int transactionId,
+    CancellationToken cancellationToken = default)
+  {
+    var payload = new { TransactionId = transactionId };
+
+    using var resp = await http.PostAsJsonAsync("/Transaction/Void", payload, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+
+    try
+    {
+      var envelopes = await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
+      return envelopes ?? [];
+    }
+    catch (Exception ex)
+    {
+      logger.LogDebug(ex, "No response body or invalid JSON for VoidTransaction at {Url}", "/Transaction/Void");
+      return [];
+    }
+  }
+
   public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description, CancellationToken cancellationToken = default)
   {
     var payload = new { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Description = description };

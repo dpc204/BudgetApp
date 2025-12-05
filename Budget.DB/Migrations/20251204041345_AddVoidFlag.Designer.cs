@@ -360,7 +360,7 @@ namespace Budget.DB.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<bool>("Void")
+                    b.Property<bool>("IsVoided")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
@@ -382,7 +382,7 @@ namespace Budget.DB.Migrations
                             UserId = 1,
                             UserName = "",
                             Vendor = "Giant",
-                            Void = false
+                            IsVoided = false
                         },
                         new
                         {
@@ -394,7 +394,7 @@ namespace Budget.DB.Migrations
                             UserId = 1,
                             UserName = "",
                             Vendor = "Bonefish",
-                            Void = false
+                            IsVoided = false
                         },
                         new
                         {
@@ -406,7 +406,7 @@ namespace Budget.DB.Migrations
                             UserId = 1,
                             UserName = "",
                             Vendor = "Gas",
-                            Void = false
+                            IsVoided = false
                         },
                         new
                         {
@@ -418,7 +418,7 @@ namespace Budget.DB.Migrations
                             UserId = 2,
                             UserName = "",
                             Vendor = "Home Depot",
-                            Void = false
+                            IsVoided = false
                         },
                         new
                         {
@@ -430,7 +430,7 @@ namespace Budget.DB.Migrations
                             UserId = 2,
                             UserName = "",
                             Vendor = "CVS",
-                            Void = false
+                            IsVoided = false
                         });
                 });
 

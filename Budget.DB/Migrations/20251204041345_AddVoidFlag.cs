@@ -11,7 +11,7 @@ namespace Budget.DB.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "Void",
+                name: "IsVoided",
                 schema: "budget",
                 table: "Transactions",
                 type: "bit",
@@ -23,7 +23,7 @@ namespace Budget.DB.Migrations
                 table: "Transactions",
                 keyColumn: "Id",
                 keyValue: 1,
-                column: "Void",
+                column: "IsVoided",
                 value: false);
 
             migrationBuilder.UpdateData(
@@ -31,7 +31,7 @@ namespace Budget.DB.Migrations
                 table: "Transactions",
                 keyColumn: "Id",
                 keyValue: 2,
-                column: "Void",
+                column: "IsVoided",
                 value: false);
 
             migrationBuilder.UpdateData(
@@ -39,7 +39,7 @@ namespace Budget.DB.Migrations
                 table: "Transactions",
                 keyColumn: "Id",
                 keyValue: 3,
-                column: "Void",
+                column: "IsVoided",
                 value: false);
 
             migrationBuilder.UpdateData(
@@ -47,7 +47,7 @@ namespace Budget.DB.Migrations
                 table: "Transactions",
                 keyColumn: "Id",
                 keyValue: 4,
-                column: "Void",
+                column: "IsVoided",
                 value: false);
 
             migrationBuilder.UpdateData(
@@ -55,7 +55,7 @@ namespace Budget.DB.Migrations
                 table: "Transactions",
                 keyColumn: "Id",
                 keyValue: 5,
-                column: "Void",
+                column: "IsVoided",
                 value: false);
         }
 
@@ -63,7 +63,7 @@ namespace Budget.DB.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Void",
+                name: "IsVoided",
                 schema: "budget",
                 table: "Transactions");
         }

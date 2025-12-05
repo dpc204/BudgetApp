@@ -12,5 +12,6 @@ public sealed class OneTransactionDetail
   public string UserName { get; set; } = string.Empty;
 
   public decimal BalanceAfterTransaction { get; set; }
+  public bool IsVoided { get; set; }
   public List<TransactionDto> Details { get; set; } = [];
 }

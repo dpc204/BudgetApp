@@ -3,7 +3,7 @@ using IBudgetApiClient = Budget.Shared.Services.IBudgetApiClient;
 
 namespace Budget.Client.Components.Transactions;
 
-public partial class PurchaseTransactionDialog
+public partial class TransactionDialog
 {
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
   [Parameter] public int InitialEnvelopeId { get; set; }
@@ -37,6 +37,7 @@ public partial class PurchaseTransactionDialog
     _lines.Any(l => l.Amount <= 0);
 
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
+  [Inject] private IDialogService DialogService { get; set; } = default!;
   private MudTextField<string>? _vendorField;
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -179,44 +180,42 @@ public partial class PurchaseTransactionDialog
     MudDialog.Close(DialogResult.Ok(envelopes));
   }
 
-  private decimal Allowance { get; set; } = 0.00m;
+  private void Cancel() => MudDialog.Cancel();
 
-  private string AllowanceString
+  private async Task VoidTransaction()
   {
-    get => Allowance.ToString("0.00");
-    set
+    var result = await DialogService.ShowMessageBox(
+      "Confirm Void Transaction",
+      $"Are you sure you want to void this transaction? This will reverse the transaction in the budget and account balances.\n\nVendor: {_header.Vendor}\nAmount: {_header.TotalAmount:C}",
+      yesText: "Yes, Void Transaction",
+      cancelText: "Cancel");
+
+    if (result == true)
     {
-      if (decimal.TryParse(value, out var result))
-        Allowance = Math.Truncate(result * 100) / 100m;
+      try
+      {
+        var envelopes = await BudgetApi.VoidTransactionAsync(_transactionId);
+        MudDialog.Close(DialogResult.Ok(envelopes));
+      }
+      catch (Exception ex)
+      {
+        await DialogService.ShowMessageBox(
+          "Error",
+          $"Failed to void transaction: {ex.Message}",
+          yesText: "OK");
+      }
     }
   }
-
-  private Dictionary<string, object> inputAttributes = new()
-  {
-    { "oninput", "limitDecimalPlaces(this, 2)" }
-  };
-
-  private void Cancel() => MudDialog.Cancel();
 
   private class PurchaseHeader
   {
     [Required, MaxLength(100)] public string Vendor { get; set; } = string.Empty;
 
     [Required] public int AccountId { get; set; }
-    public string AccountName { get; set; }
 
     [Required] public DateTime Date { get; set; } = DateTime.Today;
 
     public decimal TotalAmount { get; set; }
-  }
-
-  private class PurchaseLine
-  {
-    public int EnvelopeId { get; set; }
-
-    [Range(0, double.MaxValue)] public decimal Amount { get; set; }
-
-    public string? Note { get; set; }
   }
 
 

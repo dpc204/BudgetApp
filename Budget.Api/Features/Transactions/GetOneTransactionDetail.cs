@@ -17,6 +17,7 @@ public static class GetOneTransactionDetail
     public decimal TotalAmount { get; set; }
     public string UserInitials { get; set; } = string.Empty;
     public decimal BalanceAfterTransaction { get; set; }
+    public bool IsVoided { get; set; }
     public List<TransactionDto> Details { get; set; } = [];
   }
 
@@ -38,6 +39,7 @@ public static class GetOneTransactionDetail
           TotalAmount = t.TotalAmount,
           UserInitials = (t.User.FirstName.Substring(0,1) + t.User.LastName.Substring(0,1)),
           BalanceAfterTransaction = t.BalanceAfterTransaction,
+          IsVoided = t.IsVoided,
           Details = t.Details
             .OrderBy(d => d.LineId)
             .Select(d => new TransactionDto

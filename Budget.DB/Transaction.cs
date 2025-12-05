@@ -23,9 +23,8 @@ namespace Budget.DB
     [ForeignKey("User")] public int UserId { get; set; }
     public User User { get; set; } = null!;
 
-    public bool Void { get; set; }
-
     public decimal BalanceAfterTransaction { get; set; }
+    public bool IsVoided { get; set; }
     public List<TransactionDetail> Details { get; set; } = [];
 
     public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>

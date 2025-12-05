@@ -341,6 +341,9 @@ namespace Budget.DB.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsVoided")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -357,9 +360,6 @@ namespace Budget.DB.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<bool>("Void")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
@@ -375,11 +375,11 @@ namespace Budget.DB.Migrations
                             AccountId = 1,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsVoided = false,
                             TotalAmount = 104.00m,
                             UserId = 1,
                             UserName = "",
-                            Vendor = "Giant",
-                            Void = false
+                            Vendor = "Giant"
                         },
                         new
                         {
@@ -387,11 +387,11 @@ namespace Budget.DB.Migrations
                             AccountId = 2,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsVoided = false,
                             TotalAmount = 48m,
                             UserId = 1,
                             UserName = "",
-                            Vendor = "Bonefish",
-                            Void = false
+                            Vendor = "Bonefish"
                         },
                         new
                         {
@@ -399,11 +399,11 @@ namespace Budget.DB.Migrations
                             AccountId = 1,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsVoided = false,
                             TotalAmount = 12.50m,
                             UserId = 1,
                             UserName = "",
-                            Vendor = "Gas",
-                            Void = false
+                            Vendor = "Gas"
                         },
                         new
                         {
@@ -411,11 +411,11 @@ namespace Budget.DB.Migrations
                             AccountId = 2,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsVoided = false,
                             TotalAmount = 30.00m,
                             UserId = 2,
                             UserName = "",
-                            Vendor = "Home Depot",
-                            Void = false
+                            Vendor = "Home Depot"
                         },
                         new
                         {
@@ -423,11 +423,11 @@ namespace Budget.DB.Migrations
                             AccountId = 1,
                             BalanceAfterTransaction = 0m,
                             Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsVoided = false,
                             TotalAmount = 32.00m,
                             UserId = 2,
                             UserName = "",
-                            Vendor = "CVS",
-                            Void = false
+                            Vendor = "CVS"
                         });
                 });
 
