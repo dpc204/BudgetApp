@@ -64,7 +64,15 @@ var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment
 // Configure BudgetContext
 builder.Services.AddDbContext<BudgetContext>(options =>
 {
-    options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget"));
+    if (isTest)
+    {
+        options.UseInMemoryDatabase("BudgetTestDb");
+    }
+    else
+    {
+        options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget"));
+    }
+    
     if (isDev || isTest)
     {
         options.EnableDetailedErrors();
@@ -75,7 +83,15 @@ builder.Services.AddDbContext<BudgetContext>(options =>
 // Configure ApiIdentityContext
 builder.Services.AddDbContext<ApiIdentityContext>(options =>
 {
-    options.UseSqlServer(identityConnectionString);
+    if (isTest)
+    {
+        options.UseInMemoryDatabase("IdentityTestDb");
+    }
+    else
+    {
+        options.UseSqlServer(identityConnectionString);
+    }
+    
     if (isDev || isTest)
     {
         options.EnableDetailedErrors();
