@@ -17,16 +17,13 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for the VoidTransaction API endpoint
 /// </summary>
-public class VoidTransactionTests : IClassFixture<WebApplicationFactory<Budget.Api.Program>>
+public class VoidTransactionTests : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly WebApplicationFactory<Budget.Api.Program> _factory;
+    private readonly BudgetApiTestFactory _factory;
 
-    public VoidTransactionTests(WebApplicationFactory<Budget.Api.Program> factory)
+    public VoidTransactionTests(BudgetApiTestFactory factory)
     {
-        _factory = factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseEnvironment("Testing");
-        });
+        _factory = factory;
     }
 
     /// <summary>
@@ -97,6 +94,9 @@ public class VoidTransactionTests : IClassFixture<WebApplicationFactory<Budget.A
 
         // Assert
         response.EnsureSuccessStatusCode();
+        
+        // Clear change tracker to force reload from database
+        db.ChangeTracker.Clear();
         
         // Reload entities from database
         var updatedAccount = await db.BankAccounts.FindAsync(account.Id);
@@ -177,6 +177,9 @@ public class VoidTransactionTests : IClassFixture<WebApplicationFactory<Budget.A
 
         // Assert
         response.EnsureSuccessStatusCode();
+        
+        // Clear change tracker to force reload from database
+        db.ChangeTracker.Clear();
         
         var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
         result.Should().NotBeNull();
@@ -269,6 +272,9 @@ public class VoidTransactionTests : IClassFixture<WebApplicationFactory<Budget.A
         // Assert
         response.EnsureSuccessStatusCode();
         
+        // Clear change tracker to force reload from database
+        db.ChangeTracker.Clear();
+        
         var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
@@ -345,16 +351,20 @@ public class VoidTransactionTests : IClassFixture<WebApplicationFactory<Budget.A
         var initialAccountBalance = account.Balance;
         var initialEnvelopeBalance = envelope.Balance;
 
-        // Act
+        // Act & Assert
         var command = new VoidTransaction.Command(transaction.Id);
-        var response = await client.PostAsJsonAsync("/Transaction/Void", command);
-
-        // Assert
-        response.IsSuccessStatusCode.Should().BeFalse();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.InternalServerError);
         
-        var error = await response.Content.ReadAsStringAsync();
-        error.Should().Contain("already voided");
+        // The API should throw an exception for already voided transactions
+        // In the test environment, this exception propagates through the TestServer
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await client.PostAsJsonAsync("/Transaction/Void", command);
+        });
+        
+        exception.Message.Should().Contain("already voided");
+        
+        // Clear change tracker
+        db.ChangeTracker.Clear();
         
         // Verify balances haven't changed
         var updatedAccount = await db.BankAccounts.FindAsync(account.Id);
@@ -373,15 +383,16 @@ public class VoidTransactionTests : IClassFixture<WebApplicationFactory<Budget.A
         // Arrange
         var client = _factory.CreateClient();
 
-        // Act - Try to void a transaction that doesn't exist
+        // Act & Assert - Try to void a transaction that doesn't exist
         var command = new VoidTransaction.Command(99999);
-        var response = await client.PostAsJsonAsync("/Transaction/Void", command);
-
-        // Assert
-        response.IsSuccessStatusCode.Should().BeFalse();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.InternalServerError);
         
-        var error = await response.Content.ReadAsStringAsync();
-        error.Should().Contain("not found");
+        // The API should throw an exception for non-existent transactions
+        // In the test environment, this exception propagates through the TestServer
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await client.PostAsJsonAsync("/Transaction/Void", command);
+        });
+        
+        exception.Message.Should().Contain("not found");
     }
 }
