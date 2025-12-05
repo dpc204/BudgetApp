@@ -231,7 +231,7 @@ public partial class EnvelopePage : ComponentBase
   {
     if(envelope is null)
     {
-      Logger.Log(LogLevel.Debug,$"envelope parameter is null.  Transaction cannot be addd");
+      Logger.Log(LogLevel.Debug,$"envelope parameter is null.  Transaction cannot be added");
       return;
     }
     var parameters = new DialogParameters { [nameof(EditTransactionDialog.InitialEnvelopeId)] = envelope.EnvelopeId };
