@@ -24,10 +24,11 @@ public static class TestHelpers
         decimal balance = 1000m,
         BankAccount.AccountTypes accountType = BankAccount.AccountTypes.Checking)
     {
+        var accountId = id ?? _nextAccountId++;
         return new BankAccount
         {
-            Id = id ?? _nextAccountId++,
-            Name = name ?? $"Test Account {_nextAccountId}",
+            Id = accountId,
+            Name = name ?? $"Test Account {accountId}",
             Balance = balance,
             AccountType = accountType
         };
@@ -43,10 +44,11 @@ public static class TestHelpers
         decimal balance = 500m,
         decimal? budget = null)
     {
+        var envelopeId = id ?? _nextEnvelopeId++;
         return new Envelope
         {
-            Id = id ?? _nextEnvelopeId++,
-            Name = name ?? $"Test Envelope {_nextEnvelopeId}",
+            Id = envelopeId,
+            Name = name ?? $"Test Envelope {envelopeId}",
             CategoryId = categoryId,
             Balance = balance,
             Budget = budget
@@ -116,10 +118,11 @@ public static class TestHelpers
         string? name = null,
         int sortOrder = 1)
     {
+        var categoryId = id ?? _nextCategoryId++;
         return new Category
         {
-            Id = id ?? _nextCategoryId++,
-            Name = name ?? $"Test Category {_nextCategoryId}",
+            Id = categoryId,
+            Name = name ?? $"Test Category {categoryId}",
             SortOrder = sortOrder
         };
     }
