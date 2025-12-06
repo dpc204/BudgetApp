@@ -30,6 +30,7 @@ public static class UpdateTransaction
 
       // Remove existing details
       db.TransactionDetails.RemoveRange(existingTrans.Details);
+      existingTrans.Details.Clear(); // Clear the collection to prevent duplicate processing
 
       // Update transaction header
       existingTrans.AccountId = request.Trans.AccountId;

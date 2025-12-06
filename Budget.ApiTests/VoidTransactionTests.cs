@@ -38,45 +38,30 @@ public class VoidTransactionTests : IClassFixture<BudgetApiTestFactory>
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
         // Create test data
-        var account = new BankAccount
-        {
-            Id = 100,
-            Name = "Test Account",
-            Balance = 1000m,
-            AccountType = BankAccount.AccountTypes.Checking
-        };
+        var account = TestHelpers.CreateTestAccount(id: 100, balance: 1000m);
         db.BankAccounts.Add(account);
 
-        var envelope = new Envelope
-        {
-            Id = 100,
-            Name = "Test Envelope",
-            CategoryId = 1,
-            Balance = 500m
-        };
+        var envelope = TestHelpers.CreateTestEnvelope(id: 100, categoryId: 1, balance: 500m);
         db.Envelopes.Add(envelope);
 
-        var transaction = new Transaction
+        var details = new List<TransactionDetail>
         {
-            Id = 100,
-            AccountId = account.Id,
-            Date = DateTime.UtcNow,
-            Vendor = "Test Vendor",
-            TotalAmount = 100m,
-            UserId = 1,
-            IsVoided = false,
-            Details = new List<TransactionDetail>
-            {
-                new TransactionDetail
-                {
-                    TransactionId = 100,
-                    LineId = 1,
-                    EnvelopeId = envelope.Id,
-                    Amount = 100m,
-                    Notes = "Test transaction"
-                }
-            }
+            TestHelpers.CreateTestTransactionDetail(
+                transactionId: 100,
+                lineId: 1,
+                envelopeId: envelope.Id,
+                amount: 100m,
+                notes: "Test transaction")
         };
+
+        var transaction = TestHelpers.CreateTestTransaction(
+            id: 100,
+            accountId: account.Id,
+            vendor: "Test Vendor",
+            totalAmount: 100m,
+            isVoided: false,
+            details: details);
+
         db.Transactions.Add(transaction);
         
         // Simulate the balance reduction that would have happened when the transaction was created
@@ -122,45 +107,30 @@ public class VoidTransactionTests : IClassFixture<BudgetApiTestFactory>
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
         // Create test data
-        var account = new BankAccount
-        {
-            Id = 101,
-            Name = "Test Account 2",
-            Balance = 2000m,
-            AccountType = BankAccount.AccountTypes.Checking
-        };
+        var account = TestHelpers.CreateTestAccount(id: 101, balance: 2000m);
         db.BankAccounts.Add(account);
 
-        var envelope = new Envelope
-        {
-            Id = 101,
-            Name = "Test Envelope 2",
-            CategoryId = 1,
-            Balance = 800m
-        };
+        var envelope = TestHelpers.CreateTestEnvelope(id: 101, categoryId: 1, balance: 800m);
         db.Envelopes.Add(envelope);
 
-        var transaction = new Transaction
+        var details = new List<TransactionDetail>
         {
-            Id = 101,
-            AccountId = account.Id,
-            Date = DateTime.UtcNow,
-            Vendor = "Test Vendor 2",
-            TotalAmount = 75m,
-            UserId = 1,
-            IsVoided = false,
-            Details = new List<TransactionDetail>
-            {
-                new TransactionDetail
-                {
-                    TransactionId = 101,
-                    LineId = 1,
-                    EnvelopeId = envelope.Id,
-                    Amount = 75m,
-                    Notes = "Test transaction detail"
-                }
-            }
+            TestHelpers.CreateTestTransactionDetail(
+                transactionId: 101,
+                lineId: 1,
+                envelopeId: envelope.Id,
+                amount: 75m,
+                notes: "Test transaction detail")
         };
+
+        var transaction = TestHelpers.CreateTestTransaction(
+            id: 101,
+            accountId: account.Id,
+            vendor: "Test Vendor 2",
+            totalAmount: 75m,
+            isVoided: false,
+            details: details);
+
         db.Transactions.Add(transaction);
         
         // Simulate the balance reduction that would have happened when the transaction was created
@@ -200,62 +170,39 @@ public class VoidTransactionTests : IClassFixture<BudgetApiTestFactory>
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
         // Create test data
-        var account = new BankAccount
-        {
-            Id = 102,
-            Name = "Test Account 3",
-            Balance = 3000m,
-            AccountType = BankAccount.AccountTypes.Checking
-        };
+        var account = TestHelpers.CreateTestAccount(id: 102, balance: 3000m);
         db.BankAccounts.Add(account);
 
-        var envelope1 = new Envelope
-        {
-            Id = 102,
-            Name = "Test Envelope 3A",
-            CategoryId = 1,
-            Balance = 1000m
-        };
+        var envelope1 = TestHelpers.CreateTestEnvelope(id: 102, categoryId: 1, balance: 1000m);
         db.Envelopes.Add(envelope1);
 
-        var envelope2 = new Envelope
-        {
-            Id = 103,
-            Name = "Test Envelope 3B",
-            CategoryId = 1,
-            Balance = 500m
-        };
+        var envelope2 = TestHelpers.CreateTestEnvelope(id: 103, categoryId: 1, balance: 500m);
         db.Envelopes.Add(envelope2);
 
-        var transaction = new Transaction
+        var details = new List<TransactionDetail>
         {
-            Id = 102,
-            AccountId = account.Id,
-            Date = DateTime.UtcNow,
-            Vendor = "Test Vendor 3",
-            TotalAmount = 150m,
-            UserId = 1,
-            IsVoided = false,
-            Details = new List<TransactionDetail>
-            {
-                new TransactionDetail
-                {
-                    TransactionId = 102,
-                    LineId = 1,
-                    EnvelopeId = envelope1.Id,
-                    Amount = 100m,
-                    Notes = "First detail"
-                },
-                new TransactionDetail
-                {
-                    TransactionId = 102,
-                    LineId = 2,
-                    EnvelopeId = envelope2.Id,
-                    Amount = 50m,
-                    Notes = "Second detail"
-                }
-            }
+            TestHelpers.CreateTestTransactionDetail(
+                transactionId: 102,
+                lineId: 1,
+                envelopeId: envelope1.Id,
+                amount: 100m,
+                notes: "First detail"),
+            TestHelpers.CreateTestTransactionDetail(
+                transactionId: 102,
+                lineId: 2,
+                envelopeId: envelope2.Id,
+                amount: 50m,
+                notes: "Second detail")
         };
+
+        var transaction = TestHelpers.CreateTestTransaction(
+            id: 102,
+            accountId: account.Id,
+            vendor: "Test Vendor 3",
+            totalAmount: 150m,
+            isVoided: false,
+            details: details);
+
         db.Transactions.Add(transaction);
         
         // Simulate the balance reduction that would have happened when the transaction was created
@@ -306,45 +253,30 @@ public class VoidTransactionTests : IClassFixture<BudgetApiTestFactory>
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
         // Create test data with an already voided transaction
-        var account = new BankAccount
-        {
-            Id = 103,
-            Name = "Test Account 4",
-            Balance = 1500m,
-            AccountType = BankAccount.AccountTypes.Checking
-        };
+        var account = TestHelpers.CreateTestAccount(id: 103, balance: 1500m);
         db.BankAccounts.Add(account);
 
-        var envelope = new Envelope
-        {
-            Id = 104,
-            Name = "Test Envelope 4",
-            CategoryId = 1,
-            Balance = 600m
-        };
+        var envelope = TestHelpers.CreateTestEnvelope(id: 104, categoryId: 1, balance: 600m);
         db.Envelopes.Add(envelope);
 
-        var transaction = new Transaction
+        var details = new List<TransactionDetail>
         {
-            Id = 103,
-            AccountId = account.Id,
-            Date = DateTime.UtcNow,
-            Vendor = "Test Vendor 4",
-            TotalAmount = 50m,
-            UserId = 1,
-            IsVoided = true, // Already voided
-            Details = new List<TransactionDetail>
-            {
-                new TransactionDetail
-                {
-                    TransactionId = 103,
-                    LineId = 1,
-                    EnvelopeId = envelope.Id,
-                    Amount = 50m,
-                    Notes = "Already voided transaction"
-                }
-            }
+            TestHelpers.CreateTestTransactionDetail(
+                transactionId: 103,
+                lineId: 1,
+                envelopeId: envelope.Id,
+                amount: 50m,
+                notes: "Already voided transaction")
         };
+
+        var transaction = TestHelpers.CreateTestTransaction(
+            id: 103,
+            accountId: account.Id,
+            vendor: "Test Vendor 4",
+            totalAmount: 50m,
+            isVoided: true, // Already voided
+            details: details);
+
         db.Transactions.Add(transaction);
         await db.SaveChangesAsync();
 
