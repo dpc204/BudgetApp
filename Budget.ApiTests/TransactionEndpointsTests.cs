@@ -295,8 +295,6 @@ public class TransactionEndpointsTests : IClassFixture<BudgetApiTestFactory>
 
     /// <summary>
     /// Test UpdateTransaction endpoint - should update transaction and recalculate balances
-    /// Note: Current implementation has a quirk where UpdateEnvelopeAsync processes all details
-    /// (both old marked-for-deletion and new), resulting in double subtraction
     /// </summary>
     [Fact]
     public async Task UpdateTransaction_Should_Update_Transaction_And_Recalculate_Balances()
@@ -376,16 +374,15 @@ public class TransactionEndpointsTests : IClassFixture<BudgetApiTestFactory>
         updatedTrans.Should().NotBeNull();
         updatedTrans!.Vendor.Should().Be("Updated Vendor");
         updatedTrans.TotalAmount.Should().Be(150m);
-        // After RemoveRange and Add, there should only be 1 detail (the new one)
-        updatedTrans.Details.Where(d => d.LineId > 0).Should().HaveCount(1);
-        updatedTrans.Details.First(d => d.LineId > 0).Amount.Should().Be(150m);
+        updatedTrans.Details.Should().HaveCount(1);
+        updatedTrans.Details.First().Amount.Should().Be(150m);
         
         // Account: started at 1000, reduced by 100 to 900, then restored 100 back to 1000, 
-        // then reduced by NEW total (150), final = 850 (CORRECT)
+        // then reduced by NEW total (150), final = 850
         updatedAcct!.Balance.Should().Be(850m);
         
         // Envelope: started at 500, reduced by 100 to 400, then restored 100 back to 500,
-        // then reduced by old (100) + new (150) = 250, final = 250 (BUG: should be 350)
-        updatedEnv!.Balance.Should().Be(250m);
+        // then reduced by NEW amount (150), final = 350
+        updatedEnv!.Balance.Should().Be(350m);
     }
 }
