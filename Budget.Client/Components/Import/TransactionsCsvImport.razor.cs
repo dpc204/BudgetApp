@@ -124,7 +124,7 @@ public partial class TransactionsCsvImport : ComponentBase
           Vendor = rec.Vendor,
           UserId = int.TryParse(UserIdText, out var uid) ? uid : 1,
           UserName = string.Empty,
-          Details = new List<TransactionDto>()
+          Details = []
         };
 
 

@@ -1,8 +1,8 @@
 namespace Budget.Api.Features.Authentication;
 
-public sealed class AuthEndpoints : CarterModule
+public sealed class AuthEndpoints : ICarterModule
 {
-    public override void AddRoutes(IEndpointRouteBuilder app)
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
         // Only register these endpoints if the API Identity stack is present
         var canResolve = app.ServiceProvider.GetService<UserManager<IdentityUser>>() is not null;

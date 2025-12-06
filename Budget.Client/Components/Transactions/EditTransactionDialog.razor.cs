@@ -9,10 +9,10 @@ public partial class EditTransactionDialog
   [Parameter] public int InitialEnvelopeId { get; set; }
   [Parameter] public OneTransactionDetail? ExistingTransaction { get; set; }
   private MudForm? _form;
-  private PurchaseHeader _header = new();
-  private readonly List<TransactionDto> _lines = new();
-  private List<EnvelopeDto> Envelopes = new();
-  private List<BankAccountDto> Accounts = new();
+  private readonly PurchaseHeader _header = new();
+  private readonly List<TransactionDto> _lines = [];
+  private List<EnvelopeDto> Envelopes = [];
+  private List<BankAccountDto> Accounts = [];
 
   /// <summary>
   /// Stores the transaction ID when editing
@@ -38,7 +38,7 @@ public partial class EditTransactionDialog
     string.IsNullOrWhiteSpace(_header.Vendor) ||
     _header.Vendor.Length > 100 ||
     _header.Date.Date > DateTime.Today ||
-    !_lines.Any() ||
+    _lines.Count == 0 ||
     _lines.Any(l => l.Amount <= 0);
 
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
@@ -50,16 +50,15 @@ public partial class EditTransactionDialog
     await base.OnAfterRenderAsync(firstRender);
   }
 
-  [Inject] IJSRuntime JS { get; set; }
 
   protected override async Task OnInitializedAsync()
   {
-    if (!Envelopes.Any())
+    if (Envelopes.Count == 0)
     {
       Envelopes = await Api.GetEnvelopesAsync();
     }
 
-    if (!Accounts.Any())
+    if (Accounts.Count == 0)
     {
       Accounts = await Api.GetAccountsAsync();
       _header.AccountId = Accounts.Min(e => e.Id);
@@ -86,7 +85,7 @@ public partial class EditTransactionDialog
       }
       Recalc();
     }
-    else if (!_lines.Any())
+    else if (_lines.Count == 0)
     {
       _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
       Recalc();
@@ -160,14 +159,14 @@ public partial class EditTransactionDialog
       Vendor = _header.Vendor.Trim(),
       Date = _header.Date.Date,
       UserId = 1,
-      UserName = UserOptions.User.Email,
-      Details = _lines.Select((l, i) => new TransactionDto()
+      UserName = UserOptions.User.Email!,
+      Details = [.. _lines.Select((l, i) => new TransactionDto()
       {
         LineId = i + 1,
         EnvelopeId = l.EnvelopeId,
         Amount = l.Amount,
         Description = l.Description?.Trim() ?? string.Empty
-      }).ToList(),
+      })],
       TotalAmount = _header.TotalAmount
     };
 
@@ -225,7 +224,7 @@ public partial class EditTransactionDialog
   }
 
 
-  private string? ValidateAmount(decimal value)
+  private static string? ValidateAmount(decimal value)
   {
     if (value <= 0m)
       return "Amount must be greater than 0.";

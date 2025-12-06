@@ -96,6 +96,7 @@ Architecture priorities:
 - Your task is not complete until the solution builds cleanly
 
 Coding conventions:
+- Use Primary constructors for services injection.
 - File-scoped namespaces.
 - Async suffix on async methods.
 - Use `CancellationToken` in public async APIs.

@@ -269,8 +269,8 @@ public class EnvelopeEndpointsTests : IClassFixture<BudgetApiTestFactory>
             TestHelpers.CreateTestTransactionDetail(transactionId: 407, lineId: 1, envelopeId: envelope.Id, amount: 75m)
         };
 
-        var transaction1 = TestHelpers.CreateTestTransaction(id: 406, accountId: account.Id, totalAmount: 50m, details: new List<TransactionDetail> { details[0] });
-        var transaction2 = TestHelpers.CreateTestTransaction(id: 407, accountId: account.Id, totalAmount: 75m, details: new List<TransactionDetail> { details[1] });
+        var transaction1 = TestHelpers.CreateTestTransaction(id: 406, accountId: account.Id, totalAmount: 50m, details: [details[0]]);
+        var transaction2 = TestHelpers.CreateTestTransaction(id: 407, accountId: account.Id, totalAmount: 75m, details: [details[1]]);
         
         db.Transactions.Add(transaction1);
         db.Transactions.Add(transaction2);

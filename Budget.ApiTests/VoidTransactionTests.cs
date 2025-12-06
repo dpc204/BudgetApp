@@ -17,19 +17,14 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for the VoidTransaction API endpoint
 /// </summary>
-public class VoidTransactionTests : IClassFixture<BudgetApiTestFactory>
+public class VoidTransactionTests(BudgetApiTestFactory factory) : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly BudgetApiTestFactory _factory;
+    private readonly BudgetApiTestFactory _factory = factory;
 
-    public VoidTransactionTests(BudgetApiTestFactory factory)
-    {
-        _factory = factory;
-    }
-
-    /// <summary>
-    /// Test that voiding a transaction adds the amount back to the BankAccount balance
-    /// </summary>
-    [Fact]
+  /// <summary>
+  /// Test that voiding a transaction adds the amount back to the BankAccount balance
+  /// </summary>
+  [Fact]
     public async Task VoidTransaction_Should_Reverse_BankAccount_Balance()
     {
         // Arrange

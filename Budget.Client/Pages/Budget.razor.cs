@@ -10,8 +10,8 @@ public partial class Budget : ComponentBase
   
   private bool _loading = true;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
-  private List<BudgetDisplayRow> _displayRows = new();
-  private List<DateTime> _displayMonths = new();
+  private List<BudgetDisplayRow> _displayRows = [];
+  private List<DateTime> _displayMonths = [];
   private int _currentScrollPosition = 0;
 
   protected override async Task OnInitializedAsync()
@@ -52,7 +52,7 @@ public partial class Budget : ComponentBase
       }
 
       // Load all months of data
-      _budgetData = new Dictionary<int, Dictionary<DateTime, BudgetMonthData>>();
+      _budgetData = [];
       
       foreach (var month in _displayMonths)
       {
@@ -62,7 +62,7 @@ public partial class Budget : ComponentBase
         {
           if (!_budgetData.ContainsKey(item.EnvelopeId))
           {
-            _budgetData[item.EnvelopeId] = new Dictionary<DateTime, BudgetMonthData>();
+            _budgetData[item.EnvelopeId] = [];
           }
           
           _budgetData[item.EnvelopeId][month] = new BudgetMonthData
@@ -139,7 +139,7 @@ public partial class Budget : ComponentBase
       EnvelopeId = envelope.EnvelopeId,
       EnvelopeName = envelope.EnvelopeName,
       IsSummaryRow = false,
-      MonthlyData = new Dictionary<DateTime, MonthCellData>()
+      MonthlyData = []
     };
 
     foreach (var month in _displayMonths)
@@ -167,7 +167,7 @@ public partial class Budget : ComponentBase
       EnvelopeId = 0,
       EnvelopeName = name,
       IsSummaryRow = true,
-      MonthlyData = new Dictionary<DateTime, MonthCellData>()
+      MonthlyData = []
     };
 
     foreach (var month in _displayMonths)
@@ -268,7 +268,7 @@ public partial class Budget : ComponentBase
         {
           if (!_budgetData.ContainsKey(item.EnvelopeId))
           {
-            _budgetData[item.EnvelopeId] = new Dictionary<DateTime, BudgetMonthData>();
+            _budgetData[item.EnvelopeId] = [];
           }
           
           _budgetData[item.EnvelopeId][month] = new BudgetMonthData
@@ -403,7 +403,7 @@ public partial class Budget : ComponentBase
     public int EnvelopeId { get; set; }
     public string EnvelopeName { get; set; } = string.Empty;
     public bool IsSummaryRow { get; set; }
-    public Dictionary<DateTime, MonthCellData> MonthlyData { get; set; } = new();
+    public Dictionary<DateTime, MonthCellData> MonthlyData { get; set; } = [];
   }
 
   private class MonthCellData

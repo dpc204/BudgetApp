@@ -56,7 +56,7 @@
                              Format="N2"
                              Culture="@CultureInfo.CurrentCulture"
                              HideSpinButtons="true"
-                             Validation="ValidateAmount"
+                             Validation="@((decimal val) => ValidateAmount(val))"
                              Disabled="@IsVoided"/>
             
 
@@ -78,13 +78,18 @@
   </DialogContent>
   <DialogActions>
     <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-      <MudItem>
+      <MudItem xs="5">
         @if (!IsVoided)
         {
           <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
         }
       </MudItem>
-      <MudItem>
+      <MudItem xs="2">@if (IsVoided)
+                         {
+                           <MudText Color="Color.Error">Void</MudText>
+                         }
+      </MudItem>
+      <MudItem xs="5">
         <MudStack Row="true" Spacing="2">
           @if (!IsVoided && IsEditMode && UserOptions.IsAdminUser())
           {

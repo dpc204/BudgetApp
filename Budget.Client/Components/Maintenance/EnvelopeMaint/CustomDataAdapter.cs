@@ -20,7 +20,7 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
       _maintApiClient = maintApiClient;
     }
 
-    public List<EnvelopeDto> Envelopes { get; set; } = new();
+    public List<EnvelopeDto> Envelopes { get; set; } = [];
 
     public override async Task<object> ReadAsync(DataManagerRequest dm, string additionalParam = null)
     {
