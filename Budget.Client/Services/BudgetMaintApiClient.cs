@@ -120,6 +120,13 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
     return true;
   }
 
+  public async Task<CategoryImportResult> ImportCategoriesAsync(string csvContent, CancellationToken cancellationToken = default)
+  {
+    var payload = new { csvContent };
+    var result = await PostAsync<object, CategoryImportResult>("categories/maint/import", payload, cancellationToken);
+    return result;
+  }
+
   public async Task<string> ExportCategoriesAsync(CancellationToken cancellationToken = default)
   {
     using var resp = await _http.GetAsync("categories/maint/export", cancellationToken);

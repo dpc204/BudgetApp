@@ -17,6 +17,7 @@ public interface IBudgetMaintApiClient
   Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
   Task<CategoryDto> UpdateCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
   Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default);
+  Task<CategoryImportResult> ImportCategoriesAsync(string csvContent, CancellationToken cancellationToken = default);
   Task<string> ExportCategoriesAsync(CancellationToken cancellationToken = default);
 
   // Account maintenance
@@ -31,3 +32,4 @@ public interface IBudgetMaintApiClient
 
 public sealed record BackupPlanDto(string FileName);
 public sealed record EnvelopeImportResult(int ImportedCount, List<string> Errors);
+public sealed record CategoryImportResult(int ImportedCount, List<string> Errors);

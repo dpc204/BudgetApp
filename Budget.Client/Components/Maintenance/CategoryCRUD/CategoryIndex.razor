@@ -1,5 +1,6 @@
 @using Budget.Shared.Models
 @using Budget.Shared.Services
+@using Budget.Client.Components.Shared
 @inject IBudgetMaintApiClient MaintApi
 @inject IDialogService DialogService
 
@@ -11,7 +12,16 @@
 }
 else
 {
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Class="mb-2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
+        
+        <ImportExport T="CategoryDto"
+                      EntityName="Categories"
+                      ImportFunc="ImportCategoriesWrapperAsync"
+                      ExportFunc="ExportCategoriesWrapperAsync"
+                      OnImportCompleted="LoadAsync" />
+    </MudStack>
+    
     <MudTable Items="_categories" Hover="true" Dense="true" Class="mt-2" Elevation="0">
         <HeaderContent>
             <MudTh>Id</MudTh>
@@ -83,5 +93,17 @@ else
         var result = await dialogRef.Result;
         if (!result.Canceled)
             await LoadAsync();
+    }
+
+    // Wrapper methods for ImportExport component
+    private async Task<(int ImportedCount, List<string> Errors)> ImportCategoriesWrapperAsync(string csvContent, CancellationToken cancellationToken)
+    {
+        var result = await MaintApi.ImportCategoriesAsync(csvContent, cancellationToken);
+        return (result.ImportedCount, result.Errors);
+    }
+
+    private async Task<string> ExportCategoriesWrapperAsync(CancellationToken cancellationToken)
+    {
+        return await MaintApi.ExportCategoriesAsync(cancellationToken);
     }
 }

@@ -12,37 +12,12 @@
   <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
     
-    <InputFile OnChange="OnInputFileChange" accept=".csv" disabled="@Busy"/>
-    <MudButton OnClick="ImportAsync" 
-               Disabled="@(Busy || SelectedFile is null)" 
-               Variant="Variant.Filled" 
-               Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.Upload">
-      Import Envelopes
-    </MudButton>
+    <ImportExport T="EnvelopeDto"
+                  EntityName="Envelopes"
+                  ImportFunc="ImportEnvelopesWrapperAsync"
+                  ExportFunc="ExportEnvelopesWrapperAsync"
+                  OnImportCompleted="LoadAsync" />
   </MudStack>
-
-  @if (!string.IsNullOrEmpty(Status))
-  {
-    <MudAlert Severity="@StatusSeverity">@Status</MudAlert>
-  }
-
-  @if (Busy)
-  {
-    <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
-  }
-
-  @if (Errors.Count > 0)
-  {
-    <MudAlert Severity="Severity.Error">
-      <ul>
-        @foreach (var err in Errors)
-        {
-          <li>@err</li>
-        }
-      </ul>
-    </MudAlert>
-  }
 </MudStack>
 
 <MudDataGrid T="EnvelopeDto"
@@ -127,10 +102,6 @@
   private bool HasPendingChanges => _changedEnvelopeIds.Count > 0;
 
   protected bool Busy { get; set; }
-  protected string Status { get; set; } = string.Empty;
-  protected Severity StatusSeverity { get; set; } = Severity.Info;
-  protected IBrowserFile? SelectedFile { get; set; }
-  protected List<string> Errors { get; } = [];
 
   protected override async Task OnInitializedAsync() => await LoadAsync();
 
@@ -267,80 +238,15 @@
       await LoadAsync();
   }
 
-  protected async Task OnInputFileChange(InputFileChangeEventArgs e)
+  // Wrapper methods for ImportExport component
+  private async Task<(int ImportedCount, List<string> Errors)> ImportEnvelopesWrapperAsync(string csvContent, CancellationToken cancellationToken)
   {
-    Errors.Clear();
-    Status = string.Empty;
-    SelectedFile = e.File;
-
-    if (SelectedFile is null)
-    {
-      return;
-    }
-
-    if (!SelectedFile.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
-    {
-      Errors.Add("Only .csv files are supported.");
-      SelectedFile = null;
-      return;
-    }
-
-    Status = $"Selected: {SelectedFile.Name}";
-    StatusSeverity = Severity.Info;
+    var result = await MaintApi.ImportEnvelopesAsync(csvContent, cancellationToken);
+    return (result.ImportedCount, result.Errors);
   }
 
-  protected async Task ImportAsync()
+  private async Task<string> ExportEnvelopesWrapperAsync(CancellationToken cancellationToken)
   {
-    if (SelectedFile is null)
-    {
-      return;
-    }
-
-    Busy = true;
-    Errors.Clear();
-    Status = "Reading file...";
-    StatusSeverity = Severity.Info;
-    await InvokeAsync(StateHasChanged);
-
-    try
-    {
-      await using var stream = SelectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-      using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-      var csvContent = await reader.ReadToEndAsync();
-
-      Status = "Importing envelopes...";
-      await InvokeAsync(StateHasChanged);
-
-      var result = await MaintApi.ImportEnvelopesAsync(csvContent);
-
-      if (result.Errors.Count > 0)
-      {
-        Errors.AddRange(result.Errors);
-        Status = $"Import completed with errors. {result.ImportedCount} envelope(s) imported.";
-        StatusSeverity = Severity.Warning;
-      }
-      else
-      {
-        Status = $"Successfully imported {result.ImportedCount} envelope(s).";
-        StatusSeverity = Severity.Success;
-        Snackbar.Add(Status, Severity.Success);
-        
-        // Refresh the data
-        await LoadAsync();
-      }
-
-      SelectedFile = null;
-    }
-    catch (Exception ex)
-    {
-      Errors.Add($"Import failed: {ex.Message}");
-      Status = "Import failed.";
-      StatusSeverity = Severity.Error;
-    }
-    finally
-    {
-      Busy = false;
-      await InvokeAsync(StateHasChanged);
-    }
+    return await MaintApi.ExportEnvelopesAsync(cancellationToken);
   }
 }
