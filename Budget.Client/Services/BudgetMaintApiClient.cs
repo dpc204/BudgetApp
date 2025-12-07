@@ -84,6 +84,13 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     return result;
   }
 
+  public async Task<string> ExportEnvelopesAsync(CancellationToken cancellationToken = default)
+  {
+    using var resp = await _http.GetAsync("envelopes/maint/export", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    return await resp.Content.ReadAsStringAsync(cancellationToken);
+  }
+
   public async Task<int> GetEnvelopeTransactionCountAsync(int envelopeId, CancellationToken cancellationToken = default)
   {
     var response = await http.GetFromJsonAsync<EnvelopeTransactionCountResponse>($"envelopes/maint/{envelopeId}/transaction-count", cancellationToken);
@@ -111,6 +118,20 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
     resp.EnsureSuccessStatusCode();
     return true;
+  }
+
+  public async Task<CategoryImportResult> ImportCategoriesAsync(string csvContent, CancellationToken cancellationToken = default)
+  {
+    var payload = new { csvContent };
+    var result = await PostAsync<object, CategoryImportResult>("categories/maint/import", payload, cancellationToken);
+    return result;
+  }
+
+  public async Task<string> ExportCategoriesAsync(CancellationToken cancellationToken = default)
+  {
+    using var resp = await _http.GetAsync("categories/maint/export", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    return await resp.Content.ReadAsStringAsync(cancellationToken);
   }
 
   // Account maintenance methods

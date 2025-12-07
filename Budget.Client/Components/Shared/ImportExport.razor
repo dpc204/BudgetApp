@@ -1,0 +1,44 @@
+@typeparam T
+
+<MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Class="@Class">
+  <InputFile OnChange="OnInputFileChange" accept=".csv" disabled="@Busy" @key="@_inputFileKey"/>
+  <MudButton OnClick="ImportAsync" 
+             Disabled="@(Busy || SelectedFile is null)" 
+             Variant="Variant.Filled" 
+             Color="Color.Primary"
+             Size="Size.Small"
+             StartIcon="@Icons.Material.Filled.Upload">
+    Import @EntityName
+  </MudButton>
+  
+  <MudButton OnClick="ExportAsync" 
+             Disabled="@Busy" 
+             Variant="Variant.Filled" 
+             Color="Color.Secondary"
+             Size="Size.Small"
+             StartIcon="@Icons.Material.Filled.Download">
+    Export @EntityName
+  </MudButton>
+</MudStack>
+
+@if (!string.IsNullOrEmpty(Status))
+{
+  <MudAlert Severity="@StatusSeverity" Class="mt-2">@Status</MudAlert>
+}
+
+@if (Busy)
+{
+  <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2"/>
+}
+
+@if (Errors.Count > 0)
+{
+  <MudAlert Severity="Severity.Error" Class="mt-2">
+    <ul class="ma-0 pa-0 pl-4">
+      @foreach (var err in Errors)
+      {
+        <li>@err</li>
+      }
+    </ul>
+  </MudAlert>
+}

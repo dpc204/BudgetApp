@@ -1,7 +1,7 @@
-﻿namespace Budget.Api.Features.Categories.CategoryMaint;
+namespace Budget.Api.Features.Categories.CategoryMaint;
 
 /// <summary>
-/// Imports Categories from CSV data
+/// Imports categories from CSV data
 /// </summary>
 public static class ImportCategories
 {
@@ -9,7 +9,7 @@ public static class ImportCategories
   public sealed record Response(int ImportedCount, List<string> Errors);
 
   /// <summary>
-  /// Handles CSV import of Categories
+  /// Handles CSV import of categories
   /// </summary>
   public class Handler(BudgetContext db, ILogger<Handler> log) : IRequestHandler<Command, Response>
   {
@@ -25,11 +25,22 @@ public static class ImportCategories
           .Split(["\r\n", "\n", "\r"], StringSplitOptions.None)
           .ToList();
 
-        var Categories = await CsvImportService.ImportAsync(db.Categories, lines, log: log);
-        await db.SaveChangesAsync(cancellationToken);
-        importedCount = Categories.Count;
+        // Enable IDENTITY_INSERT to allow explicit Id values
+        await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Categories ON", cancellationToken);
+        
+        try
+        {
+          var categories = await CsvImportService.ImportAsync(db.Categories, lines, log: log);
+          await db.SaveChangesAsync(cancellationToken);
+          importedCount = categories.Count;
+        }
+        finally
+        {
+          // Always disable IDENTITY_INSERT
+          await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Categories OFF", cancellationToken);
+        }
       }
-      catch(Exception ex)
+      catch (Exception ex)
       {
         errors.Add($"Import failed: {ex.Message}");
       }
@@ -48,8 +59,8 @@ public static class ImportCategories
       app.MapPost("/categories/maint/import", async ([FromServices] ISender sender, [FromBody] ImportRequest request) =>
       {
         var result = await sender.Send(new Command(request.CsvContent));
-
-        if(result.Errors.Count > 0)
+        
+        if (result.Errors.Count > 0)
         {
           return Results.BadRequest(result);
         }
