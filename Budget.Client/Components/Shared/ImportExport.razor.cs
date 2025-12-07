@@ -131,7 +131,7 @@ public partial class ImportExport<T> : ComponentBase where T : class
       else
       {
         // Download the CSV file
-        var fileName = $"{EntityName}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var fileName = $"{EntityName}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
         var bytes = Encoding.UTF8.GetBytes(csv);
         var base64 = Convert.ToBase64String(bytes);
         

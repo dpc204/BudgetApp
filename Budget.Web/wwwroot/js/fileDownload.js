@@ -15,8 +15,8 @@ export function downloadFile(fileName, contentType, base64Data) {
   link.click();
   document.body.removeChild(link);
   
-  // Clean up the blob URL
-  setTimeout(() => URL.revokeObjectURL(link.href), 100);
+  // Clean up the blob URL after a reasonable delay
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
 export function initialize() {
