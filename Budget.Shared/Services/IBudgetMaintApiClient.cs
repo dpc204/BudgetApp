@@ -9,7 +9,7 @@ public interface IBudgetMaintApiClient
   Task<EnvelopeDto> AddAsync(EnvelopeDto dto);
   Task<EnvelopeDto> UpdateAsync(EnvelopeDto dto, CancellationToken cancellationToken = default); // new for editing
   Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default);
-  Task<EnvelopeImportResult> ImportEnvelopesAsync(string csvContent, CancellationToken cancellationToken = default);
+  Task<ImportResult> ImportEnvelopesAsync(string csvContent, CancellationToken cancellationToken = default);
   Task<string> ExportEnvelopesAsync(CancellationToken cancellationToken = default);
   Task<int> GetEnvelopeTransactionCountAsync(int envelopeId, CancellationToken cancellationToken = default);
 
@@ -17,7 +17,7 @@ public interface IBudgetMaintApiClient
   Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
   Task<CategoryDto> UpdateCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
   Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default);
-  Task<CategoryImportResult> ImportCategoriesAsync(string csvContent, CancellationToken cancellationToken = default);
+  Task<ImportResult> ImportCategoriesAsync(string csvContent, CancellationToken cancellationToken = default);
   Task<string> ExportCategoriesAsync(CancellationToken cancellationToken = default);
 
   // Account maintenance
@@ -31,5 +31,4 @@ public interface IBudgetMaintApiClient
 }
 
 public sealed record BackupPlanDto(string FileName);
-public sealed record EnvelopeImportResult(int ImportedCount, List<string> Errors);
-public sealed record CategoryImportResult(int ImportedCount, List<string> Errors);
+public sealed record ImportResult(int ImportedCount, List<string> Errors);

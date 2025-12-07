@@ -173,8 +173,9 @@ else
       Status = "Import failed.";
       StatusSeverity = Severity.Error;
     }
+  }
 
-    // Wrapper methods for ImportExport component
+  // Wrapper methods for ImportExport component
     private async Task<(int ImportedCount, List<string> Errors)> ImportCategoriesWrapperAsync(string csvContent, CancellationToken cancellationToken)
     {
         var result = await MaintApi.ImportCategoriesAsync(csvContent, cancellationToken);
