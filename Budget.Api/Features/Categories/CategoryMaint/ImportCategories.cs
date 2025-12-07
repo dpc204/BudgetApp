@@ -25,9 +25,20 @@ public static class ImportCategories
           .Split(["\r\n", "\n", "\r"], StringSplitOptions.None)
           .ToList();
 
-        var categories = await CsvImportService.ImportAsync(db.Categories, lines, log: log);
-        await db.SaveChangesAsync(cancellationToken);
-        importedCount = categories.Count;
+        // Enable IDENTITY_INSERT to allow explicit Id values
+        await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Categories ON", cancellationToken);
+        
+        try
+        {
+          var categories = await CsvImportService.ImportAsync(db.Categories, lines, log: log);
+          await db.SaveChangesAsync(cancellationToken);
+          importedCount = categories.Count;
+        }
+        finally
+        {
+          // Always disable IDENTITY_INSERT
+          await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Categories OFF", cancellationToken);
+        }
       }
       catch (Exception ex)
       {

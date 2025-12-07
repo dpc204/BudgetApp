@@ -110,7 +110,6 @@ public static class CsvExportService
       return string.Empty;
     }
 
-    // Use the first character of the separator (consistent with CsvImportService)
     var sepChar = separator.Length > 0 ? separator[0] : ',';
     
     // Check if value needs escaping (contains separator, quotes, newlines)

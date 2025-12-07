@@ -25,9 +25,20 @@ public static class ImportEnvelopes
           .Split(["\r\n", "\n", "\r"], StringSplitOptions.None)
           .ToList();
 
-        var envelopes = await CsvImportService.ImportAsync(db.Envelopes, lines, log: log);
-        await db.SaveChangesAsync(cancellationToken);
-        importedCount = envelopes.Count;
+        // Enable IDENTITY_INSERT to allow explicit Id values
+        await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes ON", cancellationToken);
+        
+        try
+        {
+          var envelopes = await CsvImportService.ImportAsync(db.Envelopes, lines, log: log);
+          await db.SaveChangesAsync(cancellationToken);
+          importedCount = envelopes.Count;
+        }
+        finally
+        {
+          // Always disable IDENTITY_INSERT
+          await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes OFF", cancellationToken);
+        }
       }
       catch (Exception ex)
       {
