@@ -16,7 +16,7 @@ public static class Misc
     ConnectionStringType connectionStringType, ILogger logger)
   {
     var connectionType = connectionStringType.ToString();
-    logger.Log(LogLevel.Information, $"SetupConfigurationSources - Type: {connectionType}");
+    logger.Log(LogLevel.Information, "SetupConfigurationSources - Type: {ConnectionType}", connectionType);
 
     string? s;
     var configuration = webApplicationBuilder.Configuration;
@@ -30,7 +30,7 @@ public static class Misc
         $"Connection string!@# '{connectionType}Connection' is null or empty. Checked: Local{connectionType}Connection, {connectionType}connection, ConnectionStrings:{connectionType}connection");
     }
 
-    logger.Log(LogLevel.Information, "SetupConfigurationsSources Done.  Conn Type: {0} Conn Str: {1} UseAzureDB {2}",
+    logger.Log(LogLevel.Information, "SetupConfigurationsSources Done.  Conn Type: {ConnType} Conn Str: {ConnString} UseAzureDB {UserAzureDB}",
       connectionType, s,
       UseAzureDB(webApplicationBuilder, logger));
     return s;
@@ -90,7 +90,7 @@ public static class Misc
       }
 
       var sValue = webApplicationBuilder.Configuration["UseAzureDB"];
-      logger.Log(LogLevel.Information, $"UseAzureDB from config: {sValue}");
+      logger.Log(LogLevel.Information, "UseAzureDB from config: {SValue}", sValue);
       if (bool.TryParse(sValue, out var bValue))
       {
         UseAzureDb = bValue;

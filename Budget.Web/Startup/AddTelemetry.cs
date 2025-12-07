@@ -35,7 +35,7 @@ namespace Budget.Web.Startup
 
       builder.Services.AddOpenTelemetry().UseOtlpExporter();
 
-      builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), new[] { "live" });
+      builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
       builder.Services.AddServiceDiscovery();
       builder.Services.ConfigureHttpClientDefaults(http =>
       {

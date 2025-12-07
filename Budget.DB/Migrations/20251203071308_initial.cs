@@ -3,13 +3,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+#pragma warning disable IDE0300 // Simplify collection initialization
+#pragma warning disable CA1861
 
 namespace Budget.DB.Migrations
 {
-    /// <inheritdoc />
-    public partial class initial : Migration
-    {
+  /// <inheritdoc />
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
+  public partial class initial : Migration
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
+  {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -197,7 +200,8 @@ namespace Budget.DB.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
+
+      migrationBuilder.InsertData(
                 schema: "budget",
                 table: "BankAccounts",
                 columns: new[] { "Id", "AccountType", "Balance", "LastTransactionDate", "LastTransactionId", "Name" },
@@ -207,7 +211,7 @@ namespace Budget.DB.Migrations
                     { 2, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Discover" }
                 });
 
-            migrationBuilder.InsertData(
+      migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Categories",
                 columns: new[] { "Id", "CategoryType", "Description", "Name", "SortOrder" },
@@ -407,3 +411,6 @@ namespace Budget.DB.Migrations
         }
     }
 }
+#pragma warning restore IDE0300 // Simplify collection initialization
+
+#pragma warning restore CA1861

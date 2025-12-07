@@ -3,18 +3,11 @@ namespace Budget.Api.Services;
 /// <summary>
 /// Service to export an Azure SQL Database to a .bacpac in Azure Storage using Azure Resource Manager REST API.
 /// </summary>
-public class BackupAzureSql
+public class BackupAzureSql(HttpClient httpClient, IConfiguration configuration, ILogger<BackupAzureSql> logger)
 {
-  private readonly HttpClient _httpClient;
-  private readonly IConfiguration _configuration;
-  private readonly ILogger<BackupAzureSql> _logger;
-
-  public BackupAzureSql(HttpClient httpClient, IConfiguration configuration, ILogger<BackupAzureSql> logger)
-  {
-    _httpClient = httpClient;
-    _configuration = configuration;
-    _logger = logger;
-  }
+  private readonly HttpClient _httpClient = httpClient;
+  private readonly IConfiguration _configuration = configuration;
+  private readonly ILogger<BackupAzureSql> _logger = logger;
 
   /// <summary>
   /// Triggers an export of the specified Azure SQL database to the given Storage Blob URI.
@@ -49,7 +42,7 @@ public class BackupAzureSql
     string storageKeyType = storageKey?.Contains("sig=", StringComparison.OrdinalIgnoreCase) == true || storageKey?.Contains("sv=", StringComparison.OrdinalIgnoreCase) == true
      ? "SharedAccessKey"
      : "StorageAccessKey";
-    if (storageKeyType == "SharedAccessKey" && storageKey.StartsWith("?"))
+    if (storageKeyType == "SharedAccessKey" && storageKey != null && storageKey.StartsWith('?'))
     {
       storageKey = storageKey.TrimStart('?');
     }
@@ -58,9 +51,7 @@ public class BackupAzureSql
     // Optional preflight: if SAS present and has read permission, HEAD the blob to confirm non-existence
     if (storageKeyType == "SharedAccessKey")
     {
-      var hasRead = storageKey.Contains("sp=", StringComparison.OrdinalIgnoreCase)
-        ? storageKey.Contains("r", StringComparison.Ordinal)
-        : false;
+      var hasRead = storageKey != null && (storageKey.Contains("sp=", StringComparison.OrdinalIgnoreCase) && storageKey.Contains('r', StringComparison.Ordinal));
       if (hasRead && !storageUri.Contains("sig=", StringComparison.OrdinalIgnoreCase))
       {
         try
@@ -82,9 +73,9 @@ public class BackupAzureSql
 
     var body = new
     {
-      storageKeyType = storageKeyType,
-      storageKey = storageKey,
-      storageUri = storageUri,
+      storageKeyType,
+      storageKey,
+      storageUri,
       administratorLogin = dbAdmin,
       administratorLoginPassword = dbPassword
     };

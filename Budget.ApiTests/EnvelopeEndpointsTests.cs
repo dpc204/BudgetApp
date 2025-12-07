@@ -1,4 +1,3 @@
-using System;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using Budget.Api.Features.Envelopes.EnvelopeMaint;
 using Budget.DB;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 using EnvelopeGetAll = Budget.Api.Features.Envelopes.GetAll;
 
@@ -16,19 +14,14 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Envelope API endpoints
 /// </summary>
-public class EnvelopeEndpointsTests : IClassFixture<BudgetApiTestFactory>
+public class EnvelopeEndpointsTests(BudgetApiTestFactory factory) : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly BudgetApiTestFactory _factory;
+    private readonly BudgetApiTestFactory _factory = factory;
 
-    public EnvelopeEndpointsTests(BudgetApiTestFactory factory)
-    {
-        _factory = factory;
-    }
-
-    /// <summary>
-    /// Test GetAll (envelopes/getall) endpoint - should return all envelopes with categories
-    /// </summary>
-    [Fact]
+  /// <summary>
+  /// Test GetAll (envelopes/getall) endpoint - should return all envelopes with categories
+  /// </summary>
+  [Fact]
     public async Task GetAllEnvelopes_Should_Return_All_Envelopes()
     {
         // Arrange
@@ -101,7 +94,7 @@ public class EnvelopeEndpointsTests : IClassFixture<BudgetApiTestFactory>
         var command = new InsertEnvelope.Command(
             Name: "New Envelope",
             Description: "Test description",
-            balance: 150m,
+            Balance: 150m,
             Budget: 200m,
             CategoryId: 1,
             SortOrder: 10);
@@ -269,8 +262,8 @@ public class EnvelopeEndpointsTests : IClassFixture<BudgetApiTestFactory>
             TestHelpers.CreateTestTransactionDetail(transactionId: 407, lineId: 1, envelopeId: envelope.Id, amount: 75m)
         };
 
-        var transaction1 = TestHelpers.CreateTestTransaction(id: 406, accountId: account.Id, totalAmount: 50m, details: new List<TransactionDetail> { details[0] });
-        var transaction2 = TestHelpers.CreateTestTransaction(id: 407, accountId: account.Id, totalAmount: 75m, details: new List<TransactionDetail> { details[1] });
+        var transaction1 = TestHelpers.CreateTestTransaction(id: 406, accountId: account.Id, totalAmount: 50m, details: [details[0]]);
+        var transaction2 = TestHelpers.CreateTestTransaction(id: 407, accountId: account.Id, totalAmount: 75m, details: [details[1]]);
         
         db.Transactions.Add(transaction1);
         db.Transactions.Add(transaction2);

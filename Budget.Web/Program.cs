@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Logging;
-
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 var assembly = typeof(App).Assembly;
 
 using var loggerFactory = LoggerFactory.Create(loggingBuilder =>

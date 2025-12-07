@@ -5,7 +5,7 @@ namespace Budget.Web.Components.Account
     // Remove the "else if (EmailSender is IdentityNoOpEmailSender)" block from RegisterConfirmation.razor after updating with a real implementation.
     internal sealed class IdentityNoOpEmailSender : IEmailSender<BudgetUser>
     {
-        private readonly IEmailSender emailSender = new NoOpEmailSender();
+        private readonly NoOpEmailSender emailSender = new();
 
         public Task SendConfirmationLinkAsync(BudgetUser user, string email, string confirmationLink) =>
             emailSender.SendEmailAsync(email, "Confirm your email", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>.");

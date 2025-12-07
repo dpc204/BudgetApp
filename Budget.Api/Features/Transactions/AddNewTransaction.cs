@@ -1,12 +1,10 @@
-﻿using Budget.Api.Features.Envelopes.EnvelopeMaint;
-
-namespace Budget.Api.Features.Accounts.AccountMaint;
+﻿namespace Budget.Api.Features.Transactions;
 
 public static class AddNewTransaction
 {
   public sealed record Command(OneTransactionDetail Trans) : IRequest<List<EnvelopeDto>>;
 
-  public sealed record Response(List<EnvelopeDto> envelopes); 
+  public sealed record Response(List<EnvelopeDto> Envelopes); 
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, List<EnvelopeDto>>
   {

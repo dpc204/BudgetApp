@@ -1,10 +1,5 @@
 @page "/assign"
 @rendermode InteractiveServer
-@using System.Diagnostics
-@using Budget.Shared
-@using Budget.Shared.Models
-@using Budget.Shared.Services
-@using Budget.Shared.FDComponents
 
 
 <h1>Unassigned Transactions</h1>
@@ -34,14 +29,14 @@ else
                            CoerceText="false"
                            CoerceValue="true"
                            OpenOnFocus="true"
-                           SelectOnClick="true"
+                           selectOnClick="true"
                            Placeholder="Select Envelope for Bulk Assignment"
                            Disabled="@(_selectedTransactions.Count == 0)"
                            Immediate="true"
                            AdornmentIcon="@Icons.Material.Filled.Search"
                            AdornmentColor="Color.Primary"
                            Variant="Variant.Outlined"
-                           Dense="true"
+                           dense="true"
                            ShowProgressIndicator="true"
                            ProgressIndicatorColor="Color.Primary"
                            Style="min-width: 300px;"/>
@@ -60,7 +55,7 @@ else
                    EditMode="DataGridEditMode.Cell"
                    Hover="true"
                    SortMode="SortMode.Multiple"
-                   Dense="true"
+                   dense="true"
                    FixedHeader="true"
                    MultiSelection="true"
                    @bind-SelectedItems="_selectedTransactions"
@@ -88,13 +83,13 @@ else
                                CoerceText="false"
                                CoerceValue="true"
                                OpenOnFocus="true"
-                               SelectOnClick="true"
+                               selectOnClick="true"
                                Placeholder="Search Envelope"
                                Immediate="true"
                                AdornmentIcon="@Icons.Material.Filled.Search"
                                AdornmentColor="Color.Primary"
                                Variant="Variant.Outlined"
-                               Dense="true"
+                               dense="true"
                                ShowProgressIndicator="true"
                                ProgressIndicatorColor="Color.Primary"/>
             </EditTemplate>
@@ -109,7 +104,7 @@ else
               <MudTextField Value="@context.Item.Description"
                             ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
                             Variant="Variant.Outlined"
-                            Dense="true"
+                            dense="true"
                             Immediate="true"
                             Placeholder="Description"/>
             </EditTemplate>

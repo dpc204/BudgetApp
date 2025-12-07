@@ -1,5 +1,3 @@
-using Budget.Api.Features.Envelopes.EnvelopeMaint;
-
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -18,14 +16,9 @@ public static class VoidTransaction
     {
       var existingTrans = await db.Transactions
         .Include(t => t.Details)
-        .FirstOrDefaultAsync(t => t.Id == request.TransactionId, cancellationToken);
-
-      if (existingTrans is null)
-      {
-        throw new InvalidOperationException($"Transaction with Id {request.TransactionId} not found.");
-      }
-
-      if (existingTrans.IsVoided)
+        .FirstOrDefaultAsync(t => t.Id == request.TransactionId, cancellationToken) ?? throw new InvalidOperationException($"Transaction with Id {request.TransactionId} not found.");
+     
+      if(existingTrans.IsVoided)
       {
         throw new InvalidOperationException($"Transaction {request.TransactionId} is already voided.");
       }

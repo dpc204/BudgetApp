@@ -1,7 +1,7 @@
 using Scalar.AspNetCore;
-using Microsoft.Extensions.Logging;
 using Budget.Api;
 using Budget.Api.Services;
+using ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 

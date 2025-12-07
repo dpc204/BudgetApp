@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Budget.Shared.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +24,7 @@ public class CsvImportServiceTests : IDisposable
         {
             Directory.Delete(_tempDir, true);
         }
+        GC.SuppressFinalize(this);
     }
 
     private string CreateTempFile(string content)
@@ -70,18 +68,16 @@ public class CsvImportServiceTests : IDisposable
         public TestStatus Status { get; set; }
     }
 
-    public class TestContext : DbContext
+    public class TestContext(DbContextOptions<CsvImportServiceTests.TestContext> options) : DbContext(options)
     {
         public DbSet<TestEntity> TestEntities => Set<TestEntity>();
         public DbSet<TestEntityWithNullables> TestEntitiesWithNullables => Set<TestEntityWithNullables>();
         public DbSet<TestEntityWithEnum> TestEntitiesWithEnum => Set<TestEntityWithEnum>();
+  }
 
-        public TestContext(DbContextOptions<TestContext> options) : base(options) { }
-    }
+  #endregion
 
-    #endregion
-
-    private TestContext CreateContext()
+  private static TestContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<TestContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -400,16 +396,14 @@ public class CsvImportServiceTests : IDisposable
         public int SortOrder { get; set; }
     }
 
-    public class TestContextForIssue : DbContext
+    public class TestContextForIssue(DbContextOptions<CsvImportServiceTests.TestContextForIssue> options) : DbContext(options)
     {
         public DbSet<IssueTestEntity> IssueEntities => Set<IssueTestEntity>();
+  }
 
-        public TestContextForIssue(DbContextOptions<TestContextForIssue> options) : base(options) { }
-    }
+  #region List<string> Overload Tests
 
-    #region List<string> Overload Tests
-
-    [Fact]
+  [Fact]
     public async Task ImportAsync_FromListOfLines_ReturnsCorrectEntities()
     {
         // Arrange

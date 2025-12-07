@@ -1,4 +1,3 @@
-using System;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using Budget.Api.Features.Categories.CategoryMaint;
 using Budget.DB;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 using CategoryGetAll = Budget.Api.Features.Categories.GetByEnvelopeId;
 
@@ -16,19 +14,14 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Category API endpoints
 /// </summary>
-public class CategoryEndpointsTests : IClassFixture<BudgetApiTestFactory>
+public class CategoryEndpointsTests(BudgetApiTestFactory factory) : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly BudgetApiTestFactory _factory;
+    private readonly BudgetApiTestFactory _factory = factory;
 
-    public CategoryEndpointsTests(BudgetApiTestFactory factory)
-    {
-        _factory = factory;
-    }
-
-    /// <summary>
-    /// Test GetCategories endpoint - should return all categories
-    /// </summary>
-    [Fact]
+  /// <summary>
+  /// Test GetCategories endpoint - should return all categories
+  /// </summary>
+  [Fact]
     public async Task GetCategories_Should_Return_All_Categories()
     {
         // Arrange

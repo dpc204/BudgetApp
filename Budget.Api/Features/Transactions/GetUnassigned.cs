@@ -3,7 +3,7 @@
 public static class GetUnassigned
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
-  public sealed record Response(int TransactionId, int LineId, int envelopeId, string envelopeName,string Vendor, string Description, decimal Amount, DateTime Date);
+  public sealed record Response(int TransactionId, int LineId, int EnvelopeId, string EnvelopeName,string Vendor, string Description, decimal Amount, DateTime Date);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {

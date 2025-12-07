@@ -4,7 +4,6 @@
 @using System.Globalization
 @using System.Text
 @using System.Text.Encodings.Web
-@using Budget.Web.Data
 @using Microsoft.AspNetCore.Identity
 
 @inject UserManager<BudgetUser> UserManager
@@ -79,7 +78,7 @@ else
     private HttpContext HttpContext { get; set; } = default!;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    private InputModel Input { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -114,7 +113,7 @@ else
         }
         else
         {
-            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", message, HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", message);
         }
     }
 

@@ -1,5 +1,3 @@
-using Aspire.Hosting.Azure;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Define the Budget API service with service discovery

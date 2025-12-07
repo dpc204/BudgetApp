@@ -1,3 +1,4 @@
+using Budget.Web.Components.Account;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Budget.Web.Startup;

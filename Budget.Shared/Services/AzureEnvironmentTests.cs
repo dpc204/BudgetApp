@@ -1,6 +1,4 @@
-using Budget.Shared.Services;
-
-namespace Budget.Shared.Tests;
+namespace Budget.Shared.Services;
 
 /// <summary>
 /// Test helper to verify Azure environment detection

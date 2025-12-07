@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Budget.DB;
-using Budget.Shared.Models;
 
 namespace Budget.ApiTests;
 

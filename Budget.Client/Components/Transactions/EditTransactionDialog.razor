@@ -1,6 +1,4 @@
 @using System.Globalization
-@using MudBlazor
-@using InputType = MudBlazor.InputType
 @inject IBudgetApiClient BudgetApi
 @inject IUserAndOptions UserOptions
 <MudDialog >
@@ -28,7 +26,7 @@
       </MudGrid>
 
       @* Show at most 5 visible data rows (dense mode) with a scrollable body instead of paging *@
-      <MudTable Items="@_lines" Dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="230px">
+      <MudTable Items="@_lines" dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="230px">
         <ToolBarContent>
         </ToolBarContent>
         <HeaderContent>
@@ -39,7 +37,7 @@
         </HeaderContent>
         <RowTemplate>
           <MudTd>
-            <MudSelect T="int" @bind-Value="context.EnvelopeId" Dense="true" Disabled="@IsVoided">
+            <MudSelect T="int" @bind-Value="context.EnvelopeId" dense="true" Disabled="@IsVoided">
               @foreach (var e in Envelopes)
               {
                 <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
@@ -56,7 +54,7 @@
                              Format="N2"
                              Culture="@CultureInfo.CurrentCulture"
                              HideSpinButtons="true"
-                             Validation="ValidateAmount"
+                             Validation="@((decimal val) => ValidateAmount(val))"
                              Disabled="@IsVoided"/>
             
 
@@ -77,14 +75,19 @@
     </MudForm>
   </DialogContent>
   <DialogActions>
-    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-      <MudItem>
+    <MudGrid Justify="Justify.SpaceBetween"  alignItems="AlignItems.Center">
+      <MudItem xs="5">
         @if (!IsVoided)
         {
           <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
         }
       </MudItem>
-      <MudItem>
+      <MudItem xs="2">@if (IsVoided)
+                         {
+                           <MudText Color="Color.Error">Void</MudText>
+                         }
+      </MudItem>
+      <MudItem xs="5">
         <MudStack Row="true" Spacing="2">
           @if (!IsVoided && IsEditMode && UserOptions.IsAdminUser())
           {

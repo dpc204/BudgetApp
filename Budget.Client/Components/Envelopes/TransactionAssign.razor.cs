@@ -6,16 +6,14 @@ public partial class TransactionAssign : ComponentBase
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!; 
   [Inject] private IUserAndOptions UserOptions { get; set; } = default!; 
-  [Inject] private IJSRuntime JSRuntime { get; set; }
 
 
   public List<TransactionDto> Transactions { get; set; } = [];
-  private Dictionary<int, EnvelopeIdName> _availableEnvelopes = new();
+  private Dictionary<int, EnvelopeIdName> _availableEnvelopes = [];
 
-  private EnvelopeResult? _selectedEnvelope;
 
   // Multi-selection stat
-  private HashSet<TransactionDto> _selectedTransactions = new();
+  private HashSet<TransactionDto> _selectedTransactions = [];
   private EnvelopeIdName? _bulkEnvelope;
 
   // Height calculation so the MudDataGrid shows exactly 3 rows and scrolls for more
@@ -41,7 +39,7 @@ public partial class TransactionAssign : ComponentBase
       // Convert State.AllEnvelopeData to EnvelopeIdName list
       _availableEnvelopes =
         State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, e => new EnvelopeIdName(e.EnvelopeId, e.EnvelopeName)) ??
-        new();
+        [];
 
       Transactions = await Api.GetTransactionsUnassignedAsync();
     }
@@ -73,14 +71,14 @@ public partial class TransactionAssign : ComponentBase
       // Refresh envelope list after state is loaded
       _availableEnvelopes =
         State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, x => new EnvelopeIdName(x.EnvelopeId, x.EnvelopeName)) ??
-        new();
+        [];
 
 
       StateHasChanged();
     }
   }
 
-  private void OnRowClicked(DataGridRowClickEventArgs<TransactionDto> args)
+  private static void OnRowClicked(DataGridRowClickEventArgs<TransactionDto> args)
   {
     if (args?.Item is null) return;
   }
@@ -108,11 +106,11 @@ public partial class TransactionAssign : ComponentBase
   {
     if (string.IsNullOrWhiteSpace(arg1))
     {
-      return _availableEnvelopes.Values.ToList();
+      return [.. _availableEnvelopes.Values];
     }
 
-    return _availableEnvelopes.Values.Where(e =>
-      e.Name.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    return [.. _availableEnvelopes.Values.Where(e =>
+      e.Name.Contains(arg1, StringComparison.InvariantCultureIgnoreCase))];
   }
 
   private async Task<object> OnEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val)

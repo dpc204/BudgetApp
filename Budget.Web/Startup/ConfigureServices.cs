@@ -217,7 +217,7 @@ public static class ConfigureServices
     try
     {
       if (string.IsNullOrWhiteSpace(value)) return "http://127.0.0.1:8080";
-      if (value.Contains("0.0.0.0", StringComparison.Ordinal) || value.Contains("+", StringComparison.Ordinal))
+      if (value.Contains("0.0.0.0", StringComparison.Ordinal) || value.Contains('+', StringComparison.Ordinal))
       {
         var uri = new Uri(value);
         var port = uri.IsDefaultPort ? 80 : uri.Port;

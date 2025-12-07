@@ -17,13 +17,13 @@ public partial class EnvelopeMaint : ComponentBase
     {
       CategoryParams = new DropDownEditCellParams
       {
-        Params = new DropDownListModel<object, object>()
+        Params = new()
         {
           DataSource = new List<CategoryDto>()
           {
-            new CategoryDto { Id = 1, Name = "Frequent", Description = "", SortOrder = 0 },
-            new CategoryDto { Id = 2, Name = "Regular", Description = "", SortOrder = 1 },
-            new CategoryDto { Id = 3, Name = "Bills", Description = "", SortOrder = 2 },
+            new() { Id = 1, Name = "Frequent", Description = "", SortOrder = 0 },
+            new() { Id = 2, Name = "Regular", Description = "", SortOrder = 1 },
+            new() { Id = 3, Name = "Bills", Description = "", SortOrder = 2 },
           },
           PopupWidth = "100%"
         }
@@ -33,24 +33,25 @@ public partial class EnvelopeMaint : ComponentBase
 
   public IEditorSettings? CategoryParams;
 
-  public int count { get; set; }
+  public int Count { get; set; }
 
-  public void DataBoundHandler(BeforeDataBoundArgs<EnvelopeDto> args)
-  {
-   Console.WriteLine("DataBoundHandler ");
+  public static void DataBoundHandler()
+  {  Console.WriteLine("DataBoundHandler ");
+    throw new NotImplementedException();
+  
   }
 
-  public void ActionBeginHandler(ActionEventArgs<EnvelopeDto> args)
+  public static void ActionBeginHandler(ActionEventArgs<EnvelopeDto> args)
   {
     Console.WriteLine("Begin Handler");
   }
 
-  public void ActionFailureHandler(FailureEventArgs args)
+  public static void ActionFailureHandler(FailureEventArgs args)
   {
     Console.WriteLine("FailureHandler1");
   }
 
-  public void ActionCompletedHandler(ActionEventArgs<EnvelopeDto> args)
+  public static void ActionCompletedHandler(ActionEventArgs<EnvelopeDto> args)
   {
     Console.WriteLine("CompletedHandler");
   }

@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Budget.Api.Features.Accounts.AccountMaint;
 using Budget.Api.Features.Transactions;
 using Budget.Shared.Models;
 using Budget.DB;
@@ -17,19 +16,14 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Transaction API endpoints
 /// </summary>
-public class TransactionEndpointsTests : IClassFixture<BudgetApiTestFactory>
+public class TransactionEndpointsTests(BudgetApiTestFactory factory) : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly BudgetApiTestFactory _factory;
+    private readonly BudgetApiTestFactory _factory = factory;
 
-    public TransactionEndpointsTests(BudgetApiTestFactory factory)
-    {
-        _factory = factory;
-    }
-
-    /// <summary>
-    /// Test AddNewTransaction endpoint - should create a new transaction and update balances
-    /// </summary>
-    [Fact]
+  /// <summary>
+  /// Test AddNewTransaction endpoint - should create a new transaction and update balances
+  /// </summary>
+  [Fact]
     public async Task AddNewTransaction_Should_Create_Transaction_And_Update_Balances()
     {
         // Arrange
@@ -51,15 +45,15 @@ public class TransactionEndpointsTests : IClassFixture<BudgetApiTestFactory>
             Date = DateTime.UtcNow,
             Vendor = "Test Vendor",
             UserId = 1,
-            Details = new List<TransactionDto>
-            {
+            Details =
+            [
                 new TransactionDto
                 {
                     EnvelopeId = envelope.Id,
                     Amount = 100m,
                     Description = "Test purchase"
                 }
-            }
+            ]
         };
 
         var command = new AddNewTransaction.Command(transactionDetail);
@@ -129,7 +123,7 @@ public class TransactionEndpointsTests : IClassFixture<BudgetApiTestFactory>
         result.Should().HaveCountGreaterThan(0);
         var ourTransaction = result!.FirstOrDefault(r => r.TransactionId == 201);
         ourTransaction.Should().NotBeNull();
-        ourTransaction!.envelopeId.Should().Be(-1);
+        ourTransaction!.EnvelopeId.Should().Be(-1);
     }
 
     /// <summary>
@@ -345,15 +339,15 @@ public class TransactionEndpointsTests : IClassFixture<BudgetApiTestFactory>
             Date = DateTime.UtcNow,
             Vendor = "Updated Vendor",
             UserId = 1,
-            Details = new List<TransactionDto>
-            {
+            Details =
+            [
                 new TransactionDto
                 {
                     EnvelopeId = envelope.Id,
                     Amount = 150m, // Changed amount
                     Description = "Updated transaction"
                 }
-            }
+            ]
         };
 
         var command = new UpdateTransaction.Command(updatedTransaction);

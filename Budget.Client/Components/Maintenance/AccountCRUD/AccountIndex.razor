@@ -1,6 +1,3 @@
-@using Budget.Client.Components.Shared
-@using Budget.Shared.Models
-@using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 @inject IDialogService DialogService
 @inject ILogger<AccountIndex> Logger
@@ -14,7 +11,7 @@
 else
 {
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="ShowCreate" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
-    <MudTable Items="_accounts" Hover="true" Dense="true" Class="mt-2" Elevation="0">
+    <MudTable Items="_accounts" Hover="true" dense="true" Class="mt-2" Elevation="0">
         <HeaderContent>
             <MudTh>Id</MudTh>
             <MudTh>Name</MudTh>
@@ -57,7 +54,7 @@ else
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
         var dialogRef = await DialogService.ShowAsync<AccountCreate>("Create Account", options);
         var result = await dialogRef.Result;
-        if (!result.Canceled)
+        if (result is not { Canceled: true })
             await LoadAsync();
     }
 
@@ -67,7 +64,7 @@ else
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
         var dialogRef = await DialogService.ShowAsync<AccountEdit>("Edit Account", parameters, options);
         var result = await dialogRef.Result;
-        if (!result.Canceled)
+        if (result is not { Canceled: true })
             await LoadAsync();
     }
 
@@ -84,7 +81,7 @@ else
         var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };
         var dialogRef = await DialogService.ShowAsync<AccountDelete>("Delete Account", parameters, options);
         var result = await dialogRef.Result;
-        if (!result.Canceled)
+        if (result is not { Canceled: true })
             await LoadAsync();
     }
 }

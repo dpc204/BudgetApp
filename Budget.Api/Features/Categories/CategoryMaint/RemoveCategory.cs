@@ -8,7 +8,7 @@ public static class RemoveCategory
   {
     public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
     {
-      var entity = await db.Categories.FindAsync(new object[] { request.Id }, cancellationToken);
+      var entity = await db.Categories.FindAsync([request.Id], cancellationToken);
       if (entity is null)
       {
         return false;
