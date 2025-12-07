@@ -1,7 +1,6 @@
 ﻿@page "/Account/Manage/Disable2fa"
 
 @using Budget.Shared
-@using Budget.Web.Data
 @using Microsoft.AspNetCore.Identity
 
 @inject UserManager<BudgetUser> UserManager
@@ -59,7 +58,6 @@
         Logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userId);
         RedirectManager.RedirectToWithStatus(
             "Account/Manage/TwoFactorAuthentication",
-            "2fa has been disabled. You can reenable 2fa when you setup an authenticator app",
-            HttpContext);
+            "2fa has been disabled. You can reenable 2fa when you setup an authenticator app");
     }
 }

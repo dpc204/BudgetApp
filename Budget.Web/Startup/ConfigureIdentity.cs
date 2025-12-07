@@ -43,10 +43,8 @@ public static class ConfigureIdentity
   /// </summary>
   public static void AddAuthorization(WebApplicationBuilder builder)
   {
-    builder.Services.AddAuthorization(options =>
-    {
-      options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
-    });
+    builder.Services.AddAuthorizationBuilder()
+      .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
   }
 
   /// <summary>

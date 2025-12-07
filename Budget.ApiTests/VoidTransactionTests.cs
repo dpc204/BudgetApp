@@ -8,8 +8,6 @@ using Budget.Shared.Models;
 using Budget.DB;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Hosting;
 using Xunit;
 
 namespace Budget.ApiTests;

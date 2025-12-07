@@ -1,5 +1,4 @@
-﻿using Budget.Client.Services;
-using IBudgetApiClient = Budget.Shared.Services.IBudgetApiClient;
+﻿using IBudgetApiClient = Budget.Shared.Services.IBudgetApiClient;
 
 namespace Budget.Client.Components.Transactions;
 

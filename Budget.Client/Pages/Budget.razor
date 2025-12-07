@@ -53,7 +53,7 @@
       </MudStack>
     </MudPaper>
 
-    <MudTable Items="@_displayRows" Dense="true" Hover="true" Striped="true" CustomHeader="true">
+    <MudTable Items="@_displayRows" dense="true" Hover="true" Striped="true" CustomHeader="true">
       <HeaderContent>
         <tr>
           <th rowspan="2" style="vertical-align: bottom; padding: 8px;">Envelope</th>
@@ -68,7 +68,7 @@
                 {
                   <MudMenu Icon="@Icons.Material.Filled.ArrowForward" 
                            Size="Size.Small" 
-                           Dense="true" 
+                           dense="true" 
                            AnchorOrigin="Origin.BottomCenter"
                            AriaLabel="Copy budget to next month options">
                     <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, true))">Copy Draft to Next Month</MudMenuItem>

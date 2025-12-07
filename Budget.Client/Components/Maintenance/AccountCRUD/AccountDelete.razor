@@ -1,5 +1,4 @@
 @inject IBudgetMaintApiClient MaintApi
-@using Budget.Shared.Models
 
 <MudDialog>
   <DialogContent>
@@ -11,7 +10,7 @@
     {
         <MudStack Spacing="2">
             <MudText Typo="Typo.h6">Delete Account</MudText>
-            <MudAlert Severity="Severity.Warning" Dense="true">This action cannot be undone.</MudAlert>
+            <MudAlert Severity="Severity.Warning" dense="true">This action cannot be undone.</MudAlert>
             <MudText>Are you sure you want to delete <strong>@_account.Name</strong>?</MudText>
         </MudStack>
     }

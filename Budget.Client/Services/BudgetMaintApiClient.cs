@@ -1,16 +1,10 @@
 namespace Budget.Client.Services;
 
 // Uses the typed HttpClient registered in Program.cs (line 41) via AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>
-public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
+public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApiClient> logger)
+  : Shared.Services.IBudgetMaintApiClient
 {
-  private readonly HttpClient _http; // configured base address & handlers
-  private readonly ILogger<BudgetMaintApiClient> _logger;
-
-  public BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApiClient> logger)
-  {
-    _http = http;
-    _logger = logger;
-  }
+  // configured base address & handlers
 
   public async Task<IEnumerable<EnvelopeDto>> GetEnvelopesDtoAsync(CancellationToken cancellationToken = default)
   {
@@ -71,22 +65,28 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   public async Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default)
   {
-    using var resp = await _http.DeleteAsync($"envelopes/maint/{id}", cancellationToken);
+    using var resp = await http.DeleteAsync($"envelopes/maint/{id}", cancellationToken);
     if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
     resp.EnsureSuccessStatusCode();
     return true;
   }
 
-  public async Task<EnvelopeImportResult> ImportEnvelopesAsync(string csvContent, CancellationToken cancellationToken = default)
+  public async Task<ImportResult> ImportEnvelopesAsync(string csvContent, CancellationToken cancellationToken = default)
   {
     var payload = new { csvContent };
-    var result = await PostAsync<object, EnvelopeImportResult>("envelopes/maint/import", payload, cancellationToken);
+    var result = await PostAsync<object, ImportResult>("envelopes/maint/import", payload, cancellationToken);
+    return result;
+  }
+  public async Task<ImportResult> ImportCategoriesAsync(string csvContent, CancellationToken cancellationToken = default)
+  {
+    var payload = new { csvContent };
+    var result = await PostAsync<object, ImportResult>("categories/maint/import", payload, cancellationToken);
     return result;
   }
 
   public async Task<int> GetEnvelopeTransactionCountAsync(int envelopeId, CancellationToken cancellationToken = default)
   {
-    var response = await _http.GetFromJsonAsync<EnvelopeTransactionCountResponse>($"envelopes/maint/{envelopeId}/transaction-count", cancellationToken);
+    var response = await http.GetFromJsonAsync<EnvelopeTransactionCountResponse>($"envelopes/maint/{envelopeId}/transaction-count", cancellationToken);
     return response?.TransactionCount ?? 0;
   }
 
@@ -107,7 +107,7 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   public async Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default)
   {
-    using var resp = await _http.DeleteAsync($"categories/maint/{id}", cancellationToken);
+    using var resp = await http.DeleteAsync($"categories/maint/{id}", cancellationToken);
     if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
     resp.EnsureSuccessStatusCode();
     return true;
@@ -116,9 +116,9 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
   // Account maintenance methods
   public async Task<IEnumerable<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
   {
-    _logger.LogDebug("Fetching all bank accounts via BudgetMaintApiClient");
+    logger.LogDebug("Fetching all bank accounts via BudgetMaintApiClient");
     var readOnlyList = await GetListAsync<BankAccountDto>("accounts/maint/getall", cancellationToken);
-    _logger.LogDebug("Fetched {Count} bank accounts", readOnlyList.Count());
+    logger.LogDebug("Fetched {Count} bank accounts", readOnlyList.Count());
     return readOnlyList;
   }
 
@@ -138,7 +138,7 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   public async Task<bool> RemoveAccountAsync(int id, CancellationToken cancellationToken = default)
   {
-    using var resp = await _http.DeleteAsync($"accounts/maint/{id}", cancellationToken);
+    using var resp = await http.DeleteAsync($"accounts/maint/{id}", cancellationToken);
     if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
     resp.EnsureSuccessStatusCode();
     return true;
@@ -146,10 +146,10 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   public async Task<BackupPlanDto> GetBackupPlanAsync(CancellationToken cancellationToken = default)
   {
-    var result = await _http.GetFromJsonAsync<BackupPlanDto>("/api/maintenance/backup-plan", cancellationToken);
+    var result = await http.GetFromJsonAsync<BackupPlanDto>("/api/maintenance/backup-plan", cancellationToken);
     if (result is null)
     {
-      _logger.LogDebug("Null response for BackupPlanDto from /api/maintenance/backup-plan");
+      logger.LogDebug("Null response for BackupPlanDto from /api/maintenance/backup-plan");
       throw new InvalidOperationException("Expected non-null BackupPlanDto from '/api/maintenance/backup-plan'.");
     }
     return result;
@@ -157,18 +157,18 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
-    _logger.LogDebug("Fetching list of {Type} from {Url}", typeof(T).Name, relativeUrl);
-    var result = await _http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);
-    _logger.LogDebug("Fetched {Count} items of type {Type} from {Url}", result?.Count ?? 0, typeof(T).Name, relativeUrl);
+    logger.LogDebug("Fetching list of {Type} from {Url}", typeof(T).Name, relativeUrl);
+    var result = await http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);
+    logger.LogDebug("Fetched {Count} items of type {Type} from {Url}", result?.Count ?? 0, typeof(T).Name, relativeUrl);
     return result ?? [];
   }
 
   private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct)
   {
-    var result = await _http.GetFromJsonAsync<T>(relativeUrl, cancellationToken: ct);
+    var result = await http.GetFromJsonAsync<T>(relativeUrl, cancellationToken: ct);
     if(result == null)
     {
-      _logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
+      logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
     }
     return result!;
@@ -176,12 +176,12 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   private async Task<TResponse> PostAsync<TRequest, TResponse>(string relativeUrl, TRequest payload, CancellationToken ct)
   {
-    using var resp = await _http.PostAsJsonAsync(relativeUrl, payload, ct);
+    using var resp = await http.PostAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
     if (result is null)
     {
-      _logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
+      logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
     }
     return result;
@@ -189,12 +189,12 @@ public sealed class BudgetMaintApiClient : Shared.Services.IBudgetMaintApiClient
 
   private async Task<TResponse> PutAsync<TRequest, TResponse>(string relativeUrl, TRequest payload, CancellationToken ct)
   {
-    using var resp = await _http.PutAsJsonAsync(relativeUrl, payload, ct);
+    using var resp = await http.PutAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
     if (result is null)
     {
-      _logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
+      logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
     }
     return result;

@@ -1,7 +1,3 @@
-@using System.Diagnostics
-@using Budget.Client.Components.Shared
-@using Budget.Shared.Models
-@using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -48,7 +44,7 @@
 <MudDataGrid T="EnvelopeDto"
              Items="@_envelopes"
              Hover="true"
-             Dense="true"
+             dense="true"
              FixedHeader="true"
              Class="envelopes-table"
              ReadOnly="false"
@@ -61,7 +57,7 @@
         @_categoryLookup.GetValueOrDefault(ctx.Item.CategoryId)
       </CellTemplate>
       <EditTemplate Context="ctx">
-        <MudSelect T="int" Value="ctx.Item.CategoryId" ValueChanged="@((int val) => OnCategoryChanged(ctx.Item, val))" Dense="true">
+        <MudSelect T="int" Value="ctx.Item.CategoryId" ValueChanged="@((int val) => OnCategoryChanged(ctx.Item, val))" dense="true">
           @foreach (var c in _categoryLookup)
           {
             <MudSelectItem Value="@c.Key">@c.Value</MudSelectItem>
@@ -75,7 +71,7 @@
         @ctx.Item.Name
       </CellTemplate>
       <EditTemplate Context="ctx">
-        <MudTextField T="string" Value="ctx.Item.Name" ValueChanged="@((string val) => OnNameChanged(ctx.Item, val))" Dense="true" />
+        <MudTextField T="string" Value="ctx.Item.Name" ValueChanged="@((string val) => OnNameChanged(ctx.Item, val))" dense="true" />
       </EditTemplate>
     </TemplateColumn>
    

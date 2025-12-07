@@ -11,7 +11,7 @@ public static class GetOneTransactionDetail
     public int Id { get; set; }
     public int AccountId { get; set; }
     public DateTime Date { get; set; }
-    public string Vendor { get; set; }
+    public required string Vendor { get; set; }
       
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
@@ -37,7 +37,9 @@ public static class GetOneTransactionDetail
           Date = t.Date,
           Vendor = t.Vendor,
           TotalAmount = t.TotalAmount,
-          UserInitials = (t.User.FirstName.Substring(0,1) + t.User.LastName.Substring(0,1)),
+#pragma warning disable CA1845 // Use span-based 'string.Concat' - cannot use spans in expression trees
+          UserInitials = t.User.FirstName.Substring(0, 1) + t.User.LastName.Substring(0, 1),
+#pragma warning restore CA1845
           BalanceAfterTransaction = t.BalanceAfterTransaction,
           IsVoided = t.IsVoided,
           Details = t.Details

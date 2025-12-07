@@ -8,7 +8,7 @@ public partial class TransactionsCsvImport : ComponentBase
   protected bool Busy { get; set; }
   protected string Status { get; set; } = string.Empty;
   protected int ParsedRowsCount => Preview.Count;
-  protected int _value { get; set; }
+  protected int Value { get; set; }
 
   protected IBrowserFile? SelectedFile { get; set; }
   protected List<string> Errors { get; } = [];
@@ -104,7 +104,7 @@ public partial class TransactionsCsvImport : ComponentBase
     }
 
     Busy = true;
-    _value = 0;
+    Value = 0;
     await InvokeAsync(StateHasChanged);
 
     try
@@ -144,7 +144,7 @@ public partial class TransactionsCsvImport : ComponentBase
         await Api.AddTransactionAsync(trans);
 
         currentIndex++;
-        _value = (int)((currentIndex / (double)totalCount) * 100);
+        Value = (int)((currentIndex / (double)totalCount) * 100);
         await InvokeAsync(StateHasChanged);
       }
 
@@ -161,12 +161,12 @@ public partial class TransactionsCsvImport : ComponentBase
     finally
     {
       Busy = false;
-      _value = 0;
+      Value = 0;
       await InvokeAsync(StateHasChanged);
     }
   }
 
-  private static Dictionary<string, int> BuildHeaderMap(IReadOnlyList<string> headers)
+  private static Dictionary<string, int> BuildHeaderMap(List<string> headers)
   {
     var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
@@ -194,7 +194,7 @@ public partial class TransactionsCsvImport : ComponentBase
     return map;
   }
 
-  private static TransactionDto MapRowToTransactionDto(IReadOnlyList<string> row, Dictionary<string, int> map)
+  private static TransactionDto MapRowToTransactionDto(List<string> row, Dictionary<string, int> map)
   {
     DateTime date = DateTime.Today;
     string vendor = string.Empty;
@@ -231,10 +231,10 @@ public partial class TransactionsCsvImport : ComponentBase
       envelopeName = row[idxEnv];
 
     if (map.TryGetValue("envelopeid", out var idxEnvId) && idxEnvId < row.Count)
-      int.TryParse(row[idxEnvId], out envelopeId);
+      _ = int.TryParse(row[idxEnvId], out envelopeId);
 
     if (map.TryGetValue("userid", out var idxUserId) && idxUserId < row.Count)
-      int.TryParse(row[idxUserId], out userId);
+      _ = int.TryParse(row[idxUserId], out userId);
 
     return new TransactionDto
     {

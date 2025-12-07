@@ -1,5 +1,3 @@
-@using Budget.Shared.Models
-
 <MudDialog>
   <DialogContent>
     @if (Transaction is null)
@@ -8,7 +6,7 @@
     }
     else
     {
-      <MudSimpleTable Dense="true">
+      <MudSimpleTable dense="true">
       <MudTr><MudTd><MudText Align="Align.Right"><strong>Transaction Id:</strong></MudText></MudTd><MudTd>@Transaction.Id</MudTd></MudTr>
       <MudTr><MudTd><MudText Align="Align.Right"><strong>User:</strong> </MudText></MudTd><MudTd></MudTd></MudTr>
       <MudTr><MudTd><MudText Align="Align.Right"><strong>Account:</strong> </MudText></MudTd><MudTd></MudTd></MudTr>
@@ -16,7 +14,7 @@
         <MudTr><MudTd><MudText Align="Align.Right"><strong>Description:</strong></MudText></MudTd><MudTd> @Transaction.Description</MudTd></MudTr>
         <MudTr><MudTd><MudText Align="Align.Right"><strong>Amount:</strong></MudText></MudTd><MudTd> @Transaction.TotalAmount</MudTd></MudTr>
       </MudSimpleTable>
-      <MudTable Items="@Transaction.Details" Hover="true" Dense="true" Elevation="0">
+      <MudTable Items="@Transaction.Details" Hover="true" dense="true" Elevation="0">
         <HeaderContent>
           <MudTh>Line#</MudTh>
           <MudTh>Envelope</MudTh>

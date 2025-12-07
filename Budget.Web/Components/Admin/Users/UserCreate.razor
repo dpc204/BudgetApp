@@ -1,17 +1,14 @@
 @page "/Admin/Users/Create"
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
-@using Budget.Web.Data
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<BudgetUser> UserManager
 @inject RoleManager<IdentityRole> RoleManager
 @inject NavigationManager Nav
 
 <h1>Create User</h1>
-<StatusMessage Message="@errorMessage" />
 <EditForm Model="model" OnValidSubmit="CreateUser">
     <DataAnnotationsValidator />
-    <ValidationSummary />
     <div class="mb-3">
         <label class="form-label">Email</label>
         <InputText class="form-control" @bind-Value="model.Email" />
@@ -28,20 +25,22 @@
         <ValidationMessage For="() => model.ConfirmPassword" />
     </div>
     <fieldset class="mb-3">
-        <legend class="h6">Assign Roles</legend>
-        @foreach (var r in allRoles)
-        {
-            var selected = model.Roles.Contains(r);
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" checked="@selected" @onchange="e => ToggleRole(r, (bool)e.Value!)" />
-                <label class="form-check-label">@r</label>
-            </div>
-        }
-        @if (allRoles.Count == 0)
-        {
-            <div class="text-muted">No roles defined yet.</div>
-        }
+      <legend class="h6">Assign Roles</legend>
+      @foreach (var r in allRoles)
+      {
+        var selected = model.Roles.Contains(r);
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" checked="@selected" @onchange="e => ToggleRole(r, (bool)e.Value!)" />
+          <label class="form-check-label">@r</label>
+        </div>
+      }
+      @if (allRoles.Count == 0)
+      {
+        <div class="text-muted">No roles defined yet.</div>
+      }
     </fieldset>
+  <ValidationSummary />
+
     <button type="submit" class="btn btn-primary">Create</button>
     <button type="button" class="btn btn-secondary ms-2" @onclick='() => Nav.NavigateTo("/Admin/Users")'>Cancel</button>
 </EditForm>
@@ -49,7 +48,7 @@
 @code {
     private CreateModel model = new();
     private List<string> allRoles = new();
-    private string? errorMessage;
+    private string? errorMessage ;
 
     private sealed class CreateModel
     {

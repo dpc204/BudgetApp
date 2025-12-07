@@ -2,7 +2,6 @@ using System;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Linq;
 using Budget.Api.Features.BudgetMonths;
 using Budget.DB;
 using FluentAssertions;
@@ -15,19 +14,14 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Budget Month API endpoints
 /// </summary>
-public class BudgetMonthEndpointsTests : IClassFixture<BudgetApiTestFactory>
+public class BudgetMonthEndpointsTests(BudgetApiTestFactory factory) : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly BudgetApiTestFactory _factory;
+    private readonly BudgetApiTestFactory _factory = factory;
 
-    public BudgetMonthEndpointsTests(BudgetApiTestFactory factory)
-    {
-        _factory = factory;
-    }
-
-    /// <summary>
-    /// Test GetBudgetMonth endpoint - should return budget data for a specific month
-    /// </summary>
-    [Fact]
+  /// <summary>
+  /// Test GetBudgetMonth endpoint - should return budget data for a specific month
+  /// </summary>
+  [Fact]
     public async Task GetBudgetMonth_Should_Return_Budget_Data_For_Month()
     {
         // Arrange

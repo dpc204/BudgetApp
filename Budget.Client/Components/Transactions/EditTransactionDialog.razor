@@ -1,6 +1,4 @@
 @using System.Globalization
-@using MudBlazor
-@using InputType = MudBlazor.InputType
 @inject IBudgetApiClient BudgetApi
 @inject IUserAndOptions UserOptions
 <MudDialog >
@@ -28,7 +26,7 @@
       </MudGrid>
 
       @* Show at most 5 visible data rows (dense mode) with a scrollable body instead of paging *@
-      <MudTable Items="@_lines" Dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="230px">
+      <MudTable Items="@_lines" dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="230px">
         <ToolBarContent>
         </ToolBarContent>
         <HeaderContent>
@@ -39,7 +37,7 @@
         </HeaderContent>
         <RowTemplate>
           <MudTd>
-            <MudSelect T="int" @bind-Value="context.EnvelopeId" Dense="true" Disabled="@IsVoided">
+            <MudSelect T="int" @bind-Value="context.EnvelopeId" dense="true" Disabled="@IsVoided">
               @foreach (var e in Envelopes)
               {
                 <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
@@ -77,7 +75,7 @@
     </MudForm>
   </DialogContent>
   <DialogActions>
-    <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+    <MudGrid Justify="Justify.SpaceBetween"  alignItems="AlignItems.Center">
       <MudItem xs="5">
         @if (!IsVoided)
         {

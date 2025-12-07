@@ -31,7 +31,7 @@ public static class CsvImportService
     }
 
     var lines = await File.ReadAllLinesAsync(filename);
-    return await ImportAsync(dbSet, lines.ToList(), separator, log);
+    return await ImportAsync(dbSet, [.. lines], separator, log);
   }
 
   /// <summary>

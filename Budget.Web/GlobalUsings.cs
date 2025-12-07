@@ -8,7 +8,6 @@ global using System.Text;
 global using System.Text.Encodings.Web;
 global using Azure.Identity;
 global using Budget;
-global using Budget.Api;
 global using Budget.Shared;
 global using Budget.Shared.Models;
 global using Budget.Shared.Services;

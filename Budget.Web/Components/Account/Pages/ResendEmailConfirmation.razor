@@ -3,7 +3,6 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
-@using Budget.Web.Data
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 
@@ -37,7 +36,7 @@
     private string? message;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+  private InputModel Input { get; set; } = default!;
 
     private async Task OnValidSubmitAsync()
     {

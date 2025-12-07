@@ -36,7 +36,7 @@ namespace Budget.Web.Components.Account
             RedirectTo(newUri);
         }
 
-        public void RedirectToWithStatus(string uri, string message, HttpContext context)
+        public void RedirectToWithStatus(string uri, string message)
         {
             var uriWithStatus = navigationManager.GetUriWithQueryParameters(uri, new Dictionary<string, object?>
             {
@@ -50,6 +50,6 @@ namespace Budget.Web.Components.Account
 
         public void RedirectToCurrentPage() => RedirectTo(CurrentPath);
 
-        public void RedirectToCurrentPageWithStatus(string message, HttpContext context) => RedirectToWithStatus(CurrentPath, message, context);
+        public void RedirectToCurrentPageWithStatus(string message) => RedirectToWithStatus(CurrentPath, message);
     }
 }

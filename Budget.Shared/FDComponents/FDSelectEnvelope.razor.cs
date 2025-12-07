@@ -56,6 +56,6 @@ public partial class FDSelectEnvelope
     [Parameter]
     public string? Class { get; set; }
 
-    private string ConvertEnvelopeToString(EnvelopeIdName? envelope) 
+    private static string ConvertEnvelopeToString(EnvelopeIdName? envelope) 
         => envelope?.Name ?? string.Empty;
 }

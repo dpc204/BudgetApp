@@ -2,12 +2,11 @@
 using System.Text.Json;
 using Budget.Web.Components.Account.Pages;
 using Budget.Web.Components.Account.Pages.Manage;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 
-namespace Microsoft.AspNetCore.Routing
+namespace Budget.Web.Components.Account
 {
     internal static class IdentityComponentsEndpointRouteBuilderExtensions
     {
@@ -40,11 +39,11 @@ namespace Microsoft.AspNetCore.Routing
                     var dest = UriHelper.BuildRelative(
                         context.Request.PathBase,
                         "/Account/LoginWith2fa",
-                        QueryString.Create(new[]
-                        {
+                        QueryString.Create(
+                        [
                             new KeyValuePair<string, StringValues>("ReturnUrl", returnUrl ?? "/"),
                             new KeyValuePair<string, StringValues>("RememberMe", persistent.ToString())
-                        }));
+                        ]));
                     return TypedResults.LocalRedirect(dest);
                 }
                 if (result.IsLockedOut)

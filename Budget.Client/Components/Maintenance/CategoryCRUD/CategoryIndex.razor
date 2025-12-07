@@ -1,87 +1,179 @@
-@using Budget.Shared.Models
-@using Budget.Shared.Services
 @inject IBudgetMaintApiClient MaintApi
 @inject IDialogService DialogService
 
+@inject ISnackbar Snackbar
 <MudText Typo="Typo.h5" Class="mb-2">Categories</MudText>
 
 @if (_categories is null)
 {
-    <MudProgressCircular Indeterminate="true" />
+  <MudProgressCircular Indeterminate="true"/>
 }
 else
 {
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
-    <MudTable Items="_categories" Hover="true" Dense="true" Class="mt-2" Elevation="0">
-        <HeaderContent>
-            <MudTh>Id</MudTh>
-            <MudTh>Name</MudTh>
-            <MudTh>Description</MudTh>
-            <MudTh>Category Type</MudTh>
-            <MudTh>Sort</MudTh>
-            <MudTh style="width:220px;"></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Category Type">@context.CatType</MudTd>
-            <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
-            <MudTd Class="d-flex gap-1 justify-end">
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.Id)">Details</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.Id)">Delete</MudButton>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText Class="pa-4" Color="Color.Secondary">No categories</MudText>
-        </NoRecordsContent>
-    </MudTable>
+  <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowCreate">New</MudButton>
+  <InputFile OnChange="OnInputFileChange" accept=".csv" disabled="@Busy"/>
+  <MudButton OnClick="ImportAsync"
+             Disabled="@(Busy || SelectedFile is null)"
+             Variant="Variant.Filled"
+             Color="Color.Primary"
+             StartIcon="@Icons.Material.Filled.Upload">
+    Import Categories
+  </MudButton>
+  <MudTable Items="_categories" Hover="true" dense="true" Class="mt-2" Elevation="0">
+    <HeaderContent>
+      <MudTh>Id</MudTh>
+      <MudTh>Name</MudTh>
+      <MudTh>Description</MudTh>
+      <MudTh>Category Type</MudTh>
+      <MudTh>Sort</MudTh>
+      <MudTh style="width:220px;"></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="Id">@context.Id</MudTd>
+      <MudTd DataLabel="Name">@context.Name</MudTd>
+      <MudTd DataLabel="Description">@context.Description</MudTd>
+      <MudTd DataLabel="Category Type">@context.CatType</MudTd>
+      <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
+      <MudTd Class="d-flex gap-1 justify-end">
+        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>
+        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.Id)">Details</MudButton>
+        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.Id)">Delete</MudButton>
+      </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+      <MudText Class="pa-4" Color="Color.Secondary">No categories</MudText>
+    </NoRecordsContent>
+  </MudTable>
 }
 
 @code {
-    private List<CategoryDto>? _categories;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+  protected bool Busy { get; set; }
+  protected string Status { get; set; } = string.Empty;
+  protected Severity StatusSeverity { get; set; } = Severity.Info;
+  protected IBrowserFile? SelectedFile { get; set; }
+  protected List<string> Errors { get; } = [];
 
-    private async Task LoadAsync()
+  private List<CategoryDto>? _categories;
+
+  protected override async Task OnInitializedAsync() => await LoadAsync();
+
+  private async Task LoadAsync()
+  {
+    _categories = (await MaintApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
+  }
+
+  private async Task ShowCreate()
+  {
+    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+    var dialogRef = await DialogService.ShowAsync<CategoryCreate>("Create Category", options);
+    var result = await dialogRef.Result;
+    if (result != null && !result.Canceled)
+      await LoadAsync();
+  }
+
+  private async Task BeginEdit(int id)
+  {
+    var parameters = new DialogParameters { [nameof(CategoryEdit.Id)] = id };
+    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+    var dialogRef = await DialogService.ShowAsync<CategoryEdit>("Edit Category", parameters, options);
+    var result = await dialogRef.Result;
+    if (result != null && !result.Canceled)
+      await LoadAsync();
+  }
+
+  private async Task ViewDetails(int id)
+  {
+    var parameters = new DialogParameters { [nameof(CategoryDetails.Id)] = id };
+    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+    await DialogService.ShowAsync<CategoryDetails>("Category Details", parameters, options);
+  }
+
+  private async Task BeginDelete(int id)
+  {
+    var parameters = new DialogParameters { [nameof(CategoryDelete.Id)] = id };
+    var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };
+    var dialogRef = await DialogService.ShowAsync<CategoryDelete>("Delete Category", parameters, options);
+    var result = await dialogRef.Result;
+    if (result != null && !result.Canceled)
+      await LoadAsync();
+  }
+
+  protected async Task OnInputFileChange(InputFileChangeEventArgs e)
+  {
+    Errors.Clear();
+    Status = string.Empty;
+    SelectedFile = e.File;
+
+    if (SelectedFile is null)
     {
-        _categories = (await MaintApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
+      return;
     }
 
-    private async Task ShowCreate()
+    if (!SelectedFile.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
     {
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var dialogRef = await DialogService.ShowAsync<CategoryCreate>("Create Category", options);
-        var result = await dialogRef.Result;
-        if (!result.Canceled)
-            await LoadAsync();
+      Errors.Add("Only .csv files are supported.");
+      SelectedFile = null;
+      return;
     }
 
-    private async Task BeginEdit(int id)
+    Status = $"Selected: {SelectedFile.Name}";
+    StatusSeverity = Severity.Info;
+  }
+
+  protected async Task ImportAsync()
+  {
+    if (SelectedFile is null)
     {
-        var parameters = new DialogParameters { [nameof(CategoryEdit.Id)] = id };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var dialogRef = await DialogService.ShowAsync<CategoryEdit>("Edit Category", parameters, options);
-        var result = await dialogRef.Result;
-        if (!result.Canceled)
-            await LoadAsync();
+      return;
     }
 
-    private async Task ViewDetails(int id)
-    {
-        var parameters = new DialogParameters { [nameof(CategoryDetails.Id)] = id };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        await DialogService.ShowAsync<CategoryDetails>("Category Details", parameters, options);
-    }
+    Busy = true;
+    Errors.Clear();
+    Status = "Reading file...";
+    StatusSeverity = Severity.Info;
+    await InvokeAsync(StateHasChanged);
 
-    private async Task BeginDelete(int id)
+    try
     {
-        var parameters = new DialogParameters { [nameof(CategoryDelete.Id)] = id };
-        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };
-        var dialogRef = await DialogService.ShowAsync<CategoryDelete>("Delete Category", parameters, options);
-        var result = await dialogRef.Result;
-        if (!result.Canceled)
-            await LoadAsync();
+      await using var stream = SelectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+      using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+      var csvContent = await reader.ReadToEndAsync();
+
+      Status = "Importing Categories...";
+      await InvokeAsync(StateHasChanged);
+
+      var result = await MaintApi.ImportCategoriesAsync(csvContent);
+
+      if (result.Errors.Count > 0)
+      {
+        Errors.AddRange(result.Errors);
+        Status = $"Import completed with errors. {result.ImportedCount} categories(s) imported.";
+        StatusSeverity = Severity.Warning;
+      }
+      else
+      {
+        Status = $"Successfully imported {result.ImportedCount} envelope(s).";
+        StatusSeverity = Severity.Success;
+        Snackbar.Add(Status, Severity.Success);
+
+        // Refresh the data
+        await LoadAsync();
+      }
+
+      SelectedFile = null;
     }
+    catch (Exception ex)
+    {
+      Errors.Add($"Import failed: {ex.Message}");
+      Status = "Import failed.";
+      StatusSeverity = Severity.Error;
+    }
+    finally
+    {
+      Busy = false;
+      await InvokeAsync(StateHasChanged);
+    }
+  }
+
 }

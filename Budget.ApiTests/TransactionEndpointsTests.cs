@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Budget.Api.Features.Accounts.AccountMaint;
 using Budget.Api.Features.Transactions;
 using Budget.Shared.Models;
 using Budget.DB;
@@ -124,7 +123,7 @@ public class TransactionEndpointsTests(BudgetApiTestFactory factory) : IClassFix
         result.Should().HaveCountGreaterThan(0);
         var ourTransaction = result!.FirstOrDefault(r => r.TransactionId == 201);
         ourTransaction.Should().NotBeNull();
-        ourTransaction!.envelopeId.Should().Be(-1);
+        ourTransaction!.EnvelopeId.Should().Be(-1);
     }
 
     /// <summary>

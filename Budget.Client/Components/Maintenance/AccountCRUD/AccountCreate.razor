@@ -31,7 +31,7 @@
 </MudDialog>
 
 @code {
-  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
   private BankAccountDto? _account;
   private void Close() => MudDialog.Close(DialogResult.Cancel());
 

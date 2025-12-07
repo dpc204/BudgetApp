@@ -1,5 +1,3 @@
-using Budget.Api.Features.Envelopes.EnvelopeMaint;
-
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -15,12 +13,7 @@ public static class UpdateTransaction
     {
       var existingTrans = await db.Transactions
         .Include(t => t.Details)
-        .FirstOrDefaultAsync(t => t.Id == request.Trans.Id, cancellationToken);
-
-      if (existingTrans is null)
-      {
-        throw new InvalidOperationException($"Transaction with Id {request.Trans.Id} not found.");
-      }
+        .FirstOrDefaultAsync(t => t.Id == request.Trans.Id, cancellationToken) ?? throw new InvalidOperationException($"Transaction with Id {request.Trans.Id} not found.");
 
       // Restore envelope balances from existing details before updating
       await RestoreEnvelopeBalancesAsync(existingTrans);

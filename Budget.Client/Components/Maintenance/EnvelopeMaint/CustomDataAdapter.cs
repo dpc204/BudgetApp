@@ -1,11 +1,7 @@
-﻿using System.Collections;
-using System.Linq;
-using Budget.Client.Services;
+﻿using Syncfusion.Blazor.Data;
 
-namespace Budget.Api.Features.Envelopes.EnvelopeMaint
+namespace Budget.Client.Components.Maintenance.EnvelopeMaint
 {
-  using Syncfusion.Blazor.Data;
-
   public class CustomAdaptor : DataAdaptor
   {
     private readonly IBudgetMaintApiClient _maintApiClient;
@@ -22,10 +18,10 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint
 
     public List<EnvelopeDto> Envelopes { get; set; } = [];
 
-    public override async Task<object> ReadAsync(DataManagerRequest dm, string additionalParam = null)
+    public override async Task<object> ReadAsync(DataManagerRequest dm, string? additionalParam = null)
     {
       var remote = await _maintApiClient.GetEnvelopesDtoAsync();
-      Envelopes = remote.ToList();
+      Envelopes = [.. remote];
 
       return new DataResult
       {

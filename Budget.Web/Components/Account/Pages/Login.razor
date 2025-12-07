@@ -1,6 +1,5 @@
 ﻿@attribute [AllowAnonymous]
 @page "/Account/Login"
-@using Budget.Web.Data
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
@@ -20,7 +19,6 @@
 <div class="row">
     <div class="col-md-4">
         <section>
-            <StatusMessage Message="@errorMessage" />
             <!-- Submit to server endpoint so auth cookies can be set safely -->
             <form action="Account/Login" method="post">
                 <AntiforgeryToken />
@@ -68,7 +66,7 @@
 </div>
 
 @code {
-    private string? errorMessage;
+   // private string? errorMessage;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;

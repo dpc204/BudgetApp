@@ -1,4 +1,3 @@
-using System;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using Budget.Api.Features.Accounts.AccountMaint;
 using Budget.DB;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 using GetAll = Budget.Api.Features.Accounts.AccountMaint.GetAll;
 
@@ -16,19 +14,14 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Account API endpoints
 /// </summary>
-public class AccountEndpointsTests : IClassFixture<BudgetApiTestFactory>
+public class AccountEndpointsTests(BudgetApiTestFactory factory) : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly BudgetApiTestFactory _factory;
+    private readonly BudgetApiTestFactory _factory = factory;
 
-    public AccountEndpointsTests(BudgetApiTestFactory factory)
-    {
-        _factory = factory;
-    }
-
-    /// <summary>
-    /// Test GetAccounts endpoint - should return all accounts
-    /// </summary>
-    [Fact]
+  /// <summary>
+  /// Test GetAccounts endpoint - should return all accounts
+  /// </summary>
+  [Fact]
     public async Task GetAccounts_Should_Return_All_Accounts()
     {
         // Arrange
