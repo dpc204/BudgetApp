@@ -8,6 +8,7 @@ public partial class Budget : ComponentBase
   [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
   private int MonthsToShow => _isSmallScreen ? 1 : 6;
 
+  private const int SmallScreenBreakpoint = 768; // Bootstrap's md breakpoint
   private bool _isSmallScreen = false;
 
   private bool _loading = true;
@@ -35,7 +36,7 @@ public partial class Budget : ComponentBase
     try
     {
       var width = await JSRuntime.InvokeAsync<int>("windowUtils.getInnerWidth");
-      _isSmallScreen = width < 768; // Bootstrap's md breakpoint
+      _isSmallScreen = width < SmallScreenBreakpoint;
     }
     catch
     {

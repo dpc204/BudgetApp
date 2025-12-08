@@ -5,6 +5,9 @@
 @inject ISnackbar Snackbar
 
 <style>
+  :root {
+    --budget-table-header-offset: 300px;
+  }
   .draft-input-right {
     width: 100px;
   }
@@ -12,7 +15,7 @@
     text-align: right !important;
   }
   .budget-table-container {
-    max-height: calc(100vh - 300px);
+    max-height: calc(100vh - var(--budget-table-header-offset));
     overflow-y: auto;
     position: relative;
   }
