@@ -248,7 +248,8 @@ public partial class Budget : ComponentBase
           _budgetData[envelope.EnvelopeId].TryGetValue(month, out BudgetMonthData? data))
       {
         budgetTotal += data.BudgetValue ?? 0;
-        draftTotal += data.DraftValue ?? data.BudgetValue ?? 0;
+        // Only include actual draft values, don't fall back to budget
+        draftTotal += data.DraftValue ?? 0;
       }
     }
 
