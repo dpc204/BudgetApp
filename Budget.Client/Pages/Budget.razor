@@ -11,6 +11,20 @@
   .draft-input-right input {
     text-align: right !important;
   }
+  .budget-table-container {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+    position: relative;
+  }
+  .budget-table-container .mud-table {
+    display: block;
+  }
+  .budget-table-container .mud-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--mud-palette-surface);
+  }
 </style>
 
 <PageTitle>Budget</PageTitle>
@@ -53,7 +67,8 @@
       </MudStack>
     </MudPaper>
 
-    <MudTable Items="@_displayRows" dense="true" Hover="true" Striped="true" CustomHeader="true">
+    <div class="budget-table-container">
+      <MudTable Items="@_displayRows" dense="true" Hover="true" Striped="true" CustomHeader="true">
       <HeaderContent>
         <tr>
           <th rowspan="2" style="vertical-align: bottom; padding: 8px;">Envelope</th>
@@ -137,6 +152,7 @@
         }
       </RowTemplate>
     </MudTable>
+    </div>
   }
 </MudContainer>
 

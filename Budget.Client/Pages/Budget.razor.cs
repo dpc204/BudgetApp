@@ -5,7 +5,10 @@ namespace Budget.Client.Pages;
 
 public partial class Budget : ComponentBase
 {
-  private const int MonthsToShow = 6;
+  [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+  private int MonthsToShow => _isSmallScreen ? 1 : 6;
+
+  private bool _isSmallScreen = false;
 
   private bool _loading = true;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
@@ -15,7 +18,31 @@ public partial class Budget : ComponentBase
 
   protected override async Task OnInitializedAsync()
   {
+    await CheckScreenSize();
     await LoadBudgetData();
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await CheckScreenSize();
+      StateHasChanged();
+    }
+  }
+
+  private async Task CheckScreenSize()
+  {
+    try
+    {
+      var width = await JSRuntime.InvokeAsync<int>("eval", "window.innerWidth");
+      _isSmallScreen = width < 768; // Bootstrap's md breakpoint
+    }
+    catch
+    {
+      // Default to false if JS interop fails
+      _isSmallScreen = false;
+    }
   }
 
   private async Task LoadBudgetData()
