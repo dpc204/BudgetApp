@@ -5,7 +5,7 @@
     <MudText>@Message</MudText>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel" Color="Color.Default">Reset Drafts</MudButton>
+    <MudButton OnClick="ResetDrafts" Color="Color.Default">Reset Drafts</MudButton>
     <MudButton OnClick="Continue" Color="Color.Primary" Variant="Variant.Filled">Continue with Drafts</MudButton>
   </DialogActions>
 </MudDialog>
@@ -17,9 +17,23 @@
   [Parameter]
   public string Message { get; set; } = string.Empty;
 
-  private void Cancel()
+  private async Task ResetDrafts()
   {
     MudDialog?.Close(DialogResult.Ok(false));
+
+    // var parameters = new DialogParameters
+    // {
+    //   ["Message"] = "Are you sure you want to reset all draft budgets? This action cannot be undone."
+    // };
+
+    // var options = new DialogOptions { CloseOnEscapeKey = true };
+    // var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Reset Drafts", parameters, options);
+    // var result = await dialog.Result;
+
+    // if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+    // {
+    //   MudDialog?.Close(DialogResult.Ok(false));
+    // }
   }
 
   private void Continue()

@@ -5,17 +5,57 @@ namespace Budget.Client.Pages;
 
 public partial class Budget : ComponentBase
 {
-  private const int MonthsToShow = 6;
+  [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+  private int MonthsToShow => _isSmallScreen ? 1 : 6;
+
+  private const int SmallScreenBreakpoint = 768; // Bootstrap's md breakpoint
+  private bool _isSmallScreen = false;
 
   private bool _loading = true;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
   private readonly List<BudgetDisplayRow> _displayRows = [];
+  private readonly List<BudgetDisplayRow> _summaryRows = [];
+  private readonly List<BudgetDisplayRow> _envelopeRows = [];
   private List<DateTime> _displayMonths = [];
   private int _currentScrollPosition = 0;
 
   protected override async Task OnInitializedAsync()
   {
     await LoadBudgetData();
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      // Note: Screen size is only checked on initial render for simplicity.
+      // To support runtime resizing, add a JavaScript resize event listener.
+      var previousValue = _isSmallScreen;
+      await CheckScreenSize();
+      if (previousValue != _isSmallScreen)
+      {
+        StateHasChanged();
+      }
+    }
+  }
+
+  private async Task CheckScreenSize()
+  {
+    try
+    {
+      var width = await JSRuntime.InvokeAsync<int>("windowUtils.getInnerWidth");
+      _isSmallScreen = width < SmallScreenBreakpoint;
+    }
+    catch (JSException)
+    {
+      // Default to false if JS interop fails
+      _isSmallScreen = false;
+    }
+    catch (JSDisconnectedException)
+    {
+      // Default to false if JS is disconnected
+      _isSmallScreen = false;
+    }
   }
 
   private async Task LoadBudgetData()
@@ -90,6 +130,8 @@ public partial class Budget : ComponentBase
   private void BuildDisplayRows()
   {
     _displayRows.Clear();
+    _summaryRows.Clear();
+    _envelopeRows.Clear();
 
     if (_budgetData == null || _budgetData.Count == 0)
       return;
@@ -106,28 +148,40 @@ public partial class Budget : ComponentBase
     var incomeEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.Income).ToList();
     var expenseEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.User).ToList();
 
-    // Add Net Budget row
-    _displayRows.Add(CreateSummaryRow("Net Budget", (month) =>
+    // Add Net Budget row to summary
+    var netBudgetRow = CreateSummaryRow("Net Budget", (month) =>
     {
       var (budget, draft) = CalculateTotals(incomeEnvelopes, month);
       var expenseTotals = CalculateTotals(expenseEnvelopes, month);
       return (budget - expenseTotals.budget, draft - expenseTotals.draft);
-    }));
+    });
+    _summaryRows.Add(netBudgetRow);
+    _displayRows.Add(netBudgetRow);
 
-    // Add Total Income section
-    _displayRows.Add(CreateSummaryRow("Total Income", (month) => CalculateTotals(incomeEnvelopes, month)));
+    // Add Total Income to summary
+    var totalIncomeRow = CreateSummaryRow("Total Income", (month) => CalculateTotals(incomeEnvelopes, month));
+    _summaryRows.Add(totalIncomeRow);
+    _displayRows.Add(totalIncomeRow);
 
+    // Add Total Expenses to summary
+    var totalExpensesRow = CreateSummaryRow("Total Expenses", (month) => CalculateTotals(expenseEnvelopes, month));
+    _summaryRows.Add(totalExpensesRow);
+    _displayRows.Add(totalExpensesRow);
+
+    // Add income envelopes to scrollable list
     foreach (var envelope in incomeEnvelopes)
     {
-      _displayRows.Add(CreateEnvelopeRow(envelope!));
+      var row = CreateEnvelopeRow(envelope!);
+      _envelopeRows.Add(row);
+      _displayRows.Add(row);
     }
 
-    // Add Total Expenses section
-    _displayRows.Add(CreateSummaryRow("Total Expenses", (month) => CalculateTotals(expenseEnvelopes, month)));
-
+    // Add expense envelopes to scrollable list
     foreach (var envelope in expenseEnvelopes)
     {
-      _displayRows.Add(CreateEnvelopeRow(envelope!));
+      var row = CreateEnvelopeRow(envelope!);
+      _envelopeRows.Add(row);
+      _displayRows.Add(row);
     }
   }
 
@@ -194,7 +248,8 @@ public partial class Budget : ComponentBase
           _budgetData[envelope.EnvelopeId].TryGetValue(month, out BudgetMonthData? data))
       {
         budgetTotal += data.BudgetValue ?? 0;
-        draftTotal += data.DraftValue ?? data.BudgetValue ?? 0;
+        // Only include actual draft values, don't fall back to budget
+        draftTotal += data.DraftValue ?? 0;
       }
     }
 
@@ -296,19 +351,31 @@ public partial class Budget : ComponentBase
 
   private async Task ClearDrafts()
   {
-    try
+    var parameters = new DialogParameters
     {
-      var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
+      ["Message"] = "Are you sure you want to clear all draft budgets? This action cannot be undone."
+    };
 
-      if (response.Success)
-      {
-        Snackbar.Add("Draft budgets cleared successfully", Severity.Success);
-        await LoadBudgetData();
-      }
-    }
-    catch (Exception ex)
+    var options = new DialogOptions { CloseOnEscapeKey = true };
+    var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Drafts", parameters, options);
+    var result = await dialog.Result;
+
+    if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
     {
-      Snackbar.Add($"Error clearing drafts: {ex.Message}", Severity.Error);
+      try
+      {
+        var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
+
+        if (response.Success)
+        {
+          Snackbar.Add("Draft budgets cleared successfully", Severity.Success);
+          await LoadBudgetData();
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error clearing drafts: {ex.Message}", Severity.Error);
+      }
     }
   }
 
