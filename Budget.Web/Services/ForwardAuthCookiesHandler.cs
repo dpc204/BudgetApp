@@ -22,7 +22,10 @@ public sealed class ForwardAuthCookiesHandler(
         var apiScope = configuration["AzureAd:ApiScope"] ?? "api://budget-api/.default";
         var scopes = new[] { apiScope };
         
-        var accessToken = await tokenAcquisition.GetAccessTokenForUserAsync(scopes);
+        // Specify OpenIdConnect authentication scheme explicitly for token acquisition
+        var accessToken = await tokenAcquisition.GetAccessTokenForUserAsync(
+          scopes, 
+          authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
         
         if (!string.IsNullOrEmpty(accessToken))
         {
