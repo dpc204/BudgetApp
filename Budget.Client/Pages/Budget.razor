@@ -102,7 +102,7 @@
                     Color="Color.Primary" 
                     Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
                     OnClick="ApplyDrafts">
-            @(_isSmallScreen ? "Apply" : "Apply Budgets")
+            @(_isSmallScreen ? "Apply" : "Apply Drafts")
           </MudButton>
         </MudStack>
       </MudStack>
@@ -209,6 +209,4 @@
   }
 </MudContainer>
 
-@code {
-  // Code-behind in Budget.razor.cs
-}
+

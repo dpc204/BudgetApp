@@ -19,19 +19,21 @@
 
   private async Task ResetDrafts()
   {
-    var parameters = new DialogParameters
-    {
-      ["Message"] = "Are you sure you want to reset all draft budgets? This action cannot be undone."
-    };
+    MudDialog?.Close(DialogResult.Ok(false));
 
-    var options = new DialogOptions { CloseOnEscapeKey = true };
-    var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Reset Drafts", parameters, options);
-    var result = await dialog.Result;
+    // var parameters = new DialogParameters
+    // {
+    //   ["Message"] = "Are you sure you want to reset all draft budgets? This action cannot be undone."
+    // };
 
-    if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
-    {
-      MudDialog?.Close(DialogResult.Ok(false));
-    }
+    // var options = new DialogOptions { CloseOnEscapeKey = true };
+    // var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Reset Drafts", parameters, options);
+    // var result = await dialog.Result;
+
+    // if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+    // {
+    //   MudDialog?.Close(DialogResult.Ok(false));
+    // }
   }
 
   private void Continue()
