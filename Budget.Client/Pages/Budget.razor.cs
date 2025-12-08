@@ -14,6 +14,8 @@ public partial class Budget : ComponentBase
   private bool _loading = true;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
   private readonly List<BudgetDisplayRow> _displayRows = [];
+  private readonly List<BudgetDisplayRow> _summaryRows = [];
+  private readonly List<BudgetDisplayRow> _envelopeRows = [];
   private List<DateTime> _displayMonths = [];
   private int _currentScrollPosition = 0;
 
@@ -128,6 +130,8 @@ public partial class Budget : ComponentBase
   private void BuildDisplayRows()
   {
     _displayRows.Clear();
+    _summaryRows.Clear();
+    _envelopeRows.Clear();
 
     if (_budgetData == null || _budgetData.Count == 0)
       return;
@@ -144,28 +148,40 @@ public partial class Budget : ComponentBase
     var incomeEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.Income).ToList();
     var expenseEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.User).ToList();
 
-    // Add Net Budget row
-    _displayRows.Add(CreateSummaryRow("Net Budget", (month) =>
+    // Add Net Budget row to summary
+    var netBudgetRow = CreateSummaryRow("Net Budget", (month) =>
     {
       var (budget, draft) = CalculateTotals(incomeEnvelopes, month);
       var expenseTotals = CalculateTotals(expenseEnvelopes, month);
       return (budget - expenseTotals.budget, draft - expenseTotals.draft);
-    }));
+    });
+    _summaryRows.Add(netBudgetRow);
+    _displayRows.Add(netBudgetRow);
 
-    // Add Total Income section
-    _displayRows.Add(CreateSummaryRow("Total Income", (month) => CalculateTotals(incomeEnvelopes, month)));
+    // Add Total Income to summary
+    var totalIncomeRow = CreateSummaryRow("Total Income", (month) => CalculateTotals(incomeEnvelopes, month));
+    _summaryRows.Add(totalIncomeRow);
+    _displayRows.Add(totalIncomeRow);
 
+    // Add Total Expenses to summary
+    var totalExpensesRow = CreateSummaryRow("Total Expenses", (month) => CalculateTotals(expenseEnvelopes, month));
+    _summaryRows.Add(totalExpensesRow);
+    _displayRows.Add(totalExpensesRow);
+
+    // Add income envelopes to scrollable list
     foreach (var envelope in incomeEnvelopes)
     {
-      _displayRows.Add(CreateEnvelopeRow(envelope!));
+      var row = CreateEnvelopeRow(envelope!);
+      _envelopeRows.Add(row);
+      _displayRows.Add(row);
     }
 
-    // Add Total Expenses section
-    _displayRows.Add(CreateSummaryRow("Total Expenses", (month) => CalculateTotals(expenseEnvelopes, month)));
-
+    // Add expense envelopes to scrollable list
     foreach (var envelope in expenseEnvelopes)
     {
-      _displayRows.Add(CreateEnvelopeRow(envelope!));
+      var row = CreateEnvelopeRow(envelope!);
+      _envelopeRows.Add(row);
+      _displayRows.Add(row);
     }
   }
 
