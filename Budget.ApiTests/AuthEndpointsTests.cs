@@ -8,9 +8,9 @@ using Xunit;
 
 namespace Budget.ApiTests;
 
-public class AuthEndpointsTests(WebApplicationFactory<Budget.Api.Program> factory) : IClassFixture<WebApplicationFactory<Budget.Api.Program>>
+public class AuthEndpointsTests(BudgetApiTestFactory factory) : IClassFixture<BudgetApiTestFactory>
 {
-    private readonly WebApplicationFactory<Budget.Api.Program> _factory = factory.WithWebHostBuilder(_ => { });
+    private readonly BudgetApiTestFactory _factory = factory;
 
   [Fact]
     public async Task Register_Then_Login_Returns_Token()

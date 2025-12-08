@@ -24,20 +24,30 @@ public static class ImportEnvelopes
         var lines = request.CsvContent
           .Split(["\r\n", "\n", "\r"], StringSplitOptions.None)
           .ToList();
-
-        // Enable IDENTITY_INSERT to allow explicit Id values
-        await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes ON", cancellationToken);
         
-        try
+        // Enable IDENTITY_INSERT to allow explicit Id values
+
+        if(db.Database.IsSqlServer())
+        {
+          await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes ON", cancellationToken);
+          try
+          {
+            var envelopes = await CsvImportService.ImportAsync(db.Envelopes, lines, log: log);
+            await db.SaveChangesAsync(cancellationToken);
+            importedCount = envelopes.Count;
+          }
+          finally
+          {
+            // Always disable IDENTITY_INSERT
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes OFF", cancellationToken);
+          }
+        }
+        else
         {
           var envelopes = await CsvImportService.ImportAsync(db.Envelopes, lines, log: log);
           await db.SaveChangesAsync(cancellationToken);
           importedCount = envelopes.Count;
-        }
-        finally
-        {
-          // Always disable IDENTITY_INSERT
-          await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes OFF", cancellationToken);
+
         }
       }
       catch (Exception ex)
