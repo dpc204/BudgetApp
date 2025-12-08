@@ -13,10 +13,9 @@ public static class ConfigureIdentity
   public static void AddAuthentication(WebApplicationBuilder builder)
   {
     // Configure Microsoft Entra ID authentication
-    builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-      .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"),
-        cookieScheme: null,
-        openIdConnectScheme: OpenIdConnectDefaults.AuthenticationScheme)
+    // Use cookies as default scheme for sign-in, OpenIdConnect for challenges
+    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+      .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
       .EnableTokenAcquisitionToCallDownstreamApi()
       .AddInMemoryTokenCaches();
 

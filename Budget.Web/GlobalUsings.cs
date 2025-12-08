@@ -17,6 +17,7 @@ global using Budget.Web.Components.Layout;
 global using Budget.Web.Data;
 global using Budget.Web.Startup;
 global using Microsoft.AspNetCore.Authentication;
+global using Microsoft.AspNetCore.Authentication.Cookies;
 global using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Components.Forms;
