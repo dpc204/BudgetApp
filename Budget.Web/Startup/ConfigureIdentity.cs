@@ -16,7 +16,9 @@ public static class ConfigureIdentity
     builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
       .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"),
         cookieScheme: null,
-        openIdConnectScheme: OpenIdConnectDefaults.AuthenticationScheme);
+        openIdConnectScheme: OpenIdConnectDefaults.AuthenticationScheme)
+      .EnableTokenAcquisitionToCallDownstreamApi()
+      .AddInMemoryTokenCaches();
 
     // Configure cookie authentication options for Blazor Server
     builder.Services.ConfigureApplicationCookie(options =>
