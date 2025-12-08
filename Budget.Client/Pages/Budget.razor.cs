@@ -334,19 +334,31 @@ public partial class Budget : ComponentBase
 
   private async Task ClearDrafts()
   {
-    try
+    var parameters = new DialogParameters
     {
-      var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
+      ["Message"] = "Are you sure you want to clear all draft budgets? This action cannot be undone."
+    };
 
-      if (response.Success)
-      {
-        Snackbar.Add("Draft budgets cleared successfully", Severity.Success);
-        await LoadBudgetData();
-      }
-    }
-    catch (Exception ex)
+    var options = new DialogOptions { CloseOnEscapeKey = true };
+    var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Drafts", parameters, options);
+    var result = await dialog.Result;
+
+    if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
     {
-      Snackbar.Add($"Error clearing drafts: {ex.Message}", Severity.Error);
+      try
+      {
+        var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
+
+        if (response.Success)
+        {
+          Snackbar.Add("Draft budgets cleared successfully", Severity.Success);
+          await LoadBudgetData();
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error clearing drafts: {ex.Message}", Severity.Error);
+      }
     }
   }
 
