@@ -18,7 +18,6 @@ public partial class Budget : ComponentBase
 
   protected override async Task OnInitializedAsync()
   {
-    await CheckScreenSize();
     await LoadBudgetData();
   }
 
@@ -35,7 +34,7 @@ public partial class Budget : ComponentBase
   {
     try
     {
-      var width = await JSRuntime.InvokeAsync<int>("eval", "window.innerWidth");
+      var width = await JSRuntime.InvokeAsync<int>("windowUtils.getInnerWidth");
       _isSmallScreen = width < 768; // Bootstrap's md breakpoint
     }
     catch
