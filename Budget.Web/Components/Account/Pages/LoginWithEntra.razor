@@ -1,12 +1,8 @@
-﻿@attribute [AllowAnonymous]
-@page "/Account/Login"
-@using Microsoft.AspNetCore.Authorization
+@page "/Account/LoginWithEntra"
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
 
 @inject NavigationManager NavigationManager
-
-<HeadContent>
-    <meta name="blazor-enhanced-nav" content="none" />
-</HeadContent>
 
 <PageTitle>Sign in</PageTitle>
 

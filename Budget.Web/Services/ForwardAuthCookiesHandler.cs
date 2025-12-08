@@ -1,22 +1,58 @@
 namespace Budget.Web.Services;
 
-// Forwards the current request's cookies (including Identity auth cookie) to the outgoing HttpClient request
-public sealed class ForwardAuthCookiesHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
+/// <summary>
+/// Forwards Entra ID access tokens to downstream API requests
+/// </summary>
+public sealed class ForwardAuthCookiesHandler(
+  IHttpContextAccessor httpContextAccessor,
+  ITokenAcquisition tokenAcquisition,
+  ILogger<ForwardAuthCookiesHandler> logger) : DelegatingHandler
 {
-  protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+  protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
     CancellationToken cancellationToken)
   {
     var ctx = httpContextAccessor.HttpContext;
-    if (ctx is not null && ctx.Request.Headers.TryGetValue("Cookie", out var cookie))
+    
+    if (ctx is not null && ctx.User?.Identity?.IsAuthenticated == true)
     {
-      // Forward all cookies to preserve auth context
-      if (!request.Headers.Contains("Cookie"))
+      try
       {
-        var cookieArray = cookie.ToArray();
-        request.Headers.TryAddWithoutValidation("Cookie", cookieArray);
+        // Try to get access token for the API
+        // The scopes should be configured based on your API's requirements
+        var scopes = new[] { "api://budget-api/.default" };
+        
+        var accessToken = await tokenAcquisition.GetAccessTokenForUserAsync(scopes);
+        
+        if (!string.IsNullOrEmpty(accessToken))
+        {
+          // Add the access token to the Authorization header
+          request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+          logger.LogDebug("Added Bearer token to request for {Url}", request.RequestUri);
+        }
+        else
+        {
+          logger.LogWarning("Failed to acquire access token for API call to {Url}", request.RequestUri);
+        }
+      }
+      catch (Exception ex)
+      {
+        // If we can't get a token, log the error but don't fail the request
+        // Fall back to cookie forwarding for backward compatibility during migration
+        logger.LogWarning(ex, "Error acquiring access token, falling back to cookie forwarding for {Url}", request.RequestUri);
+        
+        // Fallback: Forward cookies for backward compatibility during migration
+        if (ctx.Request.Headers.TryGetValue("Cookie", out var cookie))
+        {
+          if (!request.Headers.Contains("Cookie"))
+          {
+            var cookieArray = cookie.ToArray();
+            request.Headers.TryAddWithoutValidation("Cookie", cookieArray);
+            logger.LogDebug("Forwarded cookies as fallback for {Url}", request.RequestUri);
+          }
+        }
       }
     }
 
-    return base.SendAsync(request, cancellationToken);
+    return await base.SendAsync(request, cancellationToken);
   }
 }
