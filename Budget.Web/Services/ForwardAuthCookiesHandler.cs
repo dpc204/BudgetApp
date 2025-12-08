@@ -38,6 +38,23 @@ public sealed class ForwardAuthCookiesHandler(
           logger.LogWarning("Failed to acquire access token for API call to {Url}", request.RequestUri);
         }
       }
+      catch (MicrosoftIdentityWebChallengeUserException ex)
+      {
+        // User needs to sign in or consent - this should be handled by the authentication middleware
+        // Don't throw, just log and fall back to cookies
+        logger.LogInformation("User authentication challenge required for {Url}: {Message}", request.RequestUri, ex.Message);
+        
+        // Fallback: Forward cookies for backward compatibility during migration
+        if (ctx.Request.Headers.TryGetValue("Cookie", out var cookie))
+        {
+          if (!request.Headers.Contains("Cookie"))
+          {
+            var cookieArray = cookie.ToArray();
+            request.Headers.TryAddWithoutValidation("Cookie", cookieArray);
+            logger.LogDebug("Forwarded cookies as fallback for {Url}", request.RequestUri);
+          }
+        }
+      }
       catch (Exception ex)
       {
         // If we can't get a token, log the error but don't fail the request
