@@ -31,9 +31,9 @@ builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogL
 // Add HTTP logging
 builder.Services.AddHttpLogging(logging =>
 {
- logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
- logging.RequestBodyLogLimit = 4096;
- logging.ResponseBodyLogLimit = 4096;
+  logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
+  logging.RequestBodyLogLimit = 4096;
+  logging.ResponseBodyLogLimit = 4096;
 });
 
 // Add OpenAPI and Carter
@@ -50,13 +50,13 @@ Misc.SetupConfigurationSources(builder, assembly, logger);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
 
 // Get connection strings
-var budgetConnectionString = Misc.GetConnectionString( builder,Misc.ConnectionStringType.Budget, logger);
+var budgetConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Budget, logger);
 var identityConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
 
-if (string.IsNullOrWhiteSpace(budgetConnectionString)) 
-    throw new InvalidOperationException("Missing Budget DB connection string.");
-if (string.IsNullOrWhiteSpace(identityConnectionString)) 
-    throw new InvalidOperationException("Missing Identity DB connection string.");
+if (string.IsNullOrWhiteSpace(budgetConnectionString))
+  throw new InvalidOperationException("Missing Budget DB connection string.");
+if (string.IsNullOrWhiteSpace(identityConnectionString))
+  throw new InvalidOperationException("Missing Identity DB connection string.");
 
 var isDev = builder.Environment.IsDevelopment();
 var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Test");
@@ -64,47 +64,55 @@ var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment
 // Configure BudgetContext
 builder.Services.AddDbContext<BudgetContext>(options =>
 {
-    if (isTest)
-    {
-        options.UseInMemoryDatabase("BudgetTestDb");
-    }
-    else
-    {
-        options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget"));
-    }
-    
-    if (isDev || isTest)
-    {
-        options.EnableDetailedErrors();
-        options.EnableSensitiveDataLogging();
-    }
+  if (isTest)
+  {
+    options.UseInMemoryDatabase("BudgetTestDb");
+  }
+  else
+  {
+    options.UseSqlServer(budgetConnectionString, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget")
+        .EnableRetryOnFailure(
+          maxRetryCount: 5, // Number of retries
+          maxRetryDelay: TimeSpan.FromSeconds(10), // Delay between retries
+          errorNumbersToAdd: null) // Additional SQL error codes to retry on)
+    );
+  }
+
+  if (isDev || isTest)
+  {
+    options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+  }
 });
 
 // Configure ApiIdentityContext
 builder.Services.AddDbContext<ApiIdentityContext>(options =>
 {
-    if (isTest)
-    {
-        options.UseInMemoryDatabase("IdentityTestDb");
-    }
-    else
-    {
-        options.UseSqlServer(identityConnectionString);
-    }
-    
-    if (isDev || isTest)
-    {
-        options.EnableDetailedErrors();
-        options.EnableSensitiveDataLogging();
-    }
+  if (isTest)
+  {
+    options.UseInMemoryDatabase("IdentityTestDb");
+  }
+  else
+  {
+    options.UseSqlServer(identityConnectionString, options => options.EnableRetryOnFailure(
+      maxRetryCount: 5, // Number of retries
+      maxRetryDelay: TimeSpan.FromSeconds(10), // Delay between retries
+      errorNumbersToAdd: null));
+  }
+
+  if (isDev || isTest)
+  {
+    options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+  }
 });
 
 // Configure Identity
 builder.Services
-    .AddIdentityCore<BudgetUser>(o => { o.User.RequireUniqueEmail = true; })
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApiIdentityContext>()
-    .AddSignInManager();
+  .AddIdentityCore<BudgetUser>(o => { o.User.RequireUniqueEmail = true; })
+  .AddRoles<IdentityRole>()
+  .AddEntityFrameworkStores<ApiIdentityContext>()
+  .AddSignInManager();
 
 // Configure JWT authentication
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
@@ -112,19 +120,19 @@ var jwtOpt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new Jw
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.SigningKey));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+  .AddJwtBearer(options =>
+  {
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOpt.Issuer,
-            ValidAudience = jwtOpt.Audience,
-            IssuerSigningKey = key,
-            ClockSkew = TimeSpan.FromMinutes(1)
-        };
-    });
+      ValidateIssuer = true,
+      ValidateAudience = true,
+      ValidateIssuerSigningKey = true,
+      ValidIssuer = jwtOpt.Issuer,
+      ValidAudience = jwtOpt.Audience,
+      IssuerSigningKey = key,
+      ClockSkew = TimeSpan.FromMinutes(1)
+    };
+  });
 
 builder.Services.AddAuthorization();
 
@@ -138,19 +146,19 @@ var app = builder.Build();
 // Ensure databases exist
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    services.GetRequiredService<ApiIdentityContext>().Database.EnsureCreated();
-    services.GetRequiredService<BudgetContext>().Database.EnsureCreated();
+  var services = scope.ServiceProvider;
+  services.GetRequiredService<ApiIdentityContext>().Database.EnsureCreated();
+  services.GetRequiredService<BudgetContext>().Database.EnsureCreated();
 }
 
 // Configure middleware pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseHttpLogging();
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-        options.WithTheme(ScalarTheme.DeepSpace)
-            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
+  app.UseHttpLogging();
+  app.MapOpenApi();
+  app.MapScalarApiReference(options =>
+    options.WithTheme(ScalarTheme.DeepSpace)
+      .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient));
 }
 
 app.UseHttpsRedirection();
@@ -164,17 +172,18 @@ app.MapCarter();
 app.MapDefaultEndpoints();
 
 // Sample weather forecast endpoint
-var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
+var summaries = new[]
+  { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast = Enumerable.Range(1, 5)
-        .Select(index => new WeatherForecast(
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)), 
-            Random.Shared.Next(-20, 55), 
-            summaries[Random.Shared.Next(summaries.Length)]))
-        .ToArray();
-    return forecast;
+  var forecast = Enumerable.Range(1, 5)
+    .Select(index => new WeatherForecast(
+      DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+      Random.Shared.Next(-20, 55),
+      summaries[Random.Shared.Next(summaries.Length)]))
+    .ToArray();
+  return forecast;
 }).WithName("GetWeatherForecast");
 
 app.Run();
@@ -182,10 +191,12 @@ app.Run();
 // Program class for WebApplicationFactory in tests
 namespace Budget.Api
 {
-    public partial class Program { }
+  public partial class Program
+  {
+  }
 }
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+  public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
