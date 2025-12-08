@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Microsoft Entra ID Configuration Template for FantumBudget",
+  "description": "This template documents the expected Entra ID configuration structure for appsettings.json files in Budget.Web and Budget.Api projects",
+  
+  "Budget.Web": {
+    "AzureAd": {
+      "Instance": "https://login.microsoftonline.com/",
+      "_comment_Instance": "The Azure AD instance. Use global endpoint for commercial cloud. For other clouds, see: https://learn.microsoft.com/entra/identity-platform/authentication-national-cloud",
+      
+      "Domain": "<your-domain>.onmicrosoft.com",
+      "_comment_Domain": "Your Azure AD tenant domain. Find this in Azure Portal -> Azure Active Directory -> Overview -> Primary domain",
+      
+      "TenantId": "<your-tenant-id-guid>",
+      "_comment_TenantId": "Your Azure AD tenant ID (GUID). Find in Azure Portal -> Azure Active Directory -> Overview -> Tenant ID. Example: 12345678-1234-1234-1234-123456789012",
+      
+      "ClientId": "<your-app-client-id-guid>",
+      "_comment_ClientId": "Application (client) ID from your app registration. Find in Azure Portal -> App registrations -> FantumBudget -> Overview. Example: 87654321-4321-4321-4321-210987654321",
+      
+      "ClientSecret": "<your-client-secret-value>",
+      "_comment_ClientSecret": "The client secret value generated in Azure Portal. IMPORTANT: Store this securely in Azure Key Vault for production. Never commit to source control!",
+      
+      "CallbackPath": "/signin-oidc",
+      "_comment_CallbackPath": "The path where the identity provider will redirect after authentication. Must match redirect URI configured in app registration.",
+      
+      "SignedOutCallbackPath": "/signout-callback-oidc",
+      "_comment_SignedOutCallbackPath": "The path where the identity provider will redirect after sign-out.",
+      
+      "ResponseType": "code",
+      "_comment_ResponseType": "OAuth 2.0 response type. 'code' uses authorization code flow (recommended for web apps).",
+      
+      "SaveTokens": true,
+      "_comment_SaveTokens": "Whether to save access and refresh tokens in the authentication cookie. Set to true to enable token refresh.",
+      
+      "Scope": "openid profile email User.Read",
+      "_comment_Scope": "Space-separated list of scopes to request. These must match permissions configured in app registration."
+    },
+    
+    "KeyVault": {
+      "VaultUri": "https://<your-keyvault-name>.vault.azure.net/",
+      "_comment_VaultUri": "Azure Key Vault URI for storing secrets. Recommended for production environments. Example: https://fantumbudget-kv.vault.azure.net/"
+    },
+    
+    "Authorization": {
+      "Roles": {
+        "Admin": {
+          "Name": "Admin",
+          "_comment_Admin": "Administrator role with full access. Assigned in Azure Portal -> Enterprise applications -> FantumBudget -> Users and groups"
+        },
+        "PowerUser": {
+          "Name": "PowerUser",
+          "_comment_PowerUser": "Power User role with elevated access to advanced features"
+        },
+        "User": {
+          "Name": "User",
+          "_comment_User": "Standard user role with basic access to core features"
+        }
+      }
+    },
+    
+    "Logging": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft.AspNetCore": "Warning",
+        "Microsoft.AspNetCore.Authentication": "Information",
+        "_comment_Authentication": "Set to 'Debug' for detailed authentication logs during troubleshooting"
+      }
+    }
+  },
+  
+  "Budget.Api": {
+    "AzureAd": {
+      "Instance": "https://login.microsoftonline.com/",
+      "_comment_Instance": "The Azure AD instance endpoint",
+      
+      "Domain": "<your-domain>.onmicrosoft.com",
+      "_comment_Domain": "Your Azure AD tenant domain",
+      
+      "TenantId": "<your-tenant-id-guid>",
+      "_comment_TenantId": "Your Azure AD tenant ID. Should match the tenant ID used in Budget.Web",
+      
+      "ClientId": "<your-app-client-id-guid>",
+      "_comment_ClientId": "Application (client) ID. Same as Budget.Web if using the same app registration, or different if using a separate API app registration",
+      
+      "Audience": "api://<your-app-client-id-guid>",
+      "_comment_Audience": "Expected audience for JWT tokens. Format: api://{ClientId}. Used for token validation in the API.",
+      
+      "ValidateAudience": true,
+      "_comment_ValidateAudience": "Whether to validate the audience claim in JWT tokens. Should be true for production.",
+      
+      "ValidateIssuer": true,
+      "_comment_ValidateIssuer": "Whether to validate the issuer claim in JWT tokens. Should be true for production.",
+      
+      "ValidateLifetime": true,
+      "_comment_ValidateLifetime": "Whether to validate token expiration. Should be true for production.",
+      
+      "ClockSkew": 300,
+      "_comment_ClockSkew": "Maximum allowed clock skew in seconds when validating token expiration. Default is 300 seconds (5 minutes)."
+    },
+    
+    "Authorization": {
+      "Policies": {
+        "RequireAdminRole": {
+          "Roles": ["Admin"],
+          "_comment": "Policy requiring Admin role. Use with [Authorize(Policy = \"RequireAdminRole\")]"
+        },
+        "RequirePowerUserRole": {
+          "Roles": ["Admin", "PowerUser"],
+          "_comment": "Policy requiring Admin or PowerUser role. Use with [Authorize(Policy = \"RequirePowerUserRole\")]"
+        },
+        "RequireAuthenticatedUser": {
+          "Roles": ["Admin", "PowerUser", "User"],
+          "_comment": "Policy requiring any authenticated user with a role. Use with [Authorize(Policy = \"RequireAuthenticatedUser\")]"
+        }
+      }
+    },
+    
+    "Logging": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft.AspNetCore": "Warning",
+        "Microsoft.AspNetCore.Authentication": "Information",
+        "Microsoft.AspNetCore.Authorization": "Information",
+        "_comment_Authorization": "Set to 'Debug' for detailed authorization logs"
+      }
+    }
+  },
+  
+  "SharedConfiguration": {
+    "_comment": "Common configuration notes applicable to both Budget.Web and Budget.Api",
+    
+    "EnvironmentSpecific": {
+      "Development": {
+        "_note": "For local development, you can store ClientSecret directly in appsettings.Development.json (not committed to source control via .gitignore)",
+        "RedirectUri": "https://localhost:7141/signin-oidc",
+        "ApiUrl": "http://localhost:5146"
+      },
+      "Staging": {
+        "_note": "For staging environment, use Azure Key Vault for secrets and Azure Container Apps URLs",
+        "RedirectUri": "https://<staging-app-name>.azurecontainerapps.io/signin-oidc",
+        "ApiUrl": "https://<staging-api-name>.azurecontainerapps.io"
+      },
+      "Production": {
+        "_note": "For production environment, ALWAYS use Azure Key Vault for secrets",
+        "RedirectUri": "https://<production-app-name>.azurecontainerapps.io/signin-oidc",
+        "ApiUrl": "https://<production-api-name>.azurecontainerapps.io"
+      }
+    },
+    
+    "SecurityBestPractices": {
+      "1_ClientSecret": "NEVER commit client secrets to source control. Use Azure Key Vault in production.",
+      "2_HTTPS": "ALWAYS use HTTPS in production. Entra ID requires HTTPS for redirect URIs (except localhost).",
+      "3_TokenValidation": "ALWAYS validate tokens in the API: issuer, audience, lifetime, and signature.",
+      "4_RoleBasedAccess": "Use role-based authorization policies to control access to features.",
+      "5_SecretRotation": "Rotate client secrets regularly (before expiration) and update Key Vault.",
+      "6_Monitoring": "Enable logging for authentication and authorization events. Monitor for failures.",
+      "7_MFA": "Consider enforcing MFA through Conditional Access policies for sensitive roles.",
+      "8_ScopeMinimization": "Only request the minimum scopes needed. Don't request unnecessary permissions."
+    },
+    
+    "TokenFlow": {
+      "_description": "How authentication tokens flow in the application",
+      "Step1": "User authenticates with Entra ID via Budget.Web",
+      "Step2": "Entra ID returns ID token and access token to Budget.Web",
+      "Step3": "Budget.Web stores tokens in authentication cookie",
+      "Step4": "Budget.Web includes access token in API requests to Budget.Api",
+      "Step5": "Budget.Api validates the access token and extracts user claims (including roles)",
+      "Step6": "Budget.Api authorizes the request based on user roles and policies"
+    },
+    
+    "RoleClaims": {
+      "_description": "Role claims in JWT tokens",
+      "ClaimType": "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+      "Example": "User claims will include: { \"role\": \"Admin\" } or { \"role\": [\"Admin\", \"PowerUser\"] } for multi-role users",
+      "Usage": "Access roles in code via: User.IsInRole(\"Admin\") or [Authorize(Roles = \"Admin\")]"
+    },
+    
+    "RequiredAppRegistrationSettings": {
+      "RedirectURIs_Web": [
+        "https://localhost:7141/signin-oidc",
+        "https://<prod-url>.azurecontainerapps.io/signin-oidc"
+      ],
+      "RedirectURIs_SPA": [
+        "https://localhost:7141/authentication/login-callback"
+      ],
+      "ImplicitGrant": {
+        "IDTokens": true,
+        "AccessTokens": true
+      },
+      "APIPermissions": [
+        "Microsoft Graph - User.Read (Delegated)",
+        "Microsoft Graph - email (Delegated)",
+        "Microsoft Graph - openid (Delegated)",
+        "Microsoft Graph - profile (Delegated)"
+      ],
+      "AppRoles": [
+        {
+          "DisplayName": "Admin",
+          "Value": "Admin",
+          "Description": "Administrator role with full access"
+        },
+        {
+          "DisplayName": "PowerUser",
+          "Value": "PowerUser",
+          "Description": "Power User role with elevated access"
+        },
+        {
+          "DisplayName": "User",
+          "Value": "User",
+          "Description": "Standard user role"
+        }
+      ]
+    }
+  },
+  
+  "TroubleshootingGuide": {
+    "AADSTS50011_ReplyUrlMismatch": {
+      "Error": "The reply URL specified in the request does not match the reply URLs configured for the application",
+      "Solution": "Verify CallbackPath in appsettings.json matches exactly with redirect URI in Azure Portal. Check protocol (http/https) and port number."
+    },
+    "AADSTS65001_ConsentRequired": {
+      "Error": "The user or administrator has not consented to use the application",
+      "Solution": "Grant admin consent for API permissions in Azure Portal -> App registrations -> API permissions"
+    },
+    "AADSTS700016_UnauthorizedClient": {
+      "Error": "Application not found in the directory",
+      "Solution": "Verify ClientId in appsettings.json matches the Application ID in Azure Portal. Check that you're using the correct tenant."
+    },
+    "InvalidClientSecret": {
+      "Error": "AADSTS7000215: Invalid client secret provided",
+      "Solution": "Verify the client secret in appsettings.json or Key Vault is correct and not expired. Create a new secret if needed."
+    },
+    "RoleNotAssigned": {
+      "Error": "User authenticated but doesn't have expected permissions",
+      "Solution": "Assign user to a role in Azure Portal -> Enterprise applications -> FantumBudget -> Users and groups"
+    }
+  }
+}
