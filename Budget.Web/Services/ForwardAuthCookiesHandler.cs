@@ -6,6 +6,7 @@ namespace Budget.Web.Services;
 public sealed class ForwardAuthCookiesHandler(
   IHttpContextAccessor httpContextAccessor,
   ITokenAcquisition tokenAcquisition,
+  IConfiguration configuration,
   ILogger<ForwardAuthCookiesHandler> logger) : DelegatingHandler
 {
   protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
@@ -17,9 +18,9 @@ public sealed class ForwardAuthCookiesHandler(
     {
       try
       {
-        // Try to get access token for the API
-        // The scopes should be configured based on your API's requirements
-        var scopes = new[] { "api://budget-api/.default" };
+        // Get API scope from configuration, with fallback to default
+        var apiScope = configuration["AzureAd:ApiScope"] ?? "api://budget-api/.default";
+        var scopes = new[] { apiScope };
         
         var accessToken = await tokenAcquisition.GetAccessTokenForUserAsync(scopes);
         

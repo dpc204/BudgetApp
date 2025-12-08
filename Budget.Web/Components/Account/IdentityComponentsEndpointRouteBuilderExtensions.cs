@@ -11,6 +11,13 @@ namespace Budget.Web.Components.Account
 {
     internal static class IdentityComponentsEndpointRouteBuilderExtensions
     {
+        // Authentication schemes used for Entra ID sign-out
+        private static readonly string[] EntraSignOutSchemes = 
+        [
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            OpenIdConnectDefaults.AuthenticationScheme
+        ];
+
         // These endpoints are required by the Identity Razor components defined in the /Components/Account/Pages directory of this project.
         public static IEndpointConventionBuilder MapAdditionalIdentityEndpoints(this IEndpointRouteBuilder endpoints)
         {
@@ -87,10 +94,7 @@ namespace Budget.Web.Components.Account
                 // Sign out from Entra ID
                 var callbackUrl = returnUrl ?? "~/";
                 return TypedResults.SignOut(
-                    authenticationSchemes: new[] { 
-                        CookieAuthenticationDefaults.AuthenticationScheme,
-                        OpenIdConnectDefaults.AuthenticationScheme 
-                    },
+                    authenticationSchemes: EntraSignOutSchemes,
                     properties: new AuthenticationProperties { RedirectUri = callbackUrl }
                 );
             });
@@ -103,10 +107,7 @@ namespace Budget.Web.Components.Account
                 // Sign out from Entra ID
                 var callbackUrl = returnUrl ?? "~/";
                 return TypedResults.SignOut(
-                    authenticationSchemes: new[] { 
-                        CookieAuthenticationDefaults.AuthenticationScheme,
-                        OpenIdConnectDefaults.AuthenticationScheme 
-                    },
+                    authenticationSchemes: EntraSignOutSchemes,
                     properties: new AuthenticationProperties { RedirectUri = callbackUrl }
                 );
             });
