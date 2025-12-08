@@ -26,8 +26,12 @@ public partial class Budget : ComponentBase
   {
     if (firstRender)
     {
+      var previousValue = _isSmallScreen;
       await CheckScreenSize();
-      StateHasChanged();
+      if (previousValue != _isSmallScreen)
+      {
+        StateHasChanged();
+      }
     }
   }
 
@@ -38,9 +42,14 @@ public partial class Budget : ComponentBase
       var width = await JSRuntime.InvokeAsync<int>("windowUtils.getInnerWidth");
       _isSmallScreen = width < SmallScreenBreakpoint;
     }
-    catch
+    catch (JSException)
     {
       // Default to false if JS interop fails
+      _isSmallScreen = false;
+    }
+    catch (JSDisconnectedException)
+    {
+      // Default to false if JS is disconnected
       _isSmallScreen = false;
     }
   }
