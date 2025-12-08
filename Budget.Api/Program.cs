@@ -94,7 +94,10 @@ builder.Services.AddDbContext<ApiIdentityContext>(options =>
   }
   else
   {
-    options.UseSqlServer(identityConnectionString);
+    options.UseSqlServer(identityConnectionString, options => options.EnableRetryOnFailure(
+      maxRetryCount: 5, // Number of retries
+      maxRetryDelay: TimeSpan.FromSeconds(10), // Delay between retries
+      errorNumbersToAdd: null));
   }
 
   if (isDev || isTest)

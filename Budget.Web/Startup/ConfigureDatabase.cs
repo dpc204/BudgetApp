@@ -32,7 +32,10 @@ public static class ConfigureDatabase
     // Use the SAME database for Identity as BudgetContext (Identity schema within the same DB)
     builder.Services.AddDbContext<IdentityDBContext>(options =>
       options.UseSqlServer(identityConnectionString,
-        o => o.MigrationsHistoryTable("__EFMigrationsHistory", "BudgetIdentity")));
+        o => o.MigrationsHistoryTable("__EFMigrationsHistory", "BudgetIdentity").EnableRetryOnFailure(
+          maxRetryCount: 5, // Number of retries
+          maxRetryDelay: TimeSpan.FromSeconds(10), // Delay between retries
+          errorNumbersToAdd: null)));
 
     builder.Services.AddDatabaseDeveloperPageExceptionFilter();
   }
