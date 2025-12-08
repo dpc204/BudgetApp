@@ -30,6 +30,10 @@
     z-index: 10;
     background-color: var(--mud-palette-surface);
   }
+  /* Hide MudTable's responsive data labels since we have sticky headers */
+  .budget-table-container .mud-table .mud-table-cell-data-label {
+    display: none !important;
+  }
 </style>
 
 <PageTitle>Budget</PageTitle>
