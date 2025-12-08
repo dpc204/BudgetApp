@@ -26,6 +26,8 @@ public partial class Budget : ComponentBase
   {
     if (firstRender)
     {
+      // Note: Screen size is only checked on initial render for simplicity.
+      // To support runtime resizing, add a JavaScript resize event listener.
       var previousValue = _isSmallScreen;
       await CheckScreenSize();
       if (previousValue != _isSmallScreen)

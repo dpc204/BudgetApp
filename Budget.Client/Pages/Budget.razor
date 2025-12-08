@@ -6,6 +6,7 @@
 
 <style>
   :root {
+    /* Offset includes: page title (h4) ~60px, top margin 16px, MudPaper controls ~120px, bottom margin 16px, plus buffer */
     --budget-table-header-offset: 300px;
   }
   .draft-input-right {
@@ -19,6 +20,7 @@
     overflow-y: auto;
     position: relative;
   }
+  /* Override MudTable display to enable sticky header functionality */
   .budget-table-container .mud-table {
     display: block;
   }
