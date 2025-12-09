@@ -120,10 +120,30 @@ var jwtOpt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new Jw
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.SigningKey));
 
 // Configure dual authentication: Entra ID JWT + Custom JWT
-var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+// Use explicit scheme names to avoid conflicts
+const string EntraScheme = "EntraJwt";
+const string LocalScheme = "LocalJwt";
+
+var authBuilder = builder.Services.AddAuthentication(options =>
+{
+  // Default to Entra ID if configured, otherwise fallback to local JWT
+  var azureAdSection = builder.Configuration.GetSection("AzureAd");
+  if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
+  {
+    options.DefaultScheme = EntraScheme;
+    options.DefaultChallengeScheme = EntraScheme;
+    logger.LogInformation("Default authentication scheme: {Scheme}", EntraScheme);
+  }
+  else
+  {
+    options.DefaultScheme = LocalScheme;
+    options.DefaultChallengeScheme = LocalScheme;
+    logger.LogInformation("Default authentication scheme: {Scheme} (Entra ID not configured)", LocalScheme);
+  }
+});
 
 // Add custom JWT Bearer for backward compatibility (local auth)
-authBuilder.AddJwtBearer("LocalJwt", options =>
+authBuilder.AddJwtBearer(LocalScheme, options =>
 {
   options.TokenValidationParameters = new TokenValidationParameters
   {
@@ -141,8 +161,8 @@ authBuilder.AddJwtBearer("LocalJwt", options =>
 var azureAdSection = builder.Configuration.GetSection("AzureAd");
 if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
 {
-  authBuilder.AddMicrosoftIdentityWebApi(azureAdSection);
-  logger.LogInformation("Microsoft Entra ID JWT Bearer authentication configured");
+  authBuilder.AddMicrosoftIdentityWebApi(azureAdSection, EntraScheme);
+  logger.LogInformation("Microsoft Entra ID JWT Bearer authentication configured with scheme: {Scheme}", EntraScheme);
 }
 else
 {
@@ -155,24 +175,24 @@ builder.Services.AddAuthorization(options =>
   // Default policy requires authentication from either scheme
   options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
     .RequireAuthenticatedUser()
-    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt")
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme)
     .Build();
 
   // Admin-only policy
   options.AddPolicy("AdminOnly", policy => policy
     .RequireRole("Admin")
-    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt"));
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
 
   // PowerUser or above policy
   options.AddPolicy("PowerUserOrAbove", policy => policy
     .RequireAssertion(context =>
       context.User.IsInRole("Admin") || context.User.IsInRole("PowerUser"))
-    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt"));
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
 
   // Authenticated user policy (any role)
   options.AddPolicy("AuthenticatedUser", policy => policy
     .RequireAuthenticatedUser()
-    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt"));
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
 });
 
 // Register JWT token service
