@@ -21,4 +21,5 @@ global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Identity.Web;
 global using Microsoft.IdentityModel.Tokens;

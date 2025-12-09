@@ -119,22 +119,61 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwtOpt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.SigningKey));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-  .AddJwtBearer(options =>
-  {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-      ValidateIssuer = true,
-      ValidateAudience = true,
-      ValidateIssuerSigningKey = true,
-      ValidIssuer = jwtOpt.Issuer,
-      ValidAudience = jwtOpt.Audience,
-      IssuerSigningKey = key,
-      ClockSkew = TimeSpan.FromMinutes(1)
-    };
-  });
+// Configure dual authentication: Entra ID JWT + Custom JWT
+var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
 
-builder.Services.AddAuthorization();
+// Add custom JWT Bearer for backward compatibility (local auth)
+authBuilder.AddJwtBearer("LocalJwt", options =>
+{
+  options.TokenValidationParameters = new TokenValidationParameters
+  {
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateIssuerSigningKey = true,
+    ValidIssuer = jwtOpt.Issuer,
+    ValidAudience = jwtOpt.Audience,
+    IssuerSigningKey = key,
+    ClockSkew = TimeSpan.FromMinutes(1)
+  };
+});
+
+// Add Microsoft Entra ID JWT Bearer authentication
+var azureAdSection = builder.Configuration.GetSection("AzureAd");
+if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
+{
+  authBuilder.AddMicrosoftIdentityWebApi(azureAdSection);
+  logger.LogInformation("Microsoft Entra ID JWT Bearer authentication configured");
+}
+else
+{
+  logger.LogWarning("AzureAd:ClientId not configured - Entra ID authentication disabled");
+}
+
+// Configure authorization policies matching Budget.Web
+builder.Services.AddAuthorization(options =>
+{
+  // Default policy requires authentication from either scheme
+  options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser()
+    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt")
+    .Build();
+
+  // Admin-only policy
+  options.AddPolicy("AdminOnly", policy => policy
+    .RequireRole("Admin")
+    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt"));
+
+  // PowerUser or above policy
+  options.AddPolicy("PowerUserOrAbove", policy => policy
+    .RequireAssertion(context =>
+      context.User.IsInRole("Admin") || context.User.IsInRole("PowerUser"))
+    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt"));
+
+  // Authenticated user policy (any role)
+  options.AddPolicy("AuthenticatedUser", policy => policy
+    .RequireAuthenticatedUser()
+    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "LocalJwt"));
+});
 
 // Register JWT token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
