@@ -5,6 +5,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>37834f08-c42f-4f1e-9a80-3911e57d81ac</UserSecretsId>
+    
+    <!-- Container build optimizations to avoid ACR upload issues -->
+    <PublishProfile>DefaultContainer</PublishProfile>
+    <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
   </PropertyGroup>
 
   <ItemGroup>
