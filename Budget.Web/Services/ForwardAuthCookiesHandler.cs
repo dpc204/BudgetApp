@@ -1,3 +1,5 @@
+using Microsoft.Identity.Client;
+
 namespace Budget.Web.Services;
 
 /// <summary>
@@ -22,7 +24,7 @@ public sealed class ForwardAuthCookiesHandler(
         var apiScope = configuration["AzureAd:ApiScope"] ?? "api://budget-api/.default";
         var scopes = new[] { apiScope };
         
-        // Specify OpenIdConnect authentication scheme explicitly for token acquisition
+        // Try to get access token silently (from cache)
         var accessToken = await tokenAcquisition.GetAccessTokenForUserAsync(
           scopes, 
           authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
@@ -32,44 +34,36 @@ public sealed class ForwardAuthCookiesHandler(
           // Add the access token to the Authorization header
           request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
           logger.LogDebug("Added Bearer token to request for {Url}", request.RequestUri);
-        }
-        else
-        {
-          logger.LogWarning("Failed to acquire access token for API call to {Url}", request.RequestUri);
+          return await base.SendAsync(request, cancellationToken);
         }
       }
-      catch (MicrosoftIdentityWebChallengeUserException ex)
+      catch (MicrosoftIdentityWebChallengeUserException)
       {
-        // User needs to sign in or consent - this should be handled by the authentication middleware
-        // Don't throw, just log and fall back to cookies
-        logger.LogInformation("User authentication challenge required for {Url}: {Message}", request.RequestUri, ex.Message);
-        
-        // Fallback: Forward cookies for backward compatibility during migration
-        if (ctx.Request.Headers.TryGetValue("Cookie", out var cookie))
-        {
-          if (!request.Headers.Contains("Cookie"))
-          {
-            var cookieArray = cookie.ToArray();
-            request.Headers.TryAddWithoutValidation("Cookie", cookieArray);
-            logger.LogDebug("Forwarded cookies as fallback for {Url}", request.RequestUri);
-          }
-        }
+        // User needs to consent to access the API
+        // This is expected on first API call after sign-in with incremental consent
+        // Fall through to cookie-based auth (backward compatibility)
+        logger.LogDebug("Token acquisition requires user consent, using cookie-based auth for {Url}", request.RequestUri);
+      }
+      catch (MsalUiRequiredException)
+      {
+        // No cached token available and user interaction is required
+        // Fall through to cookie-based auth (backward compatibility)
+        logger.LogDebug("No cached token available, using cookie-based auth for {Url}", request.RequestUri);
       }
       catch (Exception ex)
       {
-        // If we can't get a token, log the error but don't fail the request
-        // Fall back to cookie forwarding for backward compatibility during migration
-        logger.LogWarning(ex, "Error acquiring access token, falling back to cookie forwarding for {Url}", request.RequestUri);
-        
-        // Fallback: Forward cookies for backward compatibility during migration
-        if (ctx.Request.Headers.TryGetValue("Cookie", out var cookie))
+        // Log unexpected errors but continue with cookie fallback
+        logger.LogWarning(ex, "Unexpected error acquiring access token for {Url}, using cookie-based auth", request.RequestUri);
+      }
+      
+      // Fallback: Forward cookies for backward compatibility during migration
+      if (ctx.Request.Headers.TryGetValue("Cookie", out var cookie))
+      {
+        if (!request.Headers.Contains("Cookie"))
         {
-          if (!request.Headers.Contains("Cookie"))
-          {
-            var cookieArray = cookie.ToArray();
-            request.Headers.TryAddWithoutValidation("Cookie", cookieArray);
-            logger.LogDebug("Forwarded cookies as fallback for {Url}", request.RequestUri);
-          }
+          var cookieArray = cookie.ToArray();
+          request.Headers.TryAddWithoutValidation("Cookie", cookieArray);
+          logger.LogDebug("Using cookie-based authentication for {Url}", request.RequestUri);
         }
       }
     }
