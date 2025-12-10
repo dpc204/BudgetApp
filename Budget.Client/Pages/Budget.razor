@@ -49,6 +49,18 @@
     table-layout: fixed;
     width: 100%;
   }
+  .lock-icon {
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  .budget-with-lock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
 </style>
 
 <PageTitle>Budget</PageTitle>
@@ -184,7 +196,16 @@
             
             @* Budget column (read-only) *@
             <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
-              @(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")
+              <div class="budget-with-lock">
+                @(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")
+                @if (cellData != null)
+                {
+                  <img src="@(cellData.IsLocked ? "/Locked.png" : "/Unlocked.png")" 
+                       class="lock-icon" 
+                       alt="@(cellData.IsLocked ? "Locked" : "Unlocked")"
+                       @onclick="() => ToggleLock(context.EnvelopeId, monthKey)" />
+                }
+              </div>
             </MudTd>
             
             @* Draft column (editable) *@

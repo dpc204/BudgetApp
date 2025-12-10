@@ -466,6 +466,17 @@ public partial class Budget : ComponentBase
     }
   }
 
+  private void ToggleLock(int envelopeId, DateTime month)
+  {
+    // Find the row
+    var row = _displayRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
+    if (row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
+    {
+      cellData.IsLocked = !cellData.IsLocked;
+      StateHasChanged();
+    }
+  }
+
   // Data models
   private class BudgetDisplayRow
   {
@@ -480,6 +491,7 @@ public partial class Budget : ComponentBase
     public decimal? DraftValue { get; set; }
     public decimal? BudgetValue { get; set; }
     public string DraftDisplayValue { get; set; } = string.Empty;
+    public bool IsLocked { get; set; } = false;
   }
 
   private class BudgetMonthData
