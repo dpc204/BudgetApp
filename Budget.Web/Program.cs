@@ -60,7 +60,16 @@ var app = builder.Build();
 ServiceAccessor.Configure(app.Services);
 
 // Apply database migrations and log startup info
-var budgetConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
+// TEMPORARY: During Phase 2 Entra ID migration, Identity connection string is optional
+try
+{
+  var budgetConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
+  logger.LogInformation("Identity database connection string configured: {ConnectionString}", budgetConnectionString?.Substring(0, Math.Min(50, budgetConnectionString?.Length ?? 0)) + "...");
+}
+catch (InvalidOperationException ex) when (ex.Message.Contains("Connection string"))
+{
+  logger.LogWarning("Identity database connection string not configured. Continuing with Entra ID authentication only.");
+}
 
 // Configure exception handling
 ConfigureMiddleware.ConfigureExceptionHandling(app);
