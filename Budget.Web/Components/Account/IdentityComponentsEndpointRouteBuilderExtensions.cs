@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Budget.Web.Components.Account.Pages;
 using Budget.Web.Components.Account.Pages.Manage;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -10,6 +11,13 @@ namespace Budget.Web.Components.Account
 {
     internal static class IdentityComponentsEndpointRouteBuilderExtensions
     {
+        // Authentication schemes used for Entra ID sign-out
+        private static readonly string[] EntraSignOutSchemes = 
+        [
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            OpenIdConnectDefaults.AuthenticationScheme
+        ];
+
         // These endpoints are required by the Identity Razor components defined in the /Components/Account/Pages directory of this project.
         public static IEndpointConventionBuilder MapAdditionalIdentityEndpoints(this IEndpointRouteBuilder endpoints)
         {
@@ -80,21 +88,28 @@ namespace Budget.Web.Components.Account
 
             accountGroup.MapPost("/Logout", async (
                 ClaimsPrincipal user,
-                SignInManager<BudgetUser> signInManager,
-                [FromForm] string returnUrl) =>
+                HttpContext context,
+                [FromForm] string? returnUrl) =>
             {
-                await signInManager.SignOutAsync();
-                // Always go home after logout
-                return TypedResults.LocalRedirect("~/");
+                // Sign out from Entra ID
+                var callbackUrl = returnUrl ?? "~/";
+                return TypedResults.SignOut(
+                    authenticationSchemes: EntraSignOutSchemes,
+                    properties: new AuthenticationProperties { RedirectUri = callbackUrl }
+                );
             });
 
-            // Support GET-based logout to work with navigation links. Always go home.
+            // Support GET-based logout to work with navigation links
             accountGroup.MapGet("/Logout", async (
-                SignInManager<BudgetUser> signInManager,
+                HttpContext context,
                 [FromQuery] string? returnUrl) =>
             {
-                await signInManager.SignOutAsync();
-                return TypedResults.LocalRedirect("~/");
+                // Sign out from Entra ID
+                var callbackUrl = returnUrl ?? "~/";
+                return TypedResults.SignOut(
+                    authenticationSchemes: EntraSignOutSchemes,
+                    properties: new AuthenticationProperties { RedirectUri = callbackUrl }
+                );
             });
 
             var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();

@@ -77,6 +77,9 @@ public static class ConfigureMiddleware
       .AddInteractiveServerRenderMode()
       .AddAdditionalAssemblies(typeof(Budget.Client.Pages.Home).Assembly);
 
+    // Map controllers for Microsoft Identity UI
+    app.MapControllers();
+
     app.MapAdditionalIdentityEndpoints();
 
     // Health endpoints (development only for security)

@@ -119,22 +119,81 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwtOpt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.SigningKey));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-  .AddJwtBearer(options =>
-  {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-      ValidateIssuer = true,
-      ValidateAudience = true,
-      ValidateIssuerSigningKey = true,
-      ValidIssuer = jwtOpt.Issuer,
-      ValidAudience = jwtOpt.Audience,
-      IssuerSigningKey = key,
-      ClockSkew = TimeSpan.FromMinutes(1)
-    };
-  });
+// Configure dual authentication: Entra ID JWT + Custom JWT
+// Use explicit scheme names to avoid conflicts
+const string EntraScheme = "EntraJwt";
+const string LocalScheme = "LocalJwt";
 
-builder.Services.AddAuthorization();
+var authBuilder = builder.Services.AddAuthentication(options =>
+{
+  // Default to Entra ID if configured, otherwise fallback to local JWT
+  var azureAdSection = builder.Configuration.GetSection("AzureAd");
+  if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
+  {
+    options.DefaultScheme = EntraScheme;
+    options.DefaultChallengeScheme = EntraScheme;
+    logger.LogInformation("Default authentication scheme: {Scheme}", EntraScheme);
+  }
+  else
+  {
+    options.DefaultScheme = LocalScheme;
+    options.DefaultChallengeScheme = LocalScheme;
+    logger.LogInformation("Default authentication scheme: {Scheme} (Entra ID not configured)", LocalScheme);
+  }
+});
+
+// Add custom JWT Bearer for backward compatibility (local auth)
+authBuilder.AddJwtBearer(LocalScheme, options =>
+{
+  options.TokenValidationParameters = new TokenValidationParameters
+  {
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateIssuerSigningKey = true,
+    ValidIssuer = jwtOpt.Issuer,
+    ValidAudience = jwtOpt.Audience,
+    IssuerSigningKey = key,
+    ClockSkew = TimeSpan.FromMinutes(1)
+  };
+});
+
+// Add Microsoft Entra ID JWT Bearer authentication
+var azureAdSection = builder.Configuration.GetSection("AzureAd");
+if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
+{
+  authBuilder.AddMicrosoftIdentityWebApi(azureAdSection, EntraScheme);
+  logger.LogInformation("Microsoft Entra ID JWT Bearer authentication configured with scheme: {Scheme}", EntraScheme);
+}
+else
+{
+  logger.LogWarning("AzureAd:ClientId not configured - Entra ID authentication disabled");
+}
+
+// Configure authorization policies matching Budget.Web
+builder.Services.AddAuthorization(options =>
+{
+  // Default policy requires authentication from either scheme
+  options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser()
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme)
+    .Build();
+
+  // Admin-only policy
+  options.AddPolicy("AdminOnly", policy => policy
+    .RequireRole("Admin")
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+
+  // PowerUser or above policy
+  options.AddPolicy("PowerUserOrAbove", policy => policy
+    .RequireAssertion(context =>
+      context.User.IsInRole("Admin") || context.User.IsInRole("PowerUser"))
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+
+  // Authenticated user policy (any role)
+  options.AddPolicy("AuthenticatedUser", policy => policy
+    .RequireAuthenticatedUser()
+    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+});
 
 // Register JWT token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();

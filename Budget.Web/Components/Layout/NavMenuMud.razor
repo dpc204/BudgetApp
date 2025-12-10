@@ -1,23 +1,34 @@
 <MudNavMenu>
   <AuthorizeView>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="budget" Icon="@Icons.Material.Filled.AccountBalance">Budget</MudNavLink>
-    <MudNavLink Href="envelopes" Icon="@Icons.Material.Filled.Folder">Envelopes</MudNavLink>
-    <MudNavLink Href="assign" Icon="@Icons.Material.Filled.Folder">Assign</MudNavLink>
-  </AuthorizeView>
-      <MudNavLink Href="maintenance" Icon="@Icons.Material.Filled.Build">Maintenance</MudNavLink>
-      <MudNavLink Href="Admin/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
-      <MudNavLink Href="Admin/Roles" Icon="@Icons.Material.Filled.Shield">Roles</MudNavLink>
-  <AuthorizeView>
     <Authorized>
-    <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
+      <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+      <MudNavLink Href="budget" Icon="@Icons.Material.Filled.AccountBalance">Budget</MudNavLink>
+      <MudNavLink Href="envelopes" Icon="@Icons.Material.Filled.Folder">Envelopes</MudNavLink>
+      <MudNavLink Href="assign" Icon="@Icons.Material.Filled.Folder">Assign</MudNavLink>
+      <MudNavLink Href="maintenance" Icon="@Icons.Material.Filled.Build">Maintenance</MudNavLink>
+      
+      <AuthorizeView Policy="AdminOnly" Context="adminContext">
+        <Authorized>
+          <MudNavLink Href="Admin/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+          <MudNavLink Href="Admin/Roles" Icon="@Icons.Material.Filled.Shield">Roles</MudNavLink>
+        </Authorized>
+      </AuthorizeView>
+      
+      <MudDivider Class="my-2" />
+      
+      <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person">
+        @context.User.Identity?.Name
+        @if (GetUserRole(context.User) is string role && !string.IsNullOrEmpty(role))
+        {
+          <MudChip T="string" Size="Size.Small" Color="GetRoleColor(role)" Class="ml-2">@role</MudChip>
+        }
+      </MudNavLink>
 
-    <MudNavLink OnClick="@HandleLogoutAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
+      <MudNavLink OnClick="@HandleLogoutAsync" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
     </Authorized>
 
-  <NotAuthorized>
-    <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
-    <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
-  </NotAuthorized>
+    <NotAuthorized>
+      <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">Sign in with Microsoft</MudNavLink>
+    </NotAuthorized>
   </AuthorizeView>
 </MudNavMenu>

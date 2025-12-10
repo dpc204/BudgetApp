@@ -3,59 +3,67 @@ using Budget.Web.Components.Account;
 namespace Budget.Web.Startup;
 
 /// <summary>
-/// Configures ASP.NET Core Identity and authentication services
+/// Configures Microsoft Entra ID authentication and authorization services
 /// </summary>
 public static class ConfigureIdentity
 {
   /// <summary>
-  /// Adds authentication with Identity cookies configured for API-style responses
+  /// Adds authentication with Microsoft Entra ID (OpenID Connect)
   /// </summary>
   public static void AddAuthentication(WebApplicationBuilder builder)
   {
-    builder.Services.AddAuthentication(options =>
-      {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-      })
-      .AddIdentityCookies(options =>
-      {
-        options.ApplicationCookie?.Configure(cookieOptions =>
-        {
-          cookieOptions.Events.OnRedirectToLogin = context =>
-          {
-            // Don't redirect, just return 401
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
-          };
+    // Configure Microsoft Entra ID authentication
+    // Use cookies as default scheme for sign-in, OpenIdConnect for challenges
+    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+      .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
+      .EnableTokenAcquisitionToCallDownstreamApi()  // Enable token acquisition without requesting scopes during sign-in
+      .AddInMemoryTokenCaches();
 
-          cookieOptions.Events.OnRedirectToAccessDenied = context =>
-          {
-            // Don't redirect, just return 403
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
-          };
-        });
-      });
+    // Configure cookie authentication options for Blazor Server
+    builder.Services.ConfigureApplicationCookie(options =>
+    {
+      options.Cookie.HttpOnly = true;
+      options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+      options.Cookie.SameSite = SameSiteMode.Lax;
+    });
+
+    // Add controllers with views for Microsoft Identity UI
+    builder.Services.AddControllersWithViews()
+      .AddMicrosoftIdentityUI();
   }
 
   /// <summary>
-  /// Adds authorization policies
+  /// Adds authorization policies for role-based access control
   /// </summary>
   public static void AddAuthorization(WebApplicationBuilder builder)
   {
     builder.Services.AddAuthorizationBuilder()
-      .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+      .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
+      .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
+      .AddPolicy("PowerUserOrAbove", policy => policy.RequireRole("Admin", "PowerUser"))
+      .AddPolicy("AuthenticatedUser", policy => policy.RequireRole("Admin", "PowerUser", "User"));
   }
 
   /// <summary>
-  /// Configures ASP.NET Core Identity with roles and services
+  /// Configures ASP.NET Core Identity services
+  /// NOTE: This is temporarily disabled during migration to Entra ID (Phase 2).
+  /// Identity database and services will be removed in Phase 4 after data migration is complete.
   /// </summary>
   public static void AddIdentityCore(WebApplicationBuilder builder)
   {
+    // TEMPORARY: Identity Core services are being phased out in favor of Entra ID
+    // These services are kept for backward compatibility during the migration phase
+    // They will be completely removed in Phase 4 after all users are migrated to Entra ID
+    
+    // Scoped services for Identity (still needed by some components during migration)
     builder.Services.AddScoped<IdentityUserAccessor>();
     builder.Services.AddScoped<IdentityRedirectManager>();
+    
+    // Replace the default authentication state provider with Entra-aware version
     builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
+    // COMMENTED OUT: Identity Core configuration (will be removed in Phase 4)
+    /*
     builder.Services.AddIdentityCore<BudgetUser>(options =>
       {
         options.SignIn.RequireConfirmedAccount = false;
@@ -67,5 +75,6 @@ public static class ConfigureIdentity
       .AddDefaultTokenProviders();
 
     builder.Services.AddSingleton<IEmailSender<BudgetUser>, IdentityNoOpEmailSender>();
+    */
   }
 }
