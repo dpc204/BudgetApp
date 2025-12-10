@@ -16,11 +16,7 @@ public static class ConfigureIdentity
     // Use cookies as default scheme for sign-in, OpenIdConnect for challenges
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
       .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
-      .EnableTokenAcquisitionToCallDownstreamApi(new[] { 
-        // Request initial consent for these scopes during sign-in
-        // The API scope will be configured via appsettings or defaults to the Budget API
-        builder.Configuration["AzureAd:ApiScope"] ?? "api://budget-api/.default"
-      })
+      .EnableTokenAcquisitionToCallDownstreamApi()  // Enable token acquisition without requesting scopes during sign-in
       .AddInMemoryTokenCaches();
 
     // Configure cookie authentication options for Blazor Server
