@@ -468,8 +468,8 @@ public partial class Budget : ComponentBase
 
   private void ToggleLock(int envelopeId, DateTime month)
   {
-    // Find the row
-    var row = _displayRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
+    // Find the row in envelope rows (not summary rows)
+    var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
     if (row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
     {
       cellData.IsLocked = !cellData.IsLocked;

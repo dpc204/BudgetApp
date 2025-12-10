@@ -55,6 +55,11 @@
     margin-left: 4px;
     cursor: pointer;
     vertical-align: middle;
+    outline: none;
+  }
+  .lock-icon:focus {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
   }
   .budget-with-lock {
     display: inline-flex;
@@ -203,7 +208,10 @@
                   <img src="@(cellData.IsLocked ? "/Locked.png" : "/Unlocked.png")" 
                        class="lock-icon" 
                        alt="@(cellData.IsLocked ? "Locked" : "Unlocked")"
-                       @onclick="() => ToggleLock(context.EnvelopeId, monthKey)" />
+                       tabindex="0"
+                       role="button"
+                       @onclick="() => ToggleLock(context.EnvelopeId, monthKey)"
+                       @onkeydown="@((KeyboardEventArgs e) => { if (e.Key == "Enter" || e.Key == " ") ToggleLock(context.EnvelopeId, monthKey); })" />
                 }
               </div>
             </MudTd>
