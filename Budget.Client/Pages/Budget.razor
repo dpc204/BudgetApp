@@ -70,8 +70,8 @@
 
 <PageTitle>Budget</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
-  <MudText Typo="Typo.h4" Class="mb-4">Budget Maintenance</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-1" Style="padding-left: 0; padding-right: 0;">
+  <MudText Typo="Typo.h4" Class="mb-1">Budget Maintenance</MudText>
 
   @if (_loading)
   {
@@ -79,7 +79,7 @@
   }
   else if (_budgetData != null)
   {
-    <MudPaper Class="pa-4 mb-4" Style="@(_isSmallScreen ? "padding: 8px !important;" : "")">
+    <MudPaper Class="pa-1 mb-1" Style="@(_isSmallScreen ? "padding: 8px !important;" : "")">
       <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
         <MudStack Row="true" Spacing="@(_isSmallScreen ? 1 : 2)" AlignItems="AlignItems.Center">
           <MudTooltip Text="Prior Month">

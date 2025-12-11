@@ -12,16 +12,15 @@
     <MudSpacer/>
     <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
   </MudAppBar>
+  
+ 
 
   <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
-    @*  <MudDrawerHeader>
-            <MudText Typo="Typo.h6">Fantum Budgetx</MudText>
-        </MudDrawerHeader> *@
     <NavMenuMud/>
   </MudDrawer>
 
   <MudMainContent>
-    <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+    <MudContainer MaxWidth="MaxWidth.False">
       <Budget.Web.Components.Auth.AuthStateSync />
       @Body
     </MudContainer>
