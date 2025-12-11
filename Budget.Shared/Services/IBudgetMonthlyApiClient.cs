@@ -21,6 +21,11 @@ public interface IBudgetMonthlyApiClient
   Task<UpdateDraftResponse> UpdateBudgetDraftAsync(int acctPeriod, int envelopeId, decimal? draftValue, CancellationToken cancellationToken = default);
 
   /// <summary>
+  /// Updates the lock status for a specific envelope in a specific month
+  /// </summary>
+  Task<UpdateLockResponse> UpdateBudgetLockAsync(int acctPeriod, int envelopeId, bool isLocked, CancellationToken cancellationToken = default);
+
+  /// <summary>
   /// Clears all draft budget values for current and future months
   /// </summary>
   Task<ClearDraftsResponse> ClearDraftBudgetsAsync(CancellationToken cancellationToken = default);
@@ -53,7 +58,8 @@ public record BudgetMonthResponse(
   CatTypes CategoryType,
   int SortOrder,
   decimal? Budget,
-  decimal? BudgetDraft);
+  decimal? BudgetDraft,
+  bool IsBudgetLocked);
 
 /// <summary>
 /// Response for CheckDraftBudgets endpoint
@@ -64,6 +70,11 @@ public record CheckDraftsResponse(bool HasDrafts, int DraftCount);
 /// Response for UpdateBudgetDraft endpoint
 /// </summary>
 public record UpdateDraftResponse(bool Success, string Message);
+
+/// <summary>
+/// Response for UpdateBudgetLock endpoint
+/// </summary>
+public record UpdateLockResponse(bool Success, string Message);
 
 /// <summary>
 /// Response for ClearDraftBudgets endpoint

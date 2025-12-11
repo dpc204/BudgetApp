@@ -13,6 +13,7 @@ public class BudgetMonth
   public Envelope Envelope { get; set; } = null!;
   public decimal? Budget { get; set; }
   public decimal? BudgetDraft { get; set; }
+  public bool IsBudgetLocked { get; set; } = false;
 
   public class BudgetMonthConfiguration : IEntityTypeConfiguration<BudgetMonth>
   {

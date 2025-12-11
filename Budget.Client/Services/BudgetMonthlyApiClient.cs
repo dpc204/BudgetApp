@@ -47,6 +47,24 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     return result;
   }
 
+  public async Task<UpdateLockResponse> UpdateBudgetLockAsync(int acctPeriod, int envelopeId, bool isLocked, CancellationToken cancellationToken = default)
+  {
+    var command = new { AcctPeriod = acctPeriod, EnvelopeId = envelopeId, IsLocked = isLocked };
+    
+    using var response = await http.PutAsJsonAsync("budgetmonths/lock", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<UpdateLockResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for UpdateLockResponse from budgetmonths/lock");
+      throw new InvalidOperationException("Expected non-null UpdateLockResponse from 'budgetmonths/lock'.");
+    }
+    
+    return result;
+  }
+
   public async Task<ClearDraftsResponse> ClearDraftBudgetsAsync(CancellationToken cancellationToken = default)
   {
     using var response = await http.PostAsync("budgetmonths/cleardrafts", null, cancellationToken);

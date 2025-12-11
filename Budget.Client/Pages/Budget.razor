@@ -201,7 +201,7 @@
             
             @* Budget column (read-only) *@
             <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
-              <div class="budget-with-lock">
+              <div class="budget-with-lock" style="justify-content: flex-end;">
                 @(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")
                 @if (cellData != null)
                 {
@@ -210,8 +210,8 @@
                        alt="@(cellData.IsLocked ? "Locked" : "Unlocked")"
                        tabindex="0"
                        role="button"
-                       @onclick="() => ToggleLock(context.EnvelopeId, monthKey)"
-                       @onkeydown="@((KeyboardEventArgs e) => { if (e.Key == "Enter" || e.Key == " ") ToggleLock(context.EnvelopeId, monthKey); })" />
+                       @onclick="async () => await ToggleLock(context.EnvelopeId, monthKey)"
+                       @onkeydown="@(async (KeyboardEventArgs e) => { if (e.Key == "Enter" || e.Key == " ") await ToggleLock(context.EnvelopeId, monthKey); })" />
                 }
               </div>
             </MudTd>
@@ -227,7 +227,8 @@
                                 HideSpinButtons="true"
                                 Class="draft-input-right"
                                 Variant="Variant.Text"
-                                Margin="Margin.Dense" />
+                                Margin="Margin.Dense"
+                                Disabled="@cellData.IsLocked" />
               }
             </MudTd>
           }

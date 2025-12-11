@@ -114,6 +114,7 @@ public partial class Budget : ComponentBase
             SortOrder = item.SortOrder,
             BudgetValue = item.Budget,
             DraftValue = item.BudgetDraft,
+            IsBudgetLocked = item.IsBudgetLocked,
             Month = month
           };
         }
@@ -204,7 +205,8 @@ public partial class Budget : ComponentBase
         {
           DraftValue = data.DraftValue,
           BudgetValue = data.BudgetValue,
-          DraftDisplayValue = data.DraftValue?.ToString("C2") ?? string.Empty
+          DraftDisplayValue = data.DraftValue?.ToString("C2") ?? string.Empty,
+          IsLocked = data.IsBudgetLocked
         };
       }
     }
@@ -335,6 +337,7 @@ public partial class Budget : ComponentBase
             SortOrder = item.SortOrder,
             BudgetValue = item.Budget,
             DraftValue = item.BudgetDraft,
+            IsBudgetLocked = item.IsBudgetLocked,
             Month = month
           };
         }
@@ -466,14 +469,41 @@ public partial class Budget : ComponentBase
     }
   }
 
-  private void ToggleLock(int envelopeId, DateTime month)
+  private async Task ToggleLock(int envelopeId, DateTime month)
   {
     // Find the row in envelope rows (not summary rows)
     var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
     if (row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
     {
-      cellData.IsLocked = !cellData.IsLocked;
-      StateHasChanged();
+      var newLockState = !cellData.IsLocked;
+      
+      try
+      {
+        var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
+        var response = await BudgetMonthlyApi.UpdateBudgetLockAsync(acctPeriod, envelopeId, newLockState);
+
+        if (response.Success)
+        {
+          // Update local state
+          cellData.IsLocked = newLockState;
+          
+          // Also update the underlying data
+          if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) && value.TryGetValue(month, out BudgetMonthData? data))
+          {
+            data.IsBudgetLocked = newLockState;
+          }
+          
+          StateHasChanged();
+        }
+        else
+        {
+          Snackbar.Add($"Error updating lock: {response.Message}", Severity.Error);
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error updating lock: {ex.Message}", Severity.Error);
+      }
     }
   }
 
@@ -504,6 +534,7 @@ public partial class Budget : ComponentBase
     public int SortOrder { get; set; }
     public decimal? BudgetValue { get; set; }
     public decimal? DraftValue { get; set; }
+    public bool IsBudgetLocked { get; set; } = false;
     public DateTime Month { get; set; }
   }
 }

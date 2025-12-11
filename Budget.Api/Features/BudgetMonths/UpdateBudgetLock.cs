@@ -1,16 +1,16 @@
 namespace Budget.Api.Features.BudgetMonths;
 
 /// <summary>
-/// Updates the draft budget value for a specific envelope in a specific month
+/// Updates the lock status for a specific envelope in a specific month
 /// </summary>
-public static class UpdateBudgetDraft
+public static class UpdateBudgetLock
 {
-  public sealed record Command(int AcctPeriod, int EnvelopeId, decimal? DraftValue) : IRequest<Response>;
+  public sealed record Command(int AcctPeriod, int EnvelopeId, bool IsLocked) : IRequest<Response>;
   
   public sealed record Response(bool Success, string Message);
 
   /// <summary>
-  /// Handles updating a draft budget value
+  /// Handles updating a budget lock status
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
@@ -30,25 +30,20 @@ public static class UpdateBudgetDraft
           AcctPeriod = request.AcctPeriod,
           EnvelopeId = request.EnvelopeId,
           Budget = null,
-          BudgetDraft = request.DraftValue
+          BudgetDraft = null,
+          IsBudgetLocked = request.IsLocked
         };
         db.BudgetMonths.Add(budgetMonth);
       }
       else
       {
-        // Skip update if budget is locked
-        if (budgetMonth.IsBudgetLocked)
-        {
-          return new Response(false, "Budget is locked and cannot be modified");
-        }
-        
         // Update existing record
-        budgetMonth.BudgetDraft = request.DraftValue;
+        budgetMonth.IsBudgetLocked = request.IsLocked;
       }
 
       await db.SaveChangesAsync(cancellationToken);
 
-      return new Response(true, "Draft budget updated successfully");
+      return new Response(true, "Budget lock status updated successfully");
     }
   }
 
@@ -56,7 +51,7 @@ public static class UpdateBudgetDraft
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapPut("/budgetmonths/draft", async (
+      app.MapPut("/budgetmonths/lock", async (
         [FromServices] ISender sender,
         [FromBody] Command command) =>
       {
