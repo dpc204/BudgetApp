@@ -12,6 +12,7 @@ public partial class Budget : ComponentBase
   private bool _isSmallScreen = false;
 
   private bool _loading = true;
+  private bool _processing = false;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
   private readonly List<BudgetDisplayRow> _displayRows = [];
   private readonly List<BudgetDisplayRow> _summaryRows = [];
@@ -367,6 +368,9 @@ public partial class Budget : ComponentBase
     {
       try
       {
+        _processing = true;
+        StateHasChanged();
+        
         var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
 
         if (response.Success)
@@ -378,6 +382,11 @@ public partial class Budget : ComponentBase
       catch (Exception ex)
       {
         Snackbar.Add($"Error clearing drafts: {ex.Message}", Severity.Error);
+      }
+      finally
+      {
+        _processing = false;
+        StateHasChanged();
       }
     }
   }
@@ -397,6 +406,9 @@ public partial class Budget : ComponentBase
     {
       try
       {
+        _processing = true;
+        StateHasChanged();
+        
         var response = await BudgetMonthlyApi.ApplyDraftValuesToBudgetAsync();
 
         if (response.Success)
@@ -408,6 +420,11 @@ public partial class Budget : ComponentBase
       catch (Exception ex)
       {
         Snackbar.Add($"Error applying drafts: {ex.Message}", Severity.Error);
+      }
+      finally
+      {
+        _processing = false;
+        StateHasChanged();
       }
     }
   }

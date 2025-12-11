@@ -74,9 +74,9 @@
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-1" Style="padding-left: 0; padding-right: 0;">
   <MudText Typo="Typo.h4" Class="mb-1">Budget Maintenance</MudText>
 
-  @if (_loading)
+  @if (_loading || _processing)
   {
-    <MudProgressCircular Indeterminate="true"  />
+    <MudProgressCircular Indeterminate="true" />
   }
   else if (_budgetData != null)
   {
@@ -175,7 +175,9 @@
             
             @* Budget column (read-only) *@
             <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
-              <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
+              <div class="budget-with-lock" style="justify-content: flex-end;">
+                <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
+              </div>
             </MudTd>
             
             @* Draft column (display only for summary rows) *@
