@@ -480,6 +480,18 @@ public partial class Budget : ComponentBase
       try
       {
         var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
+        
+        // If locking and there's a draft value, clear it first
+        if (newLockState && cellData.DraftValue.HasValue)
+        {
+          var clearDraftResponse = await BudgetMonthlyApi.UpdateBudgetDraftAsync(acctPeriod, envelopeId, null);
+          if (!clearDraftResponse.Success)
+          {
+            Snackbar.Add($"Error clearing draft: {clearDraftResponse.Message}", Severity.Error);
+            return;
+          }
+        }
+        
         var response = await BudgetMonthlyApi.UpdateBudgetLockAsync(acctPeriod, envelopeId, newLockState);
 
         if (response.Success)
@@ -487,10 +499,21 @@ public partial class Budget : ComponentBase
           // Update local state
           cellData.IsLocked = newLockState;
           
+          // If we just locked, also clear the draft value locally
+          if (newLockState)
+          {
+            cellData.DraftValue = null;
+            cellData.DraftDisplayValue = string.Empty;
+          }
+          
           // Also update the underlying data
           if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) && value.TryGetValue(month, out BudgetMonthData? data))
           {
             data.IsBudgetLocked = newLockState;
+            if (newLockState)
+            {
+              data.DraftValue = null;
+            }
           }
           
           StateHasChanged();

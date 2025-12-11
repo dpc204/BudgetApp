@@ -82,7 +82,7 @@ public record UpdateLockResponse(bool Success, string Message);
 public record ClearDraftsResponse(bool Success, string Message, int RecordsUpdated);
 
 /// <summary>
-/// Response for ApplyDraftBudgets endpoint
+/// Response for ApplyDraftValuesToBudget endpoint
 /// </summary>
 public record ApplyDraftsResponse(bool Success, string Message, int RecordsUpdated);
 
