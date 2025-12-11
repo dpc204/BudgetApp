@@ -22,7 +22,7 @@ public static class ApplyDraftBudgets
         .ToListAsync(cancellationToken);
 
       // Apply draft values to budget and clear drafts
-      foreach (var budget in budgetsWithDrafts)
+      foreach (var budget in budgetsWithDrafts.Where(a=> !a.IsBudgetLocked))
       {
         budget.Budget = budget.BudgetDraft;
         budget.BudgetDraft = null;

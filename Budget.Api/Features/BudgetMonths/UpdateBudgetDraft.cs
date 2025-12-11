@@ -36,12 +36,6 @@ public static class UpdateBudgetDraft
       }
       else
       {
-        // Skip update if budget is locked
-        if (budgetMonth.IsBudgetLocked)
-        {
-          return new Response(false, "Budget is locked and cannot be modified");
-        }
-        
         // Update existing record
         budgetMonth.BudgetDraft = request.DraftValue;
       }
