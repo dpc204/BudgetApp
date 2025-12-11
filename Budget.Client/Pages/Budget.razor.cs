@@ -397,7 +397,7 @@ public partial class Budget : ComponentBase
     {
       try
       {
-        var response = await BudgetMonthlyApi.ApplyDraftBudgetsAsync();
+        var response = await BudgetMonthlyApi.ApplyDraftValuesToBudgetAsync();
 
         if (response.Success)
         {

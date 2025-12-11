@@ -81,7 +81,7 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     return result;
   }
 
-  public async Task<ApplyDraftsResponse> ApplyDraftBudgetsAsync(CancellationToken cancellationToken = default)
+  public async Task<ApplyDraftsResponse> ApplyDraftValuesToBudgetAsync(CancellationToken cancellationToken = default)
   {
     using var response = await http.PostAsync("budgetmonths/applydrafts", null, cancellationToken);
     response.EnsureSuccessStatusCode();

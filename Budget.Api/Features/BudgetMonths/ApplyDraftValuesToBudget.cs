@@ -3,7 +3,7 @@ namespace Budget.Api.Features.BudgetMonths;
 /// <summary>
 /// Applies all draft budget values to actual budget values
 /// </summary>
-public static class ApplyDraftBudgets
+public static class ApplyDraftValuesToBudget
 {
   public sealed record Command : IRequest<Response>;
   

@@ -101,10 +101,10 @@ public class BudgetMonthEndpointsTests(BudgetApiTestFactory factory) : IClassFix
     }
 
     /// <summary>
-    /// Test ApplyDraftBudgets endpoint - should apply all drafts to budget
+    /// Test ApplyDraftValuesToBudget endpoint - should apply all drafts to budget
     /// </summary>
     [Fact]
-    public async Task ApplyDraftBudgets_Should_Apply_Drafts_To_Budget()
+    public async Task ApplyDraftValuesToBudget_Should_Apply_Drafts_To_Budget()
     {
         // Arrange
         var client = _factory.CreateClient();
@@ -124,14 +124,14 @@ public class BudgetMonthEndpointsTests(BudgetApiTestFactory factory) : IClassFix
         db.BudgetMonths.Add(budgetMonth);
         await db.SaveChangesAsync();
 
-        var command = new ApplyDraftBudgets.Command();
+        var command = new ApplyDraftValuesToBudget.Command();
 
         // Act
         var response = await client.PostAsJsonAsync("/budgetmonths/applydrafts", command);
 
         // Assert
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<ApplyDraftBudgets.Response>();
+        var result = await response.Content.ReadFromJsonAsync<ApplyDraftValuesToBudget.Response>();
         
         result.Should().NotBeNull();
         result!.Success.Should().BeTrue();

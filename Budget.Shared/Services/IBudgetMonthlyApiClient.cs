@@ -33,7 +33,7 @@ public interface IBudgetMonthlyApiClient
   /// <summary>
   /// Applies all draft budget values to actual budget values
   /// </summary>
-  Task<ApplyDraftsResponse> ApplyDraftBudgetsAsync(CancellationToken cancellationToken = default);
+  Task<ApplyDraftsResponse> ApplyDraftValuesToBudgetAsync(CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Copies budget or draft data from one month to the next month
