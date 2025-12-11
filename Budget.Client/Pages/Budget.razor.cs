@@ -433,6 +433,7 @@ public partial class Budget : ComponentBase
   {
     try
     {
+      _processing = true;
       // Bounds check
       if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
       {
@@ -483,6 +484,10 @@ public partial class Budget : ComponentBase
     catch (Exception ex)
     {
       Snackbar.Add($"Error copying to next month: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      _processing = false;
     }
   }
 

@@ -163,8 +163,8 @@
           <tr>
             @for (int i = 0; i < MonthsToShow; i++)
             {
-              <th style="text-align: right; font-size: 0.85em; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">Budget</th>
-              <th style="text-align: right; font-size: 0.85em; padding: 8px;">Draft</th>
+              <th style="text-align: right; font-size: 0.85em; padding: 4px; border-left: 2px solid var(--mud-palette-lines-default);">Budget</th>
+              <th style="text-align: right; font-size: 0.85em; padding: 4px;">Draft</th>
             }
           </tr>
         </HeaderContent>
@@ -179,14 +179,14 @@
             var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
             
             @* Budget column (read-only) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
+              <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);  padding: 4px;">
               <div class="budget-with-lock" style="justify-content: flex-end;">
                 <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
               </div>
             </MudTd>
             
             @* Draft column (display only for summary rows) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;">
+              <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding: 4px;">
               <strong>@(cellData?.DraftDisplayValue ?? "$0.00")</strong>
             </MudTd>
           }
@@ -198,7 +198,7 @@
       <div class="budget-scrollable-section">
         <MudTable Items="@_envelopeRows" dense="true" Hover="true" Striped="true" CustomHeader="false" Breakpoint="Breakpoint.None" Class="budget-scrollable-table">
         <RowTemplate>
-          <MudTd DataLabel="Envelope">
+          <MudTd DataLabel="Envelope" >
             @context.EnvelopeName
           </MudTd>
           @for (int i = 0; i < MonthsToShow; i++)
@@ -208,9 +208,9 @@
             var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
             
             @* Budget column (read-only) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
-              <div class="budget-with-lock" style="justify-content: flex-end;">
-                @(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")
+            <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);  padding: 4px;">
+              <div class="budget-with-lock" style="justify-content: flex-end; ">
+                <span >@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</span>
                 @if (cellData != null)
                 {
                   <img src="@(cellData.IsLocked ? "/Locked.png" : "/Unlocked.png")" 
@@ -225,7 +225,7 @@
             </MudTd>
             
             @* Draft column (editable) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;">
+              <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding: 4px;">
               @if (cellData != null)
               {
                 <MudNumericField T="decimal?" 
