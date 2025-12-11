@@ -5,8 +5,9 @@ namespace Budget.Api.Features.BudgetMonths;
 /// </summary>
 public static class CopyBudgetToNextMonth
 {
-  public sealed record Command(int SourceAcctPeriod, bool CopyFromDraft, bool ConfirmOverwrite = false) : IRequest<Response>;
-  
+  public sealed record Command(int SourceAcctPeriod, bool CopyFromDraft, bool ConfirmOverwrite = false)
+    : IRequest<Response>;
+
   public sealed record Response(bool Success, string Message, int RecordsUpdated, bool WouldOverwriteData);
 
   /// <summary>
@@ -19,7 +20,7 @@ public static class CopyBudgetToNextMonth
       // Validate AcctPeriod format
       var sourceYear = request.SourceAcctPeriod / 100;
       var sourceMonth = request.SourceAcctPeriod % 100;
-      
+
       if (sourceMonth < 1 || sourceMonth > 12 || sourceYear < 1900)
       {
         return new Response(false, "Invalid accounting period format", 0, false);
@@ -82,7 +83,8 @@ public static class CopyBudgetToNextMonth
         else
         {
           // Update existing record's draft
-          target.BudgetDraft = valueToCopy;
+          if (!target.IsBudgetLocked)
+            target.BudgetDraft = valueToCopy;
         }
 
         recordsUpdated++;

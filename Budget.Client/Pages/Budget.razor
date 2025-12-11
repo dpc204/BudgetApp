@@ -49,20 +49,43 @@
     table-layout: fixed;
     width: 100%;
   }
+  .lock-icon {
+    width: 10px;
+    height: 10px;
+    margin-left: 4px;
+    cursor: pointer;
+    vertical-align: middle;
+    outline: none;
+  }
+  .lock-icon:focus {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+  }
+  .budget-with-lock {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+  }
 </style>
 
 <PageTitle>Budget</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
-  <MudText Typo="Typo.h4" Class="mb-4">Budget Maintenance</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-1" Style="padding-left: 0; padding-right: 0;">
+  <MudText Typo="Typo.h4" Class="mb-1">Budget Maintenance</MudText>
 
-  @if (_loading)
+  @if(_loading)
   {
-    <MudProgressCircular Indeterminate="true" />
+    <MudProgressLinear Indeterminate="true" />
   }
-  else if (_budgetData != null)
+  else if(_budgetData != null)
   {
-    <MudPaper Class="pa-4 mb-4" Style="@(_isSmallScreen ? "padding: 8px !important;" : "")">
+    @if (_processing)
+    {
+      <MudProgressLinear Indeterminate="true"  />
+    }
+
+    <MudPaper Class="pa-1 mb-1" Style="@(_isSmallScreen ? "padding: 8px !important;" : "")">
       <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
         <MudStack Row="true" Spacing="@(_isSmallScreen ? 1 : 2)" AlignItems="AlignItems.Center">
           <MudTooltip Text="Prior Month">
@@ -140,8 +163,8 @@
           <tr>
             @for (int i = 0; i < MonthsToShow; i++)
             {
-              <th style="text-align: right; font-size: 0.85em; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">Budget</th>
-              <th style="text-align: right; font-size: 0.85em; padding: 8px;">Draft</th>
+              <th style="text-align: right; font-size: 0.85em; padding: 4px; border-left: 2px solid var(--mud-palette-lines-default);">Budget</th>
+              <th style="text-align: right; font-size: 0.85em; padding: 4px;">Draft</th>
             }
           </tr>
         </HeaderContent>
@@ -156,12 +179,14 @@
             var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
             
             @* Budget column (read-only) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
-              <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
+              <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);  padding: 4px;">
+              <div class="budget-with-lock" style="justify-content: flex-end;">
+                <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
+              </div>
             </MudTd>
             
             @* Draft column (display only for summary rows) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;">
+              <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding: 4px;">
               <strong>@(cellData?.DraftDisplayValue ?? "$0.00")</strong>
             </MudTd>
           }
@@ -173,7 +198,7 @@
       <div class="budget-scrollable-section">
         <MudTable Items="@_envelopeRows" dense="true" Hover="true" Striped="true" CustomHeader="false" Breakpoint="Breakpoint.None" Class="budget-scrollable-table">
         <RowTemplate>
-          <MudTd DataLabel="Envelope">
+          <MudTd DataLabel="Envelope" >
             @context.EnvelopeName
           </MudTd>
           @for (int i = 0; i < MonthsToShow; i++)
@@ -183,12 +208,24 @@
             var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
             
             @* Budget column (read-only) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
-              @(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")
+            <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);  padding: 4px;">
+              <div class="budget-with-lock" style="justify-content: flex-end; ">
+                <span >@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</span>
+                @if (cellData != null)
+                {
+                  <img src="@(cellData.IsLocked ? "/Locked.png" : "/Unlocked.png")" 
+                       class="lock-icon" 
+                       alt="@(cellData.IsLocked ? "Locked" : "Unlocked")"
+                       tabindex="0"
+                       role="button"
+                       @onclick="async () => await ToggleLock(context.EnvelopeId, monthKey)"
+                       @onkeydown="@(async (KeyboardEventArgs e) => { if (e.Key == "Enter" || e.Key == " ") await ToggleLock(context.EnvelopeId, monthKey); })" />
+                }
+              </div>
             </MudTd>
             
             @* Draft column (editable) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;">
+              <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding: 4px;">
               @if (cellData != null)
               {
                 <MudNumericField T="decimal?" 
@@ -198,7 +235,8 @@
                                 HideSpinButtons="true"
                                 Class="draft-input-right"
                                 Variant="Variant.Text"
-                                Margin="Margin.Dense" />
+                                Margin="Margin.Dense"
+                                Disabled="@cellData.IsLocked" />
               }
             </MudTd>
           }

@@ -21,6 +21,11 @@ public interface IBudgetMonthlyApiClient
   Task<UpdateDraftResponse> UpdateBudgetDraftAsync(int acctPeriod, int envelopeId, decimal? draftValue, CancellationToken cancellationToken = default);
 
   /// <summary>
+  /// Updates the lock status for a specific envelope in a specific month
+  /// </summary>
+  Task<UpdateLockResponse> UpdateBudgetLockAsync(int acctPeriod, int envelopeId, bool isLocked, CancellationToken cancellationToken = default);
+
+  /// <summary>
   /// Clears all draft budget values for current and future months
   /// </summary>
   Task<ClearDraftsResponse> ClearDraftBudgetsAsync(CancellationToken cancellationToken = default);
@@ -28,7 +33,7 @@ public interface IBudgetMonthlyApiClient
   /// <summary>
   /// Applies all draft budget values to actual budget values
   /// </summary>
-  Task<ApplyDraftsResponse> ApplyDraftBudgetsAsync(CancellationToken cancellationToken = default);
+  Task<ApplyDraftsResponse> ApplyDraftValuesToBudgetAsync(CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Copies budget or draft data from one month to the next month
@@ -53,7 +58,8 @@ public record BudgetMonthResponse(
   CatTypes CategoryType,
   int SortOrder,
   decimal? Budget,
-  decimal? BudgetDraft);
+  decimal? BudgetDraft,
+  bool IsBudgetLocked);
 
 /// <summary>
 /// Response for CheckDraftBudgets endpoint
@@ -66,12 +72,17 @@ public record CheckDraftsResponse(bool HasDrafts, int DraftCount);
 public record UpdateDraftResponse(bool Success, string Message);
 
 /// <summary>
+/// Response for UpdateBudgetLock endpoint
+/// </summary>
+public record UpdateLockResponse(bool Success, string Message);
+
+/// <summary>
 /// Response for ClearDraftBudgets endpoint
 /// </summary>
 public record ClearDraftsResponse(bool Success, string Message, int RecordsUpdated);
 
 /// <summary>
-/// Response for ApplyDraftBudgets endpoint
+/// Response for ApplyDraftValuesToBudget endpoint
 /// </summary>
 public record ApplyDraftsResponse(bool Success, string Message, int RecordsUpdated);
 

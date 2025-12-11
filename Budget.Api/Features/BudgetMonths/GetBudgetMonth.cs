@@ -16,7 +16,8 @@ public static class GetBudgetMonth
     CatTypes CategoryType,
     int SortOrder,
     decimal? Budget,
-    decimal? BudgetDraft);
+    decimal? BudgetDraft,
+    bool IsBudgetLocked);
 
   /// <summary>
   /// Handles getting budget data for a month
@@ -54,7 +55,8 @@ public static class GetBudgetMonth
           envelope.Category.CategoryType,
           envelope.SortOrder,
           budgetData?.Budget,
-          budgetData?.BudgetDraft
+          budgetData?.BudgetDraft,
+          budgetData?.IsBudgetLocked ?? false
         ));
       }
 

@@ -12,6 +12,7 @@ public partial class Budget : ComponentBase
   private bool _isSmallScreen = false;
 
   private bool _loading = true;
+  private bool _processing = false;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
   private readonly List<BudgetDisplayRow> _displayRows = [];
   private readonly List<BudgetDisplayRow> _summaryRows = [];
@@ -114,6 +115,7 @@ public partial class Budget : ComponentBase
             SortOrder = item.SortOrder,
             BudgetValue = item.Budget,
             DraftValue = item.BudgetDraft,
+            IsBudgetLocked = item.IsBudgetLocked,
             Month = month
           };
         }
@@ -204,7 +206,8 @@ public partial class Budget : ComponentBase
         {
           DraftValue = data.DraftValue,
           BudgetValue = data.BudgetValue,
-          DraftDisplayValue = data.DraftValue?.ToString("C2") ?? string.Empty
+          DraftDisplayValue = data.DraftValue?.ToString("C2") ?? string.Empty,
+          IsLocked = data.IsBudgetLocked
         };
       }
     }
@@ -335,6 +338,7 @@ public partial class Budget : ComponentBase
             SortOrder = item.SortOrder,
             BudgetValue = item.Budget,
             DraftValue = item.BudgetDraft,
+            IsBudgetLocked = item.IsBudgetLocked,
             Month = month
           };
         }
@@ -364,6 +368,9 @@ public partial class Budget : ComponentBase
     {
       try
       {
+        _processing = true;
+        StateHasChanged();
+        
         var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
 
         if (response.Success)
@@ -375,6 +382,11 @@ public partial class Budget : ComponentBase
       catch (Exception ex)
       {
         Snackbar.Add($"Error clearing drafts: {ex.Message}", Severity.Error);
+      }
+      finally
+      {
+        _processing = false;
+        StateHasChanged();
       }
     }
   }
@@ -394,7 +406,10 @@ public partial class Budget : ComponentBase
     {
       try
       {
-        var response = await BudgetMonthlyApi.ApplyDraftBudgetsAsync();
+        _processing = true;
+        StateHasChanged();
+        
+        var response = await BudgetMonthlyApi.ApplyDraftValuesToBudgetAsync();
 
         if (response.Success)
         {
@@ -406,6 +421,11 @@ public partial class Budget : ComponentBase
       {
         Snackbar.Add($"Error applying drafts: {ex.Message}", Severity.Error);
       }
+      finally
+      {
+        _processing = false;
+        StateHasChanged();
+      }
     }
   }
 
@@ -413,6 +433,7 @@ public partial class Budget : ComponentBase
   {
     try
     {
+      _processing = true;
       // Bounds check
       if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
       {
@@ -464,6 +485,71 @@ public partial class Budget : ComponentBase
     {
       Snackbar.Add($"Error copying to next month: {ex.Message}", Severity.Error);
     }
+    finally
+    {
+      _processing = false;
+    }
+  }
+
+  private async Task ToggleLock(int envelopeId, DateTime month)
+  {
+    // Find the row in envelope rows (not summary rows)
+    var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
+    if (row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
+    {
+      var newLockState = !cellData.IsLocked;
+      
+      try
+      {
+        var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
+        
+        // If locking and there's a draft value, clear it first
+        if (newLockState && cellData.DraftValue.HasValue)
+        {
+          var clearDraftResponse = await BudgetMonthlyApi.UpdateBudgetDraftAsync(acctPeriod, envelopeId, null);
+          if (!clearDraftResponse.Success)
+          {
+            Snackbar.Add($"Error clearing draft: {clearDraftResponse.Message}", Severity.Error);
+            return;
+          }
+        }
+        
+        var response = await BudgetMonthlyApi.UpdateBudgetLockAsync(acctPeriod, envelopeId, newLockState);
+
+        if (response.Success)
+        {
+          // Update local state
+          cellData.IsLocked = newLockState;
+          
+          // If we just locked, also clear the draft value locally
+          if (newLockState)
+          {
+            cellData.DraftValue = null;
+            cellData.DraftDisplayValue = string.Empty;
+          }
+          
+          // Also update the underlying data
+          if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) && value.TryGetValue(month, out BudgetMonthData? data))
+          {
+            data.IsBudgetLocked = newLockState;
+            if (newLockState)
+            {
+              data.DraftValue = null;
+            }
+          }
+          
+          StateHasChanged();
+        }
+        else
+        {
+          Snackbar.Add($"Error updating lock: {response.Message}", Severity.Error);
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error updating lock: {ex.Message}", Severity.Error);
+      }
+    }
   }
 
   // Data models
@@ -480,6 +566,7 @@ public partial class Budget : ComponentBase
     public decimal? DraftValue { get; set; }
     public decimal? BudgetValue { get; set; }
     public string DraftDisplayValue { get; set; } = string.Empty;
+    public bool IsLocked { get; set; } = false;
   }
 
   private class BudgetMonthData
@@ -492,6 +579,7 @@ public partial class Budget : ComponentBase
     public int SortOrder { get; set; }
     public decimal? BudgetValue { get; set; }
     public decimal? DraftValue { get; set; }
+    public bool IsBudgetLocked { get; set; } = false;
     public DateTime Month { get; set; }
   }
 }
