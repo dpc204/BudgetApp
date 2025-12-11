@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 @inject Budget.Web.Services.ThemeService ThemeService
 
-<MudLayout>
+<MudLayout >
   <MudThemeProvider Theme="@ThemeService.Theme" IsDarkMode="@ThemeService.IsDarkMode" />
   <MudPopoverProvider />
   <MudDialogProvider />
@@ -14,7 +14,7 @@
   </MudAppBar>
   
  
-  <MudDrawer @bind-Open="_drawerOpen" Elevation="2"  ClipMode="DrawerClipMode.Docked" >
+  <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Docked" Anchor="Anchor.Start" Width="200px">
     <NavMenuMud/>
   </MudDrawer>
   <MudMainContent>

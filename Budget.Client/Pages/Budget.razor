@@ -74,12 +74,17 @@
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-1" Style="padding-left: 0; padding-right: 0;">
   <MudText Typo="Typo.h4" Class="mb-1">Budget Maintenance</MudText>
 
-  @if (_loading || _processing)
+  @if(_loading)
   {
-    <MudProgressCircular Indeterminate="true" />
+    <MudProgressLinear Indeterminate="true" />
   }
-  else if (_budgetData != null)
+  else if(_budgetData != null)
   {
+    @if (_processing)
+    {
+      <MudProgressLinear Indeterminate="true"  />
+    }
+
     <MudPaper Class="pa-1 mb-1" Style="@(_isSmallScreen ? "padding: 8px !important;" : "")">
       <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
         <MudStack Row="true" Spacing="@(_isSmallScreen ? 1 : 2)" AlignItems="AlignItems.Center">
