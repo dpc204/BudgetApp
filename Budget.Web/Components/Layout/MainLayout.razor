@@ -14,11 +14,9 @@
   </MudAppBar>
   
  
-
-  <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="DrawerVariant.Mini" ClipMode="DrawerClipMode.Always">
+  <MudDrawer @bind-Open="_drawerOpen" Elevation="2"  ClipMode="DrawerClipMode.Docked" >
     <NavMenuMud/>
   </MudDrawer>
-
   <MudMainContent>
     <MudContainer MaxWidth="MaxWidth.False">
       <Budget.Web.Components.Auth.AuthStateSync />
