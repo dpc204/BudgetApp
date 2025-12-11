@@ -137,10 +137,6 @@ For staging, production, and other environments:
   - Install: https://aka.ms/powershell
   - Verify: `$PSVersionTable.PSVersion`
 
-- **Azure CLI** (for some operations)
-  - Install: https://aka.ms/installazurecli
-  - Verify: `az version`
-
 ### Required Permissions
 
 You need one of these Azure AD roles:

@@ -21,7 +21,7 @@ sent in the request matches one added to your application in the Azure portal.
 
 ### Root Cause
 
-When you deploy to Azure Container Apps, your application gets a unique URL (e.g., `https://budget.delightfulbush-2a4d6a17.eastus.azurecontainerapps.io`). Azure AD requires this exact URL to be registered as an allowed redirect URI in your Entra ID app registration **before** users can sign in.
+When you deploy to Azure Container Apps, your application gets a unique URL (e.g., `https://budget.delightfulbush-2a4d6a17.eastus.azurecontainerapps.io`). Microsoft Entra ID requires this exact URL to be registered as an allowed redirect URI in your Entra ID app registration **before** users can sign in.
 
 During initial setup, only the localhost development URL is typically registered. After deployment, you must add the production URL.
 

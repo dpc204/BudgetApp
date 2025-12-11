@@ -133,7 +133,7 @@ try {
     }
     
     Write-Status "Connecting to Microsoft Graph..." "Info"
-    Connect-MgGraph @connectParams | Out-Null
+    Connect-MgGraph @connectParams
     
     $context = Get-MgContext
     Write-Status "Successfully connected to Microsoft Graph" "Success"
@@ -221,12 +221,6 @@ try {
     $baseUrl = $RedirectUri -replace '/signin-oidc$', ''
     $signoutUri = "$baseUrl/signout-callback-oidc"
     
-    # Get current signout URIs
-    $currentSignoutUris = @()
-    if ($app.Web -and $app.Web.LogoutUrl) {
-        # Note: LogoutUrl is a single string, but we can still add to redirect URIs
-    }
-    
     # Add signout URI to redirect URIs if not present
     if ($currentRedirectUris -notcontains $signoutUri) {
         Write-Status "Also adding signout callback URI: $signoutUri" "Info"
@@ -269,7 +263,12 @@ try {
     
     Write-Status "Updated redirect URIs:" "Success"
     foreach ($uri in $updatedApp.Web.RedirectUris) {
-        $marker = if ($uri -eq $RedirectUri -or $uri -eq $signoutUri) { "🆕 " } else { "   " }
+        # Only mark as new if signout URI was actually calculated
+        $isNewUri = $uri -eq $RedirectUri
+        if ($RedirectUri -match '/signin-oidc$') {
+            $isNewUri = $isNewUri -or ($uri -eq $signoutUri)
+        }
+        $marker = if ($isNewUri) { "🆕 " } else { "   " }
         Write-Host "$marker$uri" -ForegroundColor $(if ($marker -eq "🆕 ") { "Green" } else { "Gray" })
     }
 }
