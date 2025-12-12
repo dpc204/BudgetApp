@@ -297,15 +297,24 @@ After configuring your application with the Entra settings:
 
 ## Troubleshooting
 
+For comprehensive troubleshooting guidance, especially for Azure deployment issues, see:
+- **[Troubleshooting Azure Authentication](Troubleshooting-Azure-Authentication.md)** - Complete guide for fixing authentication errors
+
 ### Common Issues
 
 #### Issue: "AADSTS50011: The reply URL specified in the request does not match"
 
 **Solution:**
-- Verify the redirect URI in your appsettings.json matches exactly with the URI configured in Azure Portal
+- **For local development**: Verify the redirect URI in your appsettings.json matches exactly with the URI configured in Azure Portal (https://localhost:7141/signin-oidc)
+- **For Azure deployment**: After deploying to Azure Container Apps, run:
+  ```powershell
+  cd scripts
+  .\Add-RedirectUri.ps1 -RedirectUri "https://YOUR-APP-URL.azurecontainerapps.io/signin-oidc"
+  ```
 - Check for http vs https
 - Ensure the port number is correct (7141 for development)
 - Clear browser cache and cookies
+- See the [full troubleshooting guide](Troubleshooting-Azure-Authentication.md#aadsts50011-redirect-uri-mismatch) for more details
 
 #### Issue: "AADSTS65001: The user or administrator has not consented"
 

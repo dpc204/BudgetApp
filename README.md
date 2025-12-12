@@ -19,6 +19,7 @@ FantumBudget is migrating from ASP.NET Core Identity to **Microsoft Entra ID** f
 - **[Phase 1: Entra ID Setup Guide](Documentation/Phase1-EntraID-Setup.md)** - Step-by-step setup instructions
 - **[Configuration Template](Documentation/entra-config-template.json)** - Configuration reference
 - **[Setup Script](scripts/Setup-EntraApp.ps1)** - PowerShell automation for Entra app registration
+- **[Troubleshooting Azure Authentication](Documentation/Troubleshooting-Azure-Authentication.md)** - Fix common authentication errors
 
 ### Quick Start - Authentication Setup
 
@@ -89,9 +90,21 @@ See the following documentation for Azure deployment:
 
 ### Deploy to Azure
 
-```bash
-azd up
-```
+1. Deploy the application:
+   ```bash
+   azd up
+   ```
+
+2. After deployment completes, add the redirect URI for authentication:
+   ```powershell
+   cd scripts
+   .\Add-RedirectUri.ps1 -RedirectUri "https://YOUR-APP-URL.azurecontainerapps.io/signin-oidc"
+   ```
+   Replace `YOUR-APP-URL` with the Container Apps URL from the deployment output.
+
+3. For troubleshooting authentication issues, see:
+   - [Troubleshooting Azure Authentication](Documentation/Troubleshooting-Azure-Authentication.md)
+   - [Scripts README](scripts/README.md)
 
 ## Documentation
 

@@ -3,6 +3,25 @@
 ## Overview
 This document explains how to configure the Budget application for deployment to Azure Container Apps.
 
+## Deployment Checklist
+
+After deploying to Azure Container Apps with `azd up`, follow these steps:
+
+1. ✅ **Configure Authentication Redirect URIs** (CRITICAL - Required before users can sign in)
+   - Get your Container Apps URL from the deployment output or Azure Portal
+   - Run: `.\scripts\Add-RedirectUri.ps1 -RedirectUri "https://YOUR-APP-URL.azurecontainerapps.io/signin-oidc"`
+   - See [Troubleshooting Azure Authentication](Troubleshooting-Azure-Authentication.md) for details
+
+2. ✅ **Set API URL Environment Variable** (if not auto-configured)
+   - Set `BUDGET_API_URL` in Budget.Web container app to point to Budget.Api URL
+
+3. ✅ **Verify CORS Configuration** (usually automatic)
+   - Optionally set `ALLOWED_ORIGINS` if needed
+
+4. ✅ **Assign User Roles** in Entra ID
+   - Navigate to Azure Portal → Enterprise applications → FantumBudget
+   - Assign users to appropriate roles (Admin, PowerUser, User)
+
 ## Required Environment Variables
 
 ### Budget.Api (API Service)
@@ -39,6 +58,18 @@ This document explains how to configure the Budget application for deployment to
   4. Set this as the `BUDGET_API_URL` environment variable in your Budget.Web container app
 
 ## Troubleshooting
+
+### Issue: Authentication Error "AADSTS50011: Redirect URI Mismatch"
+**Root Cause**: The deployed application URL is not registered in Entra ID app registration.
+
+**Solution**: 
+1. Get your Container Apps URL from Azure Portal (e.g., `https://budget.delightfulbush-2a4d6a17.eastus.azurecontainerapps.io`)
+2. Run the redirect URI script:
+   ```powershell
+   cd scripts
+   .\Add-RedirectUri.ps1 -RedirectUri "https://YOUR-APP-URL.azurecontainerapps.io/signin-oidc"
+   ```
+3. See [Troubleshooting Azure Authentication](Troubleshooting-Azure-Authentication.md) for detailed instructions
 
 ### Issue: Still seeing "https://budget-api/..." in traces instead of full Azure URL
 **Root Cause**: The `BUDGET_API_URL` environment variable is not set in Budget.Web container app.

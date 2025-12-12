@@ -72,19 +72,19 @@ function Write-Status {
     )
     
     switch ($Type) {
-        "Success" { Write-Host "✅ $Message" -ForegroundColor Green }
-        "Error" { Write-Host "❌ $Message" -ForegroundColor Red }
-        "Warning" { Write-Host "⚠️  $Message" -ForegroundColor Yellow }
-        "Info" { Write-Host "ℹ️  $Message" -ForegroundColor Cyan }
+        "Success" { Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
+        "Error" { Write-Host "[ERROR] $Message" -ForegroundColor Red }
+        "Warning" { Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
+        "Info" { Write-Host "[INFO] $Message" -ForegroundColor Cyan }
         default { Write-Host "$Message" }
     }
 }
 
 function Write-SectionHeader {
     param([string]$Title)
-    Write-Host "`n═══════════════════════════════════════════════════════════════" -ForegroundColor Magenta
+    Write-Host "`n================================================================" -ForegroundColor Magenta
     Write-Host "  $Title" -ForegroundColor Magenta
-    Write-Host "═══════════════════════════════════════════════════════════════`n" -ForegroundColor Magenta
+    Write-Host "================================================================`n" -ForegroundColor Magenta
 }
 
 # Check prerequisites
@@ -173,7 +173,19 @@ Write-SectionHeader "Checking for Existing App Registration"
 
 $existingApp = $null
 try {
-    $existingApp = Get-MgApplication -Filter "displayName eq '$AppName'" -ErrorAction SilentlyContinue
+    # Try to get applications with a reasonable limit first
+    # This works with lower permissions than -All
+    $allApps = Get-MgApplication -Top 500 -ErrorAction SilentlyContinue
+    if ($allApps) {
+        $existingApp = $allApps | Where-Object { $_.DisplayName -eq $AppName } | Select-Object -First 1
+        
+        # If not found and we got exactly 500, try getting all
+        if (-not $existingApp -and $allApps.Count -eq 500) {
+            $allApps = Get-MgApplication -All -ErrorAction SilentlyContinue
+            $existingApp = $allApps | Where-Object { $_.DisplayName -eq $AppName } | Select-Object -First 1
+        }
+    }
+    
     if ($existingApp) {
         Write-Status "Found existing app registration: $($existingApp.DisplayName) (App ID: $($existingApp.AppId))" "Warning"
         $response = Read-Host "Do you want to update the existing app? (y/n)"
@@ -188,7 +200,8 @@ try {
     }
 }
 catch {
-    Write-Status "Error checking for existing app: $_" "Warning"
+    # For this script, we'll just warn and continue - creation will work even if we can't check
+    Write-Status "Could not check for existing app (may require higher permissions). Continuing with creation..." "Warning"
 }
 
 # Generate GUIDs for app roles
@@ -361,26 +374,26 @@ if ($SaveToKeyVault) {
 Write-SectionHeader "Configuration Summary"
 
 Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║                    ENTRA APP REGISTRATION COMPLETE                         ║" -ForegroundColor Green
-Write-Host "╚════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "================================================================================" -ForegroundColor Green
+Write-Host "                    ENTRA APP REGISTRATION COMPLETE                           " -ForegroundColor Green
+Write-Host "================================================================================" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "📋 Application Details:" -ForegroundColor Cyan
+Write-Host "Application Details:" -ForegroundColor Cyan
 Write-Host "   App Name:      $AppName" -ForegroundColor White
 Write-Host "   App ID:        $($app.AppId)" -ForegroundColor Yellow
 Write-Host "   Object ID:     $($app.Id)" -ForegroundColor White
 Write-Host "   Tenant ID:     $TenantId" -ForegroundColor Yellow
 Write-Host ""
 
-Write-Host "🔐 Client Secret:" -ForegroundColor Cyan
+Write-Host "Client Secret:" -ForegroundColor Cyan
 Write-Host "   Secret Value:  $($secret.SecretText)" -ForegroundColor Yellow
 Write-Host "   Expires:       $($secret.EndDateTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor White
 Write-Host ""
-Write-Host "   ⚠️  WARNING: Save this secret securely! It will not be shown again." -ForegroundColor Red
+Write-Host "   [WARNING] Save this secret securely! It will not be shown again." -ForegroundColor Red
 Write-Host ""
 
-Write-Host "🌐 Redirect URIs:" -ForegroundColor Cyan
+Write-Host "Redirect URIs:" -ForegroundColor Cyan
 foreach ($uri in $redirectUris) {
     Write-Host "   Web: $uri" -ForegroundColor White
 }
@@ -389,13 +402,13 @@ foreach ($uri in $spaRedirectUris) {
 }
 Write-Host ""
 
-Write-Host "👥 App Roles:" -ForegroundColor Cyan
+Write-Host "App Roles:" -ForegroundColor Cyan
 Write-Host "   Admin      (ID: $adminRoleId)" -ForegroundColor White
 Write-Host "   PowerUser  (ID: $powerUserRoleId)" -ForegroundColor White
 Write-Host "   User       (ID: $userRoleId)" -ForegroundColor White
 Write-Host ""
 
-Write-Host "🔑 API Permissions:" -ForegroundColor Cyan
+Write-Host "API Permissions:" -ForegroundColor Cyan
 Write-Host "   Microsoft Graph:" -ForegroundColor White
 Write-Host "   - User.Read" -ForegroundColor White
 Write-Host "   - email" -ForegroundColor White
@@ -403,7 +416,7 @@ Write-Host "   - openid" -ForegroundColor White
 Write-Host "   - profile" -ForegroundColor White
 Write-Host ""
 
-Write-Host "⚙️  Configuration for appsettings.json:" -ForegroundColor Cyan
+Write-Host "Configuration for appsettings.json:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host @"
 {
@@ -421,7 +434,7 @@ Write-Host @"
 
 Write-Host ""
 Write-Host ""
-Write-Host "📝 Next Steps:" -ForegroundColor Cyan
+Write-Host "Next Steps:" -ForegroundColor Cyan
 Write-Host "   1. Copy the configuration above to your appsettings.json files" -ForegroundColor White
 Write-Host "   2. Store the client secret securely (Key Vault recommended)" -ForegroundColor White
 Write-Host "   3. Assign users to roles in the Enterprise Application:" -ForegroundColor White
