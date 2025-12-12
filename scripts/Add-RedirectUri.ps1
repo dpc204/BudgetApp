@@ -143,6 +143,29 @@ try {
     Write-Status "Successfully connected to Microsoft Graph" "Success"
     Write-Host "   Tenant: $($context.TenantId)" -ForegroundColor Gray
     Write-Host "   Account: $($context.Account)" -ForegroundColor Gray
+    Write-Host "   Scopes: $($context.Scopes -join ', ')" -ForegroundColor Gray
+    
+    # Verify we have the required scopes
+    $requiredScopes = @("Application.ReadWrite.All", "Application.Read.All")
+    $hasRequiredScope = $false
+    foreach ($scope in $requiredScopes) {
+        if ($context.Scopes -contains $scope) {
+            $hasRequiredScope = $true
+            break
+        }
+    }
+    
+    if (-not $hasRequiredScope) {
+        Write-Host ""
+        Write-Status "Missing required permissions in current session" "Warning"
+        Write-Host "Current scopes: $($context.Scopes -join ', ')" -ForegroundColor Yellow
+        Write-Host "Required scope: Application.ReadWrite.All or Application.Read.All" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "The connection will attempt to use these scopes, but you may need to:" -ForegroundColor White
+        Write-Host "1. Grant admin consent when prompted during first connection" -ForegroundColor White
+        Write-Host "2. Wait a few minutes if you just assigned roles/permissions" -ForegroundColor White
+        Write-Host ""
+    }
 }
 catch {
     Write-Status "Failed to connect to Microsoft Graph: $_" "Error"
@@ -177,6 +200,9 @@ try {
         if ($_.Exception.Message -match "Insufficient privileges|Authorization_RequestDenied|Forbidden") {
             Write-Status "Permission error when retrieving applications" "Error"
             Write-Host ""
+            Write-Host "ERROR DETAILS:" -ForegroundColor Red
+            Write-Host "  $($_.Exception.Message)" -ForegroundColor Gray
+            Write-Host ""
             Write-Host "REQUIRED PERMISSIONS:" -ForegroundColor Yellow
             Write-Host "This script requires one of the following Microsoft Graph permissions:" -ForegroundColor White
             Write-Host "  - Application.Read.All (Delegated or Application)" -ForegroundColor Cyan
@@ -189,9 +215,16 @@ try {
             Write-Host "  - Cloud Application Administrator" -ForegroundColor Cyan
             Write-Host ""
             Write-Host "HOW TO FIX:" -ForegroundColor Yellow
-            Write-Host "1. Ask your Azure AD administrator to assign you one of the roles above, OR" -ForegroundColor White
-            Write-Host "2. Ask them to grant admin consent for Application.Read.All permission, OR" -ForegroundColor White
-            Write-Host "3. Have an administrator run this script instead" -ForegroundColor White
+            Write-Host "1. Verify you have the required role (check Azure Portal > Azure AD > Roles)" -ForegroundColor White
+            Write-Host "2. Grant admin consent for the permissions:" -ForegroundColor White
+            Write-Host "   - Run: Disconnect-MgGraph; Connect-MgGraph -Scopes 'Application.ReadWrite.All'" -ForegroundColor Cyan
+            Write-Host "   - When prompted, sign in and grant admin consent" -ForegroundColor Cyan
+            Write-Host "3. If you just added roles/permissions, wait 5-10 minutes for propagation" -ForegroundColor White
+            Write-Host "4. Try disconnecting and reconnecting: Disconnect-MgGraph; then run script again" -ForegroundColor White
+            Write-Host ""
+            Write-Host "VERIFY YOUR PERMISSIONS:" -ForegroundColor Yellow
+            Write-Host "Run: (Get-MgContext).Scopes" -ForegroundColor Cyan
+            Write-Host "You should see 'Application.Read.All' or 'Application.ReadWrite.All' in the list" -ForegroundColor White
             Write-Host ""
             Write-Host "For more information, see:" -ForegroundColor White
             Write-Host "  https://learn.microsoft.com/graph/permissions-reference#applicationreadall" -ForegroundColor Gray
