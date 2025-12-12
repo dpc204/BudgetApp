@@ -36,6 +36,10 @@
     Author: FantumBudget Team
     Requires: Microsoft Graph PowerShell module with Application.ReadWrite.All permission
     
+    REQUIRED PERMISSIONS:
+    - Microsoft Graph: Application.Read.All or Application.ReadWrite.All
+    - Azure AD Role: Global Administrator, Application Administrator, or Cloud Application Administrator
+    
     After deployment to Azure Container Apps, get your app URL and run:
     .\Add-RedirectUri.ps1 -RedirectUri "https://your-app-url.azurecontainerapps.io/signin-oidc"
 #>
@@ -150,10 +154,56 @@ Write-SectionHeader "Finding App Registration"
 
 Write-Status "Searching for app registration: $AppName" "Info"
 try {
-    # Get all applications and filter client-side to avoid OData filter issues
-    # The -Filter parameter on displayName doesn't work consistently across all tenants
-    $allApps = Get-MgApplication -All -ErrorAction Stop
-    $app = $allApps | Where-Object { $_.DisplayName -eq $AppName }
+    # Try to get applications with a reasonable limit first (works with lower permissions)
+    # If this fails, we'll provide helpful guidance
+    $app = $null
+    
+    try {
+        # Attempt to get up to 500 apps and filter client-side
+        # This avoids OData filter issues and works with most permission levels
+        Write-Status "Retrieving applications from tenant..." "Info"
+        $allApps = Get-MgApplication -Top 500 -ErrorAction Stop
+        $app = $allApps | Where-Object { $_.DisplayName -eq $AppName }
+        
+        # If not found in first 500, try getting all (requires higher permissions)
+        if (-not $app -and $allApps.Count -eq 500) {
+            Write-Status "Checking additional applications..." "Info"
+            $allApps = Get-MgApplication -All -ErrorAction Stop
+            $app = $allApps | Where-Object { $_.DisplayName -eq $AppName }
+        }
+    }
+    catch {
+        # If we get a permission error, provide helpful guidance
+        if ($_.Exception.Message -match "Insufficient privileges|Authorization_RequestDenied|Forbidden") {
+            Write-Status "Permission error when retrieving applications" "Error"
+            Write-Host ""
+            Write-Host "REQUIRED PERMISSIONS:" -ForegroundColor Yellow
+            Write-Host "This script requires one of the following Microsoft Graph permissions:" -ForegroundColor White
+            Write-Host "  - Application.Read.All (Delegated or Application)" -ForegroundColor Cyan
+            Write-Host "  - Application.ReadWrite.All (Delegated or Application)" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Host "REQUIRED AZURE AD ROLE:" -ForegroundColor Yellow
+            Write-Host "Your account needs one of these roles:" -ForegroundColor White
+            Write-Host "  - Global Administrator" -ForegroundColor Cyan
+            Write-Host "  - Application Administrator" -ForegroundColor Cyan
+            Write-Host "  - Cloud Application Administrator" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Host "HOW TO FIX:" -ForegroundColor Yellow
+            Write-Host "1. Ask your Azure AD administrator to assign you one of the roles above, OR" -ForegroundColor White
+            Write-Host "2. Ask them to grant admin consent for Application.Read.All permission, OR" -ForegroundColor White
+            Write-Host "3. Have an administrator run this script instead" -ForegroundColor White
+            Write-Host ""
+            Write-Host "For more information, see:" -ForegroundColor White
+            Write-Host "  https://learn.microsoft.com/graph/permissions-reference#applicationreadall" -ForegroundColor Gray
+            Write-Host ""
+            Disconnect-MgGraph | Out-Null
+            exit 1
+        }
+        else {
+            # Re-throw other errors
+            throw
+        }
+    }
     
     if (-not $app) {
         Write-Status "App registration '$AppName' not found" "Error"

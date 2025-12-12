@@ -144,10 +144,18 @@ You need one of these Azure AD roles:
 - Application Administrator
 - Cloud Application Administrator
 
+**AND** one of these Microsoft Graph API permissions:
+- Application.Read.All (minimum - for reading app registrations)
+- Application.ReadWrite.All (recommended - for modifying app registrations)
+
 To check your role:
 1. Go to [Azure Portal](https://portal.azure.com)
 2. Navigate to **Azure Active Directory** → **Roles and administrators**
 3. Search for your user account
+
+**Note**: If you get an "Insufficient privileges" or "Authorization_RequestDenied" error, you need to:
+1. Request one of the roles above from your Azure AD administrator, OR
+2. Ask an administrator to run the script for you
 
 ### PowerShell Modules
 
@@ -170,14 +178,28 @@ Install-Module Microsoft.Graph.Applications -Scope CurrentUser
 - Check you're connected to the correct tenant
 - Use `-AppName` parameter if your app has a different name
 
-### "Insufficient privileges"
+### "Insufficient privileges" or "Authorization_RequestDenied"
 
-**Problem**: Your account lacks permission to modify app registrations
+**Problem**: Your account lacks permission to read or modify app registrations
+
+**Error Messages**:
+- "Insufficient privileges to complete the operation"
+- "Status: 403 (Forbidden)"
+- "ErrorCode: Authorization_RequestDenied"
 
 **Solution**:
-- Request Application Administrator or Global Administrator role
-- Have someone with appropriate permissions run the script
-- Use a service principal with Application.ReadWrite.All permission
+1. **Request the required Azure AD role** from your administrator:
+   - Global Administrator, Application Administrator, or Cloud Application Administrator
+2. **Request Microsoft Graph API permissions**:
+   - Application.Read.All (minimum for reading)
+   - Application.ReadWrite.All (required for modifications)
+3. **Alternative**: Have an administrator run the script for you
+4. **For automation**: Use a service principal with Application.ReadWrite.All permission
+
+**To verify your permissions**:
+1. Go to [Azure Portal](https://portal.azure.com)
+2. Navigate to **Azure Active Directory** → **Roles and administrators**
+3. Search for your account and check assigned roles
 
 ### "Redirect URI format is invalid"
 

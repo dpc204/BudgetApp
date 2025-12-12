@@ -173,9 +173,19 @@ Write-SectionHeader "Checking for Existing App Registration"
 
 $existingApp = $null
 try {
-    # Get all applications and filter client-side to avoid OData filter issues
-    $allApps = Get-MgApplication -All -ErrorAction SilentlyContinue
-    $existingApp = $allApps | Where-Object { $_.DisplayName -eq $AppName } | Select-Object -First 1
+    # Try to get applications with a reasonable limit first
+    # This works with lower permissions than -All
+    $allApps = Get-MgApplication -Top 500 -ErrorAction SilentlyContinue
+    if ($allApps) {
+        $existingApp = $allApps | Where-Object { $_.DisplayName -eq $AppName } | Select-Object -First 1
+        
+        # If not found and we got exactly 500, try getting all
+        if (-not $existingApp -and $allApps.Count -eq 500) {
+            $allApps = Get-MgApplication -All -ErrorAction SilentlyContinue
+            $existingApp = $allApps | Where-Object { $_.DisplayName -eq $AppName } | Select-Object -First 1
+        }
+    }
+    
     if ($existingApp) {
         Write-Status "Found existing app registration: $($existingApp.DisplayName) (App ID: $($existingApp.AppId))" "Warning"
         $response = Read-Host "Do you want to update the existing app? (y/n)"
@@ -190,7 +200,8 @@ try {
     }
 }
 catch {
-    Write-Status "Error checking for existing app: $_" "Warning"
+    # For this script, we'll just warn and continue - creation will work even if we can't check
+    Write-Status "Could not check for existing app (may require higher permissions). Continuing with creation..." "Warning"
 }
 
 # Generate GUIDs for app roles
