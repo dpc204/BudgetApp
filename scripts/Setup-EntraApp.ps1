@@ -82,9 +82,9 @@ function Write-Status {
 
 function Write-SectionHeader {
     param([string]$Title)
-    Write-Host "`n═══════════════════════════════════════════════════════════════" -ForegroundColor Magenta
+    Write-Host "`n================================================================" -ForegroundColor Magenta
     Write-Host "  $Title" -ForegroundColor Magenta
-    Write-Host "═══════════════════════════════════════════════════════════════`n" -ForegroundColor Magenta
+    Write-Host "================================================================`n" -ForegroundColor Magenta
 }
 
 # Check prerequisites
@@ -361,12 +361,12 @@ if ($SaveToKeyVault) {
 Write-SectionHeader "Configuration Summary"
 
 Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║                    ENTRA APP REGISTRATION COMPLETE                         ║" -ForegroundColor Green
-Write-Host "╚════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "================================================================================" -ForegroundColor Green
+Write-Host "                    ENTRA APP REGISTRATION COMPLETE                           " -ForegroundColor Green
+Write-Host "================================================================================" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "📋 Application Details:" -ForegroundColor Cyan
+Write-Host "Application Details:" -ForegroundColor Cyan
 Write-Host "   App Name:      $AppName" -ForegroundColor White
 Write-Host "   App ID:        $($app.AppId)" -ForegroundColor Yellow
 Write-Host "   Object ID:     $($app.Id)" -ForegroundColor White
@@ -389,13 +389,13 @@ foreach ($uri in $spaRedirectUris) {
 }
 Write-Host ""
 
-Write-Host "👥 App Roles:" -ForegroundColor Cyan
+Write-Host "App Roles:" -ForegroundColor Cyan
 Write-Host "   Admin      (ID: $adminRoleId)" -ForegroundColor White
 Write-Host "   PowerUser  (ID: $powerUserRoleId)" -ForegroundColor White
 Write-Host "   User       (ID: $userRoleId)" -ForegroundColor White
 Write-Host ""
 
-Write-Host "🔑 API Permissions:" -ForegroundColor Cyan
+Write-Host "API Permissions:" -ForegroundColor Cyan
 Write-Host "   Microsoft Graph:" -ForegroundColor White
 Write-Host "   - User.Read" -ForegroundColor White
 Write-Host "   - email" -ForegroundColor White
@@ -403,7 +403,7 @@ Write-Host "   - openid" -ForegroundColor White
 Write-Host "   - profile" -ForegroundColor White
 Write-Host ""
 
-Write-Host "⚙️  Configuration for appsettings.json:" -ForegroundColor Cyan
+Write-Host "Configuration for appsettings.json:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host @"
 {
@@ -421,7 +421,7 @@ Write-Host @"
 
 Write-Host ""
 Write-Host ""
-Write-Host "📝 Next Steps:" -ForegroundColor Cyan
+Write-Host "Next Steps:" -ForegroundColor Cyan
 Write-Host "   1. Copy the configuration above to your appsettings.json files" -ForegroundColor White
 Write-Host "   2. Store the client secret securely (Key Vault recommended)" -ForegroundColor White
 Write-Host "   3. Assign users to roles in the Enterprise Application:" -ForegroundColor White

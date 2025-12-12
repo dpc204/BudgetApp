@@ -76,9 +76,9 @@ function Write-Status {
 
 function Write-SectionHeader {
     param([string]$Title)
-    Write-Host "`n═══════════════════════════════════════════════════════════════" -ForegroundColor Magenta
+    Write-Host "`n================================================================" -ForegroundColor Magenta
     Write-Host "  $Title" -ForegroundColor Magenta
-    Write-Host "═══════════════════════════════════════════════════════════════`n" -ForegroundColor Magenta
+    Write-Host "================================================================`n" -ForegroundColor Magenta
 }
 
 # Validate redirect URI format
