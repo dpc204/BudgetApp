@@ -54,6 +54,11 @@ public static class Misc
         webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri),
           new DefaultAzureCredential());
 
+        foreach (var config in webApplicationBuilder.Configuration.AsEnumerable())
+        {
+          logger.Log(LogLevel.Information, "Env Key {key}-{value}", config.Key, config.Value);
+        }
+
         logger.Log(LogLevel.Information, "SetupConfigurationSources Using AzureDB - KeyVault Done");
       }
       catch (Azure.RequestFailedException ex) when (ex.Status == 403)
