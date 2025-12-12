@@ -150,7 +150,10 @@ Write-SectionHeader "Finding App Registration"
 
 Write-Status "Searching for app registration: $AppName" "Info"
 try {
-    $app = Get-MgApplication -Filter "displayName eq '$AppName'" -ErrorAction Stop
+    # Get all applications and filter client-side to avoid OData filter issues
+    # The -Filter parameter on displayName doesn't work consistently across all tenants
+    $allApps = Get-MgApplication -All -ErrorAction Stop
+    $app = $allApps | Where-Object { $_.DisplayName -eq $AppName }
     
     if (-not $app) {
         Write-Status "App registration '$AppName' not found" "Error"

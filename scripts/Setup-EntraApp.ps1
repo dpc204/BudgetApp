@@ -173,7 +173,9 @@ Write-SectionHeader "Checking for Existing App Registration"
 
 $existingApp = $null
 try {
-    $existingApp = Get-MgApplication -Filter "displayName eq '$AppName'" -ErrorAction SilentlyContinue
+    # Get all applications and filter client-side to avoid OData filter issues
+    $allApps = Get-MgApplication -All -ErrorAction SilentlyContinue
+    $existingApp = $allApps | Where-Object { $_.DisplayName -eq $AppName } | Select-Object -First 1
     if ($existingApp) {
         Write-Status "Found existing app registration: $($existingApp.DisplayName) (App ID: $($existingApp.AppId))" "Warning"
         $response = Read-Host "Do you want to update the existing app? (y/n)"
