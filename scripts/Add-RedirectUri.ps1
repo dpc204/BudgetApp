@@ -66,10 +66,10 @@ function Write-Status {
     )
     
     switch ($Type) {
-        "Success" { Write-Host "✅ $Message" -ForegroundColor Green }
-        "Error" { Write-Host "❌ $Message" -ForegroundColor Red }
-        "Warning" { Write-Host "⚠️  $Message" -ForegroundColor Yellow }
-        "Info" { Write-Host "ℹ️  $Message" -ForegroundColor Cyan }
+        "Success" { Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
+        "Error" { Write-Host "[ERROR] $Message" -ForegroundColor Red }
+        "Warning" { Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
+        "Info" { Write-Host "[INFO] $Message" -ForegroundColor Cyan }
         default { Write-Host "$Message" }
     }
 }
@@ -268,8 +268,8 @@ try {
         if ($RedirectUri -match '/signin-oidc$') {
             $isNewUri = $isNewUri -or ($uri -eq $signoutUri)
         }
-        $marker = if ($isNewUri) { "🆕 " } else { "   " }
-        Write-Host "$marker$uri" -ForegroundColor $(if ($marker -eq "🆕 ") { "Green" } else { "Gray" })
+        $marker = if ($isNewUri) { "[NEW] " } else { "      " }
+        Write-Host "$marker$uri" -ForegroundColor $(if ($marker -eq "[NEW] ") { "Green" } else { "Gray" })
     }
 }
 catch {
@@ -283,8 +283,8 @@ Write-SectionHeader "Summary"
 Write-Status "Redirect URI successfully added to app registration!" "Success"
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
-Write-Host "1. ✅ Redirect URI has been added to the Entra ID app registration" -ForegroundColor Green
-Write-Host "2. 🔄 Users can now sign in at: $RedirectUri" -ForegroundColor Cyan
-Write-Host "3. ⏰ Allow a few minutes for the changes to propagate" -ForegroundColor Yellow
-Write-Host "4. 🧪 Test the authentication flow in your application" -ForegroundColor Cyan
+Write-Host "1. [DONE] Redirect URI has been added to the Entra ID app registration" -ForegroundColor Green
+Write-Host "2. [NEXT] Users can now sign in at: $RedirectUri" -ForegroundColor Cyan
+Write-Host "3. [WAIT] Allow a few minutes for the changes to propagate" -ForegroundColor Yellow
+Write-Host "4. [TEST] Test the authentication flow in your application" -ForegroundColor Cyan
 Write-Host ""

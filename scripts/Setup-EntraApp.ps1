@@ -72,10 +72,10 @@ function Write-Status {
     )
     
     switch ($Type) {
-        "Success" { Write-Host "✅ $Message" -ForegroundColor Green }
-        "Error" { Write-Host "❌ $Message" -ForegroundColor Red }
-        "Warning" { Write-Host "⚠️  $Message" -ForegroundColor Yellow }
-        "Info" { Write-Host "ℹ️  $Message" -ForegroundColor Cyan }
+        "Success" { Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
+        "Error" { Write-Host "[ERROR] $Message" -ForegroundColor Red }
+        "Warning" { Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
+        "Info" { Write-Host "[INFO] $Message" -ForegroundColor Cyan }
         default { Write-Host "$Message" }
     }
 }
@@ -373,14 +373,14 @@ Write-Host "   Object ID:     $($app.Id)" -ForegroundColor White
 Write-Host "   Tenant ID:     $TenantId" -ForegroundColor Yellow
 Write-Host ""
 
-Write-Host "🔐 Client Secret:" -ForegroundColor Cyan
+Write-Host "Client Secret:" -ForegroundColor Cyan
 Write-Host "   Secret Value:  $($secret.SecretText)" -ForegroundColor Yellow
 Write-Host "   Expires:       $($secret.EndDateTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor White
 Write-Host ""
-Write-Host "   ⚠️  WARNING: Save this secret securely! It will not be shown again." -ForegroundColor Red
+Write-Host "   [WARNING] Save this secret securely! It will not be shown again." -ForegroundColor Red
 Write-Host ""
 
-Write-Host "🌐 Redirect URIs:" -ForegroundColor Cyan
+Write-Host "Redirect URIs:" -ForegroundColor Cyan
 foreach ($uri in $redirectUris) {
     Write-Host "   Web: $uri" -ForegroundColor White
 }
