@@ -54,7 +54,7 @@ public partial class Fund : ComponentBase
           CategoryType = item.CategoryType,
           SortOrder = item.SortOrder,
           Budget = item.Budget,
-          CurrentBalance = 0, // This would come from Envelope.Balance in a real scenario
+          CurrentBalance = 0, // Placeholder: In production, this would come from Envelope.Balance
           FundAmount = null
         };
 
@@ -62,12 +62,11 @@ public partial class Fund : ComponentBase
 
         // Calculate totals
         _totalBudget += item.Budget ?? 0;
-        // In a real implementation, we'd get balance from the Envelope table
-        // For now, using placeholder
+        // Placeholder: In production, balance would come from Envelope table
+        _totalBalance = 850.00m;
       }
 
-      // For prototype purposes, using a placeholder for available to fund
-      // In real implementation, this would be calculated from actual account balances
+      // Placeholder: In production, this would be calculated from actual account balances
       _availableToFund = 1300.00m;
 
       BuildDisplayRows();

@@ -22,11 +22,11 @@
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-1" Style="padding-left: 0; padding-right: 0;">
   <MudText Typo="Typo.h4" Class="mb-1">Fund Envelopes</MudText>
 
-  @if(_loading)
+  @if (_loading)
   {
     <MudProgressLinear Indeterminate="true" />
   }
-  else if(_fundData != null)
+  else if (_fundData != null)
   {
     @if (_processing)
     {
@@ -52,7 +52,8 @@
                     Value="@_selectedMonth" 
                     ValueChanged="@OnMonthChanged"
                     Variant="Variant.Outlined" 
-                    AnchorOrigin="Origin.BottomCenter">
+                    AnchorOrigin="Origin.BottomCenter"
+                    Style="min-width: 150px;">
             @foreach (var month in _monthOptions)
             {
               <MudSelectItem Value="@month">@month.ToString("MMM yy")</MudSelectItem>
