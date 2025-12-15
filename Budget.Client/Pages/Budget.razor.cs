@@ -5,20 +5,20 @@ namespace Budget.Client.Pages;
 
 public partial class Budget : ComponentBase
 {
-  [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+  [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
   private int MonthsToShow => _isSmallScreen ? 1 : 6;
 
   private const int SmallScreenBreakpoint = 768; // Bootstrap's md breakpoint
-  private bool _isSmallScreen = false;
+  private bool _isSmallScreen ;
 
   private bool _loading = true;
-  private bool _processing = false;
+  private bool _processing ;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
   private readonly List<BudgetDisplayRow> _displayRows = [];
   private readonly List<BudgetDisplayRow> _summaryRows = [];
   private readonly List<BudgetDisplayRow> _envelopeRows = [];
   private List<DateTime> _displayMonths = [];
-  private int _currentScrollPosition = 0;
+  private int _currentScrollPosition ;
 
   protected override async Task OnInitializedAsync()
   {
@@ -44,7 +44,7 @@ public partial class Budget : ComponentBase
   {
     try
     {
-      var width = await JSRuntime.InvokeAsync<int>("windowUtils.getInnerWidth");
+      var width = await JsRuntime.InvokeAsync<int>("windowUtils.getInnerWidth");
       _isSmallScreen = width < SmallScreenBreakpoint;
     }
     catch (JSException)
@@ -84,7 +84,7 @@ public partial class Budget : ComponentBase
         var dialog = await DialogService.ShowAsync<DraftConfirmationDialog>("Draft Budgets Found", parameters, options);
         var result = await dialog.Result;
 
-        if (result != null && !result.Canceled && result.Data is bool keepDrafts && !keepDrafts)
+        if (result is { Data: false, Canceled: false })
         {
           await ClearDrafts();
         }
@@ -141,7 +141,7 @@ public partial class Budget : ComponentBase
     // Get a sample month to extract envelope metadata
     var sampleMonth = _displayMonths.First();
     var envelopes = _budgetData.Values
-      .Select(monthDict => monthDict.TryGetValue(sampleMonth, out BudgetMonthData? value) ? value : null)
+      .Select(monthDict => monthDict.GetValueOrDefault(sampleMonth))
       .Where(data => data != null)
       .OrderBy(data => data!.SortOrder)
       .ToList();
@@ -365,7 +365,7 @@ public partial class Budget : ComponentBase
     var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Drafts", parameters, options);
     var result = await dialog.Result;
 
-    if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+    if (result is { Canceled: false, Data: true })
     {
       try
       {
@@ -403,7 +403,7 @@ public partial class Budget : ComponentBase
     var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Apply Budgets", parameters, options);
     var result = await dialog.Result;
 
-    if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+    if (result is { Canceled: false, Data: true })
     {
       try
       {
@@ -449,7 +449,7 @@ public partial class Budget : ComponentBase
       var response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft);
 
       // If there's data to overwrite, show confirmation
-      if (!response.Success && response.WouldOverwriteData)
+      if (response is { Success: false, WouldOverwriteData: true })
       {
         var parameters = new DialogParameters
         {
@@ -463,7 +463,7 @@ public partial class Budget : ComponentBase
         var dialogResult = await dialog.Result;
 
         if (dialogResult == null || dialogResult.Canceled ||
-            (dialogResult.Data is bool continueAction && !continueAction))
+            dialogResult.Data is false)
         {
           return;
         }
@@ -557,31 +557,31 @@ public partial class Budget : ComponentBase
   // Data models
   private class BudgetDisplayRow
   {
-    public int EnvelopeId { get; set; }
-    public string EnvelopeName { get; set; } = string.Empty;
-    public bool IsSummaryRow { get; set; }
-    public Dictionary<DateTime, MonthCellData> MonthlyData { get; set; } = [];
+    public int EnvelopeId { get; init; }
+    public string EnvelopeName { get; init; } = string.Empty;
+    public bool IsSummaryRow { get; set;  }
+    public Dictionary<DateTime, MonthCellData> MonthlyData { get; init; } = [];
   }
 
   private class MonthCellData
   {
     public decimal? DraftValue { get; set; }
-    public decimal? BudgetValue { get; set; }
+    public decimal? BudgetValue { get; init; }
     public string DraftDisplayValue { get; set; } = string.Empty;
-    public bool IsLocked { get; set; } = false;
+    public bool IsLocked { get; set; }
   }
 
   private class BudgetMonthData
   {
-    public int EnvelopeId { get; set; }
-    public string EnvelopeName { get; set; } = string.Empty;
+    public int EnvelopeId { get; init; }
+    public string EnvelopeName { get; init; } = string.Empty;
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
-    public CatTypes CategoryType { get; set; }
-    public int SortOrder { get; set; }
-    public decimal? BudgetValue { get; set; }
+    public CatTypes CategoryType { get; init; }
+    public int SortOrder { get; init; }
+    public decimal? BudgetValue { get; init; }
     public decimal? DraftValue { get; set; }
-    public bool IsBudgetLocked { get; set; } = false;
+    public bool IsBudgetLocked { get; set; }
     public DateTime Month { get; set; }
   }
 
@@ -612,7 +612,7 @@ public partial class Budget : ComponentBase
         await DialogService.ShowAsync<ConfirmationDialog>($"Confirm Clear {itemTypeCapitalized}", parameters, options);
       var result = await dialog.Result;
 
-      if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+      if (result is { Canceled: false, Data: true })
       {
         _processing = true;
         StateHasChanged();
@@ -681,7 +681,7 @@ public partial class Budget : ComponentBase
       var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Both", parameters, options);
       var result = await dialog.Result;
 
-      if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+      if (result is { Canceled: false, Data: true })
       {
         _processing = true;
         StateHasChanged();
@@ -735,7 +735,7 @@ public partial class Budget : ComponentBase
         await DialogService.ShowAsync<ConfirmationDialog>("Confirm Copy Drafts To Budgets", parameters, options);
       var result = await dialog.Result;
 
-      if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+      if (result is { Canceled: false, Data: true })
       {
         _processing = true;
         StateHasChanged();
