@@ -59,7 +59,7 @@ public partial class Budget : ComponentBase
     }
   }
 
-  private async Task LoadBudgetData()
+  private async Task LoadBudgetData(bool checkForDrafts = true)
   {
     _loading = true;
 
@@ -70,23 +70,27 @@ public partial class Budget : ComponentBase
       _displayMonths = [.. Enumerable.Range(0, 12).Select(i => currentDate.AddMonths(i))];
 
       // Check if there are any draft values
-      var hasDraftsResponse = await BudgetMonthlyApi.CheckDraftBudgetsAsync();
-
-      if (hasDraftsResponse.HasDrafts)
+      if (checkForDrafts)
       {
-        var parameters = new DialogParameters
-        {
-          ["Message"] =
-            $"You have {hasDraftsResponse.DraftCount} unsaved draft budget values. Do you want to continue with these drafts or reset them?"
-        };
+        var hasDraftsResponse = await BudgetMonthlyApi.CheckDraftBudgetsAsync();
 
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<DraftConfirmationDialog>("Draft Budgets Found", parameters, options);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is bool keepDrafts && !keepDrafts)
+        if (hasDraftsResponse.HasDrafts)
         {
-          await ClearDrafts();
+          var parameters = new DialogParameters
+          {
+            ["Message"] =
+              $"You have {hasDraftsResponse.DraftCount} unsaved draft budget values. Do you want to continue with these drafts or reset them?"
+          };
+
+          var options = new DialogOptions { CloseOnEscapeKey = true };
+          var dialog =
+            await DialogService.ShowAsync<DraftConfirmationDialog>("Draft Budgets Found", parameters, options);
+          var result = await dialog.Result;
+
+          if (result != null && !result.Canceled && result.Data is bool keepDrafts && !keepDrafts)
+          {
+            await ClearDrafts();
+          }
         }
       }
 
@@ -269,7 +273,8 @@ public partial class Budget : ComponentBase
       if (response.Success)
       {
         // Update local data
-        if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) && value.TryGetValue(month, out BudgetMonthData? value1))
+        if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
+            value.TryGetValue(month, out BudgetMonthData? value1))
         {
           value1.DraftValue = draftValue;
         }
@@ -370,13 +375,13 @@ public partial class Budget : ComponentBase
       {
         _processing = true;
         StateHasChanged();
-        
+
         var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
 
         if (response.Success)
         {
           Snackbar.Add("Draft budgets cleared successfully", Severity.Success);
-          await LoadBudgetData();
+          await LoadBudgetData(false);
         }
       }
       catch (Exception ex)
@@ -408,13 +413,13 @@ public partial class Budget : ComponentBase
       {
         _processing = true;
         StateHasChanged();
-        
+
         var response = await BudgetMonthlyApi.ApplyDraftValuesToBudgetAsync();
 
         if (response.Success)
         {
           Snackbar.Add("Draft budgets applied successfully", Severity.Success);
-          await LoadBudgetData();
+          await LoadBudgetData(false);
         }
       }
       catch (Exception ex)
@@ -479,7 +484,7 @@ public partial class Budget : ComponentBase
       }
 
       Snackbar.Add(response.Message, Severity.Success);
-      await LoadBudgetData();
+      await LoadBudgetData(false);
     }
     catch (Exception ex)
     {
@@ -498,11 +503,11 @@ public partial class Budget : ComponentBase
     if (row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
     {
       var newLockState = !cellData.IsLocked;
-      
+
       try
       {
         var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
-        
+
         // If locking and there's a draft value, clear it first
         if (newLockState && cellData.DraftValue.HasValue)
         {
@@ -513,23 +518,24 @@ public partial class Budget : ComponentBase
             return;
           }
         }
-        
+
         var response = await BudgetMonthlyApi.UpdateBudgetLockAsync(acctPeriod, envelopeId, newLockState);
 
         if (response.Success)
         {
           // Update local state
           cellData.IsLocked = newLockState;
-          
+
           // If we just locked, also clear the draft value locally
           if (newLockState)
           {
             cellData.DraftValue = null;
             cellData.DraftDisplayValue = string.Empty;
           }
-          
+
           // Also update the underlying data
-          if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) && value.TryGetValue(month, out BudgetMonthData? data))
+          if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
+              value.TryGetValue(month, out BudgetMonthData? data))
           {
             data.IsBudgetLocked = newLockState;
             if (newLockState)
@@ -537,7 +543,7 @@ public partial class Budget : ComponentBase
               data.DraftValue = null;
             }
           }
-          
+
           StateHasChanged();
         }
         else

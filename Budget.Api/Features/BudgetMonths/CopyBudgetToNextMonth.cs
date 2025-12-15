@@ -84,7 +84,7 @@ public static class CopyBudgetToNextMonth
         {
           // Update existing record's draft
           if (!target.IsBudgetLocked)
-            target.BudgetDraft = valueToCopy;
+            target.BudgetDraft = valueToCopy ?? 0m;
         }
 
         recordsUpdated++;
