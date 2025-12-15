@@ -269,7 +269,8 @@ public partial class Budget : ComponentBase
       if (response.Success)
       {
         // Update local data
-        if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) && value.TryGetValue(month, out BudgetMonthData? value1))
+        if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
+            value.TryGetValue(month, out BudgetMonthData? value1))
         {
           value1.DraftValue = draftValue;
         }
@@ -370,7 +371,7 @@ public partial class Budget : ComponentBase
       {
         _processing = true;
         StateHasChanged();
-        
+
         var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
 
         if (response.Success)
@@ -408,7 +409,7 @@ public partial class Budget : ComponentBase
       {
         _processing = true;
         StateHasChanged();
-        
+
         var response = await BudgetMonthlyApi.ApplyDraftValuesToBudgetAsync();
 
         if (response.Success)
@@ -498,11 +499,11 @@ public partial class Budget : ComponentBase
     if (row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
     {
       var newLockState = !cellData.IsLocked;
-      
+
       try
       {
         var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
-        
+
         // If locking and there's a draft value, clear it first
         if (newLockState && cellData.DraftValue.HasValue)
         {
@@ -513,23 +514,24 @@ public partial class Budget : ComponentBase
             return;
           }
         }
-        
+
         var response = await BudgetMonthlyApi.UpdateBudgetLockAsync(acctPeriod, envelopeId, newLockState);
 
         if (response.Success)
         {
           // Update local state
           cellData.IsLocked = newLockState;
-          
+
           // If we just locked, also clear the draft value locally
           if (newLockState)
           {
             cellData.DraftValue = null;
             cellData.DraftDisplayValue = string.Empty;
           }
-          
+
           // Also update the underlying data
-          if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) && value.TryGetValue(month, out BudgetMonthData? data))
+          if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
+              value.TryGetValue(month, out BudgetMonthData? data))
           {
             data.IsBudgetLocked = newLockState;
             if (newLockState)
@@ -537,7 +539,7 @@ public partial class Budget : ComponentBase
               data.DraftValue = null;
             }
           }
-          
+
           StateHasChanged();
         }
         else
@@ -596,23 +598,25 @@ public partial class Budget : ComponentBase
 
       var month = _displayMonths[monthIndex];
       var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
-      
+
       var itemType = clearBudget ? "budgets" : "drafts";
       var itemTypeCapitalized = clearBudget ? "Budgets" : "Drafts";
       var parameters = new DialogParameters
       {
-        ["Message"] = $"Are you sure you want to clear all {itemType} for {month:MMMM yyyy}? This action cannot be undone."
+        ["Message"] =
+          $"Are you sure you want to clear all {itemType} for {month:MMMM yyyy}? This action cannot be undone."
       };
 
       var options = new DialogOptions { CloseOnEscapeKey = true };
-      var dialog = await DialogService.ShowAsync<ConfirmationDialog>($"Confirm Clear {itemTypeCapitalized}", parameters, options);
+      var dialog =
+        await DialogService.ShowAsync<ConfirmationDialog>($"Confirm Clear {itemTypeCapitalized}", parameters, options);
       var result = await dialog.Result;
 
       if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
       {
         _processing = true;
         StateHasChanged();
-        
+
         if (clearBudget)
         {
           var response = await BudgetMonthlyApi.ClearMonthBudgetsAsync(acctPeriod);
@@ -639,7 +643,7 @@ public partial class Budget : ComponentBase
             Snackbar.Add($"Error: {response.Message}", Severity.Error);
           }
         }
-        
+
         _processing = false;
         StateHasChanged();
       }
@@ -666,10 +670,11 @@ public partial class Budget : ComponentBase
 
       var month = _displayMonths[monthIndex];
       var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
-      
+
       var parameters = new DialogParameters
       {
-        ["Message"] = $"Are you sure you want to clear all budgets and drafts for {month:MMMM yyyy}? This action cannot be undone."
+        ["Message"] =
+          $"Are you sure you want to clear all budgets and drafts for {month:MMMM yyyy}? This action cannot be undone."
       };
 
       var options = new DialogOptions { CloseOnEscapeKey = true };
@@ -680,7 +685,7 @@ public partial class Budget : ComponentBase
       {
         _processing = true;
         StateHasChanged();
-        
+
         var response = await BudgetMonthlyApi.ClearMonthBothAsync(acctPeriod);
 
         if (response.Success)
@@ -692,7 +697,7 @@ public partial class Budget : ComponentBase
         {
           Snackbar.Add($"Error: {response.Message}", Severity.Error);
         }
-        
+
         _processing = false;
         StateHasChanged();
       }
@@ -718,21 +723,23 @@ public partial class Budget : ComponentBase
 
       var month = _displayMonths[monthIndex];
       var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
-      
+
       var parameters = new DialogParameters
       {
-        ["Message"] = $"Are you sure you want to copy all draft values to budgets for {month:MMMM yyyy}? This will update budget values."
+        ["Message"] =
+          $"Are you sure you want to copy all draft values to budgets for {month:MMMM yyyy}? This will update budget values."
       };
 
       var options = new DialogOptions { CloseOnEscapeKey = true };
-      var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Copy Drafts To Budgets", parameters, options);
+      var dialog =
+        await DialogService.ShowAsync<ConfirmationDialog>("Confirm Copy Drafts To Budgets", parameters, options);
       var result = await dialog.Result;
 
       if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
       {
         _processing = true;
         StateHasChanged();
-        
+
         var response = await BudgetMonthlyApi.ApplyMonthDraftsAsync(acctPeriod);
 
         if (response.Success)
@@ -744,7 +751,7 @@ public partial class Budget : ComponentBase
         {
           Snackbar.Add($"Error: {response.Message}", Severity.Error);
         }
-        
+
         _processing = false;
         StateHasChanged();
       }
