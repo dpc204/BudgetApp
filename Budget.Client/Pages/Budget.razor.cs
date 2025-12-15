@@ -583,8 +583,175 @@ public partial class Budget : ComponentBase
     public DateTime Month { get; set; }
   }
 
-  private Task ClearMonthBudgetValues(int monthIndex, bool clearDraft)
+  private async Task ClearMonthBudgetValues(int monthIndex, bool clearBudget)
   {
-    throw new NotImplementedException();
+    try
+    {
+      // Bounds check
+      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      {
+        Snackbar.Add("Invalid month index", Severity.Error);
+        return;
+      }
+
+      var month = _displayMonths[monthIndex];
+      var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
+      
+      var itemType = clearBudget ? "budgets" : "drafts";
+      var parameters = new DialogParameters
+      {
+        ["Message"] = $"Are you sure you want to clear all {itemType} for {month:MMMM yyyy}? This action cannot be undone."
+      };
+
+      var options = new DialogOptions { CloseOnEscapeKey = true };
+      var dialog = await DialogService.ShowAsync<ConfirmationDialog>($"Confirm Clear {(clearBudget ? "Budgets" : "Drafts")}", parameters, options);
+      var result = await dialog.Result;
+
+      if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+      {
+        _processing = true;
+        StateHasChanged();
+        
+        if (clearBudget)
+        {
+          var response = await BudgetMonthlyApi.ClearMonthBudgetsAsync(acctPeriod);
+          if (response.Success)
+          {
+            Snackbar.Add(response.Message, Severity.Success);
+            await LoadBudgetData();
+          }
+          else
+          {
+            Snackbar.Add($"Error: {response.Message}", Severity.Error);
+          }
+        }
+        else
+        {
+          var response = await BudgetMonthlyApi.ClearMonthDraftsAsync(acctPeriod);
+          if (response.Success)
+          {
+            Snackbar.Add(response.Message, Severity.Success);
+            await LoadBudgetData();
+          }
+          else
+          {
+            Snackbar.Add($"Error: {response.Message}", Severity.Error);
+          }
+        }
+        
+        _processing = false;
+        StateHasChanged();
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error clearing {(clearBudget ? "budgets" : "drafts")}: {ex.Message}", Severity.Error);
+      _processing = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task ClearMonthBoth(int monthIndex)
+  {
+    try
+    {
+      // Bounds check
+      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      {
+        Snackbar.Add("Invalid month index", Severity.Error);
+        return;
+      }
+
+      var month = _displayMonths[monthIndex];
+      var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
+      
+      var parameters = new DialogParameters
+      {
+        ["Message"] = $"Are you sure you want to clear all budgets and drafts for {month:MMMM yyyy}? This action cannot be undone."
+      };
+
+      var options = new DialogOptions { CloseOnEscapeKey = true };
+      var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Both", parameters, options);
+      var result = await dialog.Result;
+
+      if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+      {
+        _processing = true;
+        StateHasChanged();
+        
+        var response = await BudgetMonthlyApi.ClearMonthBothAsync(acctPeriod);
+
+        if (response.Success)
+        {
+          Snackbar.Add(response.Message, Severity.Success);
+          await LoadBudgetData();
+        }
+        else
+        {
+          Snackbar.Add($"Error: {response.Message}", Severity.Error);
+        }
+        
+        _processing = false;
+        StateHasChanged();
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error clearing budgets and drafts: {ex.Message}", Severity.Error);
+      _processing = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task ApplyMonthDrafts(int monthIndex)
+  {
+    try
+    {
+      // Bounds check
+      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      {
+        Snackbar.Add("Invalid month index", Severity.Error);
+        return;
+      }
+
+      var month = _displayMonths[monthIndex];
+      var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
+      
+      var parameters = new DialogParameters
+      {
+        ["Message"] = $"Are you sure you want to copy all draft values to budgets for {month:MMMM yyyy}? This will update budget values."
+      };
+
+      var options = new DialogOptions { CloseOnEscapeKey = true };
+      var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Copy Drafts To Budgets", parameters, options);
+      var result = await dialog.Result;
+
+      if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
+      {
+        _processing = true;
+        StateHasChanged();
+        
+        var response = await BudgetMonthlyApi.ApplyMonthDraftsAsync(acctPeriod);
+
+        if (response.Success)
+        {
+          Snackbar.Add(response.Message, Severity.Success);
+          await LoadBudgetData();
+        }
+        else
+        {
+          Snackbar.Add($"Error: {response.Message}", Severity.Error);
+        }
+        
+        _processing = false;
+        StateHasChanged();
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error applying drafts to budgets: {ex.Message}", Severity.Error);
+      _processing = false;
+      StateHasChanged();
+    }
   }
 }

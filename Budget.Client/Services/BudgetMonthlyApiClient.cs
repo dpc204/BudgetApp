@@ -119,4 +119,76 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     
     return result;
   }
+
+  public async Task<ClearMonthBudgetsResponse> ClearMonthBudgetsAsync(int acctPeriod, CancellationToken cancellationToken = default)
+  {
+    var command = new { AcctPeriod = acctPeriod };
+    
+    using var response = await http.PostAsJsonAsync("budgetmonths/clearmonthbudgets", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<ClearMonthBudgetsResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for ClearMonthBudgetsResponse from budgetmonths/clearmonthbudgets");
+      throw new InvalidOperationException("Expected non-null ClearMonthBudgetsResponse from 'budgetmonths/clearmonthbudgets'.");
+    }
+    
+    return result;
+  }
+
+  public async Task<ClearMonthDraftsResponse> ClearMonthDraftsAsync(int acctPeriod, CancellationToken cancellationToken = default)
+  {
+    var command = new { AcctPeriod = acctPeriod };
+    
+    using var response = await http.PostAsJsonAsync("budgetmonths/clearmonthdrafts", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<ClearMonthDraftsResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for ClearMonthDraftsResponse from budgetmonths/clearmonthdrafts");
+      throw new InvalidOperationException("Expected non-null ClearMonthDraftsResponse from 'budgetmonths/clearmonthdrafts'.");
+    }
+    
+    return result;
+  }
+
+  public async Task<ClearMonthBothResponse> ClearMonthBothAsync(int acctPeriod, CancellationToken cancellationToken = default)
+  {
+    var command = new { AcctPeriod = acctPeriod };
+    
+    using var response = await http.PostAsJsonAsync("budgetmonths/clearmonthboth", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<ClearMonthBothResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for ClearMonthBothResponse from budgetmonths/clearmonthboth");
+      throw new InvalidOperationException("Expected non-null ClearMonthBothResponse from 'budgetmonths/clearmonthboth'.");
+    }
+    
+    return result;
+  }
+
+  public async Task<ApplyMonthDraftsResponse> ApplyMonthDraftsAsync(int acctPeriod, CancellationToken cancellationToken = default)
+  {
+    var command = new { AcctPeriod = acctPeriod };
+    
+    using var response = await http.PostAsJsonAsync("budgetmonths/applymonthdrafts", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<ApplyMonthDraftsResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for ApplyMonthDraftsResponse from budgetmonths/applymonthdrafts");
+      throw new InvalidOperationException("Expected non-null ApplyMonthDraftsResponse from 'budgetmonths/applymonthdrafts'.");
+    }
+    
+    return result;
+  }
 }
