@@ -598,13 +598,14 @@ public partial class Budget : ComponentBase
       var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
       
       var itemType = clearBudget ? "budgets" : "drafts";
+      var itemTypeCapitalized = clearBudget ? "Budgets" : "Drafts";
       var parameters = new DialogParameters
       {
         ["Message"] = $"Are you sure you want to clear all {itemType} for {month:MMMM yyyy}? This action cannot be undone."
       };
 
       var options = new DialogOptions { CloseOnEscapeKey = true };
-      var dialog = await DialogService.ShowAsync<ConfirmationDialog>($"Confirm Clear {(clearBudget ? "Budgets" : "Drafts")}", parameters, options);
+      var dialog = await DialogService.ShowAsync<ConfirmationDialog>($"Confirm Clear {itemTypeCapitalized}", parameters, options);
       var result = await dialog.Result;
 
       if (result != null && !result.Canceled && result.Data is bool confirmed && confirmed)
@@ -645,7 +646,8 @@ public partial class Budget : ComponentBase
     }
     catch (Exception ex)
     {
-      Snackbar.Add($"Error clearing {(clearBudget ? "budgets" : "drafts")}: {ex.Message}", Severity.Error);
+      var itemType = clearBudget ? "budgets" : "drafts";
+      Snackbar.Add($"Error clearing {itemType}: {ex.Message}", Severity.Error);
       _processing = false;
       StateHasChanged();
     }
