@@ -582,4 +582,9 @@ public partial class Budget : ComponentBase
     public bool IsBudgetLocked { get; set; } = false;
     public DateTime Month { get; set; }
   }
+
+  private Task ClearMonthBudgetValues(int monthIndex, bool clearDraft)
+  {
+    throw new NotImplementedException();
+  }
 }
