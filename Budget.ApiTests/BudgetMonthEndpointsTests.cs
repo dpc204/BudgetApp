@@ -403,7 +403,7 @@ public class BudgetMonthEndpointsTests(BudgetApiTestFactory factory) : IClassFix
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 607, name: "Test Envelope", categoryId: 1);
+        var envelope = TestHelpers.CreateTestEnvelope(id: 6070, name: "Test Envelope", categoryId: 1);
         db.Envelopes.Add(envelope);
 
         var acctPeriod = 202508;
