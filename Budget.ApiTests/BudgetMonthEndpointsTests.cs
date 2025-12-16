@@ -250,4 +250,193 @@ public class BudgetMonthEndpointsTests(BudgetApiTestFactory factory) : IClassFix
         copied.Should().NotBeNull();
         copied!.BudgetDraft.Should().Be(400m);
     }
+
+    /// <summary>
+    /// Test ClearMonthBudgets endpoint - should clear budget values for a specific month
+    /// </summary>
+    [Fact]
+    public async Task ClearMonthBudgets_Should_Clear_Budgets_For_Month()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+        var envelope = TestHelpers.CreateTestEnvelope(id: 604, name: "Test Envelope", categoryId: 1);
+        db.Envelopes.Add(envelope);
+
+        var acctPeriod = 202505;
+        var budgetMonth = new BudgetMonth
+        {
+            AcctPeriod = acctPeriod,
+            EnvelopeId = envelope.Id,
+            Budget = 500m,
+            BudgetDraft = 100m
+        };
+        db.BudgetMonths.Add(budgetMonth);
+        await db.SaveChangesAsync();
+
+        var command = new ClearMonthBudgets.Command(acctPeriod);
+
+        // Act
+        var response = await client.PostAsJsonAsync("/budgetmonths/clearmonthbudgets", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<ClearMonthBudgets.Response>();
+        
+        result.Should().NotBeNull();
+        result!.Success.Should().BeTrue();
+        
+        // Verify in database
+        db.ChangeTracker.Clear();
+        var updated = await db.BudgetMonths
+            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
+        
+        updated.Should().NotBeNull();
+        updated!.Budget.Should().BeNull();
+        updated.BudgetDraft.Should().Be(100m); // Draft should remain unchanged
+    }
+
+    /// <summary>
+    /// Test ClearMonthDrafts endpoint - should clear draft values for a specific month
+    /// </summary>
+    [Fact]
+    public async Task ClearMonthDrafts_Should_Clear_Drafts_For_Month()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+        var envelope = TestHelpers.CreateTestEnvelope(id: 605, name: "Test Envelope", categoryId: 1);
+        db.Envelopes.Add(envelope);
+
+        var acctPeriod = 202506;
+        var budgetMonth = new BudgetMonth
+        {
+            AcctPeriod = acctPeriod,
+            EnvelopeId = envelope.Id,
+            Budget = 500m,
+            BudgetDraft = 100m
+        };
+        db.BudgetMonths.Add(budgetMonth);
+        await db.SaveChangesAsync();
+
+        var command = new ClearMonthDrafts.Command(acctPeriod);
+
+        // Act
+        var response = await client.PostAsJsonAsync("/budgetmonths/clearmonthdrafts", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<ClearMonthDrafts.Response>();
+        
+        result.Should().NotBeNull();
+        result!.Success.Should().BeTrue();
+        
+        // Verify in database
+        db.ChangeTracker.Clear();
+        var updated = await db.BudgetMonths
+            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
+        
+        updated.Should().NotBeNull();
+        updated!.BudgetDraft.Should().BeNull();
+        updated.Budget.Should().Be(500m); // Budget should remain unchanged
+    }
+
+    /// <summary>
+    /// Test ClearMonthBoth endpoint - should clear both budget and draft values for a specific month
+    /// </summary>
+    [Fact]
+    public async Task ClearMonthBoth_Should_Clear_Both_Values_For_Month()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+        var envelope = TestHelpers.CreateTestEnvelope(id: 606, name: "Test Envelope", categoryId: 1);
+        db.Envelopes.Add(envelope);
+
+        var acctPeriod = 202507;
+        var budgetMonth = new BudgetMonth
+        {
+            AcctPeriod = acctPeriod,
+            EnvelopeId = envelope.Id,
+            Budget = 500m,
+            BudgetDraft = 100m
+        };
+        db.BudgetMonths.Add(budgetMonth);
+        await db.SaveChangesAsync();
+
+        var command = new ClearMonthBoth.Command(acctPeriod);
+
+        // Act
+        var response = await client.PostAsJsonAsync("/budgetmonths/clearmonthboth", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<ClearMonthBoth.Response>();
+        
+        result.Should().NotBeNull();
+        result!.Success.Should().BeTrue();
+        
+        // Verify in database
+        db.ChangeTracker.Clear();
+        var updated = await db.BudgetMonths
+            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
+        
+        updated.Should().NotBeNull();
+        updated!.Budget.Should().BeNull();
+        updated.BudgetDraft.Should().BeNull();
+    }
+
+    /// <summary>
+    /// Test ApplyMonthDrafts endpoint - should apply drafts to budget for a specific month
+    /// </summary>
+    [Fact]
+    public async Task ApplyMonthDrafts_Should_Apply_Drafts_For_Month()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+        var envelope = TestHelpers.CreateTestEnvelope(id: 6070, name: "Test Envelope", categoryId: 1);
+        db.Envelopes.Add(envelope);
+
+        var acctPeriod = 202508;
+        var budgetMonth = new BudgetMonth
+        {
+            AcctPeriod = acctPeriod,
+            EnvelopeId = envelope.Id,
+            Budget = null,
+            BudgetDraft = 300m
+        };
+        db.BudgetMonths.Add(budgetMonth);
+        await db.SaveChangesAsync();
+
+        var command = new ApplyMonthDrafts.Command(acctPeriod);
+
+        // Act
+        var response = await client.PostAsJsonAsync("/budgetmonths/applymonthdrafts", command);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<ApplyMonthDrafts.Response>();
+        
+        result.Should().NotBeNull();
+        result!.Success.Should().BeTrue();
+        result.RecordsUpdated.Should().BeGreaterThan(0);
+        
+        // Verify in database
+        db.ChangeTracker.Clear();
+        var updated = await db.BudgetMonths
+            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
+        
+        updated.Should().NotBeNull();
+        updated!.Budget.Should().Be(300m);
+        updated.BudgetDraft.Should().BeNull();
+    }
 }

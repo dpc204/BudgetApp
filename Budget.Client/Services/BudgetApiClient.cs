@@ -91,12 +91,25 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     var payload = new { Trans = transaction };
 
     using var resp = await http.PutAsJsonAsync("/Transaction/Update", payload, cancellationToken);
-    resp.EnsureSuccessStatusCode();
+    
+    if (!resp.IsSuccessStatusCode)
+    {
+      logger.LogWarning("UpdateTransaction failed with status {Status} for transaction {Id}", 
+        resp.StatusCode, transaction.Id);
+      return [];
+    }
 
     try
     {
-      var envelopes = await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
-      return envelopes ?? [];
+      var result = await resp.Content.ReadFromJsonAsync<Result<List<EnvelopeDto>>>(cancellationToken: cancellationToken);
+      
+      if (result?.IsSuccess == true)
+      {
+        return result.Value ?? [];
+      }
+      
+      logger.LogWarning("UpdateTransaction failed: {Error}", result?.Error);
+      return [];
     }
     catch (Exception ex)
     {
@@ -111,12 +124,25 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     var payload = new { TransactionId = transactionId };
 
     using var resp = await http.PostAsJsonAsync("/Transaction/Void", payload, cancellationToken);
-    resp.EnsureSuccessStatusCode();
+    
+    if (!resp.IsSuccessStatusCode)
+    {
+      logger.LogWarning("VoidTransaction failed with status {Status} for transaction {Id}", 
+        resp.StatusCode, transactionId);
+      return [];
+    }
 
     try
     {
-      var envelopes = await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
-      return envelopes ?? [];
+      var result = await resp.Content.ReadFromJsonAsync<Result<List<EnvelopeDto>>>(cancellationToken: cancellationToken);
+      
+      if (result?.IsSuccess == true)
+      {
+        return result.Value ?? [];
+      }
+      
+      logger.LogWarning("VoidTransaction failed: {Error}", result?.Error);
+      return [];
     }
     catch (Exception ex)
     {

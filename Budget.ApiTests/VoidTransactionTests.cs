@@ -235,10 +235,10 @@ public class VoidTransactionTests(BudgetApiTestFactory factory) : IClassFixture<
     }
 
     /// <summary>
-    /// Test that attempting to void an already voided transaction throws an exception
+    /// Test that attempting to void an already voided transaction returns 409 Conflict
     /// </summary>
     [Fact]
-    public async Task VoidTransaction_Should_Not_Allow_Double_Voiding()
+    public async Task VoidTransaction_Should_Return_Conflict_When_Already_Voided()
     {
         // Arrange
         var client = _factory.CreateClient();
@@ -276,17 +276,16 @@ public class VoidTransactionTests(BudgetApiTestFactory factory) : IClassFixture<
         var initialAccountBalance = account.Balance;
         var initialEnvelopeBalance = envelope.Balance;
 
-        // Act & Assert
+        // Act
         var command = new VoidTransaction.Command(transaction.Id);
+        var response = await client.PostAsJsonAsync("/Transaction/Void", command);
         
-        // The API should throw an exception for already voided transactions
-        // In the test environment, this exception propagates through the TestServer
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            await client.PostAsJsonAsync("/Transaction/Void", command);
-        });
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Conflict);
         
-        exception.Message.Should().Contain("already voided");
+        var errorResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        errorResponse.Should().NotBeNull();
+        errorResponse!["error"].Should().Contain("already voided");
         
         // Clear change tracker
         db.ChangeTracker.Clear();
@@ -300,24 +299,23 @@ public class VoidTransactionTests(BudgetApiTestFactory factory) : IClassFixture<
     }
 
     /// <summary>
-    /// Test that attempting to void a non-existent transaction throws an exception
+    /// Test that attempting to void a non-existent transaction returns 404 NotFound
     /// </summary>
     [Fact]
-    public async Task VoidTransaction_Should_Fail_For_NonExistent_Transaction()
+    public async Task VoidTransaction_Should_Return_NotFound_For_NonExistent_Transaction()
     {
         // Arrange
         var client = _factory.CreateClient();
 
-        // Act & Assert - Try to void a transaction that doesn't exist
+        // Act
         var command = new VoidTransaction.Command(99999);
+        var response = await client.PostAsJsonAsync("/Transaction/Void", command);
         
-        // The API should throw an exception for non-existent transactions
-        // In the test environment, this exception propagates through the TestServer
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            await client.PostAsJsonAsync("/Transaction/Void", command);
-        });
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
         
-        exception.Message.Should().Contain("not found");
+        var errorResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        errorResponse.Should().NotBeNull();
+        errorResponse!["error"].Should().Contain("not found");
     }
 }

@@ -379,4 +379,44 @@ public class TransactionEndpointsTests(BudgetApiTestFactory factory) : IClassFix
         // then reduced by NEW amount (150), final = 350
         updatedEnv!.Balance.Should().Be(350m);
     }
+
+    /// <summary>
+    /// Test that updating a non-existent transaction returns 404 NotFound
+    /// </summary>
+    [Fact]
+    public async Task UpdateTransaction_Should_Return_NotFound_For_NonExistent_Transaction()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        var nonExistentTransaction = new OneTransactionDetail
+        {
+            Id = 99999,
+            AccountId = 1,
+            Date = DateTime.UtcNow,
+            Vendor = "Non-existent Vendor",
+            UserId = 1,
+            Details =
+            [
+                new TransactionDto
+                {
+                    EnvelopeId = 1,
+                    Amount = 100m,
+                    Description = "Test"
+                }
+            ]
+        };
+
+        var command = new UpdateTransaction.Command(nonExistentTransaction);
+
+        // Act
+        var response = await client.PutAsJsonAsync("/Transaction/Update", command);
+
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
+        
+        var errorResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        errorResponse.Should().NotBeNull();
+        errorResponse!["error"].Should().Contain("not found");
+    }
 }

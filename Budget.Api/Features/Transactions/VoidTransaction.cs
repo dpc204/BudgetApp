@@ -5,22 +5,27 @@ namespace Budget.Api.Features.Transactions;
 /// </summary>
 public static class VoidTransaction
 {
-  public sealed record Command(int TransactionId) : IRequest<List<EnvelopeDto>>;
+  public sealed record Command(int TransactionId) : IRequest<Result<List<EnvelopeDto>>>;
 
   /// <summary>
   /// Handles voiding a transaction by setting IsVoided flag and reversing balance changes
   /// </summary>
-  public class Handler(BudgetContext db) : IRequestHandler<Command, List<EnvelopeDto>>
+  public class Handler(BudgetContext db) : IRequestHandler<Command, Result<List<EnvelopeDto>>>
   {
-    public async Task<List<EnvelopeDto>> Handle(Command request, CancellationToken cancellationToken)
+    public async Task<Result<List<EnvelopeDto>>> Handle(Command request, CancellationToken cancellationToken)
     {
       var existingTrans = await db.Transactions
         .Include(t => t.Details)
-        .FirstOrDefaultAsync(t => t.Id == request.TransactionId, cancellationToken) ?? throw new InvalidOperationException($"Transaction with Id {request.TransactionId} not found.");
+        .FirstOrDefaultAsync(t => t.Id == request.TransactionId, cancellationToken);
+
+      if (existingTrans is null)
+      {
+        return Result<List<EnvelopeDto>>.Failure($"Transaction with Id {request.TransactionId} not found.");
+      }
      
       if(existingTrans.IsVoided)
       {
-        throw new InvalidOperationException($"Transaction {request.TransactionId} is already voided.");
+        return Result<List<EnvelopeDto>>.Failure($"Transaction {request.TransactionId} is already voided.");
       }
 
       // Set void flag
@@ -33,7 +38,7 @@ public static class VoidTransaction
       var rslt = await ReverseEnvelopeBalancesAsync(existingTrans);
 
       await db.SaveChangesAsync(cancellationToken);
-      return rslt;
+      return Result<List<EnvelopeDto>>.Success(rslt);
     }
 
     private async Task ReverseAccountBalanceAsync(Transaction trans)
@@ -83,8 +88,17 @@ public static class VoidTransaction
     {
       app.MapPost("/Transaction/Void", async (ISender sender, Command command) =>
       {
-        var envelopes = await sender.Send(command);
-        return Results.Ok(envelopes);
+        var result = await sender.Send(command);
+        
+        if (!result.IsSuccess)
+        {
+          // Return 409 Conflict for already voided, 404 for not found
+          return result.Error!.Contains("already voided")
+            ? Results.Conflict(new { error = result.Error })
+            : Results.NotFound(new { error = result.Error });
+        }
+        
+        return Results.Ok(result.Value);
       });
     }
   }
