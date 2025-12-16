@@ -44,6 +44,26 @@ public interface IBudgetMonthlyApiClient
   /// Copies budget or draft data from one month to the next month with confirmation
   /// </summary>
   Task<CopyBudgetToNextMonthResponse> CopyBudgetToNextMonthAsync(int sourceAcctPeriod, bool copyFromDraft, bool confirmOverwrite, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears budget values for a specific month
+  /// </summary>
+  Task<ClearMonthBudgetsResponse> ClearMonthBudgetsAsync(int acctPeriod, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears draft values for a specific month
+  /// </summary>
+  Task<ClearMonthDraftsResponse> ClearMonthDraftsAsync(int acctPeriod, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears both budget and draft values for a specific month
+  /// </summary>
+  Task<ClearMonthBothResponse> ClearMonthBothAsync(int acctPeriod, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Applies draft values to budget values for a specific month
+  /// </summary>
+  Task<ApplyMonthDraftsResponse> ApplyMonthDraftsAsync(int acctPeriod, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -90,3 +110,23 @@ public record ApplyDraftsResponse(bool Success, string Message, int RecordsUpdat
 /// Response for CopyBudgetToNextMonth endpoint
 /// </summary>
 public record CopyBudgetToNextMonthResponse(bool Success, string Message, int RecordsUpdated, bool WouldOverwriteData);
+
+/// <summary>
+/// Response for ClearMonthBudgets endpoint
+/// </summary>
+public record ClearMonthBudgetsResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for ClearMonthDrafts endpoint
+/// </summary>
+public record ClearMonthDraftsResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for ClearMonthBoth endpoint
+/// </summary>
+public record ClearMonthBothResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for ApplyMonthDrafts endpoint
+/// </summary>
+public record ApplyMonthDraftsResponse(bool Success, string Message, int RecordsUpdated);

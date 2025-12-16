@@ -155,6 +155,9 @@ coverage*.info
 _NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
+*.V3.ncrunchsolution
+/.NCrunch_BudgetApp/StoredText
+
 
 # MightyMoose
 *.mm.*
@@ -362,3 +365,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 .azure
+
