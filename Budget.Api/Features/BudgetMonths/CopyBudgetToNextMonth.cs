@@ -15,6 +15,12 @@ public static class CopyBudgetToNextMonth
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
+    /// <summary>
+    /// Copies budget or draft values from the specified source accounting period into the following month, creating new target records or updating existing ones where allowed.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Response"/> indicating operation outcome: `Success` is `true` when values were copied (with `RecordsUpdated` set and `Message` describing the result); `Success` is `false` when the request is rejected — for example, due to an invalid accounting period format or because the target month contains draft data that would be overwritten (in the latter case `WouldOverwriteData` is `true`).
+    /// </returns>
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       // Validate AcctPeriod format

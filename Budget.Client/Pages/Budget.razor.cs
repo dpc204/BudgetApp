@@ -40,6 +40,12 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Sets the component's small-screen flag based on the browser's inner width.
+  /// </summary>
+  /// <remarks>
+  /// Reads window inner width via JavaScript interop and sets <c>_isSmallScreen</c> to true when the width is less than <c>SmallScreenBreakpoint</c>. If JavaScript interop fails or is disconnected, <c>_isSmallScreen</c> is set to false.
+  /// </remarks>
   private async Task CheckScreenSize()
   {
     try
@@ -59,6 +65,10 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Loads budget data for a 12-month window into the component's state, optionally prompting the user about existing draft values before loading.
+  /// </summary>
+  /// <param name="checkForDrafts">If true, checks for unsaved draft budget values and prompts the user to keep or reset them before loading; if false, skips the draft check.</param>
   private async Task LoadBudgetData(bool checkForDrafts = true)
   {
     _loading = true;
@@ -263,6 +273,10 @@ public partial class Budget : ComponentBase
     return (budgetTotal, draftTotal);
   }
 
+  /// <summary>
+  /// Update the draft amount for a specific envelope and month, persist the change to the backend, and refresh the displayed rows.
+  /// </summary>
+  /// <param name="draftValue">New draft amount for the month, or null to clear any existing draft.</param>
   private async Task UpdateDraft(int envelopeId, DateTime month, decimal? draftValue)
   {
     try
@@ -358,6 +372,12 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Prompts the user to confirm clearing all draft budgets and, if confirmed, clears them and refreshes the budget data.
+  /// </summary>
+  /// <remarks>
+  /// When confirmed, calls the API to clear draft budgets, displays a success or error notification, and reloads budget data without re-checking for drafts. The method updates the component's processing state while the operation runs.
+  /// </remarks>
   private async Task ClearDrafts()
   {
     var parameters = new DialogParameters
@@ -396,6 +416,14 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Prompts the user to confirm applying all draft budgets and, if confirmed, applies them via the API and reloads budget data.
+  /// </summary>
+  /// <remarks>
+  /// On confirmation this method sets the component into a processing state, calls the API to apply draft values to the budget,
+  /// shows a success or error message, and reloads budget data without re-checking for drafts. The component processing flag
+  /// and UI state are restored when the operation completes or fails.
+  /// </remarks>
   private async Task ApplyDrafts()
   {
     var parameters = new DialogParameters
@@ -434,6 +462,15 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Copies budget values from the specified displayed month into the next month.
+  /// </summary>
+  /// <param name="monthIndex">Zero-based index into the component's displayed months identifying the source month.</param>
+  /// <param name="copyFromDraft">When true, copies draft values; otherwise copies committed budget values.</param>
+  /// <remarks>
+  /// If the operation would overwrite data in the target month, a confirmation dialog is shown before proceeding.
+  /// Displays success or error notifications and reloads budget data (without re-checking drafts) after a successful copy.
+  /// </remarks>
   private async Task CopyToNextMonth(int monthIndex, bool copyFromDraft)
   {
     try
@@ -496,6 +533,11 @@ public partial class Budget : ComponentBase
     }
   }
 
+  /// <summary>
+  /// Toggle the budget lock state for a specific envelope and month, synchronizing the change with the server and updating local state and UI.
+  /// </summary>
+  /// <param name="envelopeId">Identifier of the envelope whose lock state should be toggled.</param>
+  /// <param name="month">The month for which to toggle the lock.</param>
   private async Task ToggleLock(int envelopeId, DateTime month)
   {
     // Find the row in envelope rows (not summary rows)
