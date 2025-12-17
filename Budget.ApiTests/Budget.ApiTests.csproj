@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Budget.Api\Budget.Api.csproj" />
+    <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
   </ItemGroup>
 </Project>

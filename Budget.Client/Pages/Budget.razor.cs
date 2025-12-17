@@ -97,44 +97,45 @@ public partial class Budget : ComponentBase
             await DialogService.ShowAsync<DraftConfirmationDialog>("Draft Budgets Found", parameters, options);
           var result = await dialog.Result;
 
-        if (result != null && !result.Canceled && result.Data is bool keepDrafts && !keepDrafts)
-        {
-          await ClearDrafts();
-        }
-      }
-
-      // Load all months of data
-      _budgetData = [];
-
-      foreach (var month in _displayMonths)
-      {
-        var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(month.Year, month.Month);
-
-        foreach (var item in monthData)
-        {
-          if (!_budgetData.TryGetValue(item.EnvelopeId, out Dictionary<DateTime, BudgetMonthData>? value))
+          if (result != null && !result.Canceled && result.Data is bool keepDrafts && !keepDrafts)
           {
-            value = [];
-            _budgetData[item.EnvelopeId] = value;
+            await ClearDrafts();
           }
-
-          value[month] = new BudgetMonthData
-          {
-            EnvelopeId = item.EnvelopeId,
-            EnvelopeName = item.EnvelopeName,
-            CategoryId = item.CategoryId,
-            CategoryName = item.CategoryName,
-            CategoryType = item.CategoryType,
-            SortOrder = item.SortOrder,
-            BudgetValue = item.Budget,
-            DraftValue = item.BudgetDraft,
-            IsBudgetLocked = item.IsBudgetLocked,
-            Month = month
-          };
         }
-      }
 
-      BuildDisplayRows();
+        // Load all months of data
+        _budgetData = [];
+
+        foreach (var month in _displayMonths)
+        {
+          var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(month.Year, month.Month);
+
+          foreach (var item in monthData)
+          {
+            if (!_budgetData.TryGetValue(item.EnvelopeId, out Dictionary<DateTime, BudgetMonthData>? value))
+            {
+              value = [];
+              _budgetData[item.EnvelopeId] = value;
+            }
+
+            value[month] = new BudgetMonthData
+            {
+              EnvelopeId = item.EnvelopeId,
+              EnvelopeName = item.EnvelopeName,
+              CategoryId = item.CategoryId,
+              CategoryName = item.CategoryName,
+              CategoryType = item.CategoryType,
+              SortOrder = item.SortOrder,
+              BudgetValue = item.Budget,
+              DraftValue = item.BudgetDraft,
+              IsBudgetLocked = item.IsBudgetLocked,
+              Month = month
+            };
+          }
+        }
+
+        BuildDisplayRows();
+      }
     }
     finally
     {
