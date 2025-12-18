@@ -9,16 +9,16 @@ public partial class Budget : ComponentBase
   private int MonthsToShow => _isSmallScreen ? 1 : 6;
 
   private const int SmallScreenBreakpoint = 768; // Bootstrap's md breakpoint
-  private bool _isSmallScreen ;
+  private bool _isSmallScreen;
 
   private bool _loading = true;
-  private bool _processing ;
+  private bool _processing;
   private Dictionary<int, Dictionary<DateTime, BudgetMonthData>>? _budgetData;
   private readonly List<BudgetDisplayRow> _displayRows = [];
   private readonly List<BudgetDisplayRow> _summaryRows = [];
   private readonly List<BudgetDisplayRow> _envelopeRows = [];
   private List<DateTime> _displayMonths = [];
-  private int _currentScrollPosition ;
+  private int _currentScrollPosition;
 
   protected override async Task OnInitializedAsync()
   {
@@ -97,13 +97,14 @@ public partial class Budget : ComponentBase
             await DialogService.ShowAsync<DraftConfirmationDialog>("Draft Budgets Found", parameters, options);
           var result = await dialog.Result;
 
-          if (result != null && !result.Canceled && result.Data is bool keepDrafts && !keepDrafts)
+          if (result is { Canceled: false, Data: false } dialogResult)
           {
             await ClearDrafts();
           }
         }
+      }
 
-        // Load all months of data
+      // Load all months of data
         _budgetData = [];
 
         foreach (var month in _displayMonths)
@@ -132,7 +133,7 @@ public partial class Budget : ComponentBase
               Month = month
             };
           }
-        }
+        
 
         BuildDisplayRows();
       }
@@ -605,7 +606,7 @@ public partial class Budget : ComponentBase
   {
     public int EnvelopeId { get; init; }
     public string EnvelopeName { get; init; } = string.Empty;
-    public bool IsSummaryRow { get; set;  }
+    public bool IsSummaryRow { get; set; }
     public Dictionary<DateTime, MonthCellData> MonthlyData { get; init; } = [];
   }
 
