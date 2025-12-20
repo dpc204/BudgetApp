@@ -1,0 +1,10 @@
+global using Xunit;
+global using Bunit;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.JSInterop;
+global using MudBlazor;
+global using MudBlazor.Services;
+global using Moq;
+global using Budget.Shared.Services;
+global using Budget.Shared.Models;
+global using Budget.Shared.Enums;
