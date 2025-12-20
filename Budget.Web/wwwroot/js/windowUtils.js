@@ -51,7 +51,8 @@ window.initializeDraftFieldNavigation = function () {
     const envelopeId = parentField.getAttribute('data-envelope-id');
     const monthIndex = parentField.getAttribute('data-month-index');
 
-    if (!envelopeId || monthIndex == null) return;
+    // getAttribute returns null if attribute doesn't exist, so we check against null
+    if (!envelopeId || monthIndex === null) return;
 
     // Find all draft fields with the same month index (same column)
     const allDraftsInColumn = Array.from(document.querySelectorAll(`[data-month-index="${monthIndex}"]`));
