@@ -116,20 +116,3 @@ window.initializeDraftFieldNavigation = function () {
   
   console.log('[DEBUG] Event listener added');
 };
-          console.log('[DEBUG] Moving to next row, same column');
-          nextInput.focus();
-          nextInput.select();
-          console.log('[DEBUG] Successfully focused next input');
-        } else {
-          console.log('[DEBUG] No input found in next cell');
-        }
-      } else {
-        console.log('[DEBUG] Next row does not have cell at index', cellIndex);
-      }
-    } else {
-      console.log('[DEBUG] Already at last row');
-    }
-  });
-  
-  console.log('[DEBUG] Event listener added');
-};
