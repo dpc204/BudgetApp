@@ -233,7 +233,7 @@
               <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding: 4px;">
               @if (cellData != null)
               {
-                <MudNumericField T="decimal?" 
+                <MudNumericField @key="@cellData.UpdateCounter" T="decimal?" 
                                 Value="@cellData.DraftValue" 
                                 ValueChanged="@((decimal? val) => UpdateDraft(context.EnvelopeId, monthKey, val))"
                                 Format="C2"
