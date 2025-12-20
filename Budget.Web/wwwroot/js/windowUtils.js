@@ -38,9 +38,10 @@ window.initializeDraftFieldNavigation = function () {
   setTimeout(() => {
     const draftElements = document.querySelectorAll('[id^="draft-"]');
     console.log('[DEBUG] Found elements with draft- prefix:', draftElements.length);
-    draftElements.forEach(el => {
-      console.log('[DEBUG] Element:', el.id, 'Tag:', el.tagName, 'data-envelope-id:', el.getAttribute('data-envelope-id'), 'data-month-index:', el.getAttribute('data-month-index'));
-    });
+    if (draftElements.length > 0) {
+      const firstElement = draftElements[0];
+      console.log('[DEBUG] Sample element structure:', firstElement.tagName, firstElement.outerHTML.substring(0, 300));
+    }
   }, 2000);
 
   // Use event delegation on the document to handle keydown on draft fields
@@ -87,11 +88,21 @@ window.initializeDraftFieldNavigation = function () {
     if (currentIndex >= 0 && currentIndex < allDraftsInColumn.length - 1) {
       // Move to the next field
       const nextField = allDraftsInColumn[currentIndex + 1];
-      const nextInput = nextField.querySelector('input');
+      
+      // MudBlazor nests the input deep inside, so we need to search more thoroughly
+      // Try multiple selectors to find the input
+      let nextInput = nextField.querySelector('input[type="text"]') || 
+                      nextField.querySelector('input.mud-input-input-control') ||
+                      nextField.querySelector('input');
+      
       console.log('[DEBUG] Moving to next field:', nextField.id, 'Input found:', !!nextInput);
+      
       if (nextInput) {
         nextInput.focus();
         nextInput.select();
+        console.log('[DEBUG] Successfully focused next input');
+      } else {
+        console.log('[DEBUG] Could not find input in next field, HTML:', nextField.innerHTML.substring(0, 200));
       }
     } else {
       console.log('[DEBUG] No next field available');
