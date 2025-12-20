@@ -241,13 +241,7 @@
                                 Class="draft-input-right"
                                 Variant="Variant.Text"
                                 Margin="Margin.Dense"
-                                Disabled="@cellData.IsLocked"
-                                UserAttributes="@(new Dictionary<string, object>
-                                {
-                                  { "id", GetDraftFieldId(context.EnvelopeId, monthIndex) },
-                                  { "data-envelope-id", context.EnvelopeId.ToString() },
-                                  { "data-month-index", monthIndex.ToString() }
-                                })" />
+                                Disabled="@cellData.IsLocked" />
               }
             </MudTd>
           }
