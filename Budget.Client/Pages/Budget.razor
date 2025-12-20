@@ -241,7 +241,9 @@
                                 Class="draft-input-right"
                                 Variant="Variant.Text"
                                 Margin="Margin.Dense"
-                                Disabled="@cellData.IsLocked" />
+                                Disabled="@cellData.IsLocked"
+                                id="@GetDraftFieldId(context.EnvelopeId, i)"
+                                @onkeydown="@(async (KeyboardEventArgs e) => await HandleDraftKeyDown(e, context.EnvelopeId, i))" />
               }
             </MudTd>
           }

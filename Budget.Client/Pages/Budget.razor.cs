@@ -763,4 +763,32 @@ public partial class Budget : ComponentBase
       StateHasChanged();
     }
   }
+
+  private async Task HandleDraftKeyDown(KeyboardEventArgs e, int envelopeId, int monthIndex)
+  {
+    // Handle Tab or Enter key to move down to next row's draft field in the same column
+    if (e.Key == "Tab" || e.Key == "Enter")
+    {
+      // Find the current envelope's index in the envelope rows
+      var currentRowIndex = _envelopeRows.FindIndex(r => r.EnvelopeId == envelopeId);
+      
+      if (currentRowIndex >= 0 && currentRowIndex < _envelopeRows.Count - 1)
+      {
+        // Get the next row's envelope ID
+        var nextRow = _envelopeRows[currentRowIndex + 1];
+        var nextEnvelopeId = nextRow.EnvelopeId;
+        
+        // Construct the ID of the next draft field
+        var nextFieldId = $"draft-{nextEnvelopeId}-{monthIndex}";
+        
+        // Focus the next field using JavaScript
+        await JsRuntime.InvokeVoidAsync("focusElementById", nextFieldId);
+      }
+    }
+  }
+
+  private string GetDraftFieldId(int envelopeId, int monthIndex)
+  {
+    return $"draft-{envelopeId}-{monthIndex}";
+  }
 }
