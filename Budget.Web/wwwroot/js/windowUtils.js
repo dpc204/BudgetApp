@@ -23,6 +23,12 @@ window.focusElementById = function (elementId) {
   }
 };
 
+// Validation error flag - set by C# when validation fails
+window._validationError = false;
+window.setValidationError = function(hasError) {
+  window._validationError = hasError;
+};
+
 // Initialize draft field navigation for Tab and Enter keys
 window.initializeDraftFieldNavigation = function () {
   console.log('[DEBUG] Initializing draft field navigation...');
@@ -48,6 +54,14 @@ window.initializeDraftFieldNavigation = function () {
     if (event.key !== 'Tab' && event.key !== 'Enter') return;
 
     console.log('[DEBUG] Tab/Enter in draft field!');
+    
+    // Check if there was a validation error - if so, don't navigate
+    if (window._validationError) {
+      console.log('[DEBUG] Validation error detected, staying in current field');
+      event.preventDefault();
+      window._validationError = false; // Reset the flag
+      return;
+    }
     
     // Prevent default behavior
     event.preventDefault();
@@ -88,6 +102,20 @@ window.initializeDraftFieldNavigation = function () {
                          nextCell.querySelector('input');
         
         if (nextInput) {
+          console.log('[DEBUG] Moving to next row input');
+          nextInput.focus();
+          nextInput.select();
+        } else {
+          console.log('[DEBUG] No input found in next row cell');
+        }
+      }
+    } else {
+      console.log('[DEBUG] Already at last row');
+    }
+  });
+  
+  console.log('[DEBUG] Event listener added');
+};
           console.log('[DEBUG] Moving to next row, same column');
           nextInput.focus();
           nextInput.select();
