@@ -285,17 +285,22 @@ public partial class Budget : ComponentBase
         {
           cellData.DraftValue = draftValue;
           cellData.DraftDisplayValue = draftValue?.ToString("C2") ?? string.Empty;
+          // Increment update counter to force component recreation with @key
+          cellData.UpdateCounter++;
         }
 
         // Force a re-render to update the formatted display
         // This will show the currency format (e.g., $123.00) without disrupting focus
-        // Use InvokeAsync to ensure we're on the UI thread
         await InvokeAsync(StateHasChanged);
       }
       else
       {
         // Validation error - show message and prevent navigation
-        Snackbar.Add(response.Message, Severity.Warning);
+        // Using InvokeAsync to ensure UI thread
+        await InvokeAsync(() =>
+        {
+          Snackbar.Add(response.Message ?? "Validation error", Severity.Warning);
+        });
         
         // Set a flag that JavaScript can check to prevent navigation
         await JsRuntime.InvokeVoidAsync("setValidationError", true);
@@ -594,6 +599,7 @@ public partial class Budget : ComponentBase
     public decimal? BudgetValue { get; init; }
     public string DraftDisplayValue { get; set; } = string.Empty;
     public bool IsLocked { get; set; }
+    public int UpdateCounter { get; set; }
   }
 
   private class BudgetMonthData
