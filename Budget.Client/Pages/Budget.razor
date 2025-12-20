@@ -243,7 +243,8 @@
                                 Margin="Margin.Dense"
                                 Disabled="@cellData.IsLocked"
                                 id="@GetDraftFieldId(context.EnvelopeId, i)"
-                                @onkeydown="@(async (KeyboardEventArgs e) => await HandleDraftKeyDown(e, context.EnvelopeId, i))" />
+                                data-envelope-id="@context.EnvelopeId"
+                                data-month-index="@i" />
               }
             </MudTd>
           }
