@@ -287,14 +287,25 @@ public partial class Budget : ComponentBase
           cellData.DraftDisplayValue = draftValue?.ToString("C2") ?? string.Empty;
         }
 
-        // Note: We don't rebuild display rows or call StateHasChanged()
-        // Blazor will automatically re-render after this async method completes
-        // The changed cellData properties will trigger minimal re-rendering
+        // Force a re-render to update the formatted display
+        // This will show the currency format (e.g., $123.00) without disrupting focus
+        StateHasChanged();
+      }
+      else
+      {
+        // Validation error - show message and prevent navigation
+        Snackbar.Add(response.Message, Severity.Warning);
+        
+        // Set a flag that JavaScript can check to prevent navigation
+        await JsRuntime.InvokeVoidAsync("window.setValidationError", true);
       }
     }
     catch (Exception ex)
     {
       Snackbar.Add($"Error updating draft: {ex.Message}", Severity.Error);
+      
+      // Set validation error flag to prevent navigation
+      await JsRuntime.InvokeVoidAsync("window.setValidationError", true);
     }
   }
 
