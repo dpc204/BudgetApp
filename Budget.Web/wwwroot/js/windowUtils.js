@@ -41,7 +41,8 @@ window.initializeDraftFieldNavigation = function () {
     if (!target || target.tagName !== 'INPUT') return;
 
     // Check if this input has the draft-input-right class (our draft fields)
-    if (!target.closest('.draft-input-right')) return;
+    const draftField = target.closest('.draft-input-right');
+    if (!draftField) return;
 
     // Only handle Tab and Enter keys
     if (event.key !== 'Tab' && event.key !== 'Enter') return;
@@ -51,23 +52,54 @@ window.initializeDraftFieldNavigation = function () {
     // Prevent default behavior
     event.preventDefault();
 
-    // Find all draft input fields in the document
-    const allDraftInputs = Array.from(document.querySelectorAll('.draft-input-right input'));
-    console.log('[DEBUG] All draft inputs found:', allDraftInputs.length);
-    
-    // Find the current input's index
-    const currentIndex = allDraftInputs.findIndex(input => input === target);
-    console.log('[DEBUG] Current input index:', currentIndex);
-    
-    if (currentIndex >= 0 && currentIndex < allDraftInputs.length - 1) {
-      // Move to the next input
-      const nextInput = allDraftInputs[currentIndex + 1];
-      console.log('[DEBUG] Moving to next input');
-      nextInput.focus();
-      nextInput.select();
-      console.log('[DEBUG] Successfully focused next input');
+    // Find the table cell (td) containing this input
+    const currentCell = target.closest('td');
+    if (!currentCell) {
+      console.log('[DEBUG] Could not find table cell');
+      return;
+    }
+
+    // Find the table row containing this cell
+    const currentRow = currentCell.closest('tr');
+    if (!currentRow) {
+      console.log('[DEBUG] Could not find table row');
+      return;
+    }
+
+    // Get the cell index within the row
+    const cellIndex = Array.from(currentRow.cells).indexOf(currentCell);
+    console.log('[DEBUG] Current cell index:', cellIndex);
+
+    // Find all rows in the table
+    const table = currentRow.closest('table');
+    const allRows = Array.from(table.querySelectorAll('tbody tr'));
+    const currentRowIndex = allRows.indexOf(currentRow);
+    console.log('[DEBUG] Current row:', currentRowIndex, 'of', allRows.length);
+
+    // Move to the next row
+    if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
+      const nextRow = allRows[currentRowIndex + 1];
+      
+      // Get the same cell index in the next row
+      const nextCell = nextRow.cells[cellIndex];
+      if (nextCell) {
+        // Find the input in that cell
+        const nextInput = nextCell.querySelector('.draft-input-right input') || 
+                         nextCell.querySelector('input');
+        
+        if (nextInput) {
+          console.log('[DEBUG] Moving to next row, same column');
+          nextInput.focus();
+          nextInput.select();
+          console.log('[DEBUG] Successfully focused next input');
+        } else {
+          console.log('[DEBUG] No input found in next cell');
+        }
+      } else {
+        console.log('[DEBUG] Next row does not have cell at index', cellIndex);
+      }
     } else {
-      console.log('[DEBUG] No next input available');
+      console.log('[DEBUG] Already at last row');
     }
   });
   
