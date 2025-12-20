@@ -242,9 +242,12 @@
                                 Variant="Variant.Text"
                                 Margin="Margin.Dense"
                                 Disabled="@cellData.IsLocked"
-                                id="@GetDraftFieldId(context.EnvelopeId, monthIndex)"
-                                data-envelope-id="@context.EnvelopeId"
-                                data-month-index="@monthIndex" />
+                                UserAttributes="@(new Dictionary<string, object>
+                                {
+                                  { "id", GetDraftFieldId(context.EnvelopeId, monthIndex) },
+                                  { "data-envelope-id", context.EnvelopeId.ToString() },
+                                  { "data-month-index", monthIndex.ToString() }
+                                })" />
               }
             </MudTd>
           }
