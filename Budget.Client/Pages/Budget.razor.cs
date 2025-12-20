@@ -289,7 +289,8 @@ public partial class Budget : ComponentBase
 
         // Force a re-render to update the formatted display
         // This will show the currency format (e.g., $123.00) without disrupting focus
-        StateHasChanged();
+        // Use InvokeAsync to ensure we're on the UI thread
+        await InvokeAsync(StateHasChanged);
       }
       else
       {
@@ -297,7 +298,7 @@ public partial class Budget : ComponentBase
         Snackbar.Add(response.Message, Severity.Warning);
         
         // Set a flag that JavaScript can check to prevent navigation
-        await JsRuntime.InvokeVoidAsync("window.setValidationError", true);
+        await JsRuntime.InvokeVoidAsync("setValidationError", true);
       }
     }
     catch (Exception ex)
@@ -305,7 +306,7 @@ public partial class Budget : ComponentBase
       Snackbar.Add($"Error updating draft: {ex.Message}", Severity.Error);
       
       // Set validation error flag to prevent navigation
-      await JsRuntime.InvokeVoidAsync("window.setValidationError", true);
+      await JsRuntime.InvokeVoidAsync("setValidationError", true);
     }
   }
 
