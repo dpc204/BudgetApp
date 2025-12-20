@@ -279,7 +279,8 @@ public partial class Budget : ComponentBase
         }
 
         BuildDisplayRows();
-        StateHasChanged();
+        // Note: Removed StateHasChanged() to prevent focus stealing after value update
+        // Blazor will automatically re-render after this async method completes
       }
     }
     catch (Exception ex)
