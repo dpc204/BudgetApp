@@ -242,9 +242,9 @@
                                 Variant="Variant.Text"
                                 Margin="Margin.Dense"
                                 Disabled="@cellData.IsLocked"
-                                id="@GetDraftFieldId(context.EnvelopeId, i)"
+                                id="@GetDraftFieldId(context.EnvelopeId, monthIndex)"
                                 data-envelope-id="@context.EnvelopeId"
-                                data-month-index="@i" />
+                                data-month-index="@monthIndex" />
               }
             </MudTd>
           }

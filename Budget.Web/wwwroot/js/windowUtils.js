@@ -25,6 +25,12 @@ window.focusElementById = function (elementId) {
 
 // Initialize draft field navigation for Tab and Enter keys
 window.initializeDraftFieldNavigation = function () {
+  // Prevent duplicate event listeners
+  if (window._draftNavigationInitialized) {
+    return;
+  }
+  window._draftNavigationInitialized = true;
+
   // Use event delegation on the document to handle keydown on draft fields
   document.addEventListener('keydown', function (event) {
     // Check if the event target is within a draft input field
@@ -45,7 +51,7 @@ window.initializeDraftFieldNavigation = function () {
     const envelopeId = parentField.getAttribute('data-envelope-id');
     const monthIndex = parentField.getAttribute('data-month-index');
 
-    if (!envelopeId || !monthIndex) return;
+    if (!envelopeId || monthIndex === null || monthIndex === undefined) return;
 
     // Find all draft fields with the same month index (same column)
     const allDraftsInColumn = Array.from(document.querySelectorAll(`[data-month-index="${monthIndex}"]`));
