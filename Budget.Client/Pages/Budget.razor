@@ -35,9 +35,14 @@
     flex-grow: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    min-height: 0; /* Important for flex children with overflow */
   }
   .budget-scrollable-table {
     margin-top: 0 !important;
+    height: 100%;
+  }
+  .budget-scrollable-table .mud-table-container {
+    height: 100%;
   }
   /* Hide the header from scrollable table since it has no CustomHeader */
   .budget-scrollable-table thead {
@@ -66,6 +71,14 @@
     align-items: center;
     gap: 4px;
     width: 100%;
+  }
+  .envelope-column {
+    width: 200px;
+    min-width: 150px;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>
 
@@ -137,7 +150,7 @@
         <MudTable Items="@_summaryRows" dense="true" Hover="false" Striped="false" CustomHeader="true" Breakpoint="Breakpoint.None" Class="budget-fixed-table">
         <HeaderContent>
           <tr>
-            <th rowspan="2" style="vertical-align: bottom; padding: 8px;">Envelope</th>
+            <th rowspan="2" class="envelope-column" style="vertical-align: bottom; padding: 8px;">Envelope</th>
             @for (int i = 0; i < MonthsToShow; i++)
             {
               var monthIndex = _currentScrollPosition + i;
@@ -155,7 +168,7 @@
                       <MudMenuItem OnClick="@(() => ApplyMonthDrafts(monthIndex))">Copy Drafts To Budgets</MudMenuItem>
                       <MudMenuItem OnClick="@(() => ClearMonthBudgetValues(monthIndex, true))">Clear All Budgets</MudMenuItem>
                       <MudMenuItem OnClick="@(() => ClearMonthBudgetValues(monthIndex, false))">Clear All Drafts</MudMenuItem>
-                      <MudMenuItem OnClick="@(() => ClearMonthBoth(monthIndex))">Clear Both</MudMenuItem>
+                      <MudMenuItem OnClick="@(() => ClearMonthBoth(monthIndex))">Clear Both</MudMenuItem>ti
                       <MudDivider/>
                       <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, true))">Copy Draft to Next Month</MudMenuItem>
                       <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, false))">Copy Budget to Next Month</MudMenuItem>
@@ -174,8 +187,10 @@
           </tr>
         </HeaderContent>
         <RowTemplate>
-          <MudTd DataLabel="Envelope">
-            <strong>@context.EnvelopeName</strong>
+          <MudTd DataLabel="Envelope" Class="envelope-column">
+            <MudTooltip Text="@context.EnvelopeName">
+              <strong>@context.EnvelopeName</strong>
+            </MudTooltip>
           </MudTd>
           @for (int i = 0; i < MonthsToShow; i++)
           {
@@ -203,8 +218,10 @@
       <div class="budget-scrollable-section">
         <MudTable Items="@_envelopeRows" dense="true" Hover="true" Striped="true" CustomHeader="false" Breakpoint="Breakpoint.None" Class="budget-scrollable-table">
         <RowTemplate>
-          <MudTd DataLabel="Envelope" >
-            @context.EnvelopeName
+          <MudTd DataLabel="Envelope" Class="envelope-column">
+            <MudTooltip Text="@context.EnvelopeName">
+              @context.EnvelopeName
+            </MudTooltip>
           </MudTd>
           @for (int i = 0; i < MonthsToShow; i++)
           {

@@ -160,7 +160,7 @@ public partial class Fund : ComponentBase
   /// For each envelope with a Budget, sets its FundAmount to the greater of 0 and (Budget * selected percentage) minus CurrentBalance.
   /// After updating envelopes, rebuilds display rows, requests a UI refresh, and shows a success snackbar indicating the applied fill.
   /// </remarks>
-  private void ApplyFillAmounts()
+  private void AllocateFill()
   {
     if (_fundData == null) return;
 
@@ -193,6 +193,7 @@ public partial class Fund : ComponentBase
     if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
     {
       envelope.FundAmount = fundAmount;
+      if (fundAmount != null) _availableToFund -= fundAmount.Value;
       BuildDisplayRows();
       StateHasChanged();
     }

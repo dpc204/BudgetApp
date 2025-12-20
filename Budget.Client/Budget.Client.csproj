@@ -12,7 +12,7 @@
     <PackageReference Include="MudBlazor" Version="8.15.0" />
     <PackageReference Include="Syncfusion.Blazor" Version="31.2.10" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
