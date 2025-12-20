@@ -278,9 +278,18 @@ public partial class Budget : ComponentBase
           value1.DraftValue = draftValue;
         }
 
-        BuildDisplayRows();
-        // Note: Removed StateHasChanged() to prevent focus stealing after value update
+        // Update the specific cell in the display rows instead of rebuilding everything
+        // This preserves focus by not destroying and recreating the DOM
+        var envelopeRow = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
+        if (envelopeRow != null && envelopeRow.MonthlyData.TryGetValue(month, out var cellData))
+        {
+          cellData.DraftValue = draftValue;
+          cellData.DraftDisplayValue = draftValue?.ToString("C2") ?? string.Empty;
+        }
+
+        // Note: We don't rebuild display rows or call StateHasChanged()
         // Blazor will automatically re-render after this async method completes
+        // The changed cellData properties will trigger minimal re-rendering
       }
     }
     catch (Exception ex)
