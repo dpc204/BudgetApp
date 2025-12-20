@@ -766,9 +766,4 @@ public partial class Budget : ComponentBase
       StateHasChanged();
     }
   }
-
-  private string GetDraftFieldId(int envelopeId, int monthIndex)
-  {
-    return $"draft-{envelopeId}-{monthIndex}";
-  }
 }

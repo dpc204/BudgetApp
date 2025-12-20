@@ -34,28 +34,14 @@ window.initializeDraftFieldNavigation = function () {
   }
   window._draftNavigationInitialized = true;
 
-  // Log all elements with draft- prefix in their id
-  setTimeout(() => {
-    const draftElements = document.querySelectorAll('[id^="draft-"]');
-    console.log('[DEBUG] Found elements with draft- prefix:', draftElements.length);
-    if (draftElements.length > 0) {
-      const firstElement = draftElements[0];
-      console.log('[DEBUG] Sample element structure:', firstElement.tagName, firstElement.outerHTML.substring(0, 300));
-    }
-  }, 2000);
-
   // Use event delegation on the document to handle keydown on draft fields
   document.addEventListener('keydown', function (event) {
-    console.log('[DEBUG] Keydown:', event.key, 'Target:', event.target.tagName, event.target);
-    
-    // Check if the event target is within a draft input field
+    // Check if the event target is an input field
     const target = event.target;
     if (!target || target.tagName !== 'INPUT') return;
 
-    // Check if this is a draft field by looking at the parent element's id
-    const parentField = target.closest('[id^="draft-"]');
-    console.log('[DEBUG] Parent field found:', parentField ? parentField.id : 'none');
-    if (!parentField) return;
+    // Check if this input has the draft-input-right class (our draft fields)
+    if (!target.closest('.draft-input-right')) return;
 
     // Only handle Tab and Enter keys
     if (event.key !== 'Tab' && event.key !== 'Enter') return;
@@ -65,47 +51,23 @@ window.initializeDraftFieldNavigation = function () {
     // Prevent default behavior
     event.preventDefault();
 
-    // Get the envelope ID and month index from data attributes
-    const envelopeId = parentField.getAttribute('data-envelope-id');
-    const monthIndex = parentField.getAttribute('data-month-index');
-
-    console.log('[DEBUG] EnvelopeId:', envelopeId, 'MonthIndex:', monthIndex);
+    // Find all draft input fields in the document
+    const allDraftInputs = Array.from(document.querySelectorAll('.draft-input-right input'));
+    console.log('[DEBUG] All draft inputs found:', allDraftInputs.length);
     
-    // getAttribute returns null if attribute doesn't exist, so we check against null
-    if (!envelopeId || monthIndex === null) {
-      console.log('[DEBUG] Missing attributes, returning');
-      return;
-    }
-
-    // Find all draft fields with the same month index (same column)
-    const allDraftsInColumn = Array.from(document.querySelectorAll(`[data-month-index="${monthIndex}"]`));
-    console.log('[DEBUG] All drafts in column:', allDraftsInColumn.length);
+    // Find the current input's index
+    const currentIndex = allDraftInputs.findIndex(input => input === target);
+    console.log('[DEBUG] Current input index:', currentIndex);
     
-    // Find the current field's index
-    const currentIndex = allDraftsInColumn.findIndex(el => el === parentField);
-    console.log('[DEBUG] Current index:', currentIndex);
-    
-    if (currentIndex >= 0 && currentIndex < allDraftsInColumn.length - 1) {
-      // Move to the next field
-      const nextField = allDraftsInColumn[currentIndex + 1];
-      
-      // MudBlazor nests the input deep inside, so we need to search more thoroughly
-      // Try multiple selectors to find the input
-      let nextInput = nextField.querySelector('input[type="text"]') || 
-                      nextField.querySelector('input.mud-input-input-control') ||
-                      nextField.querySelector('input');
-      
-      console.log('[DEBUG] Moving to next field:', nextField.id, 'Input found:', !!nextInput);
-      
-      if (nextInput) {
-        nextInput.focus();
-        nextInput.select();
-        console.log('[DEBUG] Successfully focused next input');
-      } else {
-        console.log('[DEBUG] Could not find input in next field, HTML:', nextField.innerHTML.substring(0, 200));
-      }
+    if (currentIndex >= 0 && currentIndex < allDraftInputs.length - 1) {
+      // Move to the next input
+      const nextInput = allDraftInputs[currentIndex + 1];
+      console.log('[DEBUG] Moving to next input');
+      nextInput.focus();
+      nextInput.select();
+      console.log('[DEBUG] Successfully focused next input');
     } else {
-      console.log('[DEBUG] No next field available');
+      console.log('[DEBUG] No next input available');
     }
   });
   
