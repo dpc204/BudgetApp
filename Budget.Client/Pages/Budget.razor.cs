@@ -37,6 +37,9 @@ public partial class Budget : ComponentBase
       {
         StateHasChanged();
       }
+
+      // Initialize draft field navigation
+      await JsRuntime.InvokeVoidAsync("initializeDraftFieldNavigation");
     }
   }
 
@@ -294,13 +297,40 @@ public partial class Budget : ComponentBase
           value1.DraftValue = draftValue;
         }
 
-        BuildDisplayRows();
-        StateHasChanged();
+        // Update the specific cell in the display rows instead of rebuilding everything
+        // This preserves focus by not destroying and recreating the DOM
+        var envelopeRow = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
+        if (envelopeRow != null && envelopeRow.MonthlyData.TryGetValue(month, out var cellData))
+        {
+          cellData.DraftValue = draftValue;
+          cellData.DraftDisplayValue = draftValue?.ToString("C2") ?? string.Empty;
+          // Increment update counter to force component recreation with @key
+          cellData.UpdateCounter++;
+        }
+
+        // Force a re-render to update the formatted display
+        // This will show the currency format (e.g., $123.00) without disrupting focus
+        await InvokeAsync(StateHasChanged);
+      }
+      else
+      {
+        // Validation error - show message and prevent navigation
+        // Using InvokeAsync to ensure UI thread
+        await InvokeAsync(() =>
+        {
+          Snackbar.Add(response.Message ?? "Validation error", Severity.Warning);
+        });
+        
+        // Set a flag that JavaScript can check to prevent navigation
+        await JsRuntime.InvokeVoidAsync("setValidationError", true);
       }
     }
     catch (Exception ex)
     {
       Snackbar.Add($"Error updating draft: {ex.Message}", Severity.Error);
+      
+      // Set validation error flag to prevent navigation
+      await JsRuntime.InvokeVoidAsync("setValidationError", true);
     }
   }
 
@@ -616,6 +646,7 @@ public partial class Budget : ComponentBase
     public decimal? BudgetValue { get; init; }
     public string DraftDisplayValue { get; set; } = string.Empty;
     public bool IsLocked { get; set; }
+    public int UpdateCounter { get; set; }
   }
 
   private class BudgetMonthData
