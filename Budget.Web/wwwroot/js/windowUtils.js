@@ -55,15 +55,7 @@ window.initializeDraftFieldNavigation = function () {
 
     console.log('[DEBUG] Tab/Enter in draft field!');
     
-    // Check if there was a validation error - if so, don't navigate
-    if (window._validationError) {
-      console.log('[DEBUG] Validation error detected, staying in current field');
-      event.preventDefault();
-      window._validationError = false; // Reset the flag
-      return;
-    }
-    
-    // Prevent default behavior
+    // Prevent default behavior - we'll handle navigation manually
     event.preventDefault();
 
     // Find the table cell (td) containing this input
@@ -90,28 +82,43 @@ window.initializeDraftFieldNavigation = function () {
     const currentRowIndex = allRows.indexOf(currentRow);
     console.log('[DEBUG] Current row:', currentRowIndex, 'of', allRows.length);
 
-    // Move to the next row
-    if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
-      const nextRow = allRows[currentRowIndex + 1];
-      
-      // Get the same cell index in the next row
-      const nextCell = nextRow.cells[cellIndex];
-      if (nextCell) {
-        // Find the input in that cell
-        const nextInput = nextCell.querySelector('.draft-input-right input') || 
-                         nextCell.querySelector('input');
-        
-        if (nextInput) {
-          console.log('[DEBUG] Moving to next row input');
-          nextInput.focus();
-          nextInput.select();
-        } else {
-          console.log('[DEBUG] No input found in next row cell');
-        }
+    // Blur the current input to trigger validation
+    target.blur();
+    
+    // Wait a bit for the validation to complete, then check if there was an error
+    setTimeout(function() {
+      if (window._validationError) {
+        console.log('[DEBUG] Validation error detected, staying in current field');
+        // Focus back to the field with error
+        target.focus();
+        target.select();
+        window._validationError = false; // Reset the flag
+        return;
       }
-    } else {
-      console.log('[DEBUG] Already at last row');
-    }
+      
+      // No validation error, move to the next row
+      if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
+        const nextRow = allRows[currentRowIndex + 1];
+        
+        // Get the same cell index in the next row
+        const nextCell = nextRow.cells[cellIndex];
+        if (nextCell) {
+          // Find the input in that cell
+          const nextInput = nextCell.querySelector('.draft-input-right input') || 
+                           nextCell.querySelector('input');
+          
+          if (nextInput) {
+            console.log('[DEBUG] Moving to next row input');
+            nextInput.focus();
+            nextInput.select();
+          } else {
+            console.log('[DEBUG] No input found in next row cell');
+          }
+        }
+      } else {
+        console.log('[DEBUG] Already at last row');
+      }
+    }, 100); // Wait 100ms for validation to complete
   });
   
   console.log('[DEBUG] Event listener added');
