@@ -123,6 +123,10 @@ window.initializeDraftFieldNavigation = function () {
             nextInput.select();
           }
         }
+      } else if (currentRowIndex === allRows.length - 1) {
+        // We're at the last row - keep focus in current field
+        target.focus();
+        target.select();
       }
     }, 200); // Wait 200ms for validation to complete and error state to update
   });
