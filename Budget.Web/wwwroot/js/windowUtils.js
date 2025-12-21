@@ -55,6 +55,19 @@ window.initializeDraftFieldNavigation = function () {
 
     console.log('[DEBUG] Tab/Enter in draft field!');
     
+    // Check if MudBlazor's field already has a validation error (client-side validation)
+    // Look for the error message element that MudBlazor shows
+    const mudField = draftField.closest('.mud-input');
+    if (mudField) {
+      const errorMessage = mudField.querySelector('.mud-input-error');
+      if (errorMessage && errorMessage.textContent) {
+        console.log('[DEBUG] Client-side validation error present, staying in field');
+        // Don't prevent default - let normal Tab behavior work, but don't navigate
+        event.preventDefault();
+        return;
+      }
+    }
+    
     // Prevent default behavior - we'll handle navigation manually
     event.preventDefault();
 
@@ -87,8 +100,17 @@ window.initializeDraftFieldNavigation = function () {
     
     // Wait a bit for the validation to complete, then check if there was an error
     setTimeout(function() {
+      // Check again for validation errors after blur (in case they appear after blur)
+      const errorMessageAfterBlur = mudField ? mudField.querySelector('.mud-input-error') : null;
+      if (errorMessageAfterBlur && errorMessageAfterBlur.textContent) {
+        console.log('[DEBUG] Validation error appeared after blur, refocusing field');
+        target.focus();
+        target.select();
+        return;
+      }
+      
       if (window._validationError) {
-        console.log('[DEBUG] Validation error detected, staying in current field');
+        console.log('[DEBUG] Server validation error detected, staying in current field');
         // Focus back to the field with error
         target.focus();
         target.select();
