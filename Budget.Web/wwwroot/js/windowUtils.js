@@ -57,50 +57,44 @@ window.initializeDraftFieldNavigation = function () {
     console.log('[DEBUG] Input value:', target.value);
     console.log('[DEBUG] Input classList:', target.classList.toString());
     
-    // Check if MudBlazor's field already has a validation error (client-side validation)
-    // Look for the error message element that MudBlazor shows
-    const mudField = draftField.closest('.mud-input');
-    console.log('[DEBUG] Found .mud-input parent:', !!mudField);
+    // Check if input has aria-invalid attribute (MudBlazor sets this for validation errors)
+    const ariaInvalid = target.getAttribute('aria-invalid');
+    console.log('[DEBUG] aria-invalid attribute:', ariaInvalid);
     
-    if (mudField) {
-      console.log('[DEBUG] Mud field classes:', mudField.classList.toString());
+    // Find the table cell containing this input (MudBlazor renders input directly in td, no .mud-input wrapper)
+    const tableCell = target.closest('td');
+    console.log('[DEBUG] Found table cell (TD):', !!tableCell);
+    
+    if (tableCell) {
+      console.log('[DEBUG] Table cell classes:', tableCell.classList.toString());
       
-      // Check for error class on the mud-input element itself
-      const hasErrorClass = mudField.classList.contains('mud-input-error');
-      console.log('[DEBUG] Has mud-input-error class:', hasErrorClass);
+      // Check for error indicators in the cell or its children
+      const errorElements = tableCell.querySelectorAll('.mud-error, .mud-input-error, .validation-message, .mud-error-text');
+      console.log('[DEBUG] Error elements found in cell:', errorElements.length);
       
-      // Check for error message element
-      const errorMessage = mudField.querySelector('.mud-input-error');
-      console.log('[DEBUG] Error message element found:', !!errorMessage);
-      
-      if (errorMessage) {
-        console.log('[DEBUG] Error message content:', errorMessage.textContent);
-        console.log('[DEBUG] Error message innerHTML:', errorMessage.innerHTML);
+      if (errorElements.length > 0) {
+        errorElements.forEach((el, idx) => {
+          console.log(`[DEBUG] Error element ${idx}:`, el.tagName, el.classList.toString(), 'Text:', el.textContent.trim());
+        });
       }
       
-      // Check for any validation helper text
-      const helperText = mudField.querySelector('.mud-input-helper-text');
-      if (helperText) {
-        console.log('[DEBUG] Helper text found:', helperText.textContent);
-      }
+      // Check for error text in any child element
+      const hasErrorText = Array.from(tableCell.querySelectorAll('*')).some(el => {
+        const text = el.textContent.trim().toLowerCase();
+        return text.includes('not a valid') || text.includes('invalid') || text.includes('error');
+      });
+      console.log('[DEBUG] Has error text in cell:', hasErrorText);
       
-      if (errorMessage && errorMessage.textContent && errorMessage.textContent.trim().length > 0) {
+      // If aria-invalid is true or error elements exist, stay in field
+      if (ariaInvalid === 'true' || errorElements.length > 0 || hasErrorText) {
         console.log('[DEBUG] *** Client-side validation error present, STAYING in field ***');
         event.preventDefault();
         return;
       } else {
-        console.log('[DEBUG] No active error message found before blur');
+        console.log('[DEBUG] No active validation error found before blur');
       }
     } else {
-      console.log('[DEBUG] WARNING: Could not find .mud-input parent element');
-      // Try to find any parent with mud in the class name
-      let parent = draftField.parentElement;
-      let depth = 0;
-      while (parent && depth < 10) {
-        console.log(`[DEBUG] Parent ${depth}:`, parent.tagName, parent.classList.toString());
-        parent = parent.parentElement;
-        depth++;
-      }
+      console.log('[DEBUG] WARNING: Could not find table cell (TD) element');
     }
     
     // Prevent default behavior - we'll handle navigation manually
@@ -140,33 +134,39 @@ window.initializeDraftFieldNavigation = function () {
       console.log('[DEBUG] ====== After 100ms delay ======');
       
       // Check again for validation errors after blur (in case they appear after blur)
-      if (mudField) {
+      const tableCellAfterBlur = target.closest('td');
+      if (tableCellAfterBlur) {
         console.log('[DEBUG] Checking for errors after blur...');
-        console.log('[DEBUG] Mud field classes after blur:', mudField.classList.toString());
+        console.log('[DEBUG] Table cell classes after blur:', tableCellAfterBlur.classList.toString());
         
-        const hasErrorClassAfterBlur = mudField.classList.contains('mud-input-error');
-        console.log('[DEBUG] Has mud-input-error class after blur:', hasErrorClassAfterBlur);
+        // Check aria-invalid again
+        const ariaInvalidAfterBlur = target.getAttribute('aria-invalid');
+        console.log('[DEBUG] aria-invalid after blur:', ariaInvalidAfterBlur);
         
-        const errorMessageAfterBlur = mudField.querySelector('.mud-input-error');
-        console.log('[DEBUG] Error message element after blur:', !!errorMessageAfterBlur);
+        // Check for error elements in cell after blur
+        const errorElementsAfterBlur = tableCellAfterBlur.querySelectorAll('.mud-error, .mud-input-error, .validation-message, .mud-error-text');
+        console.log('[DEBUG] Error elements after blur:', errorElementsAfterBlur.length);
         
-        if (errorMessageAfterBlur) {
-          console.log('[DEBUG] Error message content after blur:', errorMessageAfterBlur.textContent);
-          console.log('[DEBUG] Error message trim length:', errorMessageAfterBlur.textContent.trim().length);
+        if (errorElementsAfterBlur.length > 0) {
+          errorElementsAfterBlur.forEach((el, idx) => {
+            console.log(`[DEBUG] Error element ${idx} after blur:`, el.tagName, el.textContent.trim());
+          });
         }
         
-        const helperTextAfterBlur = mudField.querySelector('.mud-input-helper-text');
-        if (helperTextAfterBlur) {
-          console.log('[DEBUG] Helper text after blur:', helperTextAfterBlur.textContent);
-        }
+        // Check for error text again
+        const hasErrorTextAfterBlur = Array.from(tableCellAfterBlur.querySelectorAll('*')).some(el => {
+          const text = el.textContent.trim().toLowerCase();
+          return text.includes('not a valid') || text.includes('invalid') || text.includes('error');
+        });
+        console.log('[DEBUG] Has error text after blur:', hasErrorTextAfterBlur);
         
-        if (errorMessageAfterBlur && errorMessageAfterBlur.textContent && errorMessageAfterBlur.textContent.trim().length > 0) {
+        if (ariaInvalidAfterBlur === 'true' || errorElementsAfterBlur.length > 0 || hasErrorTextAfterBlur) {
           console.log('[DEBUG] *** Validation error APPEARED after blur, REFOCUSING field ***');
           target.focus();
           target.select();
           return;
         } else {
-          console.log('[DEBUG] No error message found after blur');
+          console.log('[DEBUG] No error found after blur');
         }
       }
       
