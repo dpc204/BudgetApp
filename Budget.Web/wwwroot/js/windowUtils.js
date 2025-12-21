@@ -69,6 +69,9 @@ window.initializeDraftFieldNavigation = function () {
     const allRows = Array.from(table.querySelectorAll('tbody tr'));
     const currentRowIndex = allRows.indexOf(currentRow);
 
+    // Store reference to the current input before blurring
+    const currentInput = target;
+    
     // Blur the current input to trigger validation
     target.blur();
     
@@ -76,10 +79,10 @@ window.initializeDraftFieldNavigation = function () {
     // 200ms delay gives MudBlazor time to re-validate and clear old errors
     setTimeout(function() {
       // Check for validation errors after blur
-      const tableCellAfterBlur = target.closest('td');
+      const tableCellAfterBlur = currentInput.closest('td');
       if (tableCellAfterBlur) {
         // Check aria-invalid attribute
-        const ariaInvalidAfterBlur = target.getAttribute('aria-invalid');
+        const ariaInvalidAfterBlur = currentInput.getAttribute('aria-invalid');
         
         // Check for error elements in cell after blur
         const errorElementsAfterBlur = tableCellAfterBlur.querySelectorAll('.mud-error, .mud-input-error, .validation-message, .mud-error-text');
@@ -92,8 +95,8 @@ window.initializeDraftFieldNavigation = function () {
         
         if (ariaInvalidAfterBlur === 'true' || errorElementsAfterBlur.length > 0 || hasErrorTextAfterBlur) {
           // Validation error found - refocus the field
-          target.focus();
-          target.select();
+          currentInput.focus();
+          currentInput.select();
           return;
         }
       }
@@ -101,14 +104,19 @@ window.initializeDraftFieldNavigation = function () {
       // Check server validation error flag
       if (window._validationError) {
         // Server validation error - stay in current field
-        target.focus();
-        target.select();
+        currentInput.focus();
+        currentInput.select();
         window._validationError = false; // Reset the flag
         return;
       }
       
-      // No validation error, move to the next row
-      if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
+      // No validation error, proceed with navigation
+      if (currentRowIndex === allRows.length - 1) {
+        // We're at the last row - keep focus in current field
+        currentInput.focus();
+        currentInput.select();
+      } else if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
+        // Move to the next row
         const nextRow = allRows[currentRowIndex + 1];
         
         // Get the same cell index in the next row
@@ -123,10 +131,6 @@ window.initializeDraftFieldNavigation = function () {
             nextInput.select();
           }
         }
-      } else if (currentRowIndex === allRows.length - 1) {
-        // We're at the last row - keep focus in current field
-        target.focus();
-        target.select();
       }
     }, 200); // Wait 200ms for validation to complete and error state to update
   });
