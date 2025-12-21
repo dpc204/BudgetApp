@@ -57,46 +57,6 @@ window.initializeDraftFieldNavigation = function () {
     console.log('[DEBUG] Input value:', target.value);
     console.log('[DEBUG] Input classList:', target.classList.toString());
     
-    // Check if input has aria-invalid attribute (MudBlazor sets this for validation errors)
-    const ariaInvalid = target.getAttribute('aria-invalid');
-    console.log('[DEBUG] aria-invalid attribute:', ariaInvalid);
-    
-    // Find the table cell containing this input (MudBlazor renders input directly in td, no .mud-input wrapper)
-    const tableCell = target.closest('td');
-    console.log('[DEBUG] Found table cell (TD):', !!tableCell);
-    
-    if (tableCell) {
-      console.log('[DEBUG] Table cell classes:', tableCell.classList.toString());
-      
-      // Check for error indicators in the cell or its children
-      const errorElements = tableCell.querySelectorAll('.mud-error, .mud-input-error, .validation-message, .mud-error-text');
-      console.log('[DEBUG] Error elements found in cell:', errorElements.length);
-      
-      if (errorElements.length > 0) {
-        errorElements.forEach((el, idx) => {
-          console.log(`[DEBUG] Error element ${idx}:`, el.tagName, el.classList.toString(), 'Text:', el.textContent.trim());
-        });
-      }
-      
-      // Check for error text in any child element
-      const hasErrorText = Array.from(tableCell.querySelectorAll('*')).some(el => {
-        const text = el.textContent.trim().toLowerCase();
-        return text.includes('not a valid') || text.includes('invalid') || text.includes('error');
-      });
-      console.log('[DEBUG] Has error text in cell:', hasErrorText);
-      
-      // If aria-invalid is true or error elements exist, stay in field
-      if (ariaInvalid === 'true' || errorElements.length > 0 || hasErrorText) {
-        console.log('[DEBUG] *** Client-side validation error present, STAYING in field ***');
-        event.preventDefault();
-        return;
-      } else {
-        console.log('[DEBUG] No active validation error found before blur');
-      }
-    } else {
-      console.log('[DEBUG] WARNING: Could not find table cell (TD) element');
-    }
-    
     // Prevent default behavior - we'll handle navigation manually
     event.preventDefault();
 
@@ -129,9 +89,10 @@ window.initializeDraftFieldNavigation = function () {
     // Blur the current input to trigger validation
     target.blur();
     
-    // Wait a bit for the validation to complete, then check if there was an error
+    // Wait for validation to complete, then check if there was an error
+    // Increased delay to 200ms to give MudBlazor time to re-validate and clear old errors
     setTimeout(function() {
-      console.log('[DEBUG] ====== After 100ms delay ======');
+      console.log('[DEBUG] ====== After 200ms delay ======');
       
       // Check again for validation errors after blur (in case they appear after blur)
       const tableCellAfterBlur = target.closest('td');
@@ -207,7 +168,7 @@ window.initializeDraftFieldNavigation = function () {
       } else {
         console.log('[DEBUG] Already at last row (', currentRowIndex, 'of', allRows.length, ')');
       }
-    }, 100); // Wait 100ms for validation to complete
+    }, 200); // Wait 200ms for validation to complete and error state to update
   });
   
   console.log('[DEBUG] Event listener added');
