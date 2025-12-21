@@ -31,11 +31,8 @@ window.setValidationError = function(hasError) {
 
 // Initialize draft field navigation for Tab and Enter keys
 window.initializeDraftFieldNavigation = function () {
-  console.log('[DEBUG] Initializing draft field navigation...');
-  
   // Prevent duplicate event listeners
   if (window._draftNavigationInitialized) {
-    console.log('[DEBUG] Already initialized, skipping...');
     return;
   }
   window._draftNavigationInitialized = true;
@@ -53,95 +50,62 @@ window.initializeDraftFieldNavigation = function () {
     // Only handle Tab and Enter keys
     if (event.key !== 'Tab' && event.key !== 'Enter') return;
 
-    console.log('[DEBUG] ====== Tab/Enter pressed in draft field ======');
-    console.log('[DEBUG] Input value:', target.value);
-    console.log('[DEBUG] Input classList:', target.classList.toString());
-    
     // Prevent default behavior - we'll handle navigation manually
     event.preventDefault();
 
     // Find the table cell (td) containing this input
     const currentCell = target.closest('td');
-    if (!currentCell) {
-      console.log('[DEBUG] Could not find table cell');
-      return;
-    }
+    if (!currentCell) return;
 
     // Find the table row containing this cell
     const currentRow = currentCell.closest('tr');
-    if (!currentRow) {
-      console.log('[DEBUG] Could not find table row');
-      return;
-    }
+    if (!currentRow) return;
 
     // Get the cell index within the row
     const cellIndex = Array.from(currentRow.cells).indexOf(currentCell);
-    console.log('[DEBUG] Current cell index:', cellIndex);
 
     // Find all rows in the table
     const table = currentRow.closest('table');
     const allRows = Array.from(table.querySelectorAll('tbody tr'));
     const currentRowIndex = allRows.indexOf(currentRow);
-    console.log('[DEBUG] Current row:', currentRowIndex, 'of', allRows.length);
 
-    console.log('[DEBUG] Blurring current input to trigger validation...');
-    
     // Blur the current input to trigger validation
     target.blur();
     
     // Wait for validation to complete, then check if there was an error
-    // Increased delay to 200ms to give MudBlazor time to re-validate and clear old errors
+    // 200ms delay gives MudBlazor time to re-validate and clear old errors
     setTimeout(function() {
-      console.log('[DEBUG] ====== After 200ms delay ======');
-      
-      // Check again for validation errors after blur (in case they appear after blur)
+      // Check for validation errors after blur
       const tableCellAfterBlur = target.closest('td');
       if (tableCellAfterBlur) {
-        console.log('[DEBUG] Checking for errors after blur...');
-        console.log('[DEBUG] Table cell classes after blur:', tableCellAfterBlur.classList.toString());
-        
-        // Check aria-invalid again
+        // Check aria-invalid attribute
         const ariaInvalidAfterBlur = target.getAttribute('aria-invalid');
-        console.log('[DEBUG] aria-invalid after blur:', ariaInvalidAfterBlur);
         
         // Check for error elements in cell after blur
         const errorElementsAfterBlur = tableCellAfterBlur.querySelectorAll('.mud-error, .mud-input-error, .validation-message, .mud-error-text');
-        console.log('[DEBUG] Error elements after blur:', errorElementsAfterBlur.length);
         
-        if (errorElementsAfterBlur.length > 0) {
-          errorElementsAfterBlur.forEach((el, idx) => {
-            console.log(`[DEBUG] Error element ${idx} after blur:`, el.tagName, el.textContent.trim());
-          });
-        }
-        
-        // Check for error text again
+        // Check for error text
         const hasErrorTextAfterBlur = Array.from(tableCellAfterBlur.querySelectorAll('*')).some(el => {
           const text = el.textContent.trim().toLowerCase();
           return text.includes('not a valid') || text.includes('invalid') || text.includes('error');
         });
-        console.log('[DEBUG] Has error text after blur:', hasErrorTextAfterBlur);
         
         if (ariaInvalidAfterBlur === 'true' || errorElementsAfterBlur.length > 0 || hasErrorTextAfterBlur) {
-          console.log('[DEBUG] *** Validation error APPEARED after blur, REFOCUSING field ***');
+          // Validation error found - refocus the field
           target.focus();
           target.select();
           return;
-        } else {
-          console.log('[DEBUG] No error found after blur');
         }
       }
       
-      console.log('[DEBUG] Checking server validation error flag:', window._validationError);
+      // Check server validation error flag
       if (window._validationError) {
-        console.log('[DEBUG] *** Server validation error detected, STAYING in current field ***');
-        // Focus back to the field with error
+        // Server validation error - stay in current field
         target.focus();
         target.select();
         window._validationError = false; // Reset the flag
         return;
       }
-      
-      console.log('[DEBUG] No validation errors detected, proceeding with navigation');
       
       // No validation error, move to the next row
       if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
@@ -155,21 +119,11 @@ window.initializeDraftFieldNavigation = function () {
                            nextCell.querySelector('input');
           
           if (nextInput) {
-            console.log('[DEBUG] *** MOVING to next row input ***');
-            console.log('[DEBUG] Next input value:', nextInput.value);
             nextInput.focus();
             nextInput.select();
-          } else {
-            console.log('[DEBUG] ERROR: No input found in next row cell');
           }
-        } else {
-          console.log('[DEBUG] ERROR: No cell found at index', cellIndex, 'in next row');
         }
-      } else {
-        console.log('[DEBUG] Already at last row (', currentRowIndex, 'of', allRows.length, ')');
       }
     }, 200); // Wait 200ms for validation to complete and error state to update
   });
-  
-  console.log('[DEBUG] Event listener added');
 };
