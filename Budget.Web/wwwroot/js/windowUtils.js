@@ -66,19 +66,12 @@ window.initializeDraftFieldNavigation = function () {
     const allRows = Array.from(table.querySelectorAll('tbody tr'));
     const currentRowIndex = allRows.indexOf(currentRow);
     
-    // Check if we're at the last row - if so, just prevent navigation
-    if (currentRowIndex === allRows.length - 1) {
-      event.preventDefault();
-      // Don't navigate, just stay in the current field
-      // The field will naturally blur if the user clicks elsewhere
-      return;
-    }
-
     // Prevent default behavior - we'll handle navigation manually
     event.preventDefault();
 
     // Store reference to the current input before blurring
     const currentInput = target;
+    const isLastRow = currentRowIndex === allRows.length - 1;
     
     // Blur the current input to trigger validation
     target.blur();
@@ -118,7 +111,14 @@ window.initializeDraftFieldNavigation = function () {
         return;
       }
       
-      // No validation error, move to the next row
+      // If we're at the last row and there's no validation error, just refocus the field
+      if (isLastRow) {
+        currentInput.focus();
+        currentInput.select();
+        return;
+      }
+      
+      // No validation error and not last row, move to the next row
       if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
         // Move to the next row
         const nextRow = allRows[currentRowIndex + 1];
