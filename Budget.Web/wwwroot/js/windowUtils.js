@@ -66,15 +66,11 @@ window.initializeDraftFieldNavigation = function () {
     const allRows = Array.from(table.querySelectorAll('tbody tr'));
     const currentRowIndex = allRows.indexOf(currentRow);
     
-    // Check if we're at the last row - if so, prevent default behavior
+    // Check if we're at the last row - if so, just prevent navigation
     if (currentRowIndex === allRows.length - 1) {
       event.preventDefault();
-      // Blur to trigger validation, then refocus
-      target.blur();
-      setTimeout(function() {
-        target.focus();
-        target.select();
-      }, 200);
+      // Don't navigate, just stay in the current field
+      // The field will naturally blur if the user clicks elsewhere
       return;
     }
 
