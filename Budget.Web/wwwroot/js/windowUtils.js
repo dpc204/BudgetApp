@@ -113,8 +113,11 @@ window.initializeDraftFieldNavigation = function () {
       // No validation error, proceed with navigation
       if (currentRowIndex === allRows.length - 1) {
         // We're at the last row - keep focus in current field
-        currentInput.focus();
-        currentInput.select();
+        // Use requestAnimationFrame to ensure focus happens after any browser reflows
+        requestAnimationFrame(function() {
+          currentInput.focus();
+          currentInput.select();
+        });
       } else if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
         // Move to the next row
         const nextRow = allRows[currentRowIndex + 1];
