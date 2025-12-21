@@ -50,9 +50,6 @@ window.initializeDraftFieldNavigation = function () {
     // Only handle Tab and Enter keys
     if (event.key !== 'Tab' && event.key !== 'Enter') return;
 
-    // Prevent default behavior - we'll handle navigation manually
-    event.preventDefault();
-
     // Find the table cell (td) containing this input
     const currentCell = target.closest('td');
     if (!currentCell) return;
@@ -68,6 +65,21 @@ window.initializeDraftFieldNavigation = function () {
     const table = currentRow.closest('table');
     const allRows = Array.from(table.querySelectorAll('tbody tr'));
     const currentRowIndex = allRows.indexOf(currentRow);
+    
+    // Check if we're at the last row - if so, prevent default behavior
+    if (currentRowIndex === allRows.length - 1) {
+      event.preventDefault();
+      // Blur to trigger validation, then refocus
+      target.blur();
+      setTimeout(function() {
+        target.focus();
+        target.select();
+      }, 200);
+      return;
+    }
+
+    // Prevent default behavior - we'll handle navigation manually
+    event.preventDefault();
 
     // Store reference to the current input before blurring
     const currentInput = target;
@@ -110,15 +122,8 @@ window.initializeDraftFieldNavigation = function () {
         return;
       }
       
-      // No validation error, proceed with navigation
-      if (currentRowIndex === allRows.length - 1) {
-        // We're at the last row - keep focus in current field
-        // Use requestAnimationFrame to ensure focus happens after any browser reflows
-        requestAnimationFrame(function() {
-          currentInput.focus();
-          currentInput.select();
-        });
-      } else if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
+      // No validation error, move to the next row
+      if (currentRowIndex >= 0 && currentRowIndex < allRows.length - 1) {
         // Move to the next row
         const nextRow = allRows[currentRowIndex + 1];
         
