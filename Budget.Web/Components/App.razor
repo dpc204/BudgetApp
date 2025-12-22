@@ -2,30 +2,36 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="/" />  
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-    <link href=@Assets["_content/MudBlazor/MudBlazor.min.css"] rel="stylesheet" />
-    <!-- Block search engine indexing and link following -->
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="googlebot" content="noindex, nofollow" />
-    <meta name="bingbot" content="noindex, nofollow" />
-    <ImportMap />
-    <link rel="icon" type="image/ico" href="favicon.ico" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/" />  
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+  <link href=@Assets["_content/MudBlazor/MudBlazor.min.css"] rel="stylesheet" />
+  <!-- Block search engine indexing and link following -->
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="googlebot" content="noindex, nofollow" />
+  <meta name="bingbot" content="noindex, nofollow" />
+  <ImportMap />
+  <link rel="icon" type="image/ico" href="favicon.ico" />
   <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-    <Routes @rendermode="InteractiveServer" />
-    <script src="_framework/blazor.web.js"></script>
+<Routes @rendermode="InteractiveServer" />
+<script src="_framework/blazor.web.js"></script>
 
-    <script src=@Assets["_content/MudBlazor/MudBlazor.min.js"]></script>
-    <script src="js/fdNumericInput.js"></script>
-    <script src="js/windowUtils.js"></script>
-    <script type="module">
+<script src=@Assets["_content/MudBlazor/MudBlazor.min.js"]></script>
+<script src="js/fdNumericInput.js"></script>
+<script src="js/windowUtils.js"></script>
+<script type="module">
       import { initialize } from './js/fileDownload.js';
       initialize();
+    </script>
+<script>
+      // Initialize draft field navigation after Blazor starts
+      if (typeof window.initializeDraftFieldNavigation === 'function') {
+        window.initializeDraftFieldNavigation();
+      }
     </script>
   
 </body>

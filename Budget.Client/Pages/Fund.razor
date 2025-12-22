@@ -5,10 +5,10 @@
 @inject ISnackbar Snackbar
 
 <style>
-  .fund-input-right {
+  .draft-input-right {
     width: 150px;
   }
-  .fund-input-right input {
+  .draft-input-right input {
     text-align: right !important;
   }
   .fund-summary-text {
@@ -119,15 +119,16 @@
         <MudTd DataLabel="Budget" Class="display-column" Style="text-align: right;  border-left: 2px solid var(--mud-palette-lines-default);">
           @(context.Budget?.ToString("C2") ?? "$0.00")
         </MudTd>
-        <MudTd DataLabel="Fund Amount"  Class="display-column"T Style="text-align: right;  border-left: 2px solid var(--mud-palette-lines-default);">
-          <MudNumericField T="decimal?"
+        <MudTd DataLabel="Fund Amount" Class="display-column" Style="text-align: right;  border-left: 2px solid var(--mud-palette-lines-default);">
+          <MudNumericField @key="@context.UpdateCounter" T="decimal?"
                            Value="@context.FundAmount"
                            ValueChanged="@((decimal? val) => UpdateFundAmount(context.EnvelopeId, val))"
                            Format="C2"
                            HideSpinButtons="true"
-                           Class="fund-input-right"
+                           Class="draft-input-right"
                            Variant="Variant.Text"
-                           Margin="Margin.Dense"/>
+                           Margin="Margin.Dense"
+                           Immediate="false"/>
         </MudTd>
       </RowTemplate>
     </MudTable>

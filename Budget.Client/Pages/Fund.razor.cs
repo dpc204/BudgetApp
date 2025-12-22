@@ -53,10 +53,9 @@ public partial class Fund : ComponentBase
       _totalBudget = 0;
       _totalBalance = 0;
 
-      foreach (var item in monthData)
+      foreach(var item in monthData)
       {
-        var envelopeData = new FundEnvelopeData
-        {
+        var envelopeData = new FundEnvelopeData {
           EnvelopeId = item.EnvelopeId,
           EnvelopeName = item.EnvelopeName,
           CategoryId = item.CategoryId,
@@ -98,7 +97,7 @@ public partial class Fund : ComponentBase
   {
     _envelopeRows.Clear();
 
-    if (_fundData == null || _fundData.Count == 0)
+    if(_fundData == null || _fundData.Count == 0)
       return;
 
     // Sort envelopes by SortOrder
@@ -106,10 +105,9 @@ public partial class Fund : ComponentBase
       .OrderBy(e => e.SortOrder)
       .ToList();
 
-    foreach (var envelope in sortedEnvelopes)
+    foreach(var envelope in sortedEnvelopes)
     {
-      _envelopeRows.Add(new FundDisplayRow
-      {
+      _envelopeRows.Add(new FundDisplayRow {
         EnvelopeId = envelope.EnvelopeId,
         EnvelopeName = envelope.EnvelopeName,
         CurrentBalance = envelope.CurrentBalance,
@@ -145,8 +143,7 @@ public partial class Fund : ComponentBase
   /// <returns>The button label: "Fill 100%", "Fill 50%", or "Fill".</returns>
   private string GetFillButtonText()
   {
-    return _selectedFillAmount switch
-    {
+    return _selectedFillAmount switch {
       FillAmounts.OneHundredPercent => "Fill 100%",
       FillAmounts.FiftyPercent => "Fill 50%",
       _ => "Fill"
@@ -162,15 +159,15 @@ public partial class Fund : ComponentBase
   /// </remarks>
   private void AllocateFill()
   {
-    if (_fundData == null) return;
+    if(_fundData == null) return;
 
-    foreach (var envelope in _fundData.Values)
+    foreach(var envelope in _fundData.Values)
     {
-      if (envelope.Budget.HasValue)
+      if(envelope.Budget.HasValue)
       {
         var budgetAmount = envelope.Budget.Value;
         var fillPercentage = _selectedFillAmount == FillAmounts.OneHundredPercent ? 1.0m : 0.5m;
-        
+
         // Calculate fund amount as percentage of budget minus current balance
         var targetAmount = budgetAmount * fillPercentage;
         envelope.FundAmount = Math.Max(0, targetAmount - envelope.CurrentBalance);
@@ -179,7 +176,7 @@ public partial class Fund : ComponentBase
 
     BuildDisplayRows();
     StateHasChanged();
-    
+
     Snackbar.Add($"Applied {GetFillButtonText()} to all envelopes", Severity.Success);
   }
 
@@ -190,11 +187,19 @@ public partial class Fund : ComponentBase
   /// <param name="fundAmount">New fund amount to assign, or null to clear the pending amount.</param>
   private void UpdateFundAmount(int envelopeId, decimal? fundAmount)
   {
-    if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
+    if(_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
     {
       envelope.FundAmount = fundAmount;
-      if (fundAmount != null) _availableToFund -= fundAmount.Value;
-      BuildDisplayRows();
+      if(fundAmount != null) _availableToFund -= fundAmount.Value;
+
+      // Update the display row data without rebuilding entire table (prevents focus stealing)
+      var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
+      if(row != null)
+      {
+        row.FundAmount = fundAmount;
+        row.UpdateCounter++; // Force MudNumericField recreation for proper formatting
+      }
+
       StateHasChanged();
     }
   }
@@ -208,15 +213,15 @@ public partial class Fund : ComponentBase
   /// </remarks>
   private void FillToBudgetForPeriod(int envelopeId)
   {
-    if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
+    if(_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
     {
-      if (envelope.Budget.HasValue)
+      if(envelope.Budget.HasValue)
       {
         // Fill to budget means: budget amount minus current balance
         envelope.FundAmount = Math.Max(0, envelope.Budget.Value - envelope.CurrentBalance);
         BuildDisplayRows();
         StateHasChanged();
-        
+
         Snackbar.Add($"Set {envelope.EnvelopeName} to fill to budget", Severity.Success);
       }
     }
@@ -228,15 +233,15 @@ public partial class Fund : ComponentBase
   /// <param name="envelopeId">The identifier of the envelope to update.</param>
   private void AddFullBudgetAmountForPeriod(int envelopeId)
   {
-    if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
+    if(_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
     {
-      if (envelope.Budget.HasValue)
+      if(envelope.Budget.HasValue)
       {
         // Add full budget amount regardless of current balance
         envelope.FundAmount = envelope.Budget.Value;
         BuildDisplayRows();
         StateHasChanged();
-        
+
         Snackbar.Add($"Set {envelope.EnvelopeName} to full budget amount", Severity.Success);
       }
     }
@@ -282,5 +287,6 @@ public partial class Fund : ComponentBase
     public decimal CurrentBalance { get; set; }
     public decimal? Budget { get; set; }
     public decimal? FundAmount { get; set; }
+    public int UpdateCounter { get; set; }
   }
 }
