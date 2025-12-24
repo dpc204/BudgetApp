@@ -5,7 +5,7 @@
 @if (_loading)
 {
   <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-4">
-    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
   </MudStack>
 }
 else if (!string.IsNullOrEmpty(_loadError))

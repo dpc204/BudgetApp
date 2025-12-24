@@ -29,7 +29,7 @@ public sealed partial class AuthStateSync : ComponentBase
     {
       // Only set once per load
       if (!UserAndOptions.HasInfo)
-      {
+      { 
         var dto = MapToDto(user!);
         UserAndOptions.SetUserInfo(dto);
         await EnvelopeState.RefreshAsync();

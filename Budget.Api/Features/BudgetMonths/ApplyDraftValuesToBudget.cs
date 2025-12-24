@@ -3,7 +3,7 @@ namespace Budget.Api.Features.BudgetMonths;
 /// <summary>
 /// Applies all draft budget values to actual budget values
 /// </summary>
-public static class ApplyDraftBudgets
+public static class ApplyDraftValuesToBudget
 {
   public sealed record Command : IRequest<Response>;
   
@@ -22,7 +22,7 @@ public static class ApplyDraftBudgets
         .ToListAsync(cancellationToken);
 
       // Apply draft values to budget and clear drafts
-      foreach (var budget in budgetsWithDrafts)
+      foreach (var budget in budgetsWithDrafts.Where(a=> !a.IsBudgetLocked))
       {
         budget.Budget = budget.BudgetDraft;
         budget.BudgetDraft = null;

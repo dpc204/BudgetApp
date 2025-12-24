@@ -10,11 +10,14 @@ public static class AddNewTransaction
   {
     public async Task<List<EnvelopeDto>> Handle(Command request, CancellationToken cancellationToken)
     {
-      var trans = CreateTransaction(request);
+      var trans = CreateTransaction(request); 
       db.Transactions.Add(trans);
 
       await UpdateAccountAsync(trans);
       var rslt = await UpdateEnvelopesAsync(trans).ConfigureAwait(false);
+
+      var chg = db.ChangeTracker.Entries();
+
 
       await db.SaveChangesAsync(cancellationToken);
       return rslt;

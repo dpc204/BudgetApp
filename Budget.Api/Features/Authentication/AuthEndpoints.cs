@@ -5,7 +5,9 @@ public sealed class AuthEndpoints : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         // Only register these endpoints if the API Identity stack is present
-        var canResolve = app.ServiceProvider.GetService<UserManager<IdentityUser>>() is not null;
+        // UserManager is scoped, so we need to create a scope to check if it's registered
+        using var scope = app.ServiceProvider.CreateScope();
+        var canResolve = scope.ServiceProvider.GetService<UserManager<BudgetUser>>() is not null;
         if (!canResolve)
         {
             return; // Host app manages identity; skip JWT auth endpoints
@@ -13,14 +15,14 @@ public sealed class AuthEndpoints : ICarterModule
 
         var group = app.MapGroup("/api/auth").WithTags("Auth");
 
-        group.MapPost("register", async ([FromBody] RegisterRequest req, UserManager<IdentityUser> userManager) =>
+        group.MapPost("register", async ([FromBody] RegisterRequest req, UserManager<BudgetUser> userManager) =>
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
                     return Results.BadRequest("Email and password required");
 
-                var user = new IdentityUser { UserName = req.Email, Email = req.Email, EmailConfirmed = true };
+                var user = new BudgetUser { UserName = req.Email, Email = req.Email, EmailConfirmed = true };
                 var result = await userManager.CreateAsync(user, req.Password);
                 if (!result.Succeeded)
                 {
@@ -34,7 +36,7 @@ public sealed class AuthEndpoints : ICarterModule
             }
         });
 
-        group.MapPost("login", async ([FromBody] LoginRequest req, UserManager<IdentityUser> userManager, IJwtTokenService tokenSvc) =>
+        group.MapPost("login", async ([FromBody] LoginRequest req, UserManager<BudgetUser> userManager, IJwtTokenService tokenSvc) =>
         {
             try
             {

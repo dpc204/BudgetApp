@@ -59,7 +59,11 @@ if (string.IsNullOrWhiteSpace(identityConnectionString))
   throw new InvalidOperationException("Missing Identity DB connection string.");
 
 var isDev = builder.Environment.IsDevelopment();
-var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Test");
+//var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Test");
+var isTest = AppDomain.CurrentDomain.GetAssemblies()
+  .Any(a => a.FullName != null && (a.FullName.StartsWith("xunit")
+                                   || a.FullName.StartsWith("nunit")
+                                   || a.FullName.StartsWith("Microsoft.VisualStudio.TestPlatform")));
 
 // Configure BudgetContext
 builder.Services.AddDbContext<BudgetContext>(options =>

@@ -21,6 +21,11 @@ public interface IBudgetMonthlyApiClient
   Task<UpdateDraftResponse> UpdateBudgetDraftAsync(int acctPeriod, int envelopeId, decimal? draftValue, CancellationToken cancellationToken = default);
 
   /// <summary>
+  /// Updates the lock status for a specific envelope in a specific month
+  /// </summary>
+  Task<UpdateLockResponse> UpdateBudgetLockAsync(int acctPeriod, int envelopeId, bool isLocked, CancellationToken cancellationToken = default);
+
+  /// <summary>
   /// Clears all draft budget values for current and future months
   /// </summary>
   Task<ClearDraftsResponse> ClearDraftBudgetsAsync(CancellationToken cancellationToken = default);
@@ -28,7 +33,7 @@ public interface IBudgetMonthlyApiClient
   /// <summary>
   /// Applies all draft budget values to actual budget values
   /// </summary>
-  Task<ApplyDraftsResponse> ApplyDraftBudgetsAsync(CancellationToken cancellationToken = default);
+  Task<ApplyDraftsResponse> ApplyDraftValuesToBudgetAsync(CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Copies budget or draft data from one month to the next month
@@ -39,6 +44,26 @@ public interface IBudgetMonthlyApiClient
   /// Copies budget or draft data from one month to the next month with confirmation
   /// </summary>
   Task<CopyBudgetToNextMonthResponse> CopyBudgetToNextMonthAsync(int sourceAcctPeriod, bool copyFromDraft, bool confirmOverwrite, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears budget values for a specific month
+  /// </summary>
+  Task<ClearMonthBudgetsResponse> ClearMonthBudgetsAsync(int acctPeriod, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears draft values for a specific month
+  /// </summary>
+  Task<ClearMonthDraftsResponse> ClearMonthDraftsAsync(int acctPeriod, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears both budget and draft values for a specific month
+  /// </summary>
+  Task<ClearMonthBothResponse> ClearMonthBothAsync(int acctPeriod, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Applies draft values to budget values for a specific month
+  /// </summary>
+  Task<ApplyMonthDraftsResponse> ApplyMonthDraftsAsync(int acctPeriod, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -53,7 +78,8 @@ public record BudgetMonthResponse(
   CatTypes CategoryType,
   int SortOrder,
   decimal? Budget,
-  decimal? BudgetDraft);
+  decimal? BudgetDraft,
+  bool IsBudgetLocked);
 
 /// <summary>
 /// Response for CheckDraftBudgets endpoint
@@ -66,12 +92,17 @@ public record CheckDraftsResponse(bool HasDrafts, int DraftCount);
 public record UpdateDraftResponse(bool Success, string Message);
 
 /// <summary>
+/// Response for UpdateBudgetLock endpoint
+/// </summary>
+public record UpdateLockResponse(bool Success, string Message);
+
+/// <summary>
 /// Response for ClearDraftBudgets endpoint
 /// </summary>
 public record ClearDraftsResponse(bool Success, string Message, int RecordsUpdated);
 
 /// <summary>
-/// Response for ApplyDraftBudgets endpoint
+/// Response for ApplyDraftValuesToBudget endpoint
 /// </summary>
 public record ApplyDraftsResponse(bool Success, string Message, int RecordsUpdated);
 
@@ -79,3 +110,23 @@ public record ApplyDraftsResponse(bool Success, string Message, int RecordsUpdat
 /// Response for CopyBudgetToNextMonth endpoint
 /// </summary>
 public record CopyBudgetToNextMonthResponse(bool Success, string Message, int RecordsUpdated, bool WouldOverwriteData);
+
+/// <summary>
+/// Response for ClearMonthBudgets endpoint
+/// </summary>
+public record ClearMonthBudgetsResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for ClearMonthDrafts endpoint
+/// </summary>
+public record ClearMonthDraftsResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for ClearMonthBoth endpoint
+/// </summary>
+public record ClearMonthBothResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for ApplyMonthDrafts endpoint
+/// </summary>
+public record ApplyMonthDraftsResponse(bool Success, string Message, int RecordsUpdated);

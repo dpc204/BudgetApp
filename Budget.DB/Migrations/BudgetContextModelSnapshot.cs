@@ -18,7 +18,7 @@ namespace Budget.DB.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("budget")
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -89,6 +89,9 @@ namespace Budget.DB.Migrations
                     b.Property<decimal?>("BudgetDraft")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsBudgetLocked")
+                        .HasColumnType("bit");
 
                     b.HasKey("AcctPeriod", "EnvelopeId");
 
@@ -195,6 +198,10 @@ namespace Budget.DB.Migrations
                     b.Property<int>("EnvelopeType")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("FundAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("LastTransactionDate")
                         .HasColumnType("datetime2");
 
@@ -228,6 +235,7 @@ namespace Budget.DB.Migrations
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
+                            FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Dining Out",
                             SortOrder = 1
@@ -239,6 +247,7 @@ namespace Budget.DB.Migrations
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
+                            FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Groceries",
                             SortOrder = 2
@@ -250,6 +259,7 @@ namespace Budget.DB.Migrations
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
+                            FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Gas",
                             SortOrder = 3
@@ -261,6 +271,7 @@ namespace Budget.DB.Migrations
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
+                            FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Car Maint",
                             SortOrder = 4
@@ -272,6 +283,7 @@ namespace Budget.DB.Migrations
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
+                            FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "House Maint",
                             SortOrder = 5
@@ -283,6 +295,7 @@ namespace Budget.DB.Migrations
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
+                            FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Medical",
                             SortOrder = 5
@@ -294,6 +307,7 @@ namespace Budget.DB.Migrations
                             CategoryId = -1,
                             Description = "",
                             EnvelopeType = 0,
+                            FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "UnAllocated",
                             SortOrder = 6
@@ -367,68 +381,6 @@ namespace Budget.DB.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Transactions", "budget");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AccountId = 1,
-                            BalanceAfterTransaction = 0m,
-                            Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
-                            TotalAmount = 104.00m,
-                            UserId = 1,
-                            UserName = "",
-                            Vendor = "Giant"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            AccountId = 2,
-                            BalanceAfterTransaction = 0m,
-                            Date = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
-                            TotalAmount = 48m,
-                            UserId = 1,
-                            UserName = "",
-                            Vendor = "Bonefish"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            AccountId = 1,
-                            BalanceAfterTransaction = 0m,
-                            Date = new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
-                            TotalAmount = 12.50m,
-                            UserId = 1,
-                            UserName = "",
-                            Vendor = "Gas"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            AccountId = 2,
-                            BalanceAfterTransaction = 0m,
-                            Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
-                            TotalAmount = 30.00m,
-                            UserId = 2,
-                            UserName = "",
-                            Vendor = "Home Depot"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            AccountId = 1,
-                            BalanceAfterTransaction = 0m,
-                            Date = new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsVoided = false,
-                            TotalAmount = 32.00m,
-                            UserId = 2,
-                            UserName = "",
-                            Vendor = "CVS"
-                        });
                 });
 
             modelBuilder.Entity("Budget.DB.TransactionDetail", b =>
@@ -456,88 +408,6 @@ namespace Budget.DB.Migrations
                     b.HasIndex("EnvelopeId");
 
                     b.ToTable("TransactionDetails", "budget");
-
-                    b.HasData(
-                        new
-                        {
-                            TransactionId = 1,
-                            LineId = 1,
-                            Amount = 52m,
-                            EnvelopeId = 2,
-                            Notes = "Yasso"
-                        },
-                        new
-                        {
-                            TransactionId = 1,
-                            LineId = 2,
-                            Amount = 52m,
-                            EnvelopeId = 6,
-                            Notes = "Cough supresent"
-                        },
-                        new
-                        {
-                            TransactionId = 2,
-                            LineId = 1,
-                            Amount = 48m,
-                            EnvelopeId = 1,
-                            Notes = "din din"
-                        },
-                        new
-                        {
-                            TransactionId = 3,
-                            LineId = 1,
-                            Amount = 10m,
-                            EnvelopeId = 3,
-                            Notes = ""
-                        },
-                        new
-                        {
-                            TransactionId = 3,
-                            LineId = 2,
-                            Amount = 2.5m,
-                            EnvelopeId = 2,
-                            Notes = "Tic Tacs"
-                        },
-                        new
-                        {
-                            TransactionId = 4,
-                            LineId = 1,
-                            Amount = 27m,
-                            EnvelopeId = 5,
-                            Notes = "Plumbing"
-                        },
-                        new
-                        {
-                            TransactionId = 4,
-                            LineId = 2,
-                            Amount = 3m,
-                            EnvelopeId = 2,
-                            Notes = "Candy"
-                        },
-                        new
-                        {
-                            TransactionId = 5,
-                            LineId = 1,
-                            Amount = 20m,
-                            EnvelopeId = 6,
-                            Notes = "Prescriptions"
-                        },
-                        new
-                        {
-                            TransactionId = 5,
-                            LineId = 2,
-                            Amount = 4m,
-                            EnvelopeId = 2,
-                            Notes = "Gum"
-                        },
-                        new
-                        {
-                            TransactionId = 5,
-                            LineId = 3,
-                            Amount = 8m,
-                            EnvelopeId = 5,
-                            Notes = "Light Bulbs"
-                        });
                 });
 
             modelBuilder.Entity("Budget.DB.User", b =>

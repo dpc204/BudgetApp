@@ -5,8 +5,9 @@ namespace Budget.Api.Features.BudgetMonths;
 /// </summary>
 public static class CopyBudgetToNextMonth
 {
-  public sealed record Command(int SourceAcctPeriod, bool CopyFromDraft, bool ConfirmOverwrite = false) : IRequest<Response>;
-  
+  public sealed record Command(int SourceAcctPeriod, bool CopyFromDraft, bool ConfirmOverwrite = false)
+    : IRequest<Response>;
+
   public sealed record Response(bool Success, string Message, int RecordsUpdated, bool WouldOverwriteData);
 
   /// <summary>
@@ -14,12 +15,18 @@ public static class CopyBudgetToNextMonth
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
+    /// <summary>
+    /// Copies budget or draft values from the specified source accounting period into the following month, creating new target records or updating existing ones where allowed.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Response"/> indicating operation outcome: `Success` is `true` when values were copied (with `RecordsUpdated` set and `Message` describing the result); `Success` is `false` when the request is rejected — for example, due to an invalid accounting period format or because the target month contains draft data that would be overwritten (in the latter case `WouldOverwriteData` is `true`).
+    /// </returns>
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       // Validate AcctPeriod format
       var sourceYear = request.SourceAcctPeriod / 100;
       var sourceMonth = request.SourceAcctPeriod % 100;
-      
+
       if (sourceMonth < 1 || sourceMonth > 12 || sourceYear < 1900)
       {
         return new Response(false, "Invalid accounting period format", 0, false);
@@ -82,7 +89,8 @@ public static class CopyBudgetToNextMonth
         else
         {
           // Update existing record's draft
-          target.BudgetDraft = valueToCopy;
+          if (!target.IsBudgetLocked)
+            target.BudgetDraft = valueToCopy ?? 0m;
         }
 
         recordsUpdated++;

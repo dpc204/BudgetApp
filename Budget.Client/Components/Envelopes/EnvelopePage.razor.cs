@@ -137,8 +137,9 @@ public partial class EnvelopePage : ComponentBase
 
   public List<Cat> GetCategoriesForSelect()
   {
-    if (!UserOptions.IsAdminUser())
-      return [.. State.Cats.Where(a => a.CatType != CatTypes.System).OrderBy(a => a.SortOrder)];
+    
+   // if (!UserOptions.IsAdminUser())
+//return [.. State.Cats.Where(a => a.CatType != CatTypes.System).OrderBy(a => a.SortOrder)];
 
     return State.Cats;
   }

@@ -111,7 +111,8 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
       var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
       await js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
     }
-    catch (Exception ex) when (ex is InvalidOperationException or JSException)
+    catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.Contains("JavaScript interop calls cannot be issued at this time"))
+    || ex is JSException)
     {
       // Ignore – typically occurs if called just before JS is fully ready; non-fatal.
       _logger.LogDebug(ex, "Skipping localStorage save (JS unavailable).");

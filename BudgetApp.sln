@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceDefaults", "ServiceD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.SharedTests", "Budget.SharedTests\Budget.SharedTests.csproj", "{7D4731B8-390C-4308-A1D4-5EFB74E04B14}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Client.Tests", "Budget.Client.Tests\Budget.Client.Tests.csproj", "{BE124A48-296A-4866-AB9C-0BE538ECA84B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,11 +141,24 @@ Global
 		{7D4731B8-390C-4308-A1D4-5EFB74E04B14}.Release|x64.Build.0 = Release|Any CPU
 		{7D4731B8-390C-4308-A1D4-5EFB74E04B14}.Release|x86.ActiveCfg = Release|Any CPU
 		{7D4731B8-390C-4308-A1D4-5EFB74E04B14}.Release|x86.Build.0 = Release|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Debug|x64.Build.0 = Debug|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Debug|x86.Build.0 = Debug|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|x64.ActiveCfg = Release|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|x64.Build.0 = Release|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|x86.ActiveCfg = Release|Any CPU
+		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6B8EC95F-77EE-4F1A-89EF-337ABD7C5860}
+		FileExplorer = Assets\|scripts\
 	EndGlobalSection
 EndGlobal

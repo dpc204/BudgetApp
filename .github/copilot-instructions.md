@@ -170,3 +170,4 @@ Reference links:
 - DataGrid: https://mudblazor.com/components/datagrid
 - Dialog service: https://mudblazor.com/services/dialog
 - Snackbar service: https://mudblazor.com/services/snackbar
+- Mudblazor Details: https://deepwiki.com/janeswingler/MudBlazor
