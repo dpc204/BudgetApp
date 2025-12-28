@@ -191,4 +191,22 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     
     return result;
   }
+
+  public async Task<UpdateFundAmountResponse> UpdateFundAmountAsync(int envelopeId, decimal? fundAmount, CancellationToken cancellationToken = default)
+  {
+    var command = new { EnvelopeId = envelopeId, FundAmount = fundAmount };
+    
+    using var response = await http.PutAsJsonAsync("envelopes/fundamount", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<UpdateFundAmountResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for UpdateFundAmountResponse from envelopes/fundamount");
+      throw new InvalidOperationException("Expected non-null UpdateFundAmountResponse from 'envelopes/fundamount'.");
+    }
+    
+    return result;
+  }
 }

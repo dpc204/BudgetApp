@@ -181,7 +181,8 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 1,
         Budget: 500.00m,
         BudgetDraft: null,
-        IsBudgetLocked: false
+        IsBudgetLocked: false,
+        FundAmount: 0m
       ),
       new(
         AcctPeriod: acctPeriod,
@@ -193,7 +194,8 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 2,
         Budget: 200.00m,
         BudgetDraft: null,
-        IsBudgetLocked: false
+        IsBudgetLocked: false,
+        FundAmount: 0m
       ),
       new(
         AcctPeriod: acctPeriod,
@@ -205,7 +207,8 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 1,
         Budget: 5000.00m,
         BudgetDraft: null,
-        IsBudgetLocked: false
+        IsBudgetLocked: false,
+        FundAmount: 0m
       )
     };
 
@@ -242,7 +245,8 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 1,
         Budget: 500.00m,
         BudgetDraft: null,
-        IsBudgetLocked: true  // Locked budget
+        IsBudgetLocked: true,  // Locked budget
+        FundAmount: 0m
       ),
       new(
         AcctPeriod: acctPeriod,
@@ -254,7 +258,8 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 2,
         Budget: 200.00m,
         BudgetDraft: null,
-        IsBudgetLocked: false
+        IsBudgetLocked: false,
+        FundAmount: 0m
       )
     };
 

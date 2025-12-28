@@ -64,7 +64,7 @@ public partial class Fund : ComponentBase
           SortOrder = item.SortOrder,
           Budget = item.Budget,
           CurrentBalance = 0, // Placeholder: In production, this would come from Envelope.Balance
-          FundAmount = null
+          FundAmount = item.FundAmount
         };
 
         _fundData[item.EnvelopeId] = envelopeData;
@@ -181,26 +181,47 @@ public partial class Fund : ComponentBase
   }
 
   /// <summary>
-  /// Sets the pending fund amount for the specified envelope and refreshes the UI display.
+  /// Sets the pending fund amount for the specified envelope, persists the change to the backend, and refreshes the UI display.
   /// </summary>
   /// <param name="envelopeId">Identifier of the envelope to update.</param>
   /// <param name="fundAmount">New fund amount to assign, or null to clear the pending amount.</param>
-  private void UpdateFundAmount(int envelopeId, decimal? fundAmount)
+  private async Task UpdateFundAmount(int envelopeId, decimal? fundAmount)
   {
     if(_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
     {
-      envelope.FundAmount = fundAmount;
-      if(fundAmount != null) _availableToFund -= fundAmount.Value;
-
-      // Update the display row data without rebuilding entire table (prevents focus stealing)
-      var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
-      if(row != null)
+      try
       {
-        row.FundAmount = fundAmount;
-        row.UpdateCounter++; // Force MudNumericField recreation for proper formatting
-      }
+        var response = await BudgetMonthlyApi.UpdateFundAmountAsync(envelopeId, fundAmount);
 
-      StateHasChanged();
+        if (response.Success)
+        {
+          // Update local data
+          envelope.FundAmount = fundAmount;
+          if(fundAmount != null) _availableToFund -= fundAmount.Value;
+
+          // Update the display row data without rebuilding entire table (prevents focus stealing)
+          var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
+          if(row != null)
+          {
+            row.FundAmount = fundAmount;
+            row.UpdateCounter++; // Force MudNumericField recreation for proper formatting
+          }
+
+          await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+          // Validation error - show message
+          await InvokeAsync(() =>
+          {
+            Snackbar.Add(response.Message ?? "Validation error", Severity.Warning);
+          });
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error updating fund amount: {ex.Message}", Severity.Error);
+      }
     }
   }
 
