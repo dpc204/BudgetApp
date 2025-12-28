@@ -85,7 +85,8 @@ public record BudgetMonthResponse(
   decimal? Budget,
   decimal? BudgetDraft,
   bool IsBudgetLocked,
-  decimal FundAmount);
+  decimal FundAmount,
+  decimal Balance);
 
 /// <summary>
 /// Response for CheckDraftBudgets endpoint

@@ -58,20 +58,20 @@ public class BudgetPageNavigationTests : TestContext
   }
   
   [Fact]
-  public void SetupMockApiResponses_CreatesValidTestData()
+  public async Task SetupMockApiResponses_CreatesValidTestData()
   {
     // Arrange & Act
     SetupMockApiResponses();
     
     // Assert - Verify mock setup creates valid data
-    var result = _mockBudgetApi.Object.CheckDraftBudgetsAsync(CancellationToken.None).Result;
+    var result = await _mockBudgetApi.Object.CheckDraftBudgetsAsync(CancellationToken.None);
     Assert.NotNull(result);
     Assert.False(result.HasDrafts);
     Assert.Equal(0, result.DraftCount);
   }
   
   [Fact]
-  public void MockJSRuntime_AcceptsWindowUtilsCalls()
+  public async Task MockJSRuntime_AcceptsWindowUtilsCalls()
   {
     // Arrange
     _mockJsRuntime
@@ -79,7 +79,7 @@ public class BudgetPageNavigationTests : TestContext
       .ReturnsAsync(1920);
       
     // Act
-    var width = _mockJsRuntime.Object.InvokeAsync<int>("windowUtils.getInnerWidth", Array.Empty<object>()).Result;
+    var width = await _mockJsRuntime.Object.InvokeAsync<int>("windowUtils.getInnerWidth", Array.Empty<object>());
     
     // Assert
     Assert.Equal(1920, width);
@@ -87,7 +87,7 @@ public class BudgetPageNavigationTests : TestContext
   }
   
   [Fact]
-  public void MockJSRuntime_AcceptsNavigationInitialization()
+  public async Task MockJSRuntime_AcceptsNavigationInitialization()
   {
     // Arrange
     _mockJsRuntime
@@ -97,9 +97,9 @@ public class BudgetPageNavigationTests : TestContext
       .ReturnsAsync((IJSObjectReference)null!);
       
     // Act
-    var result = _mockJsRuntime.Object.InvokeAsync<IJSObjectReference>(
+    var result = await _mockJsRuntime.Object.InvokeAsync<IJSObjectReference>(
       "initializeDraftFieldNavigation", 
-      Array.Empty<object>()).Result;
+      Array.Empty<object>());
     
     // Assert
     Assert.Null(result);
@@ -182,6 +182,7 @@ public class BudgetPageNavigationTests : TestContext
         Budget: 500.00m,
         BudgetDraft: null,
         IsBudgetLocked: false,
+        Balance: 0m,
         FundAmount: 0m
       ),
       new(
