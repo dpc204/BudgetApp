@@ -196,7 +196,8 @@ public class BudgetPageNavigationTests : TestContext
         Budget: 200.00m,
         BudgetDraft: null,
         IsBudgetLocked: false,
-        FundAmount: 0m
+        FundAmount: 0m,
+        Balance: 0m
       ),
       new(
         AcctPeriod: acctPeriod,
@@ -209,7 +210,8 @@ public class BudgetPageNavigationTests : TestContext
         Budget: 5000.00m,
         BudgetDraft: null,
         IsBudgetLocked: false,
-        FundAmount: 0m
+        FundAmount: 0m,
+        Balance: 0m
       )
     };
 
@@ -247,7 +249,8 @@ public class BudgetPageNavigationTests : TestContext
         Budget: 500.00m,
         BudgetDraft: null,
         IsBudgetLocked: true,  // Locked budget
-        FundAmount: 0m
+        FundAmount: 0m,
+        Balance: 0m
       ),
       new(
         AcctPeriod: acctPeriod,
@@ -260,7 +263,8 @@ public class BudgetPageNavigationTests : TestContext
         Budget: 200.00m,
         BudgetDraft: null,
         IsBudgetLocked: false,
-        FundAmount: 0m
+        FundAmount: 0m,
+        Balance: 0m
       )
     };
 

@@ -209,4 +209,20 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     
     return result;
   }
+
+  public async Task<ClearAllFundAmountsResponse> ClearAllFundAmountsAsync(CancellationToken cancellationToken = default)
+  {
+    using var response = await http.PostAsync("envelopes/clearallfundamounts", null, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<ClearAllFundAmountsResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for ClearAllFundAmountsResponse from envelopes/clearallfundamounts");
+      throw new InvalidOperationException("Expected non-null ClearAllFundAmountsResponse from 'envelopes/clearallfundamounts'.");
+    }
+    
+    return result;
+  }
 }

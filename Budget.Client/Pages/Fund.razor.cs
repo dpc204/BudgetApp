@@ -1,3 +1,4 @@
+using Budget.Client.Components.Dialogs;
 using Budget.Shared.Utilities;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -321,6 +322,82 @@ public partial class Fund : ComponentBase
     Snackbar.Add(
       "Fund screen help: Use the Fill button to automatically calculate funding amounts based on budget percentages. Use the three-dot menu to fill individual envelopes.",
       Severity.Info);
+  }
+
+  /// <summary>
+  /// Clears all fund amounts across all envelopes, returning the fund dollars to available funds, and persists the changes to the backend.
+  /// </summary>
+  /// <remarks>
+  /// Prompts the user for confirmation before clearing. If confirmed, clears all local fund amounts, recalculates available funds, 
+  /// calls the API to persist changes, and reloads the page on API failure to restore prior stored values.
+  /// </remarks>
+  private async Task ClearFundAmounts()
+  {
+    var parameters = new DialogParameters
+    {
+      ["Message"] = "Are you sure you want to clear all fund amounts? This action will reset all fund values to zero."
+    };
+
+    var options = new DialogOptions { CloseOnEscapeKey = true };
+    var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Fund Amounts", parameters, options);
+    var result = await dialog.Result;
+
+    if (result is { Canceled: false, Data: true })
+    {
+      try
+      {
+        _processing = true;
+        StateHasChanged();
+
+        // Calculate total to return to available funds
+        decimal totalToReturn = 0m;
+        if (_fundData != null)
+        {
+          foreach (var envelope in _fundData.Values)
+          {
+            totalToReturn += envelope.FundAmount ?? 0m;
+            envelope.FundAmount = 0m;
+          }
+
+          // Return fund dollars to available funds
+          _availableToFund += totalToReturn;
+        }
+
+        // Update display rows
+        foreach (var row in _envelopeRows)
+        {
+          row.FundAmount = 0m;
+          row.UpdateCounter++;
+        }
+
+        StateHasChanged();
+
+        // Call API to persist changes
+        var response = await BudgetMonthlyApi.ClearAllFundAmountsAsync();
+
+        if (response.Success)
+        {
+          Snackbar.Add($"Cleared {response.RecordsUpdated} fund amounts successfully", Severity.Success);
+        }
+        else
+        {
+          Snackbar.Add($"Error: {response.Message}", Severity.Error);
+          // Reload page to restore prior values
+          await LoadFundDataAsync();
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error clearing fund amounts: {ex.Message}", Severity.Error);
+        // Reload page to restore prior values
+        await LoadFundDataAsync();
+      }
+      finally
+      {
+        _processing = false;
+        StateHasChanged();
+      }
+    }
   }
 
   // Enum for fill amounts

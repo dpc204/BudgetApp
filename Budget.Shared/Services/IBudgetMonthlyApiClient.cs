@@ -69,6 +69,11 @@ public interface IBudgetMonthlyApiClient
   /// Updates the fund amount for a specific envelope
   /// </summary>
   Task<UpdateFundAmountResponse> UpdateFundAmountAsync(int envelopeId, decimal? fundAmount, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears all fund amounts across all envelopes
+  /// </summary>
+  Task<ClearAllFundAmountsResponse> ClearAllFundAmountsAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -142,3 +147,8 @@ public record ApplyMonthDraftsResponse(bool Success, string Message, int Records
 /// Response for UpdateFundAmount endpoint
 /// </summary>
 public record UpdateFundAmountResponse(bool Success, string Message);
+
+/// <summary>
+/// Response for ClearAllFundAmounts endpoint
+/// </summary>
+public record ClearAllFundAmountsResponse(bool Success, string Message, int RecordsUpdated);
