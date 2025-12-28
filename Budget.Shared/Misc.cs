@@ -50,13 +50,15 @@ public static class Misc
 
         var keyVaultUri = webApplicationBuilder.Configuration["KeyVault:Uri"]
           ?? "https://fantumkeyvault.vault.azure.net/";
+          webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri),
+          new DefaultAzureCredential());
+
+
         foreach(var config in webApplicationBuilder.Configuration.AsEnumerable().Where(a => a.Key.Contains("AzureAd")))
         {
           logger.Log(LogLevel.Information, "Config1:{key}:{value}", config.Key, config.Value);
         }
-        webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri),
-          new DefaultAzureCredential());
-
+   
         
 
         logger.Log(LogLevel.Information, "SetupConfigurationSources Using AzureDB - KeyVault Done");
