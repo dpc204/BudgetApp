@@ -64,6 +64,18 @@ public interface IBudgetMonthlyApiClient
   /// Applies draft values to budget values for a specific month
   /// </summary>
   Task<ApplyMonthDraftsResponse> ApplyMonthDraftsAsync(int acctPeriod, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Updates the fund amount for a specific envelope
+  /// </summary>
+  Task<UpdateFundAmountResponse> UpdateFundAmountAsync(int envelopeId, decimal? fundAmount, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Clears all fund amounts across all envelopes
+  /// </summary>
+  Task<ClearAllFundAmountsResponse> ClearAllFundAmountsAsync(CancellationToken cancellationToken = default);
+
+  Task<EnvelopeDto> GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes envType, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -79,7 +91,9 @@ public record BudgetMonthResponse(
   int SortOrder,
   decimal? Budget,
   decimal? BudgetDraft,
-  bool IsBudgetLocked);
+  bool IsBudgetLocked,
+  decimal FundAmount,
+  decimal Balance);
 
 /// <summary>
 /// Response for CheckDraftBudgets endpoint
@@ -130,3 +144,14 @@ public record ClearMonthBothResponse(bool Success, string Message, int RecordsUp
 /// Response for ApplyMonthDrafts endpoint
 /// </summary>
 public record ApplyMonthDraftsResponse(bool Success, string Message, int RecordsUpdated);
+
+/// <summary>
+/// Response for UpdateFundAmount endpoint
+/// </summary>
+public record UpdateFundAmountResponse(bool Success, string Message);
+
+/// <summary>
+/// Response for ClearAllFundAmounts endpoint
+/// </summary>
+public record ClearAllFundAmountsResponse(bool Success, string Message, int RecordsUpdated);
+

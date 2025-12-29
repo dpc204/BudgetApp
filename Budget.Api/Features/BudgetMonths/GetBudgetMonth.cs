@@ -17,7 +17,9 @@ public static class GetBudgetMonth
     int SortOrder,
     decimal? Budget,
     decimal? BudgetDraft,
-    bool IsBudgetLocked);
+    bool IsBudgetLocked,
+    decimal FundAmount,
+    decimal Balance);
 
   /// <summary>
   /// Handles getting budget data for a month
@@ -56,7 +58,9 @@ public static class GetBudgetMonth
           envelope.SortOrder,
           budgetData?.Budget,
           budgetData?.BudgetDraft,
-          budgetData?.IsBudgetLocked ?? false
+          budgetData?.IsBudgetLocked ?? false,
+          envelope.FundAmount,
+          envelope.Balance
         ));
       }
 
