@@ -4,6 +4,7 @@ using Budget.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    partial class BudgetContextModelSnapshot : ModelSnapshot
+    [Migration("20251229200108_AddSavedUserOptions")]
+    partial class AddSavedUserOptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -335,30 +338,6 @@ namespace Budget.DB.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Favorites", "budget");
-                });
-
-            modelBuilder.Entity("Budget.DB.SavedUserOptions", b =>
-                {
-                    b.Property<string>("UserId")
-<<<<<<< HEAD
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("JsonOptions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-=======
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("JsonOptions")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
->>>>>>> 394afd5c89c7abf34a8b42136d74a6b7a22c9d36
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("SavedUserOptions", "budget");
                 });
 
             modelBuilder.Entity("Budget.DB.Transaction", b =>

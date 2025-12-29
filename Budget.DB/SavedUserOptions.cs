@@ -1,38 +1,25 @@
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Budget.Shared.Enums;
 
-namespace Budget.DB;
-
-/// <summary>
-/// Represents saved user options stored as JSON in the database
-/// </summary>
-public class SavedUserOptions
+namespace Budget.DB
 {
-  /// <summary>
-  /// The user ID (primary key)
-  /// </summary>
-  public string UserId { get; set; } = string.Empty;
-
-  /// <summary>
-  /// JSON representation of user options
-  /// </summary>
-  public string JsonOptions { get; set; } = string.Empty;
-
-  /// <summary>
-  /// Entity configuration for SavedUserOptions
-  /// </summary>
-  public class SavedUserOptionsConfiguration : IEntityTypeConfiguration<SavedUserOptions>
+  public class SavedUserOptions
   {
-    public void Configure(EntityTypeBuilder<SavedUserOptions> entity)
+    [Key]
+    public string UserId { get; set; } = string.Empty;
+    public string? JsonOptions { get; set; }
+
+    public class SavedUserOptionsConfiguration : IEntityTypeConfiguration<SavedUserOptions>
     {
-      entity.HasKey(s => s.UserId);
-      
-      entity.Property(s => s.UserId)
-        .HasMaxLength(450)
-        .IsRequired();
-      
-      entity.Property(s => s.JsonOptions)
-        .IsRequired();
+      public void Configure(EntityTypeBuilder<SavedUserOptions> entity)
+      {
+        entity.Property(e => e.UserId)
+          .HasMaxLength(100);
+        entity.Property(a => a.JsonOptions)
+          .HasMaxLength(1000);
+      }
     }
   }
 }

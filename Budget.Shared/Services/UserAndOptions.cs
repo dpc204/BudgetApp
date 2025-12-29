@@ -1,33 +1,27 @@
-﻿namespace Budget.Shared.Services
+﻿namespace Budget.Shared.Services;
+
+public class UserAndOptions : IUserAndOptions
 {
-  public class UserAndOptions : IUserAndOptions
+  public bool HasInfo { get; set; }
+  public UserInfoDto User { get; set; } = new UserInfoDto();
+
+  public void SetUserInfo(UserInfoDto userInfo)
   {
-    public bool HasInfo { get; set; }
-    public UserInfoDto  User { get; set; } = new UserInfoDto();
-    public UserOptions Options { get; set; } = new UserOptions();
-
-    public void SetUserInfo(UserInfoDto userInfo)
-    {
-      User = userInfo;
-      HasInfo = true;
-    }
-
-    public void ClearUserInfo()
-    {
-      User = new UserInfoDto();
-      Options = new UserOptions();
-      HasInfo = false;
-    }
-
-    public bool IsAdminUser()
-    {
-      return HasInfo && User.Roles.Contains("Admin");
-    }
+    User = userInfo;
+    HasInfo = true;
   }
 
-  public class UserOptions
+  public void ClearUserInfo()
   {
-    public FillAmounts FillAmountType { get; set; }
+    User = new UserInfoDto();
+    HasInfo = false;
   }
+
+  public bool IsAdminUser()
+  {
+    return HasInfo && User.Roles.Contains("Admin");
+  }
+
+  public UserOptions Options { get; set; } = new UserOptions();
 
 }
