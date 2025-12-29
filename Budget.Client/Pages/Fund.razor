@@ -3,8 +3,13 @@
 @inject IBudgetMonthlyApiClient BudgetMonthlyApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IJSRuntime JsRuntime
 
 <style>
+  :root {
+    /* Offset includes: page title (h4) ~60px, top margin 16px, MudPaper controls ~120px, bottom margin 16px, plus buffer */
+    --fund-table-header-offset: 300px;
+  }
   .draft-input-right {
     width: 150px;
   }
@@ -15,10 +20,23 @@
     font-size: 1.1rem;
     font-weight: 500;
   }
+  /* Fixed header table wrapper */
+  .fund-table-wrapper {
+    max-height: calc(100vh - var(--fund-table-header-offset));
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  /* Fix the header */
+  .fund-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--mud-palette-surface);
+  }
   /* Enable fixed table layout for consistent column widths */
-  .mud-table table {
+  .fund-table table {
     table-layout: fixed;
-    width: auto;
+    width: 100%;
   }
   .display-column {
     width: 200px;
@@ -91,16 +109,17 @@
       </MudStack>
     </MudPaper>
 
-    <MudTable Items="@_envelopeRows" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None">
-      <HeaderContent>
-        <MudTh Class="display-column" border-left: 2px solid var(--mud-palette-lines-default);>Envelope Name</MudTh>
-        <MudTh  Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Current Balance</MudTh>
-        <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>
-          Total Budget: @_totalBudget.ToString("C2")<br />Budget
-        </MudTh>
-        <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Available: @_availableToFund.ToString("C2")<br />Fund Amount</MudTh>
-      </HeaderContent>
-      <RowTemplate>
+    <div class="fund-table-wrapper">
+      <MudTable Items="@_envelopeRows" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None" Class="fund-table">
+        <HeaderContent>
+          <MudTh Class="display-column" border-left: 2px solid var(--mud-palette-lines-default);>Envelope Name</MudTh>
+          <MudTh  Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Current Balance</MudTh>
+          <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>
+            Total Budget: @_totalBudget.ToString("C2")<br />Budget
+          </MudTh>
+          <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Available: @_availableToFund.ToString("C2")<br />Fund Amount</MudTh>
+        </HeaderContent>
+        <RowTemplate>
         <MudTd DataLabel="Envelope Name" Class="display-column">
           <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
             <MudTooltip Text="@context.EnvelopeName">
@@ -137,5 +156,6 @@
         </MudTd>
       </RowTemplate>
     </MudTable>
+    </div>
   }
 </MudContainer>

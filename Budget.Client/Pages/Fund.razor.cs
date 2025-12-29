@@ -39,6 +39,15 @@ public partial class Fund : ComponentBase
     await LoadFundDataAsync();
   }
 
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      // Initialize fund field auto-select on focus
+      await JsRuntime.InvokeVoidAsync("initializeFundFieldAutoSelect");
+    }
+  }
+
   /// <summary>
   /// Loads fund data for the currently selected month and prepares the component's display rows.
   /// </summary>
