@@ -78,6 +78,9 @@ public partial class EnvelopePage : ComponentBase
           await State.RefreshAsync();
         }
 
+        SelectedCategoryId = UserOptions.Options.SelectedCategoryType;
+
+
         CategoriesForSelect = GetCategoriesForSelect();
         ApplyCategorySelection();
       }
@@ -148,6 +151,7 @@ public partial class EnvelopePage : ComponentBase
   {
     var selected = value ?? 0;
     SelectedCategoryId = selected;
+    UserOptions.Options.SelectedCategoryType = selected;
     ApplyCategorySelection();
     await State.SaveAsync();
   }

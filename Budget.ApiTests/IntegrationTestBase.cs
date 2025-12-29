@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Budget.Api;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
@@ -24,6 +26,18 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
     _factory = new WebApplicationFactory<Program>()
       .WithWebHostBuilder(builder =>
       {
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+          // Add in-memory configuration for test connection strings
+          config.AddInMemoryCollection(new Dictionary<string, string?>
+          {
+            ["LocalBudgetConnection"] = "TestConnection",
+            ["LocalIdentityConnection"] = "TestConnection",
+            ["BudgetConnection"] = "TestConnection",
+            ["IdentityConnection"] = "TestConnection"
+          });
+        });
+        
         builder.ConfigureServices(services =>
         {
           // Remove all BudgetContext registrations
