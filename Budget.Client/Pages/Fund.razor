@@ -26,15 +26,18 @@
     overflow-y: auto;
     overflow-x: auto;
   }
-  /* Fix the header - target MudBlazor's actual header */
-  .fund-table .mud-table-head {
+  /* Prevent MudTable's internal container from scrolling */
+  .fund-table .mud-table-container {
+    overflow: visible !important;
+  }
+  /* Fix the header - target the actual thead element */
+  .fund-table thead {
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: var(--mud-palette-surface);
   }
   /* Ensure header cells have background */
-  .fund-table .mud-table-head .mud-table-cell {
+  .fund-table thead th {
     background-color: var(--mud-palette-surface);
   }
   /* Table should size to content, not full width */
