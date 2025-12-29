@@ -25,7 +25,7 @@ public static class GetUserOptions
   /// <summary>
   /// Handles retrieving user options from the database
   /// </summary>
-  public class Handler(BudgetContext db) : IRequestHandler<Query, Response>
+  public class Handler(BudgetContext db, ILogger<Handler> logger) : IRequestHandler<Query, Response>
   {
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
@@ -33,13 +33,21 @@ public static class GetUserOptions
         .AsNoTracking()
         .FirstOrDefaultAsync(s => s.UserId == request.UserId, cancellationToken);
 
-      if (savedOptions == null)
+      if (savedOptions == null || string.IsNullOrEmpty(savedOptions.JsonOptions))
       {
         return new Response(null);
       }
 
-      var options = JsonSerializer.Deserialize<Budget.Shared.Services.UserOptions>(savedOptions.JsonOptions);
-      return new Response(options);
+      try
+      {
+        var options = JsonSerializer.Deserialize<Budget.Shared.Services.UserOptions>(savedOptions.JsonOptions);
+        return new Response(options);
+      }
+      catch (JsonException ex)
+      {
+        logger.LogError(ex, "Failed to deserialize user options for user {UserId}", request.UserId);
+        return new Response(null);
+      }
     }
   }
 

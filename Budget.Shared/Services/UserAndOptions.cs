@@ -14,6 +14,7 @@ public class UserAndOptions : IUserAndOptions
   public void ClearUserInfo()
   {
     User = new UserInfoDto();
+    Options = new UserOptions();
     HasInfo = false;
   }
 

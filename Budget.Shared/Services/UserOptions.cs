@@ -2,6 +2,6 @@
 
 public class UserOptions
 {
-  public string UserId { get; set; }
+  public string UserId { get; set; } = string.Empty;
   public FillAmounts FillAmountType { get; set; }
 }

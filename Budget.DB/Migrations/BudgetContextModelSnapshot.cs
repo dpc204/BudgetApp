@@ -340,21 +340,12 @@ namespace Budget.DB.Migrations
             modelBuilder.Entity("Budget.DB.SavedUserOptions", b =>
                 {
                     b.Property<string>("UserId")
-<<<<<<< HEAD
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("JsonOptions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-=======
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("JsonOptions")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
->>>>>>> 394afd5c89c7abf34a8b42136d74a6b7a22c9d36
 
                     b.HasKey("UserId");
 
