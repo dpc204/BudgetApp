@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Budget.Shared.Enums;
 
@@ -6,10 +7,11 @@ namespace Budget.DB
 {
   public class SavedUserOptions
   {
+    [Key]
     public string UserId { get; set; } = string.Empty;
     public string? JsonOptions { get; set; }
 
-    public class CategoryConfiguration : IEntityTypeConfiguration<SavedUserOptions>
+    public class SavedUserOptionsConfiguration : IEntityTypeConfiguration<SavedUserOptions>
     {
       public void Configure(EntityTypeBuilder<SavedUserOptions> entity)
       {
