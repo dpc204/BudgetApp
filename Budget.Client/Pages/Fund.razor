@@ -24,19 +24,22 @@
   .fund-table-wrapper {
     max-height: calc(100vh - var(--fund-table-header-offset));
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
   }
-  /* Fix the header */
-  .fund-table thead {
+  /* Fix the header - target MudBlazor's actual header */
+  .fund-table .mud-table-head {
     position: sticky;
     top: 0;
     z-index: 10;
     background-color: var(--mud-palette-surface);
   }
-  /* Enable fixed table layout for consistent column widths */
-  .fund-table table {
-    table-layout: fixed;
-    width: 100%;
+  /* Ensure header cells have background */
+  .fund-table .mud-table-head .mud-table-cell {
+    background-color: var(--mud-palette-surface);
+  }
+  /* Table should size to content, not full width */
+  .fund-table .mud-table-root {
+    width: auto !important;
   }
   .display-column {
     width: 200px;
