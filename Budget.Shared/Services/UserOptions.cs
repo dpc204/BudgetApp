@@ -4,15 +4,27 @@ public class UserOptions
 {
   public string UserId { get; set; } = string.Empty;
   
-  private FillAmounts _fillAmountType;
   public FillAmounts FillAmountType
   {
-    get => _fillAmountType;
+    get => field;
     set
     {
-      if (_fillAmountType != value)
+      if (field != value)
       {
-        _fillAmountType = value;
+        field = value;
+        OnPropertyChanged();
+      }
+    }
+  }
+
+  public int SelectedCategoryType
+  {
+    get => field;
+    set
+    {
+      if (field != value)
+      {
+        field = value;
         OnPropertyChanged();
       }
     }

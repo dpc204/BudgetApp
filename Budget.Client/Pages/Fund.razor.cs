@@ -45,6 +45,7 @@ public partial class Fund : ComponentBase
     {
       // Initialize fund field auto-select on focus
       await JsRuntime.InvokeVoidAsync("initializeFundFieldAutoSelect");
+      _selectedFillType = UserAndOptions.Options.FillAmountType;
     }
   }
 
@@ -159,6 +160,7 @@ public partial class Fund : ComponentBase
   /// <param name="fillAmount">The preset fill amount to apply (e.g., OneHundredPercent or FiftyPercent).</param>
   private void SetFillAmount(FillAmounts fillAmount)
   {
+    UserAndOptions.Options.FillAmountType = fillAmount;
     _selectedFillType = fillAmount;
     StateHasChanged();
   }
