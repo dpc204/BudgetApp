@@ -1,3 +1,4 @@
+using Azure;
 using Budget.Client.Components.Dialogs;
 using Budget.Shared.Utilities;
 using System.ComponentModel.DataAnnotations;
@@ -52,11 +53,24 @@ public partial class Fund : ComponentBase
     {
       var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(_selectedMonth.Year, _selectedMonth.Month);
 
+      var allocateEnvelope =await BudgetMonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unallocated);
+
+      //if(!allocateEnvelope.IsCompletedSuccessfully)
+      //{
+      //  await InvokeAsync(() =>
+      //  { 
+      //    Snackbar.Add(allocateEnvelope.Exception?.Message ?? "Unable to get Unallocated Envelope", Severity.Warning);
+      //  });
+      //  return;
+      //}
+
+      _availableToFund = allocateEnvelope.Balance;
+
       _fundData = [];
       _totalBudget = 0;
       _totalBalance = 0;
 
-      foreach (var item in monthData)
+      foreach (var item in monthData.Where(a=> a.CategoryType == CatTypes.User))
       {
         var envelopeData = new FundEnvelopeData
         {
@@ -70,7 +84,7 @@ public partial class Fund : ComponentBase
           CurrentBalance = item.Balance, // Placeholder: In production, this would come from Envelope.Balance
           FundAmount = item.FundAmount
         };
-
+        _availableToFund -= envelopeData.FundAmount ?? 0m;
         _fundData[item.EnvelopeId] = envelopeData;
 
         // Calculate totals
@@ -79,8 +93,6 @@ public partial class Fund : ComponentBase
         _totalBalance = 850.00m;
       }
 
-      // Placeholder: In production, this would be calculated from actual account balances
-      _availableToFund = 0.00m;
 
       BuildDisplayRows();
     }
@@ -279,13 +291,13 @@ public partial class Fund : ComponentBase
   /// <remarks>
   /// If the envelope has no budget defined, no changes are made. When updated, the method rebuilds the display rows, triggers a UI refresh, and shows a success notification.
   /// </remarks>
-  private void FillToBudgetForPeriod(int envelopeId)
+  private async void FillToBudgetForPeriod(int envelopeId)
   {
     if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
     {
       if (envelope.Budget.HasValue)
       {
-        AllocateOneEnvelope(envelope);
+       await AllocateOneEnvelope(envelope);
       }
     }
   }

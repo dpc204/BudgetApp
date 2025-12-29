@@ -74,6 +74,8 @@ public interface IBudgetMonthlyApiClient
   /// Clears all fund amounts across all envelopes
   /// </summary>
   Task<ClearAllFundAmountsResponse> ClearAllFundAmountsAsync(CancellationToken cancellationToken = default);
+
+  Task<EnvelopeDto> GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes envType, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -152,3 +154,4 @@ public record UpdateFundAmountResponse(bool Success, string Message);
 /// Response for ClearAllFundAmounts endpoint
 /// </summary>
 public record ClearAllFundAmountsResponse(bool Success, string Message, int RecordsUpdated);
+

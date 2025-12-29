@@ -8,6 +8,8 @@
     public string Name { get; set; } = string.Empty;
     public decimal? Budget { get; set; }
     public decimal Balance { get; set; }
+
+    public decimal FundAmount { get; set; }
     public string Description { get; set; } = string.Empty;
     public int SortOrder { get; set; }
    

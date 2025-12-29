@@ -14,6 +14,24 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     return result ?? [];
   }
 
+  public async Task<EnvelopeDto> GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes envType, CancellationToken cancellationToken = default)
+  {
+    var env = await GetAsync<EnvelopeDto>($"envelopes/bytype/{envType}", cancellationToken);
+    return env;
+  }
+
+  private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct)
+  {
+    var result = await http.GetFromJsonAsync<T>(relativeUrl, cancellationToken: ct);
+    if(result == null)
+    {
+      logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
+      throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
+    }
+
+    return result!;
+  }
+
   public async Task<CheckDraftsResponse> CheckDraftBudgetsAsync(CancellationToken cancellationToken = default)
   {
     var result = await http.GetFromJsonAsync<CheckDraftsResponse>(
