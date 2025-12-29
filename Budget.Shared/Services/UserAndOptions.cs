@@ -23,5 +23,9 @@
     }
   }
 
+  public class UserOptions
+  {
+    public FillAmounts FillAmountType { get; set; }
+  }
 
 }

@@ -66,7 +66,7 @@
           </MudSelect>
 
           <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
-            <MudButton OnClick="AllocateFill">@GetDisplayName(_selectedFillAmount)</MudButton>
+            <MudButton OnClick="AllocateFill">@GetDisplayName(_selectedFillType)</MudButton>
             <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
               <MudMenuItem OnClick="() => SetFillAmount(FillAmounts.OneHundredPercent)">@GetDisplayName(FillAmounts.OneHundredPercent)</MudMenuItem>
               <MudMenuItem OnClick="() => SetFillAmount(FillAmounts.FiftyPercent)">@GetDisplayName(FillAmounts.FiftyPercent)</MudMenuItem>

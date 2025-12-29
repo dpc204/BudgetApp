@@ -14,7 +14,7 @@ public partial class Fund : ComponentBase
   private readonly List<FundDisplayRow> _envelopeRows = [];
   private List<DateTime> _monthOptions = [];
   private DateTime _selectedMonth;
-  private FillAmounts _selectedFillAmount = FillAmounts.OneHundredPercent;
+  private FillAmounts _selectedFillType = FillAmounts.OneHundredPercent;
 
   private decimal _totalBudget = 0;
   private decimal _totalBalance = 0;
@@ -150,7 +150,7 @@ public partial class Fund : ComponentBase
   /// <param name="fillAmount">The preset fill amount to apply (e.g., OneHundredPercent or FiftyPercent).</param>
   private void SetFillAmount(FillAmounts fillAmount)
   {
-    _selectedFillAmount = fillAmount;
+    _selectedFillType = fillAmount;
     StateHasChanged();
   }
 
@@ -160,7 +160,7 @@ public partial class Fund : ComponentBase
   /// <returns>The button label from the Display attribute of the selected fill amount.</returns>
   private string GetFillButtonText()
   {
-    return GetDisplayName(_selectedFillAmount);
+    return GetDisplayName(_selectedFillType);
   }
 
   /// <summary>
@@ -214,7 +214,7 @@ public partial class Fund : ComponentBase
 
 
     if (fillType == FillAmounts.NotSet)
-      fillType = _selectedFillAmount;
+      fillType = _selectedFillType;
 
     var budgetAmount = envelope.Budget.Value;
 
@@ -412,19 +412,7 @@ public partial class Fund : ComponentBase
     }
   }
 
-  // Enum for fill amounts
-  public enum FillAmounts
-  {
-    NotSet,
-
-    [Display(Name = "Fill 100% Of Budget")]
-    OneHundredPercent,
-
-    [Display(Name = "Fill 50% Of Budget")] FiftyPercent,
-
-    [Display(Name = "Fill To Budget")] FillToBudget
-  }
-
+ 
   // Data models
   private class FundEnvelopeData
   {
