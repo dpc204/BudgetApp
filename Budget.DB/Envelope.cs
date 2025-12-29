@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Budget.Shared.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Budget.DB
@@ -43,9 +44,9 @@ namespace Budget.DB
         // Configure one-to-one pointer to the last transaction detail
         // FK lives on Envelope (LastTransactionId, LastTransactionLineId) -> TransactionDetail (TransactionId, LineId)
         entity.HasOne(e => e.LastTransactionDetail)
-              .WithMany()
-              .HasForeignKey(e => new { e.LastTransactionId, e.LastTransactionLineId })
-              .OnDelete(DeleteBehavior.SetNull);
+          .WithMany()
+          .HasForeignKey(e => new { e.LastTransactionId, e.LastTransactionLineId })
+          .OnDelete(DeleteBehavior.SetNull);
 
         // Seed only scalar + FK values; no navigation instances
         entity.HasData(
@@ -61,9 +62,5 @@ namespace Budget.DB
     }
   }
 
-  public enum EnvelopeTypes
-  {
-    Unallocated,
-    Standard
-  }
+ 
 }

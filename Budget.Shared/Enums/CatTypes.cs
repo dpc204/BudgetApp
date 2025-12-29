@@ -6,4 +6,6 @@
     System,
     Income
   }
+
+  // Enum for fill amounts
 }

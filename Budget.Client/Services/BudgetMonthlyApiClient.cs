@@ -14,6 +14,24 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     return result ?? [];
   }
 
+  public async Task<EnvelopeDto> GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes envType, CancellationToken cancellationToken = default)
+  {
+    var env = await GetAsync<EnvelopeDto>($"envelopes/bytype/{envType}", cancellationToken);
+    return env;
+  }
+
+  private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct)
+  {
+    var result = await http.GetFromJsonAsync<T>(relativeUrl, cancellationToken: ct);
+    if(result == null)
+    {
+      logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
+      throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
+    }
+
+    return result!;
+  }
+
   public async Task<CheckDraftsResponse> CheckDraftBudgetsAsync(CancellationToken cancellationToken = default)
   {
     var result = await http.GetFromJsonAsync<CheckDraftsResponse>(
@@ -187,6 +205,40 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     {
       logger.LogDebug("Null response for ApplyMonthDraftsResponse from budgetmonths/applymonthdrafts");
       throw new InvalidOperationException("Expected non-null ApplyMonthDraftsResponse from 'budgetmonths/applymonthdrafts'.");
+    }
+    
+    return result;
+  }
+
+  public async Task<UpdateFundAmountResponse> UpdateFundAmountAsync(int envelopeId, decimal? fundAmount, CancellationToken cancellationToken = default)
+  {
+    var command = new { EnvelopeId = envelopeId, FundAmount = fundAmount };
+    
+    using var response = await http.PutAsJsonAsync("envelopes/fundamount", command, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<UpdateFundAmountResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for UpdateFundAmountResponse from envelopes/fundamount");
+      throw new InvalidOperationException("Expected non-null UpdateFundAmountResponse from 'envelopes/fundamount'.");
+    }
+    
+    return result;
+  }
+
+  public async Task<ClearAllFundAmountsResponse> ClearAllFundAmountsAsync(CancellationToken cancellationToken = default)
+  {
+    using var response = await http.PostAsync("envelopes/clearallfundamounts", null, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    
+    var result = await response.Content.ReadFromJsonAsync<ClearAllFundAmountsResponse>(cancellationToken: cancellationToken);
+    
+    if (result is null)
+    {
+      logger.LogDebug("Null response for ClearAllFundAmountsResponse from envelopes/clearallfundamounts");
+      throw new InvalidOperationException("Expected non-null ClearAllFundAmountsResponse from 'envelopes/clearallfundamounts'.");
     }
     
     return result;
