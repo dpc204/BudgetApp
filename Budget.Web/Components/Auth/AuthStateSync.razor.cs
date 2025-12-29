@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components;
+using Budget.Client.Services;
 
 namespace Budget.Web.Components.Auth;
 
@@ -10,6 +11,7 @@ public sealed partial class AuthStateSync : ComponentBase
   [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
   [Inject] private IUserAndOptions UserAndOptions { get; set; } = null!;
   [Inject] private EnvelopeState EnvelopeState { get; set; } = null!;
+  [Inject] private IBudgetApiClient ApiClient { get; set; } = null!;
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -32,6 +34,17 @@ public sealed partial class AuthStateSync : ComponentBase
       { 
         var dto = MapToDto(user!);
         UserAndOptions.SetUserInfo(dto);
+        
+        // Load user options from the API
+        if (!string.IsNullOrEmpty(dto.Id))
+        {
+          var options = await ApiClient.GetUserOptionsAsync(dto.Id);
+          if (options != null)
+          {
+            UserAndOptions.Options = options;
+          }
+        }
+        
         await EnvelopeState.RefreshAsync();
       }
     }

@@ -18,5 +18,9 @@ public interface IBudgetApiClient
  
   // Maintenance
   Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default);
+
+  // User Options
+  Task<UserOptions?> GetUserOptionsAsync(string userId, CancellationToken cancellationToken = default);
+  Task<bool> SaveUserOptionsAsync(string userId, UserOptions options, CancellationToken cancellationToken = default);
 }
 

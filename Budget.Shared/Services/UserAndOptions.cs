@@ -4,6 +4,7 @@
   {
     public bool HasInfo { get; set; }
     public UserInfoDto  User { get; set; } = new UserInfoDto();
+    public UserOptions Options { get; set; } = new UserOptions();
 
     public void SetUserInfo(UserInfoDto userInfo)
     {
@@ -14,6 +15,7 @@
     public void ClearUserInfo()
     {
       User = new UserInfoDto();
+      Options = new UserOptions();
       HasInfo = false;
     }
 
