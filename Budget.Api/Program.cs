@@ -53,9 +53,17 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAl
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentFamilyService, CurrentFamilyService>();
 
-// Get connection strings
-var budgetConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Budget, logger);
-var identityConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
+// Check if running in test mode
+var isTest = AppDomain.CurrentDomain.GetAssemblies()
+  .Any(a => a.FullName != null && (a.FullName.StartsWith("xunit")
+                                   || a.FullName.StartsWith("nunit")
+                                   || a.FullName.StartsWith("Microsoft.VisualStudio.TestPlatform")));
+
+
+
+// Get connection strings (not required for tests)
+var budgetConnectionString = isTest ? "TestConnection" : Misc.GetConnectionString(builder, Misc.ConnectionStringType.Budget, logger);
+var identityConnectionString = isTest ? "TestConnection" : Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
 
 if (string.IsNullOrWhiteSpace(budgetConnectionString))
   throw new InvalidOperationException("Missing Budget DB connection string.");
@@ -63,11 +71,6 @@ if (string.IsNullOrWhiteSpace(identityConnectionString))
   throw new InvalidOperationException("Missing Identity DB connection string.");
 
 var isDev = builder.Environment.IsDevelopment();
-//var isTest = builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Test");
-var isTest = AppDomain.CurrentDomain.GetAssemblies()
-  .Any(a => a.FullName != null && (a.FullName.StartsWith("xunit")
-                                   || a.FullName.StartsWith("nunit")
-                                   || a.FullName.StartsWith("Microsoft.VisualStudio.TestPlatform")));
 
 // Configure BudgetContext
 builder.Services.AddDbContext<BudgetContext>(options =>

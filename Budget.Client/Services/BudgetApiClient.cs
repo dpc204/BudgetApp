@@ -163,4 +163,36 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     using var resp = await http.PutAsJsonAsync("/transactions/assign", payload, cancellationToken);
     return resp.IsSuccessStatusCode;
   }
+
+  public async Task<UserOptions?> GetUserOptionsAsync(string userId, CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      var response = await http.GetFromJsonAsync<GetUserOptionsResponse>($"/api/useroptions/{userId}", cancellationToken: cancellationToken);
+      return response?.Options;
+    }
+    catch (Exception ex)
+    {
+      logger.LogDebug(ex, "Failed to get user options for user {UserId}", userId);
+      return null;
+    }
+  }
+
+  public async Task<bool> SaveUserOptionsAsync(string userId, UserOptions options, CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      var command = new SaveUserOptionsCommand(userId, options);
+      using var resp = await http.PostAsJsonAsync("/api/useroptions", command, cancellationToken);
+      return resp.IsSuccessStatusCode;
+    }
+    catch (Exception ex)
+    {
+      logger.LogWarning(ex, "Failed to save user options for user {UserId}", userId);
+      return false;
+    }
+  }
+
+  private sealed record GetUserOptionsResponse(UserOptions? Options);
+  private sealed record SaveUserOptionsCommand(string UserId, UserOptions Options);
 }

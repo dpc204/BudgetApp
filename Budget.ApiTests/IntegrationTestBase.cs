@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
@@ -27,21 +28,18 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
     _factory = new WebApplicationFactory<Program>()
       .WithWebHostBuilder(builder =>
       {
-        builder.UseEnvironment("Testing");
-
         builder.ConfigureAppConfiguration((context, config) =>
         {
-          // Add test connection strings to prevent the app from failing
+          // Add in-memory configuration for test connection strings
           config.AddInMemoryCollection(new Dictionary<string, string?>
           {
-            ["UseAzureDB"] = "false",
-            ["LocalBudgetConnection"] = "Data Source=TestDb;Mode=Memory;Cache=Shared",
-            ["LocalIdentityConnection"] = "Data Source=TestIdentityDb;Mode=Memory;Cache=Shared",
-            ["ConnectionStrings:BudgetConnection"] = "Data Source=TestDb;Mode=Memory;Cache=Shared",
-            ["ConnectionStrings:IdentityConnection"] = "Data Source=TestIdentityDb;Mode=Memory;Cache=Shared"
+            ["LocalBudgetConnection"] = "TestConnection",
+            ["LocalIdentityConnection"] = "TestConnection",
+            ["BudgetConnection"] = "TestConnection",
+            ["IdentityConnection"] = "TestConnection"
           });
         });
-
+        
         builder.ConfigureServices(services =>
         {
           // Remove all BudgetContext registrations
