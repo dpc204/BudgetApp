@@ -50,7 +50,10 @@ else
                                    OnClick="@(() => NewTransactionAsync(ctx.Item))"/>
                   </CellTemplate >
                 </TemplateColumn >
-                <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>                <TemplateColumn Title="Balance"
+                <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Title="Category" HeaderStyle="min-width: 16rem;" />
+                <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;" />
+                
+                <TemplateColumn Title="Balance"
                                 titleClass="text-end"
                                 CellClass="text-end"
                                 HeaderStyle="text-align: right;"
