@@ -1,6 +1,79 @@
 # Budget.Client.Tests
 
-This test project contains tests for the Budget.Client Blazor components.
+This test project contains tests for the Budget.Client Blazor components using bUnit, xUnit, and Moq.
+
+## Testing Framework
+
+- **bUnit 1.32.7** - Blazor component testing library
+- **xUnit** - Test framework
+- **Moq** - Mocking framework
+- **MudBlazor 8.15.0** - UI component library (test dependencies)
+
+## Known Limitations
+
+### MudBlazor Provider Requirements
+
+MudBlazor components require specific providers (`MudPopoverProvider`, `MudDialogProvider`, `MudSnackbarProvider`) in the component tree to function properly. These providers cannot be easily mocked or stubbed in bUnit tests due to internal dependencies on JSInterop and service initialization.
+
+**Impact:**
+- Full component rendering tests that include MudBlazor input components (like `MudNumericField`, `MudTextField`, etc.) will fail with:
+  ```
+  System.InvalidOperationException: Missing <MudPopoverProvider />
+  ```
+
+**Solutions:**
+
+1. **Unit Tests** - Test component logic in isolation
+   - Extract business logic to services/methods
+   - Test services independently
+   - Mock component dependencies
+
+2. **Integration Tests** - Use full application context
+   - Use Playwright or Selenium for end-to-end tests
+   - Test with a running application that includes all providers
+
+3. **Skipped Tests** - Document requirements clearly
+   ```csharp
+   [Fact(Skip = "Requires MudBlazor providers for full component rendering")]
+   public void MyTest() { ... }
+   ```
+
+### Example Test Structure
+
+```csharp
+public class MyComponentTests : TestContext
+{
+  private readonly Mock<IMyService> _mockService;
+
+  public MyComponentTests()
+  {
+    _mockService = new Mock<IMyService>();
+    
+    // Register services
+    Services.AddMudServices();
+    Services.AddSingleton(_mockService.Object);
+    
+    // Configure JSInterop to handle MudBlazor calls
+    JSInterop.Mode = JSRuntimeMode.Loose;
+  }
+
+  [Fact]
+  public void CanTest_ServiceInteractions()
+  {
+    // Test logic without full rendering
+    _mockService.Setup(x => x.GetDataAsync()).ReturnsAsync(testData);
+    var result = await _mockService.Object.GetDataAsync();
+    Assert.NotNull(result);
+  }
+
+  [Fact(Skip = "Requires MudBlazor providers")]
+  public void CannotTest_FullMudBlazorRendering()
+  {
+    // This would fail - requires providers
+    var cut = RenderComponent<MyComponent>();
+  }
+}
+```
 
 ## Tab/Enter Navigation Tests
 

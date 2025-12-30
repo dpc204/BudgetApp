@@ -3,8 +3,15 @@
 @inject IBudgetMonthlyApiClient BudgetMonthlyApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IUserAndOptions UserAndOptions
+
+@inject IJSRuntime JsRuntime
 
 <style>
+  :root {
+    /* Offset includes: page title (h4) ~60px, top margin 16px, MudPaper controls ~120px, bottom margin 16px, plus buffer */
+    --fund-table-header-offset: 300px;
+  }
   .draft-input-right {
     width: 150px;
   }
@@ -15,10 +22,29 @@
     font-size: 1.1rem;
     font-weight: 500;
   }
-  /* Enable fixed table layout for consistent column widths */
-  .mud-table table {
-    table-layout: fixed;
-    width: auto;
+  /* Fixed header table wrapper */
+  .fund-table-wrapper {
+    max-height: calc(100vh - var(--fund-table-header-offset));
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+  /* Prevent MudTable's internal container from scrolling */
+  .fund-table .mud-table-container {
+    overflow: visible !important;
+  }
+  /* Fix the header - target the actual thead element */
+  .fund-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  /* Ensure header cells have background */
+  .fund-table thead th {
+    background-color: var(--mud-palette-surface);
+  }
+  /* Table should size to content, not full width */
+  .fund-table .mud-table-root {
+    width: auto !important;
   }
   .display-column {
     width: 200px;
@@ -53,50 +79,55 @@
     <MudPaper Class="pa-4 mb-4">
       <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
         <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-          <MudMenu Label="Options" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium">
-            <MudMenuItem OnClick="@(() => SetFillAmount(FillAmounts.OneHundredPercent))">Fill 100% of Budget</MudMenuItem>
-            <MudMenuItem OnClick="@(() => SetFillAmount(FillAmounts.FiftyPercent))">Fill 50% of Budget</MudMenuItem>
-          </MudMenu>
-
-          <MudButton Variant="Variant.Filled"
-                     Color="Color.Primary"
-                     Size="Size.Medium"
-                     OnClick="AllocateFill">
-            @GetFillButtonText()
-          </MudButton>   
-          <MudButton Variant="Variant.Filled"
-                     Color="Color.Primary"
-                     Size="Size.Medium">
-                     Fund Envelopes
-            </MudButton>
-
           <MudSelect T="DateTime"
                      Value="@_selectedMonth"
                      ValueChanged="@OnMonthChanged"
                      Variant="Variant.Outlined"
                      AnchorOrigin="Origin.BottomCenter"
                      Style="min-width: 150px;">
-            @foreach (var month in _monthOptions)
+            @foreach(var month in _monthOptions)
             {
               <MudSelectItem Value="@month">@month.ToString("MMM yy")</MudSelectItem>
             }
           </MudSelect>
-        </MudStack>
+
+          <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            <MudButton OnClick="AllocateFill">@GetDisplayName(_selectedFillType)</MudButton>
+            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+              <MudMenuItem OnClick="() => SetFillAmount(FillAmounts.OneHundredPercent)">@GetDisplayName(FillAmounts.OneHundredPercent)</MudMenuItem>
+              <MudMenuItem OnClick="() => SetFillAmount(FillAmounts.FiftyPercent)">@GetDisplayName(FillAmounts.FiftyPercent)</MudMenuItem>
+              <MudMenuItem OnClick="() => SetFillAmount(FillAmounts.FillToBudget)">@GetDisplayName(FillAmounts.FillToBudget)</MudMenuItem>
+            </MudMenu>
+          </MudButtonGroup>
+          <MudButton Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     Size="Size.Medium"
+                     OnClick="ClearFundAmounts">
+            Clear Fund Amounts
+          </MudButton>
+          <MudButton Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     Size="Size.Medium">
+            Fund Envelopes
+          </MudButton>
+
+          </MudStack>
 
        
       </MudStack>
     </MudPaper>
 
-    <MudTable Items="@_envelopeRows" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None">
-      <HeaderContent>
-        <MudTh Class="display-column" border-left: 2px solid var(--mud-palette-lines-default);>Envelope Name</MudTh>
-        <MudTh  Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Current Balance</MudTh>
-        <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>
-          Total Budget: @_totalBudget.ToString("C2")<br />Budget
-        </MudTh>
-        <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Available: @_availableToFund.ToString("C2")<br />Fund Amount</MudTh>
-      </HeaderContent>
-      <RowTemplate>
+    <div class="fund-table-wrapper">
+      <MudTable Items="@_envelopeRows" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None" Class="fund-table">
+        <HeaderContent>
+          <MudTh Class="display-column" border-left: 2px solid var(--mud-palette-lines-default);>Envelope Name</MudTh>
+          <MudTh  Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Current Balance</MudTh>
+          <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>
+            Total Budget: @_totalBudget.ToString("C2")<br />Budget
+          </MudTh>
+          <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Available: @_availableToFund.ToString("C2")<br />Fund Amount</MudTh>
+        </HeaderContent>
+        <RowTemplate>
         <MudTd DataLabel="Envelope Name" Class="display-column">
           <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
             <MudTooltip Text="@context.EnvelopeName">
@@ -106,8 +137,9 @@
                      Size="Size.Small"
                      Dense="true"
                      AnchorOrigin="Origin.BottomLeft">
-              <MudMenuItem OnClick="@(() => FillToBudgetForPeriod(context.EnvelopeId))">Fill to Budget for Period</MudMenuItem>
-              <MudMenuItem OnClick="@(() => AddFullBudgetAmountForPeriod(context.EnvelopeId))">Add Full Budget Amount for Period</MudMenuItem>
+              <MudMenuItem OnClick="@(() => AllocateOneEnvelope(context.EnvelopeId, FillAmounts.OneHundredPercent))">Fill 100% Of Budget</MudMenuItem>
+              <MudMenuItem OnClick="@(() => AllocateOneEnvelope(context.EnvelopeId, FillAmounts.FiftyPercent))">Fill 50% of Budget</MudMenuItem>
+              <MudMenuItem OnClick="@(() => AllocateOneEnvelope(context.EnvelopeId, FillAmounts.FillToBudget))">Fill to Budget</MudMenuItem>
               <MudDivider/>
               <MudMenuItem OnClick="@(() => ShowHelp())">Help</MudMenuItem>
             </MudMenu>
@@ -122,7 +154,7 @@
         <MudTd DataLabel="Fund Amount" Class="display-column" Style="text-align: right;  border-left: 2px solid var(--mud-palette-lines-default);">
           <MudNumericField @key="@context.UpdateCounter" T="decimal?"
                            Value="@context.FundAmount"
-                           ValueChanged="@((decimal? val) => UpdateFundAmount(context.EnvelopeId, val))"
+                           ValueChanged="@((decimal? val) => UpdateFundAmountAsync(context.EnvelopeId, val))"
                            Format="C2"
                            HideSpinButtons="true"
                            Class="draft-input-right"
@@ -132,5 +164,6 @@
         </MudTd>
       </RowTemplate>
     </MudTable>
+    </div>
   }
 </MudContainer>

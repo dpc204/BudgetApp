@@ -12,12 +12,40 @@ public static class ConfigureIdentity
   /// </summary>
   public static void AddAuthentication(WebApplicationBuilder builder)
   {
+    // DIAGNOSTIC: Log all AzureAd configuration values to verify ClientSecret is loaded
+    var azureAdSection = builder.Configuration.GetSection("AzureAd");
+    var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole().SetMinimumLevel(LogLevel.Information));
+    var logger = loggerFactory.CreateLogger("ConfigureIdentity");
+    
+    logger.LogInformation("=== AzureAd Configuration at Authentication Setup ===");
+    logger.LogInformation("Instance: {Instance}", azureAdSection["Instance"]);
+    logger.LogInformation("Domain: {Domain}", azureAdSection["Domain"]);
+    logger.LogInformation("TenantId: {TenantId}", azureAdSection["TenantId"]);
+    logger.LogInformation("ClientId: {ClientId}", azureAdSection["ClientId"]);
+    logger.LogInformation("ClientSecret present: {HasSecret}", !string.IsNullOrEmpty(azureAdSection["ClientSecret"]));
+    if (!string.IsNullOrEmpty(azureAdSection["ClientSecret"]))
+    {
+      logger.LogInformation("ClientSecret length: {Length}", azureAdSection["ClientSecret"]?.Length ?? 0);
+    }
+    else
+    {
+      logger.LogError("ClientSecret is NULL or EMPTY! This will cause confidential client creation to fail.");
+      logger.LogInformation("All AzureAd keys in configuration: {Keys}", string.Join(", ", azureAdSection.AsEnumerable().Select(kvp => kvp.Key)));
+    }
+    logger.LogInformation("CallbackPath: {CallbackPath}", azureAdSection["CallbackPath"]);
+    logger.LogInformation("SignedOutCallbackPath: {SignedOutCallbackPath}", azureAdSection["SignedOutCallbackPath"]);
+    
     // Configure Microsoft Entra ID authentication
     // Use cookies as default scheme for sign-in, OpenIdConnect for challenges
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-      .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
-      .EnableTokenAcquisitionToCallDownstreamApi()  // Enable token acquisition without requesting scopes during sign-in
-      .AddInMemoryTokenCaches();
+      .AddMicrosoftIdentityWebApp(azureAdSection);
+      // NOTE: .EnableTokenAcquisitionToCallDownstreamApi() is NOT needed because:
+      // 1. Budget.Api uses its own JWT authentication (not Entra ID tokens)
+      // 2. Budget.Web forwards authentication cookies to Budget.Api (cookie-based auth)
+      // 3. No downstream Microsoft APIs (like Graph) are being called
+    
+    logger.LogInformation("Microsoft Entra ID authentication configured successfully");
+    loggerFactory.Dispose();
 
     // Configure cookie authentication options for Blazor Server
     builder.Services.ConfigureApplicationCookie(options =>
