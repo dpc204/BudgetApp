@@ -4,8 +4,10 @@ using System.Linq;
 using System.Net.Http;
 using Budget.Api;
 using Budget.DB;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -57,5 +59,16 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
             options.UseInMemoryDatabase(_identityDbName));
         });
       });
+
+    // Seed the Family entity for tests
+    using (var scope = _factory.Services.CreateScope())
+    {
+      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+      if (!db.Families.Any())
+      {
+        db.Families.Add(new Family { Id = 1, Name = "Test Family" });
+        db.SaveChanges();
+      }
+    }
   }
 }

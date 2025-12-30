@@ -21,7 +21,8 @@ public static class TestHelpers
         int? id = null,
         string? name = null,
         decimal balance = 1000m,
-        BankAccount.AccountTypes accountType = BankAccount.AccountTypes.Checking)
+        BankAccount.AccountTypes accountType = BankAccount.AccountTypes.Checking,
+        int familyId = 1)
     {
         var accountId = id ?? _nextAccountId++;
         return new BankAccount
@@ -29,7 +30,8 @@ public static class TestHelpers
             Id = accountId,
             Name = name ?? $"Test Account {accountId}",
             Balance = balance,
-            AccountType = accountType
+            AccountType = accountType,
+            FamilyId = familyId
         };
     }
 
@@ -41,7 +43,8 @@ public static class TestHelpers
         string? name = null,
         int categoryId = 1,
         decimal balance = 500m,
-        decimal? budget = null)
+        decimal? budget = null,
+        int familyId = 1)
     {
         var envelopeId = id ?? _nextEnvelopeId++;
         return new Envelope
@@ -50,7 +53,8 @@ public static class TestHelpers
             Name = name ?? $"Test Envelope {envelopeId}",
             CategoryId = categoryId,
             Balance = balance,
-            Budget = budget
+            Budget = budget,
+            FamilyId = familyId
         };
     }
 
@@ -63,7 +67,8 @@ public static class TestHelpers
         string? vendor = null,
         decimal totalAmount = 0m,
         bool isVoided = false,
-        List<TransactionDetail>? details = null)
+        List<TransactionDetail>? details = null,
+        int familyId = 1)
     {
         var transactionId = id ?? _nextTransactionId++;
         var transaction = new Transaction
@@ -74,7 +79,8 @@ public static class TestHelpers
             Vendor = vendor ?? $"Test Vendor {transactionId}",
             TotalAmount = totalAmount,
             UserId = 1,
-            IsVoided = isVoided
+            IsVoided = isVoided,
+            FamilyId = familyId
         };
 
         if (details != null)
@@ -115,14 +121,16 @@ public static class TestHelpers
     public static Category CreateTestCategory(
         int? id = null,
         string? name = null,
-        int sortOrder = 1)
+        int sortOrder = 1,
+        int familyId = 1)
     {
         var categoryId = id ?? _nextCategoryId++;
         return new Category
         {
             Id = categoryId,
             Name = name ?? $"Test Category {categoryId}",
-            SortOrder = sortOrder
+            SortOrder = sortOrder,
+            FamilyId = familyId
         };
     }
 

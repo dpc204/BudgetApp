@@ -17,6 +17,9 @@ namespace Budget.DB
     public int UserId { get; set; }
     public User User { get; set; } = null!;
 
+    public int FamilyId { get; set; } = 1;
+    public Family Family { get; set; } = null!;
+
     public class FavoriteConfiguration : IEntityTypeConfiguration<Favorite>
     {
       public void Configure(EntityTypeBuilder<Favorite> entity)
@@ -33,6 +36,11 @@ namespace Budget.DB
           .WithMany(u => u.Favorites)
           .HasForeignKey(f => f.UserId)
           .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasOne(f => f.Family)
+          .WithMany()
+          .HasForeignKey(f => f.FamilyId)
+          .OnDelete(DeleteBehavior.Restrict);
       }
     }
   }

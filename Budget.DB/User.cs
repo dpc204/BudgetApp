@@ -8,6 +8,8 @@ namespace Budget.DB
     public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
+    public int FamilyId { get; set; } = 1;
+    public Family Family { get; set; } = null!;
 
     // Back-reference collection
     public List<Transaction> Transactions { get; set; } = [];
@@ -22,9 +24,14 @@ namespace Budget.DB
         entity.Property(u => u.LastName)
           .HasMaxLength(50);
 
+        entity.HasOne(u => u.Family)
+          .WithMany()
+          .HasForeignKey(u => u.FamilyId)
+          .OnDelete(DeleteBehavior.Restrict);
+
         entity.HasData(
-          new User { Id = 1, FirstName = "Patrick", LastName = "Connelly" },
-          new User { Id = 2, FirstName = "Terri", LastName = "Connelly" }
+          new User { Id = 1, FirstName = "Patrick", LastName = "Connelly", FamilyId = 1 },
+          new User { Id = 2, FirstName = "Terri", LastName = "Connelly", FamilyId = 1 }
         );
       }
     }

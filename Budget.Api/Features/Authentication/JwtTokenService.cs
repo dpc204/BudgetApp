@@ -12,21 +12,22 @@ public sealed class JwtOptions
 
 public interface IJwtTokenService
 {
-    AuthResponse CreateToken(IdentityUser user, IEnumerable<string> roles);
+    AuthResponse CreateToken(BudgetUser user, IEnumerable<string> roles);
 }
 
 internal sealed class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
 {
     private readonly JwtOptions _opt = options.Value;
 
-    public AuthResponse CreateToken(IdentityUser user, IEnumerable<string> roles)
+    public AuthResponse CreateToken(BudgetUser user, IEnumerable<string> roles)
     {
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.UniqueName, user.UserName ?? user.Email ?? user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("FamilyId", user.FamilyId.ToString())
         };
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 

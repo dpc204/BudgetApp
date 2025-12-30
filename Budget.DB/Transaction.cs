@@ -21,6 +21,8 @@ namespace Budget.DB
 
     public decimal BalanceAfterTransaction { get; set; }
     public bool IsVoided { get; set; }
+    public int FamilyId { get; set; } = 1;
+    public Family Family { get; set; } = null!;
     public List<TransactionDetail> Details { get; set; } = [];
 
     public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
@@ -45,6 +47,11 @@ namespace Budget.DB
         entity.HasOne(t => t.User)
           .WithMany(u => u.Transactions)
           .HasForeignKey(t => t.UserId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(t => t.Family)
+          .WithMany()
+          .HasForeignKey(t => t.FamilyId)
           .OnDelete(DeleteBehavior.Restrict);
 
         

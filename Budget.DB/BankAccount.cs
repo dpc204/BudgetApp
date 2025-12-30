@@ -11,6 +11,8 @@ namespace Budget.DB
     public string Name { get; set; } = string.Empty;
     public decimal Balance { get; set; } = 0m;
     public AccountTypes AccountType { get; set; } = AccountTypes.Checking;
+    public int FamilyId { get; set; } = 1;
+    public Family Family { get; set; } = null!;
 
     public DateTime LastTransactionDate { get; set; }
 
@@ -36,9 +38,14 @@ namespace Budget.DB
               .HasForeignKey(b => b.LastTransactionId)
               .OnDelete(DeleteBehavior.SetNull);
 
+        entity.HasOne(b => b.Family)
+              .WithMany()
+              .HasForeignKey(b => b.FamilyId)
+              .OnDelete(DeleteBehavior.Restrict);
+
         entity.HasData(
-          new BankAccount() { Id = 1, Name = "Citizens", AccountType = AccountTypes.Checking },
-          new BankAccount() { Id = 2, Name = "Discover", AccountType = AccountTypes.Credit }
+          new BankAccount() { Id = 1, Name = "Citizens", AccountType = AccountTypes.Checking, FamilyId = 1 },
+          new BankAccount() { Id = 2, Name = "Discover", AccountType = AccountTypes.Credit, FamilyId = 1 }
         );
       }
     }

@@ -3,21 +3,46 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable IDE0300 // Simplify collection initialization
-#pragma warning disable CA1861
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace Budget.DB.Migrations
 {
-  /// <inheritdoc />
-#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
-  public partial class initial : Migration
-#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
-  {
+    /// <inheritdoc />
+    public partial class Initial : Migration
+    {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
                 name: "budget");
+
+            migrationBuilder.CreateTable(
+                name: "Families",
+                schema: "budget",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Families", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SavedUserOptions",
+                schema: "budget",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    JsonOptions = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SavedUserOptions", x => x.UserId);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Categories",
@@ -29,11 +54,19 @@ namespace Budget.DB.Migrations
                     Name = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
-                    CategoryType = table.Column<int>(type: "int", nullable: false)
+                    CategoryType = table.Column<int>(type: "int", nullable: false),
+                    FamilyId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Categories_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "budget",
+                        principalTable: "Families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -44,11 +77,19 @@ namespace Budget.DB.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    FamilyId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "budget",
+                        principalTable: "Families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -59,11 +100,19 @@ namespace Budget.DB.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FavoriteType = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    FamilyId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Favorites", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Favorites_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "budget",
+                        principalTable: "Families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Favorites_Users_UserId",
                         column: x => x.UserId,
@@ -83,12 +132,20 @@ namespace Budget.DB.Migrations
                     Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     AccountType = table.Column<int>(type: "int", nullable: false),
+                    FamilyId = table.Column<int>(type: "int", nullable: false),
                     LastTransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastTransactionId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BankAccounts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BankAccounts_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "budget",
+                        principalTable: "Families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -104,7 +161,9 @@ namespace Budget.DB.Migrations
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    BalanceAfterTransaction = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                    BalanceAfterTransaction = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    IsVoided = table.Column<bool>(type: "bit", nullable: false),
+                    FamilyId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -114,6 +173,13 @@ namespace Budget.DB.Migrations
                         column: x => x.AccountId,
                         principalSchema: "budget",
                         principalTable: "BankAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Transactions_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "budget",
+                        principalTable: "Families",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -133,11 +199,20 @@ namespace Budget.DB.Migrations
                     AcctPeriod = table.Column<int>(type: "int", nullable: false),
                     EnvelopeId = table.Column<int>(type: "int", nullable: false),
                     Budget = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
-                    BudgetDraft = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true)
+                    BudgetDraft = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    IsBudgetLocked = table.Column<bool>(type: "bit", nullable: false),
+                    FamilyId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BudgetMonths", x => new { x.AcctPeriod, x.EnvelopeId });
+                    table.ForeignKey(
+                        name: "FK_BudgetMonths_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "budget",
+                        principalTable: "Families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -151,10 +226,12 @@ namespace Budget.DB.Migrations
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Budget = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    FundAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
                     LastTransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EnvelopeType = table.Column<int>(type: "int", nullable: false),
+                    FamilyId = table.Column<int>(type: "int", nullable: false),
                     LastTransactionId = table.Column<int>(type: "int", nullable: true),
                     LastTransactionLineId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -168,6 +245,13 @@ namespace Budget.DB.Migrations
                         principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Envelopes_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "budget",
+                        principalTable: "Families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -200,85 +284,65 @@ namespace Budget.DB.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                schema: "budget",
+                table: "Families",
+                columns: new[] { "Id", "CreatedDate", "Name" },
+                values: new object[] { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Default Family" });
 
-      migrationBuilder.InsertData(
+            migrationBuilder.InsertData(
                 schema: "budget",
                 table: "BankAccounts",
-                columns: new[] { "Id", "AccountType", "Balance", "LastTransactionDate", "LastTransactionId", "Name" },
+                columns: new[] { "Id", "AccountType", "Balance", "FamilyId", "LastTransactionDate", "LastTransactionId", "Name" },
                 values: new object[,]
                 {
-                    { 1, 0, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Citizens" },
-                    { 2, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Discover" }
+                    { 1, 0, 0m, 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Citizens" },
+                    { 2, 1, 0m, 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Discover" }
                 });
 
-      migrationBuilder.InsertData(
+            migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Categories",
-                columns: new[] { "Id", "CategoryType", "Description", "Name", "SortOrder" },
+                columns: new[] { "Id", "CategoryType", "Description", "FamilyId", "Name", "SortOrder" },
                 values: new object[,]
                 {
-                    { -1, 1, "", "System", 0 },
-                    { 1, 0, "", "Frequent", 1 },
-                    { 2, 0, "", "Regular", 2 },
-                    { 3, 0, "", "Infrequent", 3 },
-                    { 4, 2, "", "Income", 4 }
+                    { -1, 1, "", 1, "System", 0 },
+                    { 1, 0, "", 1, "Frequent", 1 },
+                    { 2, 0, "", 1, "Regular", 2 },
+                    { 3, 0, "", 1, "Infrequent", 3 },
+                    { 4, 2, "", 1, "Income", 4 }
                 });
 
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Users",
-                columns: new[] { "Id", "FirstName", "LastName" },
+                columns: new[] { "Id", "FamilyId", "FirstName", "LastName" },
                 values: new object[,]
                 {
-                    { 1, "Patrick", "Connelly" },
-                    { 2, "Terri", "Connelly" }
+                    { 1, 1, "Patrick", "Connelly" },
+                    { 2, 1, "Terri", "Connelly" }
                 });
 
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Envelopes",
-                columns: new[] { "Id", "Balance", "Budget", "CategoryId", "Description", "EnvelopeType", "LastTransactionDate", "LastTransactionId", "LastTransactionLineId", "Name", "SortOrder" },
+                columns: new[] { "Id", "Balance", "Budget", "CategoryId", "Description", "EnvelopeType", "FamilyId", "FundAmount", "LastTransactionDate", "LastTransactionId", "LastTransactionLineId", "Name", "SortOrder" },
                 values: new object[,]
                 {
-                    { -1, 0m, null, -1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "UnAllocated", 6 },
-                    { 1, 0m, null, 1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Dining Out", 1 },
-                    { 2, 0m, null, 1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Groceries", 2 },
-                    { 3, 0m, null, 1, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Gas", 3 },
-                    { 4, 0m, null, 2, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Car Maint", 4 },
-                    { 5, 0m, null, 2, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "House Maint", 5 },
-                    { 6, 0m, null, 2, "", 0, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Medical", 5 }
+                    { -1, 0m, null, -1, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "UnAllocated", 6 },
+                    { 1, 0m, null, 1, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Dining Out", 1 },
+                    { 2, 0m, null, 1, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Groceries", 2 },
+                    { 3, 0m, null, 1, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Gas", 3 },
+                    { 4, 0m, null, 2, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Car Maint", 4 },
+                    { 5, 0m, null, 2, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "House Maint", 5 },
+                    { 6, 0m, null, 2, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "Medical", 5 }
                 });
 
-            migrationBuilder.InsertData(
+            migrationBuilder.CreateIndex(
+                name: "IX_BankAccounts_FamilyId",
                 schema: "budget",
-                table: "Transactions",
-                columns: new[] { "Id", "AccountId", "BalanceAfterTransaction", "Date", "TotalAmount", "UserId", "UserName", "Vendor" },
-                values: new object[,]
-                {
-                    { 1, 1, 0m, new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 104.00m, 1, "", "Giant" },
-                    { 2, 2, 0m, new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 48m, 1, "", "Bonefish" },
-                    { 3, 1, 0m, new DateTime(2023, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 12.50m, 1, "", "Gas" },
-                    { 4, 2, 0m, new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 30.00m, 2, "", "Home Depot" },
-                    { 5, 1, 0m, new DateTime(2023, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), 32.00m, 2, "", "CVS" }
-                });
-
-            migrationBuilder.InsertData(
-                schema: "budget",
-                table: "TransactionDetails",
-                columns: new[] { "LineId", "TransactionId", "Amount", "EnvelopeId", "Notes" },
-                values: new object[,]
-                {
-                    { 1, 1, 52m, 2, "Yasso" },
-                    { 2, 1, 52m, 6, "Cough supresent" },
-                    { 1, 2, 48m, 1, "din din" },
-                    { 1, 3, 10m, 3, "" },
-                    { 2, 3, 2.5m, 2, "Tic Tacs" },
-                    { 1, 4, 27m, 5, "Plumbing" },
-                    { 2, 4, 3m, 2, "Candy" },
-                    { 1, 5, 20m, 6, "Prescriptions" },
-                    { 2, 5, 4m, 2, "Gum" },
-                    { 3, 5, 8m, 5, "Light Bulbs" }
-                });
+                table: "BankAccounts",
+                column: "FamilyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BankAccounts_LastTransactionId",
@@ -293,16 +357,40 @@ namespace Budget.DB.Migrations
                 column: "EnvelopeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_BudgetMonths_FamilyId",
+                schema: "budget",
+                table: "BudgetMonths",
+                column: "FamilyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Categories_FamilyId",
+                schema: "budget",
+                table: "Categories",
+                column: "FamilyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Envelopes_CategoryId",
                 schema: "budget",
                 table: "Envelopes",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Envelopes_FamilyId",
+                schema: "budget",
+                table: "Envelopes",
+                column: "FamilyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Envelopes_LastTransactionId_LastTransactionLineId",
                 schema: "budget",
                 table: "Envelopes",
                 columns: new[] { "LastTransactionId", "LastTransactionLineId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Favorites_FamilyId",
+                schema: "budget",
+                table: "Favorites",
+                column: "FamilyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Favorites_UserId",
@@ -323,10 +411,22 @@ namespace Budget.DB.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Transactions_FamilyId",
+                schema: "budget",
+                table: "Transactions",
+                column: "FamilyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Transactions_UserId",
                 schema: "budget",
                 table: "Transactions",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_FamilyId",
+                schema: "budget",
+                table: "Users",
+                column: "FamilyId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_BankAccounts_Transactions_LastTransactionId",
@@ -363,6 +463,31 @@ namespace Budget.DB.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
+                name: "FK_BankAccounts_Families_FamilyId",
+                schema: "budget",
+                table: "BankAccounts");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Categories_Families_FamilyId",
+                schema: "budget",
+                table: "Categories");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Envelopes_Families_FamilyId",
+                schema: "budget",
+                table: "Envelopes");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Transactions_Families_FamilyId",
+                schema: "budget",
+                table: "Transactions");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Users_Families_FamilyId",
+                schema: "budget",
+                table: "Users");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_BankAccounts_Transactions_LastTransactionId",
                 schema: "budget",
                 table: "BankAccounts");
@@ -383,6 +508,14 @@ namespace Budget.DB.Migrations
 
             migrationBuilder.DropTable(
                 name: "Favorites",
+                schema: "budget");
+
+            migrationBuilder.DropTable(
+                name: "SavedUserOptions",
+                schema: "budget");
+
+            migrationBuilder.DropTable(
+                name: "Families",
                 schema: "budget");
 
             migrationBuilder.DropTable(
@@ -411,6 +544,3 @@ namespace Budget.DB.Migrations
         }
     }
 }
-#pragma warning restore IDE0300 // Simplify collection initialization
-
-#pragma warning restore CA1861

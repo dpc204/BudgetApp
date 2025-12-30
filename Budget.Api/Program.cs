@@ -49,11 +49,17 @@ Misc.SetupConfigurationSources(builder, assembly, logger);
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
 
+// Register HttpContextAccessor and CurrentFamilyService for multi-tenancy
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentFamilyService, CurrentFamilyService>();
+
 // Check if running in test mode
 var isTest = AppDomain.CurrentDomain.GetAssemblies()
   .Any(a => a.FullName != null && (a.FullName.StartsWith("xunit")
                                    || a.FullName.StartsWith("nunit")
                                    || a.FullName.StartsWith("Microsoft.VisualStudio.TestPlatform")));
+
+
 
 // Get connection strings (not required for tests)
 var budgetConnectionString = isTest ? "TestConnection" : Misc.GetConnectionString(builder, Misc.ConnectionStringType.Budget, logger);

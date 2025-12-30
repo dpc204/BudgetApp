@@ -14,6 +14,8 @@ public class BudgetMonth
   public decimal? Budget { get; set; }
   public decimal? BudgetDraft { get; set; }
   public bool IsBudgetLocked { get; set; } = false;
+  public int FamilyId { get; set; } = 1;
+  public Family Family { get; set; } = null!;
 
   public class BudgetMonthConfiguration : IEntityTypeConfiguration<BudgetMonth>
   {
@@ -33,6 +35,11 @@ public class BudgetMonth
         .WithMany()
         .HasForeignKey(b => b.EnvelopeId)
         .OnDelete(DeleteBehavior.Cascade);
+
+      entity.HasOne(b => b.Family)
+        .WithMany()
+        .HasForeignKey(b => b.FamilyId)
+        .OnDelete(DeleteBehavior.Restrict);
     }
   }
 }
