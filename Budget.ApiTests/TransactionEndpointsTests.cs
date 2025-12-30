@@ -33,7 +33,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 200, balance: 1000m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 200, categoryId: 1, balance: 500m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 200, categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope);
 
       await db.SaveChangesAsync();
@@ -141,7 +141,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 202, balance: 1000m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 202, categoryId: 1, balance: 500m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 202, categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope);
 
       var details = new List<TransactionDetail>
@@ -192,7 +192,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 203, balance: 1000m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 203, categoryId: 1, balance: 500m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 203, categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope);
 
       var details = new List<TransactionDetail>
@@ -243,10 +243,10 @@ public class TransactionEndpointsTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 204, balance: 1000m);
       db.BankAccounts.Add(account);
 
-      var envelope1 = TestHelpers.CreateTestEnvelope(id: 204, name: "Envelope 1", categoryId: 1, balance: 500m);
+      var envelope1 = TestHelpers.CreateTestEnvelope(id: 204, name: "Envelope 1", categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope1);
 
-      var envelope2 = TestHelpers.CreateTestEnvelope(id: 205, name: "Envelope 2", categoryId: 1, balance: 300m);
+      var envelope2 = TestHelpers.CreateTestEnvelope(id: 205, name: "Envelope 2", categoryId: "1", balance: 300m);
       db.Envelopes.Add(envelope2);
 
       var details = new List<TransactionDetail>
@@ -305,7 +305,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 2050, balance: 1000m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 2060, categoryId: 1, balance: 500m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 2060, categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope);
 
       var details = new List<TransactionDetail>

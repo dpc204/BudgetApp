@@ -22,7 +22,7 @@
 </MudDialog>
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public string Id { get; set; } = string.Empty;
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private CategoryDto? _category;
@@ -30,13 +30,13 @@
     protected override async Task OnParametersSetAsync()
     {
         var list = await MaintApi.GetCategoriesAsync();
-        _category = list.FirstOrDefault(c => c.Id == Id);
+        _category = list.FirstOrDefault(c => c.CategoryId == Id);
     }
 
     private async Task DeleteAsync()
     {
         if (_category is null) return;
-        await MaintApi.RemoveCategoryAsync(_category.Id);
+        await MaintApi.RemoveCategoryAsync(_category.CategoryId);
         MudDialog.Close(DialogResult.Ok(true));
     }
 

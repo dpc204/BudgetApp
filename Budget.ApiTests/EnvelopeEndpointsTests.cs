@@ -25,8 +25,8 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
     using (var scope = _factory.Services.CreateScope())
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var envelope1 = TestHelpers.CreateTestEnvelope(id: 400, name: "Groceries", categoryId: 1, balance: 100m);
-      var envelope2 = TestHelpers.CreateTestEnvelope(id: 401, name: "Gas", categoryId: 1, balance: 50m);
+      var envelope1 = TestHelpers.CreateTestEnvelope(id: 400, name: "Groceries", categoryId: "1", balance: 100m);
+      var envelope2 = TestHelpers.CreateTestEnvelope(id: 401, name: "Gas", categoryId: "1", balance: 50m);
 
       db.Envelopes.Add(envelope1);
       db.Envelopes.Add(envelope2);
@@ -62,7 +62,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 402, name: "Test Envelope", categoryId: 1, balance: 200m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 402, name: "Test Envelope", categoryId: "1", balance: 200m);
       db.Envelopes.Add(envelope);
       await db.SaveChangesAsync();
 
@@ -98,7 +98,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
           Description: "Test description",
           Balance: 150m,
           Budget: 200m,
-          CategoryId: 1,
+          CategoryId: "1",
           SortOrder: 10);
 
       // Act
@@ -134,7 +134,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 403, name: "Original Name", categoryId: 1, balance: 100m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 403, name: "Original Name", categoryId: "1", balance: 100m);
       db.Envelopes.Add(envelope);
       await db.SaveChangesAsync();
 
@@ -145,7 +145,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
         Description = "Updated description",
         Balance = 250m,
         Budget = 300m,
-        CategoryId = 1,
+        CategoryId = "1",
         SortOrder = 5
       };
 
@@ -189,7 +189,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
         Description = "Test",
         Balance = 100m,
         Budget = null,
-        CategoryId = 1,
+        CategoryId = "1",
         SortOrder = 1
       };
 
@@ -212,7 +212,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 405, name: "To Delete", categoryId: 1, balance: 50m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 405, name: "To Delete", categoryId: "1", balance: 50m);
       db.Envelopes.Add(envelope);
       await db.SaveChangesAsync();
 
@@ -263,7 +263,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 406, balance: 1000m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 406, name: "Test Envelope", categoryId: 1, balance: 500m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 406, name: "Test Envelope", categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope);
 
       var details = new List<TransactionDetail>

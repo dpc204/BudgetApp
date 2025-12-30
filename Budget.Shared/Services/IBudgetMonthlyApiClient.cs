@@ -85,7 +85,7 @@ public record BudgetMonthResponse(
   int AcctPeriod,
   int EnvelopeId,
   string EnvelopeName,
-  int CategoryId,
+  string CategoryId,
   string CategoryName,
   CatTypes CategoryType,
   int SortOrder,

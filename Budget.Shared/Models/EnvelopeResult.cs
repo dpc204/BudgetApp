@@ -3,7 +3,7 @@ namespace Budget.Shared.Models;
 
   public sealed class EnvelopeResult
   {
-    public int CategoryId { get; init; }
+    public string CategoryId { get; init; } = string.Empty;
     public string CategoryName { get; init; } = string.Empty;
     public int EnvelopeId { get; init; }
     public int SortOrder { get; set; }

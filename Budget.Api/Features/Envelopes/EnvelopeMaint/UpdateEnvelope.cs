@@ -2,8 +2,8 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
 
 public static class UpdateEnvelope
 {
-  public sealed record Command(int Id, string Name, string Description, decimal Balance, decimal? Budget, int CategoryId, int SortOrder) : IRequest<Response?>;
-  public sealed record Response(int Id, string Name, string Description, decimal Balance, decimal? Budget, int CategoryId, int SortOrder);
+  public sealed record Command(int Id, string Name, string Description, decimal Balance, decimal? Budget, string CategoryId, int SortOrder) : IRequest<Response?>;
+  public sealed record Response(int Id, string Name, string Description, decimal Balance, decimal? Budget, string CategoryId, int SortOrder);
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response?>
   {
@@ -45,7 +45,7 @@ public static class UpdateEnvelope
     public string Description { get; set; } = string.Empty;
     public decimal Balance { get; set; }
     public decimal? Budget { get; set; }
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public int SortOrder { get; set; }
   }
 }

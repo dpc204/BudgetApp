@@ -106,14 +106,14 @@ public partial class EnvelopePage : ComponentBase
 
   private void ApplyCategorySelection()
   {
-    var selected = SelectedCategoryId ?? 0;
+    var selected = SelectedCategoryId ?? "0";
 
     var list = new List<EnvelopeResult>();
 
     //var list = selected == 0
     //  ? AllEnvelopeData?.ToList() ?? []
     //  : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList() ?? [];
-    if (SelectedCategoryId == 0)
+    if (SelectedCategoryId == "0")
     {
       list = [.. (AllEnvelopeData!.Join(CategoriesForSelect, e => e.CategoryId, c => c.CategoryId, (e, c) => e))];
     }
@@ -132,7 +132,7 @@ public partial class EnvelopePage : ComponentBase
 
   private List<Cat> CategoriesForSelect { get; set; } = [];
 
-  public int? SelectedCategoryId
+  public string? SelectedCategoryId
   {
     get => State.SelectedCategoryId;
     set => State.SelectedCategoryId = value;
@@ -147,9 +147,9 @@ public partial class EnvelopePage : ComponentBase
     return State.Cats;
   }
 
-  private async Task CatChanged(int? value)
+  private async Task CatChanged(string? value)
   {
-    var selected = value ?? 0;
+    var selected = value ?? "0";
     SelectedCategoryId = selected;
     UserOptions.Options.SelectedCategoryType = selected;
     ApplyCategorySelection();

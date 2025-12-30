@@ -17,7 +17,7 @@ public class UserOptions
     }
   }
 
-  public int SelectedCategoryType
+  public string? SelectedCategoryType
   {
     get => field;
     set

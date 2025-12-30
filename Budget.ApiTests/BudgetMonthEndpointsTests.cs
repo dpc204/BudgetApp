@@ -77,7 +77,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 600, name: "Test Envelope", categoryId: 1);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 600, name: "Test Envelope", categoryId: "1");
       db.Envelopes.Add(envelope);
       await db.SaveChangesAsync();
 
@@ -117,7 +117,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 601, name: "Test Envelope", categoryId: 1);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 601, name: "Test Envelope", categoryId: "1");
       db.Envelopes.Add(envelope);
 
       var budgetMonth = new BudgetMonth
@@ -165,7 +165,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 6020, name: "Test Envelope", categoryId: 1);
+        var envelope = TestHelpers.CreateTestEnvelope(id: 6020, name: "Test Envelope", categoryId: "1");
         db.Envelopes.Add(envelope);
 
         var now = DateTime.Now;
@@ -218,7 +218,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 603, name: "Test Envelope", categoryId: 1);
+        var envelope = TestHelpers.CreateTestEnvelope(id: 603, name: "Test Envelope", categoryId: "1");
         db.Envelopes.Add(envelope);
 
         var sourceAcctPeriod = 202403;
@@ -269,7 +269,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 604, name: "Test Envelope", categoryId: 1);
+        var envelope = TestHelpers.CreateTestEnvelope(id: 604, name: "Test Envelope", categoryId: "1");
         db.Envelopes.Add(envelope);
 
         var acctPeriod = 202505;
@@ -316,7 +316,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 605, name: "Test Envelope", categoryId: 1);
+        var envelope = TestHelpers.CreateTestEnvelope(id: 605, name: "Test Envelope", categoryId: "1");
         db.Envelopes.Add(envelope);
 
         var acctPeriod = 202506;
@@ -363,7 +363,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 606, name: "Test Envelope", categoryId: 1);
+        var envelope = TestHelpers.CreateTestEnvelope(id: 606, name: "Test Envelope", categoryId: "1");
         db.Envelopes.Add(envelope);
 
         var acctPeriod = 202507;
@@ -410,7 +410,7 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 6070, name: "Test Envelope", categoryId: 1);
+        var envelope = TestHelpers.CreateTestEnvelope(id: 6070, name: "Test Envelope", categoryId: "1");
         db.Envelopes.Add(envelope);
 
         var acctPeriod = 202508;

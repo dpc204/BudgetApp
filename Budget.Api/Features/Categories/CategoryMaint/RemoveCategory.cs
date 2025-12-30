@@ -2,13 +2,13 @@ namespace Budget.Api.Features.Categories.CategoryMaint;
 
 public static class RemoveCategory
 {
-  public sealed record Command(int Id) : IRequest<bool>;
+  public sealed record Command(string CategoryId) : IRequest<bool>;
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, bool>
   {
     public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
     {
-      var entity = await db.Categories.FindAsync([request.Id], cancellationToken);
+      var entity = await db.Categories.FindAsync([request.CategoryId], cancellationToken);
       if (entity is null)
       {
         return false;
@@ -23,7 +23,7 @@ public static class RemoveCategory
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapDelete("/categories/maint/{id}", async (ISender sender, int id) =>
+      app.MapDelete("/categories/maint/{id}", async (ISender sender, string id) =>
       {
         var success = await sender.Send(new Command(id));
         return success ? Results.NoContent() : Results.NotFound($"Category with Id {id} not found");

@@ -4,13 +4,13 @@ public static class GetByEnvelopeId
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
 
-  public sealed record Response(int Id, string Name,string Description, int SortOrder , CatTypes CatType);
+  public sealed record Response(string CategoryId, string Name,string Description, int SortOrder , CatTypes CatType);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {
     public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken) =>
       await db.Categories
-        .Select(e => new Response(e.Id, e.Name, e.Description, e.SortOrder, e.CategoryType))
+        .Select(e => new Response(e.CategoryId, e.Name, e.Description, e.SortOrder, e.CategoryType))
         .ToListAsync(cancellationToken);
   }
 

@@ -41,7 +41,7 @@ public static class TestHelpers
     public static Envelope CreateTestEnvelope(
         int? id = null,
         string? name = null,
-        int categoryId = 1,
+        string categoryId = "1",
         decimal balance = 500m,
         decimal? budget = null,
         int familyId = 1)
@@ -119,15 +119,15 @@ public static class TestHelpers
     /// Creates a test category with default or specified values
     /// </summary>
     public static Category CreateTestCategory(
-        int? id = null,
+        string? id = null,
         string? name = null,
         int sortOrder = 1,
         int familyId = 1)
     {
-        var categoryId = id ?? _nextCategoryId++;
+        var categoryId = id ?? (_nextCategoryId++).ToString();
         return new Category
         {
-            Id = categoryId,
+            CategoryId = categoryId,
             Name = name ?? $"Test Category {categoryId}",
             SortOrder = sortOrder,
             FamilyId = familyId

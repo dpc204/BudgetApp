@@ -11,7 +11,7 @@ public static class GetBudgetMonth
     int AcctPeriod,
     int EnvelopeId,
     string EnvelopeName,
-    int CategoryId,
+    string CategoryId,
     string CategoryName,
     CatTypes CategoryType,
     int SortOrder,

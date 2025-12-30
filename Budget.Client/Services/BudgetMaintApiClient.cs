@@ -107,12 +107,12 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
 
   public async Task<CategoryDto> UpdateCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default)
   {
-    var payload = new { id = dto.Id, name = dto.Name, description = dto.Description, sortOrder = dto.SortOrder };
-    var updated = await PutAsync<object, CategoryDto>($"categories/maint/{dto.Id}", payload, cancellationToken);
+    var payload = new { categoryId = dto.CategoryId, name = dto.Name, description = dto.Description, sortOrder = dto.SortOrder };
+    var updated = await PutAsync<object, CategoryDto>($"categories/maint/{dto.CategoryId}", payload, cancellationToken);
     return updated;
   }
 
-  public async Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default)
+  public async Task<bool> RemoveCategoryAsync(string id, CancellationToken cancellationToken = default)
   {
     using var resp = await http.DeleteAsync($"categories/maint/{id}", cancellationToken);
     if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;

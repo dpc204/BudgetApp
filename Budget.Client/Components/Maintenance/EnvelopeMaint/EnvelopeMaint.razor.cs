@@ -21,9 +21,9 @@ public partial class EnvelopeMaint : ComponentBase
         {
           DataSource = new List<CategoryDto>()
           {
-            new() { Id = 1, Name = "Frequent", Description = "", SortOrder = 0 },
-            new() { Id = 2, Name = "Regular", Description = "", SortOrder = 1 },
-            new() { Id = 3, Name = "Bills", Description = "", SortOrder = 2 },
+            new() { CategoryId = "1", Name = "Frequent", Description = "", SortOrder = 0 },
+            new() { CategoryId = "2", Name = "Regular", Description = "", SortOrder = 1 },
+            new() { CategoryId = "3", Name = "Bills", Description = "", SortOrder = 2 },
           },
           PopupWidth = "100%"
         }

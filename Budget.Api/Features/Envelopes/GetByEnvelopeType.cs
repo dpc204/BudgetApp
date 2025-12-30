@@ -20,7 +20,7 @@ public static class GetByEnvelopeType
           FundAmount = env.FundAmount,
           Balance = env.Balance,
           Category = new CategoryDto {
-            Id = env.Category.Id,
+            CategoryId = env.Category.CategoryId,
             Name = env.Category.Name
           }
         })

@@ -29,7 +29,7 @@ public static class ImportEnvelopes
 
         if(db.Database.IsSqlServer())
         {
-          await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes ON", cancellationToken);
+     //     await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes ON", cancellationToken);
           try
           {
             var envelopes = await CsvImportService.ImportAsync(db.Envelopes, lines, log: log);
@@ -39,7 +39,7 @@ public static class ImportEnvelopes
           finally
           {
             // Always disable IDENTITY_INSERT
-            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes OFF", cancellationToken);
+        //    await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes OFF", cancellationToken);
           }
         }
         else

@@ -653,7 +653,7 @@ public partial class Budget : ComponentBase
   {
     public int EnvelopeId { get; init; }
     public string EnvelopeName { get; init; } = string.Empty;
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
     public CatTypes CategoryType { get; init; }
     public int SortOrder { get; init; }

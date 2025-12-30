@@ -28,8 +28,8 @@ public class CategoryEndpointsTests : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var category1 = TestHelpers.CreateTestCategory(id: 500, name: "Food", sortOrder: 1);
-      var category2 = TestHelpers.CreateTestCategory(id: 501, name: "Transportation", sortOrder: 2);
+      var category1 = TestHelpers.CreateTestCategory(id: "500", name: "Food", sortOrder: 1);
+      var category2 = TestHelpers.CreateTestCategory(id: "501", name: "Transportation", sortOrder: 2);
 
       db.Categories.Add(category1);
       db.Categories.Add(category2);
@@ -45,7 +45,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
       result.Should().NotBeNull();
       result.Should().HaveCount(c => c >= 2);
 
-      var cat1 = result!.FirstOrDefault(c => c.Id == 500);
+      var cat1 = result!.FirstOrDefault(c => c.CategoryId == "500");
       cat1.Should().NotBeNull();
       cat1!.Name.Should().Be("Food");
     }
@@ -62,7 +62,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var category = TestHelpers.CreateTestCategory(id: 502, name: "Test Category", sortOrder: 1);
+      var category = TestHelpers.CreateTestCategory(id: "502", name: "Test Category", sortOrder: 1);
       db.Categories.Add(category);
       await db.SaveChangesAsync();
 
@@ -104,11 +104,11 @@ public class CategoryEndpointsTests : IntegrationTestBase
       result!.Name.Should().Be("New Category");
       result.Description.Should().Be("Test description");
       result.SortOrder.Should().Be(10);
-      result.Id.Should().BeGreaterThan(0);
+      result.CategoryId.Should().NotBeNullOrEmpty();
 
       // Verify in database
       db.ChangeTracker.Clear();
-      var savedCategory = await db.Categories.FindAsync(result.Id);
+      var savedCategory = await db.Categories.FindAsync(result.CategoryId);
 
       savedCategory.Should().NotBeNull();
       savedCategory!.Name.Should().Be("New Category");
@@ -126,13 +126,13 @@ public class CategoryEndpointsTests : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var category = TestHelpers.CreateTestCategory(id: 503, name: "Original Name", sortOrder: 1);
+      var category = TestHelpers.CreateTestCategory(id: "503", name: "Original Name", sortOrder: 1);
       db.Categories.Add(category);
       await db.SaveChangesAsync();
 
       var commandBody = new UpdateCategory.CommandBody
       {
-        Id = 503,
+        CategoryId = "503",
         Name = "Updated Name",
         Description = "Updated description",
         SortOrder = 5
@@ -146,7 +146,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
       var result = await response.Content.ReadFromJsonAsync<UpdateCategory.Response>();
 
       result.Should().NotBeNull();
-      result!.Id.Should().Be(503);
+      result!.CategoryId.Should().Be("503");
       result.Name.Should().Be("Updated Name");
       result.Description.Should().Be("Updated description");
       result.SortOrder.Should().Be(5);
@@ -172,7 +172,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
       var commandBody = new UpdateCategory.CommandBody
       {
-        Id = 999,
+        CategoryId = "999",
         Name = "Test",
         Description = "Test",
         SortOrder = 1
@@ -197,7 +197,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var category = TestHelpers.CreateTestCategory(id: 505, name: "To Delete", sortOrder: 1);
+      var category = TestHelpers.CreateTestCategory(id: "505", name: "To Delete", sortOrder: 1);
       db.Categories.Add(category);
       await db.SaveChangesAsync();
 

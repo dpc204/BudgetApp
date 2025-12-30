@@ -7,7 +7,7 @@ namespace Budget.DB
   public class Envelope
   {
     public int Id { get; set; }
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public Category Category { get; set; } = null!;
     public string Name { get; set; } = string.Empty;
     public decimal? Budget { get; set; }
@@ -57,13 +57,13 @@ namespace Budget.DB
 
         // Seed only scalar + FK values; no navigation instances
         entity.HasData(
-          new Envelope { Id = 1, Name = "Dining Out", CategoryId = 1, SortOrder = 1, FamilyId = 1 },
-          new Envelope { Id = 2, Name = "Groceries", CategoryId = 1, SortOrder = 2, FamilyId = 1 },
-          new Envelope { Id = 3, Name = "Gas", CategoryId = 1, SortOrder = 3, FamilyId = 1 },
-          new Envelope { Id = 4, Name = "Car Maint", CategoryId = 2, SortOrder = 4, FamilyId = 1 },
-          new Envelope { Id = 5, Name = "House Maint", CategoryId = 2, SortOrder = 5, FamilyId = 1 },
-          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5, FamilyId = 1 },
-          new Envelope { Id = -1, Name = "UnAllocated", CategoryId = -1, SortOrder = 6, FamilyId = 1 }
+          new Envelope { Id = 1, Name = "Dining Out", CategoryId = "1", SortOrder = 1, FamilyId = 1 },
+          new Envelope { Id = 2, Name = "Groceries", CategoryId = "1", SortOrder = 2, FamilyId = 1 },
+          new Envelope { Id = 3, Name = "Gas", CategoryId = "1", SortOrder = 3, FamilyId = 1 },
+          new Envelope { Id = 4, Name = "Car Maint", CategoryId = "2", SortOrder = 4, FamilyId = 1 },
+          new Envelope { Id = 5, Name = "House Maint", CategoryId = "2", SortOrder = 5, FamilyId = 1 },
+          new Envelope { Id = 6, Name = "Medical", CategoryId = "2", SortOrder = 5, FamilyId = 1 },
+          new Envelope { Id = -1, Name = "UnAllocated", CategoryId = "-1", SortOrder = 6, FamilyId = 1 }
         );
       }
     }
