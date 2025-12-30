@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    [Migration("20251230014107_FamilyId")]
-    partial class FamilyId
+    [Migration("20251230022156_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
