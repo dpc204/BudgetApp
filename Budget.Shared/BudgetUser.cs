@@ -4,4 +4,5 @@ namespace Budget.Shared;
 public class BudgetUser : IdentityUser
 {
   public string UserInitials { get; set; }= String.Empty;
+  public int FamilyId { get; set; } = 1; // Default to family 1
 }

@@ -15,6 +15,8 @@ namespace Budget.DB
     public int SortOrder { get; set; }
     public DateTime LastTransactionDate { get; set; }
     public EnvelopeTypes EnvelopeType { get; set; }
+    public int FamilyId { get; set; } = 1;
+    public Family Family { get; set; } = null!;
 
     public int? LastTransactionId { get; set; }
     public int? LastTransactionLineId { get; set; }
@@ -43,15 +45,20 @@ namespace Budget.DB
               .HasForeignKey(e => new { e.LastTransactionId, e.LastTransactionLineId })
               .OnDelete(DeleteBehavior.SetNull);
 
+        entity.HasOne(e => e.Family)
+              .WithMany()
+              .HasForeignKey(e => e.FamilyId)
+              .OnDelete(DeleteBehavior.Restrict);
+
         // Seed only scalar + FK values; no navigation instances
         entity.HasData(
-          new Envelope { Id = 1, Name = "Dining Out", CategoryId = 1, SortOrder = 1 },
-          new Envelope { Id = 2, Name = "Groceries", CategoryId = 1, SortOrder = 2 },
-          new Envelope { Id = 3, Name = "Gas", CategoryId = 1, SortOrder = 3 },
-          new Envelope { Id = 4, Name = "Car Maint", CategoryId = 2, SortOrder = 4 },
-          new Envelope { Id = 5, Name = "House Maint", CategoryId = 2, SortOrder = 5 },
-          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5 },
-          new Envelope { Id = -1, Name = "UnAllocated", CategoryId = -1, SortOrder = 6 }
+          new Envelope { Id = 1, Name = "Dining Out", CategoryId = 1, SortOrder = 1, FamilyId = 1 },
+          new Envelope { Id = 2, Name = "Groceries", CategoryId = 1, SortOrder = 2, FamilyId = 1 },
+          new Envelope { Id = 3, Name = "Gas", CategoryId = 1, SortOrder = 3, FamilyId = 1 },
+          new Envelope { Id = 4, Name = "Car Maint", CategoryId = 2, SortOrder = 4, FamilyId = 1 },
+          new Envelope { Id = 5, Name = "House Maint", CategoryId = 2, SortOrder = 5, FamilyId = 1 },
+          new Envelope { Id = 6, Name = "Medical", CategoryId = 2, SortOrder = 5, FamilyId = 1 },
+          new Envelope { Id = -1, Name = "UnAllocated", CategoryId = -1, SortOrder = 6, FamilyId = 1 }
         );
       }
     }
