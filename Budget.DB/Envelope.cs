@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Budget.Shared.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Budget.DB
@@ -11,6 +12,8 @@ namespace Budget.DB
     public string Name { get; set; } = string.Empty;
     public decimal? Budget { get; set; }
     public decimal Balance { get; set; }
+
+    public decimal FundAmount { get; set; }
     public string Description { get; set; } = string.Empty;
     public int SortOrder { get; set; }
     public DateTime LastTransactionDate { get; set; }
@@ -35,15 +38,17 @@ namespace Budget.DB
           .HasMaxLength(500);
         entity.Property(u => u.Balance)
           .HasPrecision(18, 2); // translates to decimal(18,2)
+        entity.Property(u => u.FundAmount)
+          .HasPrecision(18, 2); // translates to decimal(18,2)
         entity.Property(u => u.Budget)
           .HasPrecision(18, 2); // translates to decimal(18,2)
 
         // Configure one-to-one pointer to the last transaction detail
         // FK lives on Envelope (LastTransactionId, LastTransactionLineId) -> TransactionDetail (TransactionId, LineId)
         entity.HasOne(e => e.LastTransactionDetail)
-              .WithMany()
-              .HasForeignKey(e => new { e.LastTransactionId, e.LastTransactionLineId })
-              .OnDelete(DeleteBehavior.SetNull);
+          .WithMany()
+          .HasForeignKey(e => new { e.LastTransactionId, e.LastTransactionLineId })
+          .OnDelete(DeleteBehavior.SetNull);
 
         entity.HasOne(e => e.Family)
               .WithMany()
@@ -64,9 +69,5 @@ namespace Budget.DB
     }
   }
 
-  public enum EnvelopeTypes
-  {
-    Unallocated,
-    Standard
-  }
+ 
 }

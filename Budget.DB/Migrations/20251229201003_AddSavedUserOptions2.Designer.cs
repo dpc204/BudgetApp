@@ -4,6 +4,7 @@ using Budget.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    partial class BudgetContextModelSnapshot : ModelSnapshot
+    [Migration("20251229201003_AddSavedUserOptions2")]
+    partial class AddSavedUserOptions2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,9 +41,6 @@ namespace Budget.DB.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("LastTransactionDate")
                         .HasColumnType("datetime2");
 
@@ -54,8 +54,6 @@ namespace Budget.DB.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FamilyId");
-
                     b.HasIndex("LastTransactionId");
 
                     b.ToTable("BankAccounts", "budget");
@@ -66,7 +64,6 @@ namespace Budget.DB.Migrations
                             Id = 1,
                             AccountType = 0,
                             Balance = 0m,
-                            FamilyId = 1,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Citizens"
                         },
@@ -75,7 +72,6 @@ namespace Budget.DB.Migrations
                             Id = 2,
                             AccountType = 1,
                             Balance = 0m,
-                            FamilyId = 1,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Discover"
                         });
@@ -97,17 +93,12 @@ namespace Budget.DB.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsBudgetLocked")
                         .HasColumnType("bit");
 
                     b.HasKey("AcctPeriod", "EnvelopeId");
 
                     b.HasIndex("EnvelopeId");
-
-                    b.HasIndex("FamilyId");
 
                     b.ToTable("BudgetMonths", "budget");
                 });
@@ -128,9 +119,6 @@ namespace Budget.DB.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(25)
@@ -141,8 +129,6 @@ namespace Budget.DB.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FamilyId");
-
                     b.ToTable("Categories", "budget");
 
                     b.HasData(
@@ -151,7 +137,6 @@ namespace Budget.DB.Migrations
                             Id = 1,
                             CategoryType = 0,
                             Description = "",
-                            FamilyId = 1,
                             Name = "Frequent",
                             SortOrder = 1
                         },
@@ -160,7 +145,6 @@ namespace Budget.DB.Migrations
                             Id = 2,
                             CategoryType = 0,
                             Description = "",
-                            FamilyId = 1,
                             Name = "Regular",
                             SortOrder = 2
                         },
@@ -169,7 +153,6 @@ namespace Budget.DB.Migrations
                             Id = 3,
                             CategoryType = 0,
                             Description = "",
-                            FamilyId = 1,
                             Name = "Infrequent",
                             SortOrder = 3
                         },
@@ -178,7 +161,6 @@ namespace Budget.DB.Migrations
                             Id = 4,
                             CategoryType = 2,
                             Description = "",
-                            FamilyId = 1,
                             Name = "Income",
                             SortOrder = 4
                         },
@@ -187,7 +169,6 @@ namespace Budget.DB.Migrations
                             Id = -1,
                             CategoryType = 1,
                             Description = "",
-                            FamilyId = 1,
                             Name = "System",
                             SortOrder = 0
                         });
@@ -220,9 +201,6 @@ namespace Budget.DB.Migrations
                     b.Property<int>("EnvelopeType")
                         .HasColumnType("int");
 
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("FundAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -248,8 +226,6 @@ namespace Budget.DB.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("FamilyId");
-
                     b.HasIndex("LastTransactionId", "LastTransactionLineId");
 
                     b.ToTable("Envelopes", "budget");
@@ -262,7 +238,6 @@ namespace Budget.DB.Migrations
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
-                            FamilyId = 1,
                             FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Dining Out",
@@ -275,7 +250,6 @@ namespace Budget.DB.Migrations
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
-                            FamilyId = 1,
                             FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Groceries",
@@ -288,7 +262,6 @@ namespace Budget.DB.Migrations
                             CategoryId = 1,
                             Description = "",
                             EnvelopeType = 0,
-                            FamilyId = 1,
                             FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Gas",
@@ -301,7 +274,6 @@ namespace Budget.DB.Migrations
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
-                            FamilyId = 1,
                             FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Car Maint",
@@ -314,7 +286,6 @@ namespace Budget.DB.Migrations
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
-                            FamilyId = 1,
                             FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "House Maint",
@@ -327,7 +298,6 @@ namespace Budget.DB.Migrations
                             CategoryId = 2,
                             Description = "",
                             EnvelopeType = 0,
-                            FamilyId = 1,
                             FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Medical",
@@ -340,40 +310,10 @@ namespace Budget.DB.Migrations
                             CategoryId = -1,
                             Description = "",
                             EnvelopeType = 0,
-                            FamilyId = 1,
                             FundAmount = 0m,
                             LastTransactionDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "UnAllocated",
                             SortOrder = 6
-                        });
-                });
-
-            modelBuilder.Entity("Budget.DB.Family", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Families", "budget");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Default Family"
                         });
                 });
 
@@ -385,9 +325,6 @@ namespace Budget.DB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
                     b.Property<string>("FavoriteType")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -397,8 +334,6 @@ namespace Budget.DB.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FamilyId");
 
                     b.HasIndex("UserId");
 
@@ -438,9 +373,6 @@ namespace Budget.DB.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsVoided")
                         .HasColumnType("bit");
 
@@ -463,8 +395,6 @@ namespace Budget.DB.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
-
-                    b.HasIndex("FamilyId");
 
                     b.HasIndex("UserId");
 
@@ -506,9 +436,6 @@ namespace Budget.DB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("FamilyId")
-                        .HasColumnType("int");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -521,22 +448,18 @@ namespace Budget.DB.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FamilyId");
-
                     b.ToTable("Users", "budget");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            FamilyId = 1,
                             FirstName = "Patrick",
                             LastName = "Connelly"
                         },
                         new
                         {
                             Id = 2,
-                            FamilyId = 1,
                             FirstName = "Terri",
                             LastName = "Connelly"
                         });
@@ -544,18 +467,10 @@ namespace Budget.DB.Migrations
 
             modelBuilder.Entity("Budget.DB.BankAccount", b =>
                 {
-                    b.HasOne("Budget.DB.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Budget.DB.Transaction", "LastTransaction")
                         .WithMany()
                         .HasForeignKey("LastTransactionId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Family");
 
                     b.Navigation("LastTransaction");
                 });
@@ -568,26 +483,7 @@ namespace Budget.DB.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Budget.DB.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Envelope");
-
-                    b.Navigation("Family");
-                });
-
-            modelBuilder.Entity("Budget.DB.Category", b =>
-                {
-                    b.HasOne("Budget.DB.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Family");
                 });
 
             modelBuilder.Entity("Budget.DB.Envelope", b =>
@@ -598,12 +494,6 @@ namespace Budget.DB.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Budget.DB.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Budget.DB.TransactionDetail", "LastTransactionDetail")
                         .WithMany()
                         .HasForeignKey("LastTransactionId", "LastTransactionLineId")
@@ -611,26 +501,16 @@ namespace Budget.DB.Migrations
 
                     b.Navigation("Category");
 
-                    b.Navigation("Family");
-
                     b.Navigation("LastTransactionDetail");
                 });
 
             modelBuilder.Entity("Budget.DB.Favorite", b =>
                 {
-                    b.HasOne("Budget.DB.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Budget.DB.User", "User")
                         .WithMany("Favorites")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Family");
 
                     b.Navigation("User");
                 });
@@ -643,12 +523,6 @@ namespace Budget.DB.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Budget.DB.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Budget.DB.User", "User")
                         .WithMany("Transactions")
                         .HasForeignKey("UserId")
@@ -656,8 +530,6 @@ namespace Budget.DB.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
-
-                    b.Navigation("Family");
 
                     b.Navigation("User");
                 });
@@ -679,17 +551,6 @@ namespace Budget.DB.Migrations
                     b.Navigation("Envelope");
 
                     b.Navigation("Transaction");
-                });
-
-            modelBuilder.Entity("Budget.DB.User", b =>
-                {
-                    b.HasOne("Budget.DB.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Family");
                 });
 
             modelBuilder.Entity("Budget.DB.Category", b =>

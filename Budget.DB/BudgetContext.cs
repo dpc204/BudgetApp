@@ -15,6 +15,7 @@ namespace Budget.DB
     public DbSet<Category> Categories { get; set; }
     public DbSet<Favorite> Favorites { get; set; } // <-- add this
     public DbSet<BudgetMonth> BudgetMonths { get; set; }
+    public DbSet<SavedUserOptions> SavedUserOptions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -35,6 +36,7 @@ namespace Budget.DB
       modelBuilder.ApplyConfiguration(new BankAccount.BankAccountConfiguration());
       modelBuilder.ApplyConfiguration(new Favorite.FavoriteConfiguration()); // <-- add this
       modelBuilder.ApplyConfiguration(new BudgetMonth.BudgetMonthConfiguration());
+      modelBuilder.ApplyConfiguration(new SavedUserOptions.SavedUserOptionsConfiguration());
 
       // Apply global query filters for multi-tenancy by FamilyId
       // Only filter when ICurrentFamilyService is available (not in migrations or seeding)

@@ -139,3 +139,27 @@ window.initializeDraftFieldNavigation = function () {
     }, 200); // Wait 200ms for validation to complete and error state to update
   });
 };
+
+// Initialize auto-select on focus for fund amount fields
+window.initializeFundFieldAutoSelect = function () {
+  // Prevent duplicate event listeners
+  if (window._fundAutoSelectInitialized) {
+    return;
+  }
+  window._fundAutoSelectInitialized = true;
+
+  // Use event delegation on the document to handle focus on fund fields
+  document.addEventListener('focusin', function (event) {
+    const target = event.target;
+    if (!target || target.tagName !== 'INPUT') return;
+
+    // Check if this input has the draft-input-right class (our fund fields)
+    const fundField = target.closest('.draft-input-right');
+    if (!fundField) return;
+
+    // Select all text in the input when it receives focus
+    setTimeout(function() {
+      target.select();
+    }, 0);
+  });
+};

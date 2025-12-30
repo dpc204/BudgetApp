@@ -1,10 +1,18 @@
 using Microsoft.AspNetCore.Components;
 using Budget.Client.Pages;
+using Bunit.TestDoubles;
 
 namespace Budget.Client.Tests.Pages;
 
 /// <summary>
 /// Tests for the Budget page Tab/Enter navigation functionality
+/// 
+/// NOTE: Full component rendering tests are limited due to MudBlazor provider requirements.
+/// MudBlazor components require MudPopoverProvider, MudDialogProvider, and MudSnackbarProvider
+/// which cannot be easily mocked in bUnit. These tests focus on verifying mock setups and
+/// service interactions rather than full UI rendering.
+/// 
+/// For full integration testing of the Budget page, use end-to-end tests with Playwright or Selenium.
 /// </summary>
 public class BudgetPageNavigationTests : TestContext
 {
@@ -26,10 +34,9 @@ public class BudgetPageNavigationTests : TestContext
     Services.AddSingleton(_mockDialogService.Object);
     Services.AddSingleton(_mockSnackbar.Object);
     Services.AddSingleton(_mockJsRuntime.Object);
-    
-    // Note: MudBlazor providers (MudPopoverProvider, MudDialogProvider, MudSnackbarProvider) 
-    // cannot be easily added to bUnit's RenderTree as they don't have ChildContent parameters.
-    // Tests will focus on component logic rather than full UI rendering.
+
+    // Configure JSInterop to handle all MudBlazor/JS calls in loose mode
+    JSInterop.Mode = JSRuntimeMode.Loose;
   }
 
   [Fact]
@@ -40,8 +47,8 @@ public class BudgetPageNavigationTests : TestContext
 
     // Act & Assert
     // This test documents that the Budget page requires MudBlazor providers
-    // (MudPopoverProvider, MudDialogProvider, MudSnackbarProvider) to render properly
-    // which cannot be easily tested in bUnit without a full application host
+    // (MudPopoverProvider, MudDialogProvider, MudSnackbarProvider) to render properly.
+    // Full component rendering tests require an integration test framework like Playwright.
     var exception = Assert.Throws<InvalidOperationException>(() =>
     {
       var cut = RenderComponent<Budget.Client.Pages.Budget>();
@@ -49,101 +56,22 @@ public class BudgetPageNavigationTests : TestContext
     
     Assert.Contains("MudPopoverProvider", exception.Message);
   }
-
-  [Fact]
-  public void Budget_Page_ChecksDraftBudgets_OnInitialization()
-  {
-    // Arrange
-    SetupMockApiResponses();
-
-    // Act - Attempt to render component (may throw due to MudBlazor providers)
-    try
-    {
-      var cut = RenderComponent<Budget.Client.Pages.Budget>();
-      
-      // If it doesn't throw, verify the method was called
-      _mockBudgetApi.Verify(x => x.CheckDraftBudgetsAsync(It.IsAny<CancellationToken>()), Times.Once);
-    }
-    catch (Exception)
-    {
-      // Component couldn't render due to missing providers
-      // But we can still verify initialization logic was attempted
-      // This test documents that Budget page requires Check Draft Budgets API call on init
-      Assert.True(true, "Test documents initialization logic requirement");
-    }
-  }
-
-  [Fact]
-  public void Budget_Page_CallsJavaScript_Navigation_OnFirstRender()
-  {
-    // Arrange
-    SetupMockApiResponses();
-    
-    // Setup JS runtime to handle InvokeVoidAsync
-    _mockJsRuntime
-      .Setup(x => x.InvokeAsync<IJSObjectReference>(
-        It.IsAny<string>(),
-        It.IsAny<object[]>()))
-      .ReturnsAsync((IJSObjectReference)null!);
-
-    // Act - Attempt to render
-    try
-    {
-      var cut = RenderComponent<Budget.Client.Pages.Budget>();
-      
-      // If it doesn't throw, verify JS was called
-      _mockJsRuntime.Verify(js => js.InvokeAsync<IJSObjectReference>(
-        "initializeDraftFieldNavigation",
-        It.IsAny<object[]>()), Times.AtLeastOnce);
-    }
-    catch (Exception)
-    {
-      // Component couldn't render due to missing providers
-      // This test documents that JavaScript navigation should be initialized on first render
-      Assert.True(true, "Test documents JavaScript initialization requirement");
-    }
-  }
-
-  [Fact]
-  public void Budget_Page_LoadsMultipleMonthsOfData()
-  {
-    // Arrange
-    SetupMockApiResponses();
-
-    // Act - Attempt to render
-    try
-    {
-      var cut = RenderComponent<Budget.Client.Pages.Budget>();
-      
-      // If it doesn't throw, verify multiple months were loaded
-      _mockBudgetApi.Verify(x => x.GetBudgetMonthAsync(
-        It.IsAny<int>(), 
-        It.IsAny<int>(), 
-        It.IsAny<CancellationToken>()), Times.AtLeast(1));
-    }
-    catch (Exception)
-    {
-      // Component couldn't render due to missing providers
-      // This test documents that multiple months of data should be loaded
-      Assert.True(true, "Test documents multiple month loading requirement");
-    }
-  }
   
   [Fact]
-  public void SetupMockApiResponses_CreatesValidTestData()
+  public async Task SetupMockApiResponses_CreatesValidTestData()
   {
     // Arrange & Act
     SetupMockApiResponses();
     
     // Assert - Verify mock setup creates valid data
-    var result = _mockBudgetApi.Object.CheckDraftBudgetsAsync(CancellationToken.None).Result;
+    var result = await _mockBudgetApi.Object.CheckDraftBudgetsAsync(CancellationToken.None);
     Assert.NotNull(result);
     Assert.False(result.HasDrafts);
     Assert.Equal(0, result.DraftCount);
   }
   
   [Fact]
-  public void MockJSRuntime_AcceptsWindowUtilsCalls()
+  public async Task MockJSRuntime_AcceptsWindowUtilsCalls()
   {
     // Arrange
     _mockJsRuntime
@@ -151,7 +79,7 @@ public class BudgetPageNavigationTests : TestContext
       .ReturnsAsync(1920);
       
     // Act
-    var width = _mockJsRuntime.Object.InvokeAsync<int>("windowUtils.getInnerWidth", Array.Empty<object>()).Result;
+    var width = await _mockJsRuntime.Object.InvokeAsync<int>("windowUtils.getInnerWidth", Array.Empty<object>());
     
     // Assert
     Assert.Equal(1920, width);
@@ -159,7 +87,7 @@ public class BudgetPageNavigationTests : TestContext
   }
   
   [Fact]
-  public void MockJSRuntime_AcceptsNavigationInitialization()
+  public async Task MockJSRuntime_AcceptsNavigationInitialization()
   {
     // Arrange
     _mockJsRuntime
@@ -169,15 +97,65 @@ public class BudgetPageNavigationTests : TestContext
       .ReturnsAsync((IJSObjectReference)null!);
       
     // Act
-    var result = _mockJsRuntime.Object.InvokeAsync<IJSObjectReference>(
+    var result = await _mockJsRuntime.Object.InvokeAsync<IJSObjectReference>(
       "initializeDraftFieldNavigation", 
-      Array.Empty<object>()).Result;
+      Array.Empty<object>());
     
     // Assert
     Assert.Null(result);
     _mockJsRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>(
       "initializeDraftFieldNavigation",
       It.IsAny<object[]>()), Times.Once);
+  }
+
+  [Fact(Skip = "Requires MudBlazor providers for full component rendering")]
+  public void DraftInput_UpdatesValue_WhenUserEntersAmount()
+  {
+    // This test is skipped because it requires rendering MudNumericField components
+    // which need MudBlazor providers (MudPopoverProvider, MudDialogProvider, MudSnackbarProvider)
+    // 
+    // To test this functionality:
+    // 1. Use Playwright/Selenium for end-to-end testing
+    // 2. Test the underlying logic methods directly (if extracted to a service)
+    // 3. Test with a full app host that includes providers
+    
+    // Arrange
+    SetupMockApiResponses();
+    var cut = RenderComponent<Budget.Client.Pages.Budget>();
+    
+    // Wait for loading to complete
+    cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".mud-progress-linear")), TimeSpan.FromSeconds(5));
+
+    // Act - Find a draft input field and update it
+    var numericFields = cut.FindComponents<MudNumericField<decimal?>>();
+    Assert.NotEmpty(numericFields);
+    
+    var firstField = numericFields.First();
+    var input = firstField.Find("input");
+    input.Change(150.00m);
+
+    // Assert - Verify the value changed
+    Assert.Equal(150.00m, firstField.Instance.Value);
+  }
+
+  [Fact(Skip = "Requires MudBlazor providers for full component rendering")]
+  public void DraftInput_IsDisabled_WhenBudgetIsLocked()
+  {
+    // This test is skipped because it requires rendering MudNumericField components
+    // which need MudBlazor providers
+    
+    // Arrange
+    SetupMockApiResponsesWithLockedBudget();
+    var cut = RenderComponent<Budget.Client.Pages.Budget>();
+    
+    // Wait for loading to complete
+    cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".mud-progress-linear")), TimeSpan.FromSeconds(5));
+
+    // Act
+    var numericFields = cut.FindComponents<MudNumericField<decimal?>>();
+
+    // Assert - At least one field should be disabled
+    Assert.Contains(numericFields, field => field.Instance.Disabled);
   }
 
   private void SetupMockApiResponses()
@@ -203,7 +181,9 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 1,
         Budget: 500.00m,
         BudgetDraft: null,
-        IsBudgetLocked: false
+        IsBudgetLocked: false,
+        Balance: 0m,
+        FundAmount: 0m
       ),
       new(
         AcctPeriod: acctPeriod,
@@ -215,7 +195,9 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 2,
         Budget: 200.00m,
         BudgetDraft: null,
-        IsBudgetLocked: false
+        IsBudgetLocked: false,
+        FundAmount: 0m,
+        Balance: 0m
       ),
       new(
         AcctPeriod: acctPeriod,
@@ -227,7 +209,62 @@ public class BudgetPageNavigationTests : TestContext
         SortOrder: 1,
         Budget: 5000.00m,
         BudgetDraft: null,
-        IsBudgetLocked: false
+        IsBudgetLocked: false,
+        FundAmount: 0m,
+        Balance: 0m
+      )
+    };
+
+    _mockBudgetApi
+      .Setup(x => x.GetBudgetMonthAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+      .ReturnsAsync(testData);
+
+    // Setup JSRuntime for screen size check
+    _mockJsRuntime
+      .Setup(x => x.InvokeAsync<int>("windowUtils.getInnerWidth", It.IsAny<object[]>()))
+      .ReturnsAsync(1920);
+  }
+
+  private void SetupMockApiResponsesWithLockedBudget()
+  {
+    var currentDate = DateTime.Now;
+    var acctPeriod = currentDate.Year * 100 + currentDate.Month;
+
+    // Setup CheckDraftBudgetsAsync
+    _mockBudgetApi
+      .Setup(x => x.CheckDraftBudgetsAsync(It.IsAny<CancellationToken>()))
+      .ReturnsAsync(new CheckDraftsResponse(false, 0));
+
+    // Setup GetBudgetMonthAsync to return test data with locked budget
+    var testData = new List<BudgetMonthResponse>
+    {
+      new(
+        AcctPeriod: acctPeriod,
+        EnvelopeId: 1,
+        EnvelopeName: "Groceries",
+        CategoryId: 1,
+        CategoryName: "Food",
+        CategoryType: CatTypes.User,
+        SortOrder: 1,
+        Budget: 500.00m,
+        BudgetDraft: null,
+        IsBudgetLocked: true,  // Locked budget
+        FundAmount: 0m,
+        Balance: 0m
+      ),
+      new(
+        AcctPeriod: acctPeriod,
+        EnvelopeId: 2,
+        EnvelopeName: "Gas",
+        CategoryId: 2,
+        CategoryName: "Transportation",
+        CategoryType: CatTypes.User,
+        SortOrder: 2,
+        Budget: 200.00m,
+        BudgetDraft: null,
+        IsBudgetLocked: false,
+        FundAmount: 0m,
+        Balance: 0m
       )
     };
 
