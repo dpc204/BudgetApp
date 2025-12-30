@@ -3,7 +3,7 @@
   public class EnvelopeDto
   {
     public int Id { get; set; }
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public CategoryDto Category { get; set; } = null!;
     public string Name { get; set; } = string.Empty;
     public decimal? Budget { get; set; }

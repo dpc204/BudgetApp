@@ -429,7 +429,7 @@ public partial class Fund : ComponentBase
   {
     public int EnvelopeId { get; set; }
     public string EnvelopeName { get; set; } = string.Empty;
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
     public CatTypes CategoryType { get; set; }
     public int SortOrder { get; set; }

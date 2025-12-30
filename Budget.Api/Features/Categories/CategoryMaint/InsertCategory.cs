@@ -3,7 +3,7 @@ namespace Budget.Api.Features.Categories.CategoryMaint;
 public static class InsertCategory
 {
   public sealed record Command(string Name, string Description, int SortOrder) : IRequest<Response>;
-  public sealed record Response(int Id, string Name, string Description, int SortOrder);
+  public sealed record Response(string CategoryId, string Name, string Description, int SortOrder);
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
@@ -11,6 +11,7 @@ public static class InsertCategory
     {
       var cat = new Category
       {
+        CategoryId = Guid.NewGuid().ToString(),
         Name = request.Name,
         Description = request.Description,
         SortOrder = request.SortOrder
@@ -18,7 +19,7 @@ public static class InsertCategory
 
       db.Categories.Add(cat);
       await db.SaveChangesAsync(cancellationToken);
-      return new Response(cat.Id, cat.Name, cat.Description, cat.SortOrder);
+      return new Response(cat.CategoryId, cat.Name, cat.Description, cat.SortOrder);
     }
   }
 
@@ -29,7 +30,7 @@ public static class InsertCategory
       app.MapPost("/categories/maint/Insert", async (ISender sender, Command command) =>
       {
         var cat = await sender.Send(command);
-        return Results.Created($"categories/maint/{cat.Id}", cat);
+        return Results.Created($"categories/maint/{cat.CategoryId}", cat);
       });
     }
   }

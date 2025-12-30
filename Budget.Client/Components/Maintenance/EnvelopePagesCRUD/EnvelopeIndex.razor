@@ -33,7 +33,7 @@
         @_categoryLookup.GetValueOrDefault(ctx.Item.CategoryId)
       </CellTemplate>
       <EditTemplate Context="ctx">
-        <MudSelect T="int" Value="ctx.Item.CategoryId" ValueChanged="@((int val) => OnCategoryChanged(ctx.Item, val))" dense="true">
+        <MudSelect T="string" Value="ctx.Item.CategoryId" ValueChanged="@((string val) => OnCategoryChanged(ctx.Item, val))" dense="true">
           @foreach (var c in _categoryLookup)
           {
             <MudSelectItem Value="@c.Key">@c.Value</MudSelectItem>
@@ -93,7 +93,7 @@
 @code {
   private List<EnvelopeDto>? _envelopes;
   private List<EnvelopeDto>? _originalEnvelopes;
-  private Dictionary<int, string> _categoryLookup = new();
+  private Dictionary<string, string> _categoryLookup = new();
   private HashSet<int> _changedEnvelopeIds = new();
   
   private bool HasPendingChanges => _changedEnvelopeIds.Count > 0;
@@ -105,7 +105,7 @@
   private async Task LoadAsync()
   {
     var categories = await MaintApi.GetCategoriesAsync();
-    _categoryLookup = categories.ToDictionary(c => c.Id, c => c.Name);
+    _categoryLookup = categories.ToDictionary(c => c.CategoryId, c => c.Name);
     _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
     _originalEnvelopes = _envelopes.Select(CloneEnvelope).ToList();
     _changedEnvelopeIds.Clear();
@@ -122,11 +122,11 @@
     SortOrder = e.SortOrder 
   };
 
-  private string GetCategoryName(int id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
+  private string GetCategoryName(string id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
 
   private void MarkAsChanged(EnvelopeDto item) => _changedEnvelopeIds.Add(item.Id);
 
-  private void OnCategoryChanged(EnvelopeDto item, int newCategoryId)
+  private void OnCategoryChanged(EnvelopeDto item, string newCategoryId)
   {
     item.CategoryId = newCategoryId;
     MarkAsChanged(item);

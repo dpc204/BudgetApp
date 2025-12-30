@@ -31,15 +31,15 @@ else
             <MudTh style="width:220px;"></MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="Id">@context.CategoryId</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Category Type">@context.CatType</MudTd>
             <MudTd DataLabel="Sort">@context.SortOrder</MudTd>
             <MudTd Class="d-flex gap-1 justify-end">
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.Id)">Edit</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.Id)">Details</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.Id)">Delete</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => BeginEdit(context.CategoryId)">Edit</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="() => ViewDetails(context.CategoryId)">Details</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="() => BeginDelete(context.CategoryId)">Delete</MudButton>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -74,7 +74,7 @@ else
       await LoadAsync();
   }
 
-  private async Task BeginEdit(int id)
+  private async Task BeginEdit(string id)
   {
     var parameters = new DialogParameters { [nameof(CategoryEdit.Id)] = id };
     var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
@@ -84,14 +84,14 @@ else
       await LoadAsync();
   }
 
-  private async Task ViewDetails(int id)
+  private async Task ViewDetails(string id)
   {
     var parameters = new DialogParameters { [nameof(CategoryDetails.Id)] = id };
     var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
     await DialogService.ShowAsync<CategoryDetails>("Category Details", parameters, options);
   }
 
-  private async Task BeginDelete(int id)
+  private async Task BeginDelete(string id)
   {
     var parameters = new DialogParameters { [nameof(CategoryDelete.Id)] = id };
     var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, CloseButton = true };

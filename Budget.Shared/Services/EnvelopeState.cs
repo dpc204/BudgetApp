@@ -13,12 +13,12 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
 
   public List<EnvelopeResult>? AllEnvelopeData { get; private set; }
   public List<Cat> Cats { get; private set; } = [];
-  public int? SelectedCategoryId { get; set; } = 0;
+  public string? SelectedCategoryId { get; set; } = "0";
 
   public bool IsLoaded => AllEnvelopeData != null;
   private bool _cacheAttempted; // ensures we only try localStorage once after interactive render
 
-  // Call as early as possible (OnInitializedAsync) – performs ONLY server/API work (no JS)
+  // Call as early as possible (OnInitializedAsync) ï¿½ performs ONLY server/API work (no JS)
   public async Task EnsureLoadedAsync()
   {
     if (IsLoaded)
@@ -50,7 +50,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
     }
     catch (Exception ex)
     {
-      // Swallow – may still be prerendering or JS not yet ready; we'll rely on RefreshAsync data.
+      // Swallow ï¿½ may still be prerendering or JS not yet ready; we'll rely on RefreshAsync data.
       _logger.LogDebug(ex, "Skipping cache load (JS not ready or failed).");
     }
   }
@@ -62,10 +62,10 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
       var categories = await _api.GetCategoriesAsync();
       var envelopes = await _api.GetEnvelopesAsync();
       _cacheAttempted = false;
-      Cats = [ new Cat { CategoryId = 0, CategoryName = "All" } ];
-      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.Id, SortOrder = c.SortOrder, CategoryName = c.Name , CatType = c.CatType}));
+      Cats = [ new Cat { CategoryId = "0", CategoryName = "All" } ];
+      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name , CatType = c.CatType}));
 
-      var categoryNameLookup = categories.ToDictionary(c => c.Id, c => c.Name);
+      var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c.Name);
 
       AllEnvelopeData = [.. envelopes
         .Select(e => new EnvelopeResult
@@ -87,7 +87,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
     catch (Exception ex)
     {
       _logger.LogError(ex, "Failed refreshing envelope data from API");
-      Cats = Cats.Count == 0 ? [ new Cat { CategoryId = 0, CategoryName = "All" } ] : Cats;
+      Cats = Cats.Count == 0 ? [ new Cat { CategoryId = "0", CategoryName = "All" } ] : Cats;
       AllEnvelopeData ??= [];
     }
 
@@ -114,7 +114,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
     catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.Contains("JavaScript interop calls cannot be issued at this time"))
     || ex is JSException)
     {
-      // Ignore – typically occurs if called just before JS is fully ready; non-fatal.
+      // Ignore ï¿½ typically occurs if called just before JS is fully ready; non-fatal.
       _logger.LogDebug(ex, "Skipping localStorage save (JS unavailable).");
     }
     catch (Exception ex)
@@ -127,6 +127,6 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
   {
     public List<EnvelopeResult>? AllEnvelopeData { get; set; }
     public List<Cat>? Cats { get; set; }
-    public int? SelectedCategoryId { get; set; }
+    public string? SelectedCategoryId { get; set; }
   }
 }

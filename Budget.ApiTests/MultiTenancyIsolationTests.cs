@@ -31,18 +31,18 @@ public class MultiTenancyIsolationTests : IntegrationTestBase
       db.Families.Add(family2);
       
       // Create category for both families
-      var category1 = TestHelpers.CreateTestCategory(id: 100, name: "Cat1", familyId: 1);
-      var category2 = TestHelpers.CreateTestCategory(id: 101, name: "Cat2", familyId: 2);
+      var category1 = TestHelpers.CreateTestCategory(id: "100", name: "Cat1", familyId: 1);
+      var category2 = TestHelpers.CreateTestCategory(id: "101", name: "Cat2", familyId: 2);
       db.Categories.Add(category1);
       db.Categories.Add(category2);
       
       // Create envelopes for family 1
-      var envelope1Family1 = TestHelpers.CreateTestEnvelope(id: 500, name: "Envelope 1 - Family 1", categoryId: 100, familyId: 1);
-      var envelope2Family1 = TestHelpers.CreateTestEnvelope(id: 501, name: "Envelope 2 - Family 1", categoryId: 100, familyId: 1);
+      var envelope1Family1 = TestHelpers.CreateTestEnvelope(id: 500, name: "Envelope 1 - Family 1", categoryId: "100", familyId: 1);
+      var envelope2Family1 = TestHelpers.CreateTestEnvelope(id: 501, name: "Envelope 2 - Family 1", categoryId: "100", familyId: 1);
       
       // Create envelopes for family 2
-      var envelope1Family2 = TestHelpers.CreateTestEnvelope(id: 502, name: "Envelope 1 - Family 2", categoryId: 101, familyId: 2);
-      var envelope2Family2 = TestHelpers.CreateTestEnvelope(id: 503, name: "Envelope 2 - Family 2", categoryId: 101, familyId: 2);
+      var envelope1Family2 = TestHelpers.CreateTestEnvelope(id: 502, name: "Envelope 1 - Family 2", categoryId: "101", familyId: 2);
+      var envelope2Family2 = TestHelpers.CreateTestEnvelope(id: 503, name: "Envelope 2 - Family 2", categoryId: "101", familyId: 2);
       
       db.Envelopes.AddRange(envelope1Family1, envelope2Family1, envelope1Family2, envelope2Family2);
       await db.SaveChangesAsync();
@@ -163,8 +163,8 @@ public class MultiTenancyIsolationTests : IntegrationTestBase
       db.Families.Add(family2);
       
       // Create categories
-      var cat1 = TestHelpers.CreateTestCategory(id: 400, name: "Category 1 - Family 1", familyId: 1);
-      var cat2 = TestHelpers.CreateTestCategory(id: 401, name: "Category 2 - Family 2", familyId: 2);
+      var cat1 = TestHelpers.CreateTestCategory(id: "400", name: "Category 1 - Family 1", familyId: 1);
+      var cat2 = TestHelpers.CreateTestCategory(id: "401", name: "Category 2 - Family 2", familyId: 2);
       db.Categories.AddRange(cat1, cat2);
       await db.SaveChangesAsync();
     }
@@ -173,12 +173,12 @@ public class MultiTenancyIsolationTests : IntegrationTestBase
     using (var scope = _factory.Services.CreateScope())
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var categories = await db.Categories.Where(c => c.Id >= 400).ToListAsync();
+      var categories = await db.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync();
       
       // Assert
       categories.Should().HaveCount(1, "query filter should only return Family 1 categories");
       categories.All(c => c.FamilyId == 1).Should().BeTrue("all categories should belong to Family 1");
-      categories.First().Id.Should().Be(400, "should only see Family 1 category");
+      categories.First().CategoryId.Should().Be("400", "should only see Family 1 category");
     }
   }
 }

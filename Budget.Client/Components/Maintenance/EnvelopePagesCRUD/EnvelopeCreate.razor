@@ -11,10 +11,10 @@
         <EditForm Model="_envelope" OnValidSubmit="CreateAsync">
             <DataAnnotationsValidator />
             <MudStack Spacing="2">
-                <MudSelect T="int" @bind-Value="_envelope.CategoryId" Label="Category" Required="true">
+                <MudSelect T="string" @bind-Value="_envelope.CategoryId" Label="Category" Required="true">
                     @foreach (var c in _categories)
                     {
-                        <MudSelectItem Value="@c.Id">@c.Name</MudSelectItem>
+                        <MudSelectItem Value="@c.CategoryId">@c.Name</MudSelectItem>
                     }
                 </MudSelect>
                 <MudTextField @bind-Value="_envelope.Name" Label="Name" Required="true" />
@@ -42,7 +42,7 @@
         _envelope = new EnvelopeDto();
         _categories = (await MaintApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
         if (_categories.Count > 0)
-            _envelope.CategoryId = _categories[0].Id;
+            _envelope.CategoryId = _categories[0].CategoryId;
     }
 
     private async Task CreateAsync()

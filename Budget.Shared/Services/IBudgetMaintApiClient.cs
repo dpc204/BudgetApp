@@ -16,7 +16,7 @@ public interface IBudgetMaintApiClient
   // Category maintenance
   Task<CategoryDto> AddCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
   Task<CategoryDto> UpdateCategoryAsync(CategoryDto dto, CancellationToken cancellationToken = default);
-  Task<bool> RemoveCategoryAsync(int id, CancellationToken cancellationToken = default);
+  Task<bool> RemoveCategoryAsync(string id, CancellationToken cancellationToken = default);
   Task<ImportResult> ImportCategoriesAsync(string csvContent, CancellationToken cancellationToken = default);
   Task<string> ExportCategoriesAsync(CancellationToken cancellationToken = default);
 

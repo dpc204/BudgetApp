@@ -33,7 +33,7 @@ public class VoidTransactionTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 100, balance: 1000m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 100, categoryId: 1, balance: 500m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 100, categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope);
 
       var details = new List<TransactionDetail>
@@ -103,7 +103,7 @@ public class VoidTransactionTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 101, balance: 2000m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 101, categoryId: 1, balance: 800m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 101, categoryId: "1", balance: 800m);
       db.Envelopes.Add(envelope);
 
       var details = new List<TransactionDetail>
@@ -167,10 +167,10 @@ public class VoidTransactionTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 102, balance: 3000m);
       db.BankAccounts.Add(account);
 
-      var envelope1 = TestHelpers.CreateTestEnvelope(id: 102, categoryId: 1, balance: 1000m);
+      var envelope1 = TestHelpers.CreateTestEnvelope(id: 102, categoryId: "1", balance: 1000m);
       db.Envelopes.Add(envelope1);
 
-      var envelope2 = TestHelpers.CreateTestEnvelope(id: 103, categoryId: 1, balance: 500m);
+      var envelope2 = TestHelpers.CreateTestEnvelope(id: 103, categoryId: "1", balance: 500m);
       db.Envelopes.Add(envelope2);
 
       var details = new List<TransactionDetail>
@@ -251,7 +251,7 @@ public class VoidTransactionTests : IntegrationTestBase
       var account = TestHelpers.CreateTestAccount(id: 103, balance: 1500m);
       db.BankAccounts.Add(account);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 104, categoryId: 1, balance: 600m);
+      var envelope = TestHelpers.CreateTestEnvelope(id: 104, categoryId: "1", balance: 600m);
       db.Envelopes.Add(envelope);
 
       var details = new List<TransactionDetail>

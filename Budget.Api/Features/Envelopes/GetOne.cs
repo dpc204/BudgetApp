@@ -22,7 +22,7 @@ public static class GetOne
           Balance = env.Balance,
           Category = new CategoryDto
           {
-            Id = env.Category.Id,
+            CategoryId = env.Category.CategoryId,
             Name = env.Category.Name
           }
         })
