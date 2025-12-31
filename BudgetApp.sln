@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.SharedTests", "Budge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Client.Tests", "Budget.Client.Tests\Budget.Client.Tests.csproj", "{BE124A48-296A-4866-AB9C-0BE538ECA84B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantum.Mediator", "Fantum.Mediator\Fantum.Mediator.csproj", "{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,12 +155,24 @@ Global
 		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|x64.Build.0 = Release|Any CPU
 		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|x86.ActiveCfg = Release|Any CPU
 		{BE124A48-296A-4866-AB9C-0BE538ECA84B}.Release|x86.Build.0 = Release|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Debug|x64.Build.0 = Debug|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Debug|x86.Build.0 = Debug|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Release|x64.ActiveCfg = Release|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Release|x64.Build.0 = Release|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Release|x86.ActiveCfg = Release|Any CPU
+		{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		FileExplorer = Assets\|scripts\
 		SolutionGuid = {6B8EC95F-77EE-4F1A-89EF-337ABD7C5860}
+		FileExplorer = Assets\|scripts\
 	EndGlobalSection
 EndGlobal
