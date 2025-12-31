@@ -2,6 +2,12 @@
 
 public class UserOptions
 {
+  private string? _selectedCategoryType;
+
+  public UserOptions()
+  {
+    _selectedCategoryType = "ALL";
+  }
   public string UserId { get; set; } = string.Empty;
   
   public FillAmounts FillAmountType
@@ -19,12 +25,12 @@ public class UserOptions
 
   public string? SelectedCategoryType
   {
-    get => field;
+    get => _selectedCategoryType;
     set
     {
-      if (field != value)
+      if (_selectedCategoryType != value)
       {
-        field = value;
+        _selectedCategoryType = value;
         OnPropertyChanged();
       }
     }

@@ -139,12 +139,11 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
       db.Envelopes.Add(envelope);
       await db.SaveChangesAsync();
 
-      var commandBody = new EnvelopeDto()
+      var commandBody = new EnvelopeUpdateDto()
       {
         Id = 403,
         Name = "Updated Name",
         Description = "Updated description",
-        Balance = 250m,
         Budget = 300m,
         CategoryId = "1",
         SortOrder = 5
@@ -160,7 +159,6 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
       result.Should().NotBeNull();
       result!.envelope.Id.Should().Be(403);
       result.envelope.Name.Should().Be("Updated Name");
-      result.envelope.Balance.Should().Be(250m);
       result.envelope.Budget.Should().Be(300m);
 
       // Verify in database
@@ -183,12 +181,11 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
     using (var scope = _factory.Services.CreateScope())
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var commandBody = new EnvelopeDto()
+      var commandBody = new EnvelopeUpdateDto()
       {
         Id = 999,
         Name = "Test",
         Description = "Test",
-        Balance = 100m,
         Budget = null,
         CategoryId = "1",
         SortOrder = 1

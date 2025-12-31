@@ -44,10 +44,9 @@ public partial class EnvelopePage : ComponentBase
 
   protected override async Task OnInitializedAsync()
   {
-
-
     try
     {
+      State.InOnInitializedAsync = true;
       await State.RefreshAsync();
 
       // Ensure selection class applied on first render when an item is already selected
@@ -61,6 +60,10 @@ public partial class EnvelopePage : ComponentBase
         Logger.LogError(ex, "Error in OnInitializedAsync");
       }
     }
+    finally
+    {
+      State.InOnInitializedAsync = false;
+    }
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -71,7 +74,6 @@ public partial class EnvelopePage : ComponentBase
 
       try
       {
-
         await State.TryLoadFromCacheAsync();
         if (!State.IsLoaded)
         {
@@ -119,7 +121,7 @@ public partial class EnvelopePage : ComponentBase
     }
     else
       list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
-     // list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
+    // list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
 
     SelectedEnvelopeData = list;
 
@@ -140,8 +142,7 @@ public partial class EnvelopePage : ComponentBase
 
   public List<Cat> GetCategoriesForSelect()
   {
-    
-   // if (!UserOptions.IsAdminUser())
+    // if (!UserOptions.IsAdminUser())
 //return [.. State.Cats.Where(a => a.CatType != CatTypes.System).OrderBy(a => a.SortOrder)];
 
     return State.Cats;
@@ -170,7 +171,8 @@ public partial class EnvelopePage : ComponentBase
       {
         // Admin users can edit transactions via EditTransactionDialog
         var parameters = new DialogParameters { [nameof(EditTransactionDialog.ExistingTransaction)] = detail };
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        var options = new DialogOptions
+          { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
         var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", parameters, options);
         var result = await dialog.Result;
         if (!(result is { Canceled: true }))
@@ -235,11 +237,12 @@ public partial class EnvelopePage : ComponentBase
 
   private async Task NewTransactionAsync(EnvelopeResult? envelope)
   {
-    if(envelope is null)
+    if (envelope is null)
     {
-      Logger.Log(LogLevel.Debug,$"envelope parameter is null.  Transaction cannot be added");
+      Logger.Log(LogLevel.Debug, $"envelope parameter is null.  Transaction cannot be added");
       return;
     }
+
     var parameters = new DialogParameters { [nameof(EditTransactionDialog.InitialEnvelopeId)] = envelope.EnvelopeId };
     var options = new DialogOptions
       { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
@@ -285,7 +288,7 @@ public partial class EnvelopePage : ComponentBase
   {
     if (item == null)
       return null;
-    
+
     return SelectedEnvelope?.EnvelopeId == item.EnvelopeId ? "row-selected-secondary" : string.Empty;
   }
 

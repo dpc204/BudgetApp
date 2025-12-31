@@ -1,4 +1,5 @@
 @using Budget.Client.Components.Shared
+@using Mapster
 @inject IBudgetMaintApiClient MaintApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -176,7 +177,7 @@
       var changedEnvelopes = _envelopes.Where(e => _changedEnvelopeIds.Contains(e.Id)).ToList();
       foreach (var envelope in changedEnvelopes)
       {
-        await MaintApi.UpdateAsync(envelope);
+        await MaintApi.UpdateAsync(envelope.Adapt<EnvelopeUpdateDto>());
       }
       
       Snackbar.Add($"Successfully updated {changedEnvelopes.Count} envelope(s).", Severity.Success);

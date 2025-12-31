@@ -10,7 +10,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
   private const string StorageKey = "EnvelopeState_v1";
   private readonly IBudgetApiClient _api = api;
   private readonly ILogger<EnvelopeState> _logger = logger;
-
+  public bool InOnInitializedAsync { get; set; }
   public List<EnvelopeResult>? AllEnvelopeData { get; private set; }
   public List<Cat> Cats { get; private set; } = [];
   public string? SelectedCategoryId { get; set; } = "0";
@@ -35,6 +35,10 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
 
     try
     {
+      if(InOnInitializedAsync)
+        return;
+
+
       var json = await js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
       if (!string.IsNullOrWhiteSpace(json))
       {
@@ -102,6 +106,9 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
 
     try
     {
+      if (InOnInitializedAsync)
+        return;
+
       var snapshot = new StateSnapshot
       {
         AllEnvelopeData = AllEnvelopeData,

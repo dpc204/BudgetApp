@@ -14,4 +14,19 @@
     public int SortOrder { get; set; }
    
   }
+
+  public class EnvelopeUpdateDto
+  {
+    public int Id { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public decimal? Budget { get; set; }
+    public EnvelopeTypes EnvelopeType { get; set; }
+    public decimal FundAmount { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public int SortOrder { get; set; }
+
+  }
+
+
 }

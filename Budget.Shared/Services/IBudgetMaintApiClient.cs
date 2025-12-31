@@ -7,7 +7,7 @@ public interface IBudgetMaintApiClient
   Task<IEnumerable<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, CancellationToken cancellationToken = default);
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
   Task<EnvelopeDto> AddAsync(EnvelopeDto dto);
-  Task<EnvelopeDto> UpdateAsync(EnvelopeDto dto, CancellationToken cancellationToken = default); // new for editing
+  Task<EnvelopeUpdateDto> UpdateAsync(EnvelopeUpdateDto dto, CancellationToken cancellationToken = default); // new for editing
   Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default);
   Task<ImportResult> ImportEnvelopesAsync(string csvContent, CancellationToken cancellationToken = default);
   Task<string> ExportEnvelopesAsync(CancellationToken cancellationToken = default);
