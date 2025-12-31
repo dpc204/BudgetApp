@@ -11,8 +11,8 @@
       throw new ArgumentNullException(nameof(source), "Source object cannot be null.");
 
     var deepConfig = new TypeAdapterConfig();
-    deepConfig.Default.PreserveReference(true); // Keep same references
-    deepConfig.Default.ShallowCopyForSameType(true); // Copy only top-level properties
+    deepConfig.Default.PreserveReference(false); 
+    deepConfig.Default.ShallowCopyForSameType(false); 
     return source.Adapt<T>(deepConfig);
   }
 
