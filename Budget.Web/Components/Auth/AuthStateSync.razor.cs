@@ -39,10 +39,8 @@ public sealed partial class AuthStateSync : ComponentBase
         if (!string.IsNullOrEmpty(dto.Id))
         {
           var options = await ApiClient.GetUserOptionsAsync(dto.Id);
-          if (options != null)
-          {
-            UserAndOptions.Options = options;
-          }
+            UserAndOptions.Options = options ?? new();
+          
         }
         
         await EnvelopeState.RefreshAsync();
