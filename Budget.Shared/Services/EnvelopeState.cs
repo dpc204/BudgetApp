@@ -10,6 +10,14 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
   private const string StorageKey = "EnvelopeState_v1";
   private readonly IBudgetApiClient _api = api;
   private readonly ILogger<EnvelopeState> _logger = logger;
+
+
+  /// <summary>
+  /// Indicates that the owning component is currently executing OnInitializedAsync, so
+  /// JavaScript interop calls (such as localStorage load/save) should be suppressed.
+  /// </summary>
+
+
   public bool InOnInitializedAsync { get; set; }
   public List<EnvelopeResult>? AllEnvelopeData { get; private set; }
   public List<Cat> Cats { get; private set; } = [];

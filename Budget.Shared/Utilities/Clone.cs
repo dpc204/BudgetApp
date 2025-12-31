@@ -1,5 +1,8 @@
-﻿public static class Clone
+﻿namespace Budget.Shared.Utilities;
+
+public static class Clone
 {
+
 
 
   /// <summary>
