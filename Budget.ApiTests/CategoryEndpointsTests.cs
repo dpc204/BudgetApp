@@ -153,7 +153,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
 
       // Verify in database
       db.ChangeTracker.Clear();
-      var updatedCategory = await db.Categories.FindAsync(503);
+      var updatedCategory = await db.Categories.FindAsync("503");
 
       updatedCategory.Should().NotBeNull();
       updatedCategory!.Name.Should().Be("Updated Name");
@@ -210,7 +210,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
 
       // Verify deletion in database
       db.ChangeTracker.Clear();
-      var deletedCategory = await db.Categories.FindAsync(505);
+      var deletedCategory = await db.Categories.FindAsync("505");
       deletedCategory.Should().BeNull();
     }
   }

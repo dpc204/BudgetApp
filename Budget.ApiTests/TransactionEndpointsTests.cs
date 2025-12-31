@@ -362,6 +362,13 @@ public class TransactionEndpointsTests : IntegrationTestBase
       // Assert
       response.EnsureSuccessStatusCode();
 
+      // Verify the response contains the updated envelope data
+      var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
+      result.Should().NotBeNull();
+      result.Should().HaveCount(1);
+      result![0].Id.Should().Be(envelope.Id);
+      result[0].Balance.Should().Be(350m); // 500 - 100 (original) + 100 (restored) - 150 (new)
+
       db.ChangeTracker.Clear();
       var updatedTrans = await db.Transactions
           .Include(t => t.Details)
@@ -422,9 +429,8 @@ public class TransactionEndpointsTests : IntegrationTestBase
       // Assert
       response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
 
-      var errorResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-      errorResponse.Should().NotBeNull();
-      errorResponse!["error"].Should().Contain("not found");
+      var errorResponse = await response.Content.ReadAsStringAsync();
+      errorResponse.Should().Contain("not found");
     }
   }
 }

@@ -1,3 +1,5 @@
+using FluentResults;
+
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -20,12 +22,12 @@ public static class VoidTransaction
 
       if (existingTrans is null)
       {
-        return Result<List<EnvelopeDto>>.Failure($"Transaction with Id {request.TransactionId} not found.");
+        return Result.Fail($"Transaction with Id {request.TransactionId} not found.");
       }
      
       if(existingTrans.IsVoided)
       {
-        return Result<List<EnvelopeDto>>.Failure($"Transaction {request.TransactionId} is already voided.");
+        return Result.Fail($"Transaction {request.TransactionId} is already voided.");
       }
 
       // Set void flag
@@ -38,19 +40,20 @@ public static class VoidTransaction
       var rslt = await ReverseEnvelopeBalancesAsync(existingTrans);
 
       await db.SaveChangesAsync(cancellationToken);
-      return Result<List<EnvelopeDto>>.Success(rslt);
+      return rslt;
     }
 
-    private async Task ReverseAccountBalanceAsync(Transaction trans)
+    private async Task<Result> ReverseAccountBalanceAsync(Transaction trans)
     {
       var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
-      if (acct is null) return;
+      if (acct is null) return Result.Fail("Account not found");
       
       // Add the amount back (reverses the original subtraction)
       acct.Balance += trans.TotalAmount;
+      return Result.Ok();
     }
 
-    private async Task<List<EnvelopeDto>> ReverseEnvelopeBalancesAsync(Transaction trans)
+    private async Task<Result<List<EnvelopeDto>>> ReverseEnvelopeBalancesAsync(Transaction trans)
     {
       var rslt = new List<EnvelopeDto>();
 
@@ -58,8 +61,7 @@ public static class VoidTransaction
       foreach (var grp in grouped)
       {
         var env = await db.Envelopes.FindAsync([grp.Key]);
-        if (env is null) continue;
-
+        if (env is null) return Result.Fail("Transaction to void does not exist");
         // Add the sum of amounts back (reverses the original subtraction)
         env.Balance += grp.Sum(d => d.Amount);
 
@@ -75,7 +77,7 @@ public static class VoidTransaction
         });
       }
 
-      return rslt;
+      return Result.Ok(rslt);
     }
   }
 
@@ -93,9 +95,10 @@ public static class VoidTransaction
         if (!result.IsSuccess)
         {
           // Return 409 Conflict for already voided, 404 for not found
-          return result.Error!.Contains("already voided")
-            ? Results.Conflict(new { error = result.Error })
-            : Results.NotFound(new { error = result.Error });
+          var errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+          return errorMessage.Contains("already voided")
+            ? Results.Conflict(new { error = result.Errors })
+            : Results.NotFound(new { error = result.Errors });
         }
         
         return Results.Ok(result.Value);

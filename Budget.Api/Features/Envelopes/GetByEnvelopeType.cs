@@ -1,4 +1,5 @@
 ﻿using Budget.Shared.Enums;
+using Mapster;
 
 namespace Budget.Api.Features.Envelopes;
 
@@ -14,19 +15,13 @@ public static class GetByEnvelopeType
         .AsNoTracking()
         .Include(env => env.Category)
         .Where(a => a.EnvelopeType == request.EnvType)
-        .Select(env => new EnvelopeDto {
-          Id = env.Id,
-          Name = env.Name,
-          FundAmount = env.FundAmount,
-          Balance = env.Balance,
-          Category = new CategoryDto {
-            CategoryId = env.Category.CategoryId,
-            Name = env.Category.Name
-          }
-        })
+        .ProjectToType<EnvelopeDto>(TypeAdapterConfig<Envelope, EnvelopeDto>
+          .NewConfig()
+          .MaxDepth(2)
+          .Config)
         .FirstOrDefaultAsync(cancellationToken);
 
-      return envelope; 
+      return envelope;
     }
   }
 
@@ -34,15 +29,16 @@ public static class GetByEnvelopeType
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapGet("/envelopes/bytype/{envelopeType}", async (EnvelopeTypes envelopeType, [FromServices] ISender sender) =>
-      {
-        var envelope = await sender.Send(new Query(envelopeType));
-        
-        if (envelope == null)
-          return Results.NotFound();
-          
-        return Results.Ok(envelope);
-      });
+      app.MapGet("/envelopes/bytype/{envelopeType}",
+        async (EnvelopeTypes envelopeType, [FromServices] ISender sender) =>
+        {
+          var envelope = await sender.Send(new Query(envelopeType));
+
+          if (envelope == null)
+            return Results.NotFound();
+
+          return Results.Ok(envelope);
+        });
     }
   }
 }

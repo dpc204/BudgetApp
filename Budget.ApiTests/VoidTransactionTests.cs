@@ -72,6 +72,13 @@ public class VoidTransactionTests : IntegrationTestBase
       // Assert
       response.EnsureSuccessStatusCode();
 
+      // Verify the response contains the updated envelope data
+      var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
+      result.Should().NotBeNull();
+      result.Should().HaveCount(1);
+      result![0].Id.Should().Be(envelope.Id);
+      result[0].Balance.Should().Be(500m); // Restored to original
+
       // Clear change tracker to force reload from database
       db.ChangeTracker.Clear();
 
@@ -285,9 +292,8 @@ public class VoidTransactionTests : IntegrationTestBase
       // Assert
       response.StatusCode.Should().Be(System.Net.HttpStatusCode.Conflict);
 
-      var errorResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-      errorResponse.Should().NotBeNull();
-      errorResponse!["error"].Should().Contain("already voided");
+      var errorResponse = await response.Content.ReadAsStringAsync();
+      errorResponse.Should().Contain("already voided");
 
       // Clear change tracker
       db.ChangeTracker.Clear();
@@ -319,9 +325,8 @@ public class VoidTransactionTests : IntegrationTestBase
       // Assert
       response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
 
-      var errorResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-      errorResponse.Should().NotBeNull();
-      errorResponse!["error"].Should().Contain("not found");
+      var errorResponse = await response.Content.ReadAsStringAsync();
+      errorResponse.Should().Contain("not found");
     }
   }
 }

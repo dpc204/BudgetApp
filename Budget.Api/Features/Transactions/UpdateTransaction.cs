@@ -1,3 +1,5 @@
+using FluentResults;
+
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -17,7 +19,7 @@ public static class UpdateTransaction
 
       if (existingTrans is null)
       {
-        return Result<List<EnvelopeDto>>.Failure($"Transaction with Id {request.Trans.Id} not found.");
+        return Result.Fail($"Transaction with Id {request.Trans.Id} not found.");
       }
 
       // Restore envelope balances from existing details before updating
@@ -59,7 +61,7 @@ public static class UpdateTransaction
       var rslt = await UpdateEnvelopeAsync(existingTrans);
 
       await db.SaveChangesAsync(cancellationToken);
-      return Result<List<EnvelopeDto>>.Success(rslt);
+      return Result.Ok(rslt);
     }
 
     private async Task RestoreEnvelopeBalancesAsync(Transaction trans)
@@ -129,7 +131,7 @@ public static class UpdateTransaction
         
         return result.IsSuccess
           ? Results.Ok(result.Value)
-          : Results.NotFound(new { error = result.Error });
+          : Results.NotFound(new { error = result.Errors });
       });
     }
   }
