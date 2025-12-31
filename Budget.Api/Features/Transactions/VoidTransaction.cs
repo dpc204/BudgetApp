@@ -95,7 +95,8 @@ public static class VoidTransaction
         if (!result.IsSuccess)
         {
           // Return 409 Conflict for already voided, 404 for not found
-          return result.Errors.ToString().Contains("already voided")
+          var errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+          return errorMessage.Contains("already voided")
             ? Results.Conflict(new { error = result.Errors })
             : Results.NotFound(new { error = result.Errors });
         }
