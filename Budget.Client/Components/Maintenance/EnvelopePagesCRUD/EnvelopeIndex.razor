@@ -42,6 +42,26 @@
       </EditTemplate>
     </TemplateColumn>
 
+@*     <MudSelect @bind-Value="enumValue" Label="Select drink" HelperText="Enum" OpenIcon="@Icons.Material.Filled.LocalDrink" AdornmentColor="Color.Secondary">
+      @foreach (Drink item in Enum.GetValues(typeof(Drink))) {
+        <MudSelectItem Value="@item">@item</MudSelectItem>
+      }
+    </MudSelect> *@
+    
+    <TemplateColumn T="EnvelopeDto" Title="Env. Type" Editable="true">
+      <CellTemplate Context="ctx">
+        @ctx.Item.EnvelopeType
+      </CellTemplate>
+      <EditTemplate Context="ctx">
+        <MudSelect T="EnvelopeTypes" Value="ctx.Item.EnvelopeType" ValueChanged="@((EnvelopeTypes val) => OnEnvelopeTypeChanged(ctx.Item, val))" dense="true">
+          @foreach(EnvelopeTypes c in Enum.GetValues(typeof(EnvelopeTypes)))
+          {
+            <MudSelectItem Value="@c">@c.ToString()</MudSelectItem>
+          }
+        </MudSelect>
+      </EditTemplate>
+    </TemplateColumn>
+
     <TemplateColumn T="EnvelopeDto" Title="Envelope" HeaderStyle="min-width:16rem;" Editable="true">
       <CellTemplate Context="ctx">
         @ctx.Item.Name
@@ -129,6 +149,12 @@
   private void OnCategoryChanged(EnvelopeDto item, string newCategoryId)
   {
     item.CategoryId = newCategoryId;
+    MarkAsChanged(item);
+  }
+
+  private void OnEnvelopeTypeChanged(EnvelopeDto item, EnvelopeTypes newEnvelopeType)
+  {
+    item.EnvelopeType = newEnvelopeType;
     MarkAsChanged(item);
   }
 
