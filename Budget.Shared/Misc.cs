@@ -1,6 +1,4 @@
-﻿using Budget.Shared.Services;
-
-namespace Budget.Shared;
+﻿namespace Budget.Shared;
 
 public static class Misc
 {

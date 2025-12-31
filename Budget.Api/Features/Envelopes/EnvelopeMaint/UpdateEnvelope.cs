@@ -15,7 +15,7 @@ public static class UpdateEnvelope
       if (entity is null) return null;
 
 
-      entity = request.envelope.Adapt(entity);
+      entity = request.envelope.Adapt<Envelope>();
 
       await db.SaveChangesAsync(cancellationToken);
 

@@ -183,7 +183,7 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
     using (var scope = _factory.Services.CreateScope())
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var commandBody = new UpdateEnvelope.CommandBody
+      var commandBody = new EnvelopeDto()
       {
         Id = 999,
         Name = "Test",

@@ -42,11 +42,6 @@
       </EditTemplate>
     </TemplateColumn>
 
-@*     <MudSelect @bind-Value="enumValue" Label="Select drink" HelperText="Enum" OpenIcon="@Icons.Material.Filled.LocalDrink" AdornmentColor="Color.Secondary">
-      @foreach (Drink item in Enum.GetValues(typeof(Drink))) {
-        <MudSelectItem Value="@item">@item</MudSelectItem>
-      }
-    </MudSelect> *@
     
     <TemplateColumn T="EnvelopeDto" Title="Env. Type" Editable="true">
       <CellTemplate Context="ctx">
@@ -115,7 +110,7 @@
   private List<EnvelopeDto>? _originalEnvelopes;
   private Dictionary<string, string> _categoryLookup = new();
   private HashSet<int> _changedEnvelopeIds = new();
-  
+
   private bool HasPendingChanges => _changedEnvelopeIds.Count > 0;
 
   protected bool Busy { get; set; }
@@ -131,16 +126,7 @@
     _changedEnvelopeIds.Clear();
   }
 
-  private static EnvelopeDto CloneEnvelope(EnvelopeDto e) => new()
-  { 
-    Id = e.Id, 
-    CategoryId = e.CategoryId, 
-    Name = e.Name, 
-    Budget = e.Budget, 
-    Balance = e.Balance, 
-    Description = e.Description, 
-    SortOrder = e.SortOrder 
-  };
+  private static EnvelopeDto CloneEnvelope(EnvelopeDto e) => Clone.ShallowClone(e);
 
   private string GetCategoryName(string id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
 
@@ -167,15 +153,14 @@
   private void CancelChanges()
   {
     if (_originalEnvelopes is null || _envelopes is null) return;
-    
+
     foreach (var changedId in _changedEnvelopeIds)
     {
       var original = _originalEnvelopes.FirstOrDefault(e => e.Id == changedId);
       var current = _envelopes.FirstOrDefault(e => e.Id == changedId);
       if (original is not null && current is not null)
       {
-        current.CategoryId = original.CategoryId;
-        current.Name = original.Name;
+        current = Clone.ShallowClone(original);
       }
     }
     _changedEnvelopeIds.Clear();
