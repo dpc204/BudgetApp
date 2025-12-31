@@ -76,6 +76,7 @@ namespace Budget.DB.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     FamilyId = table.Column<int>(type: "int", nullable: false)
@@ -316,11 +317,11 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Users",
-                columns: new[] { "Id", "FamilyId", "FirstName", "LastName" },
+                columns: new[] { "Id", "Email", "FamilyId", "FirstName", "LastName" },
                 values: new object[,]
                 {
-                    { 1, 1, "Patrick", "Connelly" },
-                    { 2, 1, "Terri", "Connelly" }
+                    { 1, "", 1, "Patrick", "Connelly" },
+                    { 2, "", 1, "Terri", "Connelly" }
                 });
 
             migrationBuilder.InsertData(

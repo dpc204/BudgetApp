@@ -111,7 +111,7 @@ public class BudgetPageNavigationTests : TestContext
   [Fact(Skip = "Requires MudBlazor providers for full component rendering")]
   public void DraftInput_UpdatesValue_WhenUserEntersAmount()
   {
-    // This test is skipped because it requires rendering MudNumericField components
+    // This test is skipped because it requires rendering MudNumericField components 
     // which need MudBlazor providers (MudPopoverProvider, MudDialogProvider, MudSnackbarProvider)
     // 
     // To test this functionality:

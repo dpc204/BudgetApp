@@ -509,6 +509,11 @@ namespace Budget.DB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int>("FamilyId")
                         .HasColumnType("int");
 
@@ -532,6 +537,7 @@ namespace Budget.DB.Migrations
                         new
                         {
                             Id = 1,
+                            Email = "",
                             FamilyId = 1,
                             FirstName = "Patrick",
                             LastName = "Connelly"
@@ -539,6 +545,7 @@ namespace Budget.DB.Migrations
                         new
                         {
                             Id = 2,
+                            Email = "",
                             FamilyId = 1,
                             FirstName = "Terri",
                             LastName = "Connelly"

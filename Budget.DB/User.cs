@@ -6,6 +6,7 @@ namespace Budget.DB
   public class User
   {
     public int Id { get; set; }
+    public string Email { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public int FamilyId { get; set; } = 1;
@@ -19,6 +20,11 @@ namespace Budget.DB
     {
       public void Configure(EntityTypeBuilder<User> entity)
       {
+        // Configure table to use triggers (prevents EF from using OUTPUT clause)
+        entity.ToTable(tb => tb.HasTrigger("trg_User_Email_ToUpper"));
+        
+        entity.Property(u => u.Email)
+          .HasMaxLength(100);
         entity.Property(u => u.FirstName)
           .HasMaxLength(50);
         entity.Property(u => u.LastName)
@@ -30,8 +36,8 @@ namespace Budget.DB
           .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasData(
-          new User { Id = 1, FirstName = "Patrick", LastName = "Connelly", FamilyId = 1 },
-          new User { Id = 2, FirstName = "Terri", LastName = "Connelly", FamilyId = 1 }
+          new User { Id = 1, Email = "", FirstName = "Patrick", LastName = "Connelly", FamilyId = 1 },
+          new User { Id = 2, Email = "", FirstName = "Terri", LastName = "Connelly", FamilyId = 1 }
         );
       }
     }

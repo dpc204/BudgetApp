@@ -1,0 +1,147 @@
+using System;
+using System.Threading.Tasks;
+using Budget.DB;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
+
+namespace Budget.ApiTests;
+
+/// <summary>
+/// Tests for User.Email uppercase trigger functionality
+/// 
+/// NOTE: These tests use SQL Server LocalDB because triggers cannot be tested with EF Core InMemory provider.
+/// The trigger is a database-level feature that only works with actual SQL Server.
+/// 
+/// To run these tests, you need:
+/// 1. SQL Server LocalDB installed
+/// 2. Run migrations against a test database first
+/// </summary>
+public class UserEmailTriggerTests : IDisposable
+{
+  private readonly BudgetContext _context;
+  private readonly string _testDbName;
+  
+  public UserEmailTriggerTests()
+  {
+    // Use a unique database name for each test run
+    _testDbName = $"BudgetTest_{Guid.NewGuid():N}";
+    
+    var options = new DbContextOptionsBuilder<BudgetContext>()
+      .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database={_testDbName};Trusted_Connection=True;TrustServerCertificate=True;")
+      .Options;
+      
+    _context = new BudgetContext(options);
+    
+    // Create database and run migrations
+    _context.Database.Migrate();
+  }
+  
+  [Fact]
+  public async Task Insert_User_WithLowercaseEmail_ConvertsToUppercase()
+  {
+    // Arrange
+    var user = new User
+    {
+      Email = "test@example.com",
+      FirstName = "Test",
+      LastName = "User",
+      FamilyId = 1
+    };
+    
+    // Act
+    _context.Users.Add(user);
+    await _context.SaveChangesAsync();
+    
+    // Detach to force a fresh read from database
+    _context.Entry(user).State = EntityState.Detached;
+    
+    // Assert - Read back from database
+    var savedUser = await _context.Users.FindAsync(user.Id);
+    Assert.NotNull(savedUser);
+    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
+  }
+  
+  [Fact]
+  public async Task Update_User_WithLowercaseEmail_ConvertsToUppercase()
+  {
+    // Arrange - Create user with uppercase email
+    var user = new User
+    {
+      Email = "ORIGINAL@EXAMPLE.COM",
+      FirstName = "Test",
+      LastName = "User",
+      FamilyId = 1
+    };
+    _context.Users.Add(user);
+    await _context.SaveChangesAsync();
+    
+    // Act - Update to lowercase
+    user.Email = "updated@example.com";
+    await _context.SaveChangesAsync();
+    
+    // Detach to force a fresh read from database
+    _context.Entry(user).State = EntityState.Detached;
+    
+    // Assert - Read back from database
+    var updatedUser = await _context.Users.FindAsync(user.Id);
+    Assert.NotNull(updatedUser);
+    Assert.Equal("UPDATED@EXAMPLE.COM", updatedUser.Email);
+  }
+  
+  [Fact]
+  public async Task Insert_User_WithUppercaseEmail_RemainsUppercase()
+  {
+    // Arrange
+    var user = new User
+    {
+      Email = "TEST@EXAMPLE.COM",
+      FirstName = "Test",
+      LastName = "User",
+      FamilyId = 1
+    };
+    
+    // Act
+    _context.Users.Add(user);
+    await _context.SaveChangesAsync();
+    
+    // Detach to force a fresh read from database
+    _context.Entry(user).State = EntityState.Detached;
+    
+    // Assert
+    var savedUser = await _context.Users.FindAsync(user.Id);
+    Assert.NotNull(savedUser);
+    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
+  }
+  
+  [Fact]
+  public async Task Insert_User_WithMixedCaseEmail_ConvertsToUppercase()
+  {
+    // Arrange
+    var user = new User
+    {
+      Email = "TeSt@ExAmPlE.CoM",
+      FirstName = "Test",
+      LastName = "User",
+      FamilyId = 1
+    };
+    
+    // Act
+    _context.Users.Add(user);
+    await _context.SaveChangesAsync();
+    
+    // Detach to force a fresh read from database
+    _context.Entry(user).State = EntityState.Detached;
+    
+    // Assert
+    var savedUser = await _context.Users.FindAsync(user.Id);
+    Assert.NotNull(savedUser);
+    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
+  }
+  
+  public void Dispose()
+  {
+    // Clean up test database
+    _context.Database.EnsureDeleted();
+    _context.Dispose();
+  }
+}
