@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="bunit" Version="2.4.2" />
-    <PackageReference Include="bunit.web.testcomponents" Version="1.23.9" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />

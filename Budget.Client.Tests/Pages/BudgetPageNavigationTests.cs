@@ -51,7 +51,7 @@ public class BudgetPageNavigationTests : TestContext
     // Full component rendering tests require an integration test framework like Playwright.
     var exception = Assert.Throws<InvalidOperationException>(() =>
     {
-      var cut = RenderComponent<Budget.Client.Pages.Budget>();
+      var cut = Render<Budget.Client.Pages.Budget>();
     });
     
     Assert.Contains("MudPopoverProvider", exception.Message);
@@ -121,7 +121,7 @@ public class BudgetPageNavigationTests : TestContext
     
     // Arrange
     SetupMockApiResponses();
-    var cut = RenderComponent<Budget.Client.Pages.Budget>();
+    var cut = Render<Budget.Client.Pages.Budget>();
     
     // Wait for loading to complete
     cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".mud-progress-linear")), TimeSpan.FromSeconds(5));
@@ -146,7 +146,7 @@ public class BudgetPageNavigationTests : TestContext
     
     // Arrange
     SetupMockApiResponsesWithLockedBudget();
-    var cut = RenderComponent<Budget.Client.Pages.Budget>();
+    var cut = Render<Budget.Client.Pages.Budget>();
     
     // Wait for loading to complete
     cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".mud-progress-linear")), TimeSpan.FromSeconds(5));
