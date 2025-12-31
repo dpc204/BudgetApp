@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace Budget.Shared.Services;
 
 /// <summary>

@@ -1,4 +1,6 @@
 @using Budget.Client.Components.Shared
+@using Budget.Shared.Utilities
+@using Mapster
 @inject IBudgetMaintApiClient MaintApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -37,6 +39,21 @@
           @foreach(var c in _categoryLookup)
           {
             <MudSelectItem Value="@c.Key">@c.Value</MudSelectItem>
+          }
+        </MudSelect>
+      </EditTemplate>
+    </TemplateColumn>
+
+    
+    <TemplateColumn T="EnvelopeDto" Title="Env. Type" Editable="true">
+      <CellTemplate Context="ctx">
+        @ctx.Item.EnvelopeType
+      </CellTemplate>
+      <EditTemplate Context="ctx">
+        <MudSelect T="EnvelopeTypes" Value="ctx.Item.EnvelopeType" ValueChanged="@((EnvelopeTypes val) => OnEnvelopeTypeChanged(ctx.Item, val))" dense="true">
+          @foreach(EnvelopeTypes c in Enum.GetValues(typeof(EnvelopeTypes)))
+          {
+            <MudSelectItem Value="@c">@c.ToString()</MudSelectItem>
           }
         </MudSelect>
       </EditTemplate>
@@ -95,7 +112,7 @@
   private List<EnvelopeDto>? _originalEnvelopes;
   private Dictionary<string, string> _categoryLookup = new();
   private HashSet<int> _changedEnvelopeIds = new();
-  
+
   private bool HasPendingChanges => _changedEnvelopeIds.Count > 0;
 
   protected bool Busy { get; set; }
@@ -111,16 +128,7 @@
     _changedEnvelopeIds.Clear();
   }
 
-  private static EnvelopeDto CloneEnvelope(EnvelopeDto e) => new()
-  { 
-    Id = e.Id, 
-    CategoryId = e.CategoryId, 
-    Name = e.Name, 
-    Budget = e.Budget, 
-    Balance = e.Balance, 
-    Description = e.Description, 
-    SortOrder = e.SortOrder 
-  };
+  private static EnvelopeDto CloneEnvelope(EnvelopeDto e) => Clone.ShallowClone(e);
 
   private string GetCategoryName(string id) => _categoryLookup.TryGetValue(id, out var name) ? name : string.Empty;
 
@@ -129,6 +137,12 @@
   private void OnCategoryChanged(EnvelopeDto item, string newCategoryId)
   {
     item.CategoryId = newCategoryId;
+    MarkAsChanged(item);
+  }
+
+  private void OnEnvelopeTypeChanged(EnvelopeDto item, EnvelopeTypes newEnvelopeType)
+  {
+    item.EnvelopeType = newEnvelopeType;
     MarkAsChanged(item);
   }
 
@@ -141,15 +155,14 @@
   private void CancelChanges()
   {
     if (_originalEnvelopes is null || _envelopes is null) return;
-    
+
     foreach (var changedId in _changedEnvelopeIds)
     {
       var original = _originalEnvelopes.FirstOrDefault(e => e.Id == changedId);
       var current = _envelopes.FirstOrDefault(e => e.Id == changedId);
       if (original is not null && current is not null)
       {
-        current.CategoryId = original.CategoryId;
-        current.Name = original.Name;
+        current = Clone.ShallowClone(original);
       }
     }
     _changedEnvelopeIds.Clear();
@@ -165,7 +178,7 @@
       var changedEnvelopes = _envelopes.Where(e => _changedEnvelopeIds.Contains(e.Id)).ToList();
       foreach (var envelope in changedEnvelopes)
       {
-        await MaintApi.UpdateAsync(envelope);
+        await MaintApi.UpdateAsync(envelope.Adapt<EnvelopeUpdateDto>());
       }
       
       Snackbar.Add($"Successfully updated {changedEnvelopes.Count} envelope(s).", Severity.Success);

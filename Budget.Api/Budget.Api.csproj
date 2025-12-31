@@ -15,17 +15,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.18.0-beta.1" />
+    <PackageReference Include="Azure.Identity" Version="1.18.0-beta.2" />
     <PackageReference Include="Carter" Version="10.0.0" />
     <PackageReference Include="FastEndpoints" Version="7.1.1" />
     <PackageReference Include="FluentResults" Version="4.0.0" />
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
-    <PackageReference Include="MediatR" Version="14.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
-    <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.2.70" />
+    <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.37-preview" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.11.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.1" />
     <PackageReference Include="Microsoft.Identity.Web" Version="4.2.0" />
@@ -35,6 +34,7 @@
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
+    <ProjectReference Include="..\Fantum.Mediator\Fantum.Mediator.csproj" />
     <!-- Aspire service defaults project reference for OpenTelemetry/service discovery -->
     <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>

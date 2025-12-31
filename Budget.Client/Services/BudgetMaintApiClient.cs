@@ -46,19 +46,9 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     return created;
   }
 
-  public async Task<EnvelopeDto> UpdateAsync(EnvelopeDto dto, CancellationToken cancellationToken = default)
+  public async Task<EnvelopeUpdateDto> UpdateAsync(EnvelopeUpdateDto dto, CancellationToken cancellationToken = default)
   {
-    var payload = new
-    {
-      id = dto.Id,
-      name = dto.Name,
-      description = dto.Description,
-      balance = dto.Balance,
-      budget = dto.Budget,
-      categoryId = dto.CategoryId,
-      sortOrder = dto.SortOrder
-    };
-    var updated = await PutAsync<object, EnvelopeDto>($"envelopes/maint/{dto.Id}", payload, cancellationToken);
+    var updated = await PutAsync<object, EnvelopeUpdateDto>($"envelopes/maint/{dto.Id}", dto, cancellationToken);
     return updated;
   }
 

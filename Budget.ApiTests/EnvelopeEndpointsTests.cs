@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Budget.Shared.Models;
 using Xunit;
 using EnvelopeGetAll = Budget.Api.Features.Envelopes.GetAll;
 
@@ -138,12 +139,11 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
       db.Envelopes.Add(envelope);
       await db.SaveChangesAsync();
 
-      var commandBody = new UpdateEnvelope.CommandBody
+      var commandBody = new EnvelopeUpdateDto()
       {
         Id = 403,
         Name = "Updated Name",
         Description = "Updated description",
-        Balance = 250m,
         Budget = 300m,
         CategoryId = "1",
         SortOrder = 5
@@ -157,10 +157,9 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
       var result = await response.Content.ReadFromJsonAsync<UpdateEnvelope.Response>();
 
       result.Should().NotBeNull();
-      result!.Id.Should().Be(403);
-      result.Name.Should().Be("Updated Name");
-      result.Balance.Should().Be(250m);
-      result.Budget.Should().Be(300m);
+      result!.envelope.Id.Should().Be(403);
+      result.envelope.Name.Should().Be("Updated Name");
+      result.envelope.Budget.Should().Be(300m);
 
       // Verify in database
       db.ChangeTracker.Clear();
@@ -182,12 +181,11 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
     using (var scope = _factory.Services.CreateScope())
     {
       var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var commandBody = new UpdateEnvelope.CommandBody
+      var commandBody = new EnvelopeUpdateDto()
       {
         Id = 999,
         Name = "Test",
         Description = "Test",
-        Balance = 100m,
         Budget = null,
         CategoryId = "1",
         SortOrder = 1

@@ -1,6 +1,5 @@
 using Budget.DB;
 using Carter;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;

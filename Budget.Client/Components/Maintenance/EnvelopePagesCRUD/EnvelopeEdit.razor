@@ -1,3 +1,4 @@
+@using Mapster
 @inject IBudgetMaintApiClient MaintApi
 
 <MudDialog>
@@ -51,7 +52,7 @@
     private async Task SaveAsync()
     {
         if (_envelope is null) return;
-        var updated = await MaintApi.UpdateAsync(_envelope);
+        var updated = await MaintApi.UpdateAsync(_envelope.Adapt<EnvelopeUpdateDto>());
         MudDialog.Close(DialogResult.Ok(updated));
     }
 

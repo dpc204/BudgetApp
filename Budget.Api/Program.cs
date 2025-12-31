@@ -47,7 +47,7 @@ Misc.SetupConfigurationSources(builder, assembly, logger);
 
 
 // Add MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAll).Assembly));
+builder.Services.AddFantumMediator();
 
 // Register HttpContextAccessor and CurrentFamilyService for multi-tenancy
 builder.Services.AddHttpContextAccessor();

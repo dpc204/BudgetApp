@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Facet.Extensions.EFCore.Mapping" Version="5.2.0" />
     <PackageReference Include="Facet.Mapping" Version="5.2.0" />
+    <PackageReference Include="Mapster" Version="9.0.0-pre01" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1">
       <PrivateAssets>all</PrivateAssets>
