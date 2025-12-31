@@ -1,3 +1,5 @@
+using FluentResults;
+
 namespace Budget.Client.Services;
 
 
@@ -114,7 +116,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
         return result.Value ?? [];
       }
       
-      logger.LogWarning("UpdateTransaction failed: {Error}", result?.Error);
+      logger.LogWarning("UpdateTransaction failed: {Error}", result?.Errors);
       return [];
     }
     catch (Exception ex)
@@ -147,7 +149,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
         return result.Value ?? [];
       }
       
-      logger.LogWarning("VoidTransaction failed: {Error}", result?.Error);
+      logger.LogWarning("VoidTransaction failed: {Error}", result?.Errors);
       return [];
     }
     catch (Exception ex)

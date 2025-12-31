@@ -34,7 +34,7 @@
       </CellTemplate>
       <EditTemplate Context="ctx">
         <MudSelect T="string" Value="ctx.Item.CategoryId" ValueChanged="@((string val) => OnCategoryChanged(ctx.Item, val))" dense="true">
-          @foreach (var c in _categoryLookup)
+          @foreach(var c in _categoryLookup)
           {
             <MudSelectItem Value="@c.Key">@c.Value</MudSelectItem>
           }
