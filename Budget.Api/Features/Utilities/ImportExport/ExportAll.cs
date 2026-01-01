@@ -62,32 +62,30 @@ public static class ExportAll
         using var scope = serviceScopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        // Define all tables to export
-        var tables = new List<(string Name, Func<Task<string>> ExportFunc)>
-        {
-          ("Families", () => ExportTableAsync(db, () => db.Families.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Users", () => ExportTableAsync(db, () => db.Users.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("BankAccounts", () => ExportTableAsync(db, () => db.BankAccounts.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Categories", () => ExportTableAsync(db, () => db.Categories.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Envelopes", () => ExportTableAsync(db, () => db.Envelopes.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Transactions", () => ExportTableAsync(db, () => db.Transactions.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("TransactionDetails", () => ExportTableAsync(db, () => db.TransactionDetails.ToListAsync(cancellationToken))),
-          ("Favorites", () => ExportTableAsync(db, () => db.Favorites.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("BudgetMonths", () => ExportTableAsync(db, () => db.BudgetMonths.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("SavedUserOptions", () => ExportTableAsync(db, () => db.SavedUserOptions.ToListAsync(cancellationToken)))
-        };
+        // Query database for all table names in the 'budget' schema, excluding migration history
+        var tableNames = await db.Database.SqlQueryRaw<string>(
+          @"SELECT TABLE_NAME 
+            FROM INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_SCHEMA = 'budget' 
+            AND TABLE_TYPE = 'BASE TABLE' 
+            AND TABLE_NAME != '__EFMigrationsHistory'
+            ORDER BY TABLE_NAME"
+        ).ToListAsync(cancellationToken);
+
+        log.LogInformation("Found {TableCount} tables to export: {TableNames}", 
+          tableNames.Count, string.Join(", ", tableNames));
 
         int completed = 0;
         int failed = 0;
-        var totalTables = tables.Count;
+        var totalTables = tableNames.Count;
 
-        foreach (var (tableName, exportFunc) in tables)
+        foreach (var tableName in tableNames)
         {
           progressService.UpdateProgress(backupId, totalTables, completed, failed, tableName);
           
           var success = await ExportTableWithRetryAsync(
+            db,
             tableName, 
-            exportFunc, 
             blobContainerClient, 
             tableClient, 
             partitionKey,
@@ -119,8 +117,8 @@ public static class ExportAll
     }
 
     private async Task<bool> ExportTableWithRetryAsync(
+      BudgetContext db,
       string tableName,
-      Func<Task<string>> exportFunc,
       BlobContainerClient blobContainerClient,
       TableClient tableClient,
       string partitionKey,
@@ -135,8 +133,8 @@ public static class ExportAll
           log.LogInformation("Exporting table {TableName} (attempt {Attempt}/{TotalAttempts})", 
             tableName, attempt, totalAttempts);
 
-          // Export to CSV
-          var csv = await exportFunc();
+          // Export table data to CSV using raw SQL query
+          var csv = await ExportTableDataAsync(db, tableName, cancellationToken);
 
           // Upload to Blob Storage
           var blobName = $"{partitionKey}/{tableName}.csv";
@@ -178,10 +176,57 @@ public static class ExportAll
       return false;
     }
 
-    private async Task<string> ExportTableAsync<T>(BudgetContext db, Func<Task<List<T>>> dataFunc) where T : class
+    private async Task<string> ExportTableDataAsync(BudgetContext db, string tableName, CancellationToken cancellationToken)
     {
-      var data = await dataFunc();
-      return CsvExportService.ExportToCsv(data, log: log);
+      // Query all data from the table using raw SQL
+      var connectionString = db.Database.GetConnectionString();
+      
+      using var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString);
+      await connection.OpenAsync(cancellationToken);
+      
+      using var command = connection.CreateCommand();
+      command.CommandText = $"SELECT * FROM budget.[{tableName}]";
+      
+      using var reader = await command.ExecuteReaderAsync(cancellationToken);
+      
+      // Build CSV from data reader
+      var csvBuilder = new System.Text.StringBuilder();
+      
+      // Create header row from column names
+      var columnNames = new List<string>();
+      for (int i = 0; i < reader.FieldCount; i++)
+      {
+        columnNames.Add(reader.GetName(i));
+      }
+      csvBuilder.AppendLine(string.Join(",", columnNames.Select(EscapeCsvValue)));
+      
+      // Add data rows
+      while (await reader.ReadAsync(cancellationToken))
+      {
+        var values = new List<string>();
+        for (int i = 0; i < reader.FieldCount; i++)
+        {
+          var value = reader.IsDBNull(i) ? string.Empty : reader.GetValue(i)?.ToString() ?? string.Empty;
+          values.Add(EscapeCsvValue(value));
+        }
+        csvBuilder.AppendLine(string.Join(",", values));
+      }
+      
+      return csvBuilder.ToString();
+    }
+
+    private static string EscapeCsvValue(string value)
+    {
+      if (string.IsNullOrEmpty(value))
+        return string.Empty;
+      
+      // Escape quotes and wrap in quotes if value contains comma, quote, or newline
+      if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+      {
+        return $"\"{value.Replace("\"", "\"\"")}\"";
+      }
+      
+      return value;
     }
   }
 
