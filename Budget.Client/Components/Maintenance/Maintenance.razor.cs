@@ -94,7 +94,18 @@ public partial class Maintenance : IDisposable
   private void StartStatusPolling()
   {
     _pollTimer = new System.Timers.Timer(2000); // Poll every 2 seconds
-    _pollTimer.Elapsed += async (sender, e) => await PollBackupStatusAsync();
+    _pollTimer.Elapsed += async (sender, e) =>
+    {
+      try
+      {
+        await PollBackupStatusAsync();
+      }
+      catch (Exception ex)
+      {
+        BackupAllStatus = $"Error polling status: {ex.Message}";
+        StopStatusPolling();
+      }
+    };
     _pollTimer.AutoReset = true;
     _pollTimer.Start();
   }

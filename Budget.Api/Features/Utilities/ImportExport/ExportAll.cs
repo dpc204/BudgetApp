@@ -122,14 +122,14 @@ public static class ExportAll
       string partitionKey,
       CancellationToken cancellationToken)
     {
-      const int maxRetries = 2; // Initial attempt + 1 retry
+      const int totalAttempts = 2; // Initial attempt + 1 retry
       
-      for (int attempt = 1; attempt <= maxRetries; attempt++)
+      for (int attempt = 1; attempt <= totalAttempts; attempt++)
       {
         try
         {
-          log.LogInformation("Exporting table {TableName} (attempt {Attempt}/{MaxRetries})", 
-            tableName, attempt, maxRetries);
+          log.LogInformation("Exporting table {TableName} (attempt {Attempt}/{TotalAttempts})", 
+            tableName, attempt, totalAttempts);
 
           // Export to CSV
           var csv = await exportFunc();
@@ -142,10 +142,11 @@ public static class ExportAll
           await blobClient.UploadAsync(stream, overwrite: true, cancellationToken: cancellationToken);
 
           // Store metadata in Table Storage
+          var sizeInBytes = System.Text.Encoding.UTF8.GetByteCount(csv);
           var entity = new TableEntity(partitionKey, tableName)
           {
             { "BlobName", blobName },
-            { "SizeBytes", csv.Length },
+            { "SizeBytes", sizeInBytes },
             { "ExportedAt", DateTime.UtcNow },
             { "Attempt", attempt }
           };
@@ -156,10 +157,10 @@ public static class ExportAll
         }
         catch (Exception ex)
         {
-          log.LogWarning(ex, "Attempt {Attempt}/{MaxRetries} failed for table {TableName}", 
-            attempt, maxRetries, tableName);
+          log.LogWarning(ex, "Attempt {Attempt}/{TotalAttempts} failed for table {TableName}", 
+            attempt, totalAttempts, tableName);
 
-          if (attempt == maxRetries)
+          if (attempt == totalAttempts)
           {
             log.LogError("All retry attempts exhausted for table {TableName}", tableName);
             return false; // Failed after all retries
