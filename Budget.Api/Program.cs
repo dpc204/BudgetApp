@@ -211,6 +211,31 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Register BackupAzureSql service with HttpClient
 builder.Services.AddHttpClient<BackupAzureSql>();
+
+// Register BackupProgressService for tracking background backup jobs
+builder.Services.AddSingleton<IBackupProgressService, BackupProgressService>();
+
+// Configure Azure Storage (Blob and Table) for backup functionality
+var useAzureDB = builder.Configuration.GetValue<bool>("UseAzureDB");
+var azureStorageConnectionString = builder.Configuration["AzureStorage:ConnectionString"];
+
+if (useAzureDB && string.IsNullOrWhiteSpace(azureStorageConnectionString))
+{
+  logger.LogError("AzureStorage:ConnectionString is required when UseAzureDB is true");
+  throw new InvalidOperationException("AzureStorage:ConnectionString is required when UseAzureDB is true");
+}
+
+if (!string.IsNullOrWhiteSpace(azureStorageConnectionString))
+{
+  builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(azureStorageConnectionString));
+  builder.Services.AddSingleton(sp => new Azure.Data.Tables.TableServiceClient(azureStorageConnectionString));
+  logger.LogInformation("Azure Storage services configured successfully");
+}
+else
+{
+  logger.LogWarning("Azure Storage connection string not configured - backup functionality will not be available");
+}
+
 var app = builder.Build();
 
 // Ensure databases exist

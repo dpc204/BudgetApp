@@ -161,6 +161,23 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     return result;
   }
 
+  public async Task<ExportAllResponse> ExportAllTablesAsync(CancellationToken cancellationToken = default)
+  {
+    var result = await PostAsync<object, ExportAllResponse>("utilities/export-all", new { }, cancellationToken);
+    return result;
+  }
+
+  public async Task<BackupStatusDto?> GetBackupStatusAsync(string backupId, CancellationToken cancellationToken = default)
+  {
+    using var resp = await http.GetAsync($"utilities/backup-status/{backupId}", cancellationToken);
+    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+      return null;
+    
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<BackupStatusDto>(cancellationToken: cancellationToken);
+    return result;
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     logger.LogDebug("Fetching list of {Type} from {Url}", typeof(T).Name, relativeUrl);
