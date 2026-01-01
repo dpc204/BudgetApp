@@ -23,7 +23,7 @@ public static class ExportAll
   /// Handles full database export to Azure Storage
   /// </summary>
   public class Handler(
-    BudgetContext db,
+    IServiceScopeFactory serviceScopeFactory,
     BlobServiceClient blobServiceClient,
     TableServiceClient tableServiceClient,
     IBackupProgressService progressService,
@@ -58,19 +58,23 @@ public static class ExportAll
         var tableClient = tableServiceClient.GetTableClient(TableName);
         await tableClient.CreateIfNotExistsAsync(cancellationToken);
 
+        // Create a new scope for the background task to get a fresh DbContext
+        using var scope = serviceScopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
         // Define all tables to export
         var tables = new List<(string Name, Func<Task<string>> ExportFunc)>
         {
-          ("Families", () => ExportTableAsync(() => db.Families.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Users", () => ExportTableAsync(() => db.Users.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("BankAccounts", () => ExportTableAsync(() => db.BankAccounts.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Categories", () => ExportTableAsync(() => db.Categories.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Envelopes", () => ExportTableAsync(() => db.Envelopes.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("Transactions", () => ExportTableAsync(() => db.Transactions.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("TransactionDetails", () => ExportTableAsync(() => db.TransactionDetails.ToListAsync(cancellationToken))),
-          ("Favorites", () => ExportTableAsync(() => db.Favorites.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("BudgetMonths", () => ExportTableAsync(() => db.BudgetMonths.IgnoreQueryFilters().ToListAsync(cancellationToken))),
-          ("SavedUserOptions", () => ExportTableAsync(() => db.SavedUserOptions.ToListAsync(cancellationToken)))
+          ("Families", () => ExportTableAsync(db, () => db.Families.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("Users", () => ExportTableAsync(db, () => db.Users.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("BankAccounts", () => ExportTableAsync(db, () => db.BankAccounts.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("Categories", () => ExportTableAsync(db, () => db.Categories.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("Envelopes", () => ExportTableAsync(db, () => db.Envelopes.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("Transactions", () => ExportTableAsync(db, () => db.Transactions.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("TransactionDetails", () => ExportTableAsync(db, () => db.TransactionDetails.ToListAsync(cancellationToken))),
+          ("Favorites", () => ExportTableAsync(db, () => db.Favorites.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("BudgetMonths", () => ExportTableAsync(db, () => db.BudgetMonths.IgnoreQueryFilters().ToListAsync(cancellationToken))),
+          ("SavedUserOptions", () => ExportTableAsync(db, () => db.SavedUserOptions.ToListAsync(cancellationToken)))
         };
 
         int completed = 0;
@@ -174,7 +178,7 @@ public static class ExportAll
       return false;
     }
 
-    private async Task<string> ExportTableAsync<T>(Func<Task<List<T>>> dataFunc) where T : class
+    private async Task<string> ExportTableAsync<T>(BudgetContext db, Func<Task<List<T>>> dataFunc) where T : class
     {
       var data = await dataFunc();
       return CsvExportService.ExportToCsv(data, log: log);
