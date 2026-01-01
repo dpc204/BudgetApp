@@ -35,16 +35,23 @@ public static class ConfigureIdentity
     logger.LogInformation("CallbackPath: {CallbackPath}", azureAdSection["CallbackPath"]);
     logger.LogInformation("SignedOutCallbackPath: {SignedOutCallbackPath}", azureAdSection["SignedOutCallbackPath"]);
     
-    // Configure Microsoft Entra ID authentication
-    // Use cookies as default scheme for sign-in, OpenIdConnect for challenges
+    // Configure Microsoft Entra ID authentication with token acquisition
+    // Budget.Api accepts Entra ID JWT tokens, so we need to acquire access tokens
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-      .AddMicrosoftIdentityWebApp(azureAdSection);
-      // NOTE: .EnableTokenAcquisitionToCallDownstreamApi() is NOT needed because:
-      // 1. Budget.Api uses its own JWT authentication (not Entra ID tokens)
-      // 2. Budget.Web forwards authentication cookies to Budget.Api (cookie-based auth)
-      // 3. No downstream Microsoft APIs (like Graph) are being called
+      .AddMicrosoftIdentityWebApp(azureAdSection)
+      .EnableTokenAcquisitionToCallDownstreamApi()
+      .AddInMemoryTokenCaches(); // Store tokens in memory for this session
     
-    logger.LogInformation("Microsoft Entra ID authentication configured successfully");
+    // Configure scopes for Budget.Api
+    // The API scope should be: api://{ClientId}/access_as_user
+    var apiClientId = azureAdSection["ClientId"];
+    if (!string.IsNullOrEmpty(apiClientId))
+    {
+      var apiScope = $"api://{apiClientId}/access_as_user";
+      logger.LogInformation("Configured API scope: {ApiScope}", apiScope);
+    }
+    
+    logger.LogInformation("Microsoft Entra ID authentication with token acquisition configured successfully");
     loggerFactory.Dispose();
 
     // Configure cookie authentication options for Blazor Server

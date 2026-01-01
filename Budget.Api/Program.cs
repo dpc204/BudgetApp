@@ -281,6 +281,81 @@ app.MapGet("/weatherforecast", () =>
   return forecast;
 }).WithName("GetWeatherForecast");
 
+// DEBUG: Temporary endpoint to check user roles and claims
+if (app.Environment.IsDevelopment())
+{
+  // Anonymous version - see if any auth data exists
+  app.MapGet("/api/debug/my-auth-status", (HttpContext httpContext) =>
+  {
+    var user = httpContext.User;
+    var authHeader = httpContext.Request.Headers.Authorization.ToString();
+    var cookies = httpContext.Request.Cookies.Keys.ToList();
+    
+    var roles = user.Claims
+        .Where(c => c.Type == ClaimTypes.Role || c.Type == "roles")
+        .Select(c => c.Value)
+        .ToList();
+    
+    var allClaims = user.Claims.Select(c => new { 
+        Type = c.Type, 
+        Value = c.Value,
+        TypeFriendly = c.Type.Split('/').Last()
+    }).ToList();
+    
+    return Results.Ok(new { 
+        IsAuthenticated = user.Identity?.IsAuthenticated ?? false,
+        AuthenticationType = user.Identity?.AuthenticationType,
+        Name = user.Identity?.Name,
+        HasAuthorizationHeader = !string.IsNullOrEmpty(authHeader),
+        AuthorizationHeaderPreview = authHeader?.Length > 20 ? authHeader.Substring(0, 20) + "..." : authHeader,
+        CookieNames = cookies,
+        Roles = roles,
+        RoleCount = roles.Count,
+        HasAdminRole = user.IsInRole("Admin"),
+        HasPowerUserRole = user.IsInRole("PowerUser"),
+        HasUserRole = user.IsInRole("User"),
+        AllClaims = allClaims,
+        ClaimCount = allClaims.Count,
+        RequestScheme = httpContext.Request.Scheme,
+        RequestHost = httpContext.Request.Host.ToString()
+    });
+  })
+  .AllowAnonymous()
+  .WithName("GetAuthStatus")
+  .WithTags("Debug");
+
+  // Authenticated version - requires valid token
+  app.MapGet("/api/debug/my-roles", (ClaimsPrincipal user) =>
+  {
+    var roles = user.Claims
+        .Where(c => c.Type == ClaimTypes.Role || c.Type == "roles")
+        .Select(c => c.Value)
+        .ToList();
+    
+    var allClaims = user.Claims.Select(c => new { 
+        Type = c.Type, 
+        Value = c.Value,
+        TypeFriendly = c.Type.Split('/').Last()
+    }).ToList();
+    
+    return Results.Ok(new { 
+        IsAuthenticated = user.Identity?.IsAuthenticated ?? false,
+        AuthenticationType = user.Identity?.AuthenticationType,
+        Name = user.Identity?.Name,
+        Roles = roles,
+        RoleCount = roles.Count,
+        HasAdminRole = user.IsInRole("Admin"),
+        HasPowerUserRole = user.IsInRole("PowerUser"),
+        HasUserRole = user.IsInRole("User"),
+        AllClaims = allClaims,
+        ClaimCount = allClaims.Count
+    });
+  })
+  .RequireAuthorization()
+  .WithName("GetMyRoles")
+  .WithTags("Debug");
+}
+
 app.Run();
 
 // Program class for WebApplicationFactory in tests

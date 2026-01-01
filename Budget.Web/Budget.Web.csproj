@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="18.0.2" />
+    <PackageReference Include="Microsoft.Identity.Web.TokenCache" Version="4.2.0" />
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.37-preview" />
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
