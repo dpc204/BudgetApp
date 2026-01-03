@@ -62,6 +62,50 @@ This directory contains PowerShell scripts for managing Microsoft Entra ID (Azur
 .\Add-RedirectUri.ps1 -RedirectUri "https://budget.delightfulbush-2a4d6a17.eastus.azurecontainerapps.io/signin-oidc"
 ```
 
+### Update-EntraRedirectUris-AzCli.ps1 (Recommended)
+
+**Purpose**: Automatically update Entra ID redirect URIs after Azure Container Apps deployment using Azure CLI.
+
+**Use this when**:
+- After running `azd up` to deploy to Azure
+- You get error `AADSTS50011: The redirect URI does not match`
+- Container App revision changes (URL changes)
+
+**What it does**:
+- Automatically retrieves Container App URL from Azure
+- Updates Entra ID App Registration with correct redirect URIs
+- No additional PowerShell modules required (uses Azure CLI)
+
+**Usage**:
+```powershell
+# After deploying with azd up
+.\scripts\Update-EntraRedirectUris-AzCli.ps1 -Environment {environment-name}
+```
+
+**Example**:
+```powershell
+azd up
+.\scripts\Update-EntraRedirectUris-AzCli.ps1 -Environment budget-prod
+```
+
+**Prerequisites**:
+- Azure CLI installed and authenticated (`az login`)
+
+### Update-EntraRedirectUris.ps1 (Alternative)
+
+**Purpose**: Same as above but uses Microsoft Graph PowerShell instead of Azure CLI.
+
+**Use this when**: You prefer Microsoft Graph PowerShell or Azure CLI is unavailable.
+
+**Usage**:
+```powershell
+.\scripts\Update-EntraRedirectUris.ps1 -Environment {environment-name}
+```
+
+**Prerequisites**:
+- Microsoft Graph PowerShell module (auto-installs on first run)
+- Microsoft Graph authentication (prompts on first run)
+
 **Advanced Usage**:
 ```powershell
 # Add redirect URI to a custom named app

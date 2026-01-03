@@ -28,6 +28,10 @@ builder.AddServiceDefaults();
 builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
+
+
+
+
 // Add HTTP logging
 builder.Services.AddHttpLogging(logging =>
 {
@@ -134,23 +138,14 @@ var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.SigningKey));
 // Use explicit scheme names to avoid conflicts
 const string EntraScheme = "EntraJwt";
 const string LocalScheme = "LocalJwt";
+const string DynamicScheme = "SmartJwt"; // Policy scheme that forwards to the right handler
 
 var authBuilder = builder.Services.AddAuthentication(options =>
 {
-  // Default to Entra ID if configured, otherwise fallback to local JWT
-  var azureAdSection = builder.Configuration.GetSection("AzureAd");
-  if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
-  {
-    options.DefaultScheme = EntraScheme;
-    options.DefaultChallengeScheme = EntraScheme;
-    logger.LogInformation("Default authentication scheme: {Scheme}", EntraScheme);
-  }
-  else
-  {
-    options.DefaultScheme = LocalScheme;
-    options.DefaultChallengeScheme = LocalScheme;
-    logger.LogInformation("Default authentication scheme: {Scheme} (Entra ID not configured)", LocalScheme);
-  }
+  // Use the dynamic policy scheme as default
+  options.DefaultScheme = DynamicScheme;
+  options.DefaultChallengeScheme = DynamicScheme;
+  logger.LogInformation("Using smart JWT authentication with dynamic scheme selection");
 });
 
 // Add custom JWT Bearer for backward compatibility (local auth)
@@ -170,7 +165,9 @@ authBuilder.AddJwtBearer(LocalScheme, options =>
 
 // Add Microsoft Entra ID JWT Bearer authentication
 var azureAdSection = builder.Configuration.GetSection("AzureAd");
-if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
+var isEntraConfigured = !string.IsNullOrWhiteSpace(azureAdSection["ClientId"]);
+
+if (isEntraConfigured)
 {
   authBuilder.AddMicrosoftIdentityWebApi(azureAdSection, EntraScheme);
   logger.LogInformation("Microsoft Entra ID JWT Bearer authentication configured with scheme: {Scheme}", EntraScheme);
@@ -180,30 +177,78 @@ else
   logger.LogWarning("AzureAd:ClientId not configured - Entra ID authentication disabled");
 }
 
-// Configure authorization policies matching Budget.Web
+
+// Add policy scheme that intelligently forwards to the correct JWT handler
+// This prevents both handlers from trying to validate every token
+authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
+{
+  options.ForwardDefaultSelector = context =>
+  {
+    // Extract the Authorization header
+    var authHeader = context.Request.Headers.Authorization.ToString();
+    
+    if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+    {
+      return null; // No token present
+    }
+
+    var token = authHeader.Substring("Bearer ".Length).Trim();
+    
+    // Quick inspection: decode the token header to determine issuer
+    try
+    {
+      var handler = new JwtSecurityTokenHandler();
+      if (handler.CanReadToken(token))
+      {
+        var jwtToken = handler.ReadJwtToken(token);
+        var issuer = jwtToken.Issuer;
+        
+        // If issuer is from Microsoft (Entra ID), use EntraScheme
+        if (isEntraConfigured && (issuer.Contains("login.microsoftonline.com") || issuer.Contains("sts.windows.net")))
+        {
+          return EntraScheme;
+        }
+      }
+    }
+    catch
+    {
+      // If we can't read the token, try LocalScheme first
+    }
+    
+    // Default to LocalScheme for custom tokens
+    return LocalScheme;
+  };
+});
+
+logger.LogInformation("Smart JWT selector configured - will route to {EntraScheme} or {LocalScheme} based on token issuer", 
+  EntraScheme, LocalScheme);
+
+// Configure authorization policies - use the dynamic scheme
 builder.Services.AddAuthorization(options =>
 {
-  // Default policy requires authentication from either scheme
+  logger.LogInformation("Configuring authorization with dynamic scheme: {Scheme}", DynamicScheme);
+
+  // Default policy requires authentication from the dynamic scheme
   options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
     .RequireAuthenticatedUser()
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme)
+    .AddAuthenticationSchemes(DynamicScheme)
     .Build();
 
   // Admin-only policy
   options.AddPolicy("AdminOnly", policy => policy
     .RequireRole("Admin")
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+    .AddAuthenticationSchemes(DynamicScheme));
 
   // PowerUser or above policy
   options.AddPolicy("PowerUserOrAbove", policy => policy
     .RequireAssertion(context =>
       context.User.IsInRole("Admin") || context.User.IsInRole("PowerUser"))
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+    .AddAuthenticationSchemes(DynamicScheme));
 
   // Authenticated user policy (any role)
   options.AddPolicy("AuthenticatedUser", policy => policy
     .RequireAuthenticatedUser()
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+    .AddAuthenticationSchemes(DynamicScheme));
 });
 
 // Register JWT token service
@@ -216,10 +261,9 @@ builder.Services.AddHttpClient<BackupAzureSql>();
 builder.Services.AddSingleton<IBackupProgressService, BackupProgressService>();
 
 // Configure Azure Storage (Blob and Table) for backup functionality
-var useAzureDB = builder.Configuration.GetValue<bool>("UseAzureDB");
 var azureStorageConnectionString = builder.Configuration["AzureStorage:ConnectionString"];
-
-if (useAzureDB && string.IsNullOrWhiteSpace(azureStorageConnectionString))
+logger.LogInformation($"AzureStorage:ConnectionString={azureStorageConnectionString ?? "No connection string"}");
+if (string.IsNullOrWhiteSpace(azureStorageConnectionString))
 {
   logger.LogError("AzureStorage:ConnectionString is required when UseAzureDB is true");
   throw new InvalidOperationException("AzureStorage:ConnectionString is required when UseAzureDB is true");

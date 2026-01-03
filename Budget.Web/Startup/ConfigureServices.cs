@@ -164,6 +164,38 @@ public static class ConfigureServices
   /// </summary>
   public static void AddApplicationServices(WebApplicationBuilder builder)
   {
+    // Token cache persistence strategy:
+    // - Local: Redis (via docker-compose, not Aspire)
+    // - Azure: SQL Server distributed cache (no additional cost)
+    
+    var redisConnection = builder.Configuration.GetConnectionString("Redis");
+    var sqlConnection = builder.Configuration.GetConnectionString("BudgetConnection");
+    var isAzure = AzureEnvironment.IsRunningOnAzure;
+    
+    // Use SQL Server cache in Azure (free), Redis locally (better performance)
+    if (isAzure && !string.IsNullOrEmpty(sqlConnection))
+    {
+      builder.Services.AddDistributedSqlServerCache(options =>
+      {
+        options.ConnectionString = sqlConnection;
+        options.SchemaName = "dbo";
+        options.TableName = "SessionCache";
+      });
+    }
+    else if (!string.IsNullOrEmpty(redisConnection))
+    {
+      builder.Services.AddStackExchangeRedisCache(options =>
+      {
+        options.Configuration = redisConnection;
+        options.InstanceName = "BudgetApp:";
+      });
+    }
+    else
+    {
+      // Fallback to in-memory (development only - tokens won't persist)
+      builder.Services.AddDistributedMemoryCache();
+    }
+    
     builder.Services.AddScoped<EnvelopeState>();
     builder.Services.AddSingleton<ThemeService>();
     builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();

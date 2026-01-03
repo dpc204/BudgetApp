@@ -37,10 +37,11 @@ public static class ConfigureIdentity
     
     // Configure Microsoft Entra ID authentication with token acquisition
     // Budget.Api accepts Entra ID JWT tokens, so we need to acquire access tokens
+    // Tokens are cached in Redis for persistence across app restarts
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
       .AddMicrosoftIdentityWebApp(azureAdSection)
       .EnableTokenAcquisitionToCallDownstreamApi()
-      .AddInMemoryTokenCaches(); // Store tokens in memory for this session
+      .AddDistributedTokenCaches(); // Uses Redis configured in ConfigureServices
     
     // Configure scopes for Budget.Api
     // The API scope should be: api://{ClientId}/access_as_user

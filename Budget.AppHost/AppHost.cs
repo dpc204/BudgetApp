@@ -4,8 +4,9 @@ var builder = DistributedApplication.CreateBuilder(args);
 var budgetApi = builder.AddProject<Projects.Budget_Api>("budget-api")
     .WithExternalHttpEndpoints();
 
-// Define the Blazor Server app and expose an external HTTP endpoint
-// Configure it to reference the budget-api service for HTTP calls
+// Define the Blazor Server app
+// Note: Redis is configured manually via docker-compose.yml for local dev
+// Azure deployment uses SQL Server distributed cache (zero cost)
 builder.AddProject<Projects.Budget_Web>("budget")
     .WithReference(budgetApi)
     .WithExternalHttpEndpoints();

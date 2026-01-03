@@ -194,6 +194,7 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
       logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
     }
+
     return result!;
   }
 
