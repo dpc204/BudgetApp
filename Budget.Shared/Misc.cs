@@ -51,14 +51,6 @@ public static class Misc
           webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri),
           new DefaultAzureCredential());
 
-
-        foreach(var config in webApplicationBuilder.Configuration.AsEnumerable().Where(a => a.Key.Contains("AzureAd")))
-        {
-          logger.Log(LogLevel.Information, "Config1:{key}:{value}", config.Key, config.Value);
-        }
-   
-        
-
         logger.Log(LogLevel.Information, "SetupConfigurationSources Using AzureDB - KeyVault Done");
       }
       catch (Azure.RequestFailedException ex) when (ex.Status == 403)
@@ -125,5 +117,84 @@ public static class Misc
     }
 
     return null;
+  }
+
+  /// <summary>
+  /// Logs all configuration settings with their keys, values, and provider sources
+  /// </summary>
+  public static void LogAllConfigurationSettings(WebApplicationBuilder webApplicationBuilder, ILogger logger)
+  {
+    if (webApplicationBuilder.Configuration is IConfigurationRoot configRoot)
+    {
+      var headerMessage = "===================== Configuration Settings by Provider === === === === === === === === === === === === === === === === === === === === === === === === === === === ";
+      logger.LogInformation(headerMessage);
+      Debug.WriteLine(headerMessage);
+
+      foreach(var provider in configRoot.Providers.Reverse())
+      {
+        var providerMessage = $"Provider: {provider.GetType().Name}";
+        logger.LogInformation(providerMessage);
+        Debug.WriteLine(providerMessage);
+
+        LoadProviderData(provider);
+        
+        foreach (var key in GetAllKeys(provider))
+        {
+          if (provider.TryGet(key, out var value))
+          {
+            // Mask sensitive values
+            var displayValue = IsSensitiveKey(key) ? "***REDACTED***" : value;
+            var keyValueMessage = $"  Key: {key}, Value: {value}";
+            logger.LogInformation(keyValueMessage);
+            Debug.WriteLine(keyValueMessage);
+          }
+        }
+      }
+      
+      var footerMessage = "=== End Configuration Settings ===";
+      logger.LogInformation(footerMessage);
+      Debug.WriteLine(footerMessage);
+    }
+    else
+    {
+      var warningMessage = "Configuration is not IConfigurationRoot, cannot enumerate providers";
+      logger.LogWarning(warningMessage);
+      Debug.WriteLine(warningMessage);
+    }
+  }
+
+  private static void LoadProviderData(IConfigurationProvider provider)
+  {
+    // Force the provider to load data if it hasn't already
+    provider.Load();
+  }
+
+  private static IEnumerable<string> GetAllKeys(IConfigurationProvider provider)
+  {
+    var keys = new List<string>();
+    GetKeysRecursive(provider, null, keys);
+    return keys;
+  }
+
+  private static void GetKeysRecursive(IConfigurationProvider provider, string? parentPath, List<string> keys)
+  {
+    var children = provider.GetChildKeys([], parentPath);
+    
+    foreach (var child in children)
+    {
+      var key = parentPath == null ? child : $"{parentPath}:{child}";
+      keys.Add(key);
+      GetKeysRecursive(provider, key, keys);
+    }
+  }
+
+  private static bool IsSensitiveKey(string key)
+  {
+    var lowerKey = key.ToLowerInvariant();
+    return lowerKey.Contains("password") ||
+           lowerKey.Contains("secret") ||
+           lowerKey.Contains("key") ||
+           lowerKey.Contains("token") ||
+           lowerKey.Contains("connectionstring");
   }
 }

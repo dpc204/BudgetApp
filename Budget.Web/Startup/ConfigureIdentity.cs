@@ -35,21 +35,60 @@ public static class ConfigureIdentity
     logger.LogInformation("CallbackPath: {CallbackPath}", azureAdSection["CallbackPath"]);
     logger.LogInformation("SignedOutCallbackPath: {SignedOutCallbackPath}", azureAdSection["SignedOutCallbackPath"]);
     
+    // Verify distributed cache is registered
+    var cacheRegistration = builder.Services.FirstOrDefault(s => s.ServiceType == typeof(Microsoft.Extensions.Caching.Distributed.IDistributedCache));
+    if (cacheRegistration != null)
+    {
+      logger.LogInformation("Distributed cache is registered: {Implementation}", cacheRegistration.ImplementationType?.Name ?? "Unknown");
+    }
+    else
+    {
+      logger.LogWarning("NO DISTRIBUTED CACHE FOUND! Tokens will not persist!");
+    }
+    
     // Configure Microsoft Entra ID authentication with token acquisition
     // Budget.Api accepts Entra ID JWT tokens, so we need to acquire access tokens
-    // Tokens are cached in Redis for persistence across app restarts
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-      .AddMicrosoftIdentityWebApp(azureAdSection)
-      .EnableTokenAcquisitionToCallDownstreamApi()
-      .AddDistributedTokenCaches(); // Uses Redis configured in ConfigureServices
+    // Tokens are cached in SQL Server distributed cache for persistence across app restarts
     
-    // Configure scopes for Budget.Api
-    // The API scope should be: api://{ClientId}/access_as_user
+    // Get the API scope before configuring authentication
     var apiClientId = azureAdSection["ClientId"];
-    if (!string.IsNullOrEmpty(apiClientId))
+    var apiScope = !string.IsNullOrEmpty(apiClientId) ? $"api://{apiClientId}/access_as_user" : "";
+    
+    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+      .AddMicrosoftIdentityWebApp(options =>
+      {
+        azureAdSection.Bind(options);
+        
+        // Request API scope during sign-in so tokens are cached
+        if (!string.IsNullOrEmpty(apiScope))
+        {
+          options.Scope.Clear();
+          options.Scope.Add("openid");
+          options.Scope.Add("profile");
+          options.Scope.Add("offline_access"); // Enables refresh tokens
+          options.Scope.Add(apiScope);
+          logger.LogInformation("Requesting API scope during sign-in: {ApiScope}", apiScope);
+        }
+      })
+      .EnableTokenAcquisitionToCallDownstreamApi(options =>
+      {
+        // Configure default scopes for token acquisition
+        if (!string.IsNullOrEmpty(apiScope))
+        {
+          logger.LogInformation("Configuring default scope for token acquisition: {ApiScope}", apiScope);
+        }
+      })
+      .AddDistributedTokenCaches(); // Uses SQL Server distributed cache configured in ConfigureServices
+    
+    logger.LogInformation("Token caching configured with distributed cache");
+    
+    if (!string.IsNullOrEmpty(apiScope))
     {
-      var apiScope = $"api://{apiClientId}/access_as_user";
       logger.LogInformation("Configured API scope: {ApiScope}", apiScope);
+    }
+    else
+    {
+      logger.LogWarning("API scope not configured - token caching may not work properly");
     }
     
     logger.LogInformation("Microsoft Entra ID authentication with token acquisition configured successfully");
@@ -61,6 +100,12 @@ public static class ConfigureIdentity
       options.Cookie.HttpOnly = true;
       options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
       options.Cookie.SameSite = SameSiteMode.Lax;
+      options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie expires after 7 days
+      options.SlidingExpiration = true; // Extend expiration on each request
+      options.Cookie.Name = "Budget.Auth"; // Custom cookie name
+      options.LoginPath = "/MicrosoftIdentity/Account/SignIn"; // Redirect here if not authenticated
+      options.LogoutPath = "/MicrosoftIdentity/Account/SignOut";
+      options.AccessDeniedPath = "/Account/AccessDenied";
     });
 
     // Add controllers with views for Microsoft Identity UI

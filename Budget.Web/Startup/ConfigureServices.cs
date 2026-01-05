@@ -165,34 +165,32 @@ public static class ConfigureServices
   public static void AddApplicationServices(WebApplicationBuilder builder)
   {
     // Token cache persistence strategy:
-    // - Local: Redis (via docker-compose, not Aspire)
-    // - Azure: SQL Server distributed cache (no additional cost)
+    // - Always use SQL Server distributed cache (works both locally and in Azure)
+    // - Fallback to in-memory if SQL Server is not available
     
-    var redisConnection = builder.Configuration.GetConnectionString("Redis");
-    var sqlConnection = builder.Configuration.GetConnectionString("BudgetConnection");
-    var isAzure = AzureEnvironment.IsRunningOnAzure;
+    var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
     
-    // Use SQL Server cache in Azure (free), Redis locally (better performance)
-    if (isAzure && !string.IsNullOrEmpty(sqlConnection))
+    var sqlConnection = builder.Configuration["LocalBudgetConnection"] ?? builder.Configuration["BudgetConnection"];
+    
+    if (!string.IsNullOrEmpty(sqlConnection))
     {
+      logger.LogInformation("Configuring SQL Server distributed cache for token persistence");
+      logger.LogInformation("Connection string source: {Source}", 
+        builder.Configuration.GetConnectionString("BudgetConnection") != null ? "BudgetConnection" : "LocalBudgetConnection");
+      logger.LogInformation("Connection string (first 50 chars): {ConnString}", sqlConnection.Substring(0, Math.Min(50, sqlConnection.Length)));
+      
       builder.Services.AddDistributedSqlServerCache(options =>
       {
         options.ConnectionString = sqlConnection;
         options.SchemaName = "dbo";
         options.TableName = "SessionCache";
-      });
-    }
-    else if (!string.IsNullOrEmpty(redisConnection))
-    {
-      builder.Services.AddStackExchangeRedisCache(options =>
-      {
-        options.Configuration = redisConnection;
-        options.InstanceName = "BudgetApp:";
+        logger.LogInformation("SQL Distributed Cache configured: Schema={Schema}, Table={Table}", options.SchemaName, options.TableName);
       });
     }
     else
     {
       // Fallback to in-memory (development only - tokens won't persist)
+      logger.LogWarning("NO SQL CONNECTION STRING FOUND! Using in-memory cache (tokens will NOT persist across restarts)");
       builder.Services.AddDistributedMemoryCache();
     }
     

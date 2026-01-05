@@ -49,6 +49,8 @@ var assembly = typeof(Budget.Api.Program).Assembly;
 // Configure configuration sources (appsettings, secrets, environment, Key Vault)
 Misc.SetupConfigurationSources(builder, assembly, logger);
 
+// Log all configuration settings with their provider sources
+Misc.LogAllConfigurationSettings(builder, logger);
 
 // Add MediatR
 builder.Services.AddFantumMediator();
@@ -189,7 +191,8 @@ authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
     
     if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
     {
-      return null; // No token present
+      // Return default scheme instead of null - PolicySchemeHandler needs a valid scheme
+      return isEntraConfigured ? EntraScheme : LocalScheme;
     }
 
     var token = authHeader.Substring("Bearer ".Length).Trim();
@@ -262,22 +265,56 @@ builder.Services.AddSingleton<IBackupProgressService, BackupProgressService>();
 
 // Configure Azure Storage (Blob and Table) for backup functionality
 var azureStorageConnectionString = builder.Configuration["AzureStorage:ConnectionString"];
-logger.LogInformation($"AzureStorage:ConnectionString={azureStorageConnectionString ?? "No connection string"}");
-if (string.IsNullOrWhiteSpace(azureStorageConnectionString))
-{
-  logger.LogError("AzureStorage:ConnectionString is required when UseAzureDB is true");
-  throw new InvalidOperationException("AzureStorage:ConnectionString is required when UseAzureDB is true");
-}
+var storageBlobEndpoint = builder.Configuration["AZURE_STORAGE_BLOB_ENDPOINT"];
+var storageTableEndpoint = builder.Configuration["AZURE_STORAGE_TABLE_ENDPOINT"];
 
-if (!string.IsNullOrWhiteSpace(azureStorageConnectionString))
+// Determine if running on Azure (managed identity available)
+var isRunningOnAzure = AzureEnvironment.IsRunningOnAzure;
+
+logger.LogInformation("=== Azure Storage Configuration ===");
+logger.LogInformation("IsRunningOnAzure: {IsRunningOnAzure}", isRunningOnAzure);
+logger.LogInformation("StorageBlobEndpoint: {Endpoint}", storageBlobEndpoint ?? "(not set)");
+logger.LogInformation("StorageTableEndpoint: {Endpoint}", storageTableEndpoint ?? "(not set)");
+logger.LogInformation("Has ConnectionString: {HasConnStr}", !string.IsNullOrWhiteSpace(azureStorageConnectionString));
+
+if (isRunningOnAzure && !string.IsNullOrWhiteSpace(storageBlobEndpoint))
 {
+  // Use Managed Identity on Azure
+  var blobUri = new Uri(storageBlobEndpoint);
+  var tableUri = new Uri(storageTableEndpoint!);
+  
+  logger.LogInformation("Creating BlobServiceClient with Managed Identity for: {Uri}", blobUri);
+  logger.LogInformation("Creating TableServiceClient with Managed Identity for: {Uri}", tableUri);
+  
+  var credential = new Azure.Identity.DefaultAzureCredential(new Azure.Identity.DefaultAzureCredentialOptions
+  {
+    ExcludeEnvironmentCredential = false,
+    ExcludeManagedIdentityCredential = false,
+    ExcludeSharedTokenCacheCredential = true,
+    ExcludeVisualStudioCredential = true,
+    ExcludeVisualStudioCodeCredential = true,
+    ExcludeAzureCliCredential = true,
+    ExcludeAzurePowerShellCredential = true,
+    ExcludeInteractiveBrowserCredential = true
+  });
+  
+  builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(blobUri, credential));
+  builder.Services.AddSingleton(sp => new Azure.Data.Tables.TableServiceClient(tableUri, credential));
+  
+  logger.LogInformation("? Azure Storage configured with Managed Identity (Blob: {BlobEndpoint}, Table: {TableEndpoint})", 
+    storageBlobEndpoint, storageTableEndpoint);
+}
+else if (!string.IsNullOrWhiteSpace(azureStorageConnectionString))
+{
+  // Use Connection String locally
+  logger.LogInformation("Creating storage clients with connection string (local development)");
   builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(azureStorageConnectionString));
   builder.Services.AddSingleton(sp => new Azure.Data.Tables.TableServiceClient(azureStorageConnectionString));
-  logger.LogInformation("Azure Storage services configured successfully");
+  logger.LogInformation("? Azure Storage configured with connection string (local development)");
 }
 else
 {
-  logger.LogWarning("Azure Storage connection string not configured - backup functionality will not be available");
+  logger.LogWarning("?? Azure Storage not configured - backup functionality will not be available");
 }
 
 var app = builder.Build();

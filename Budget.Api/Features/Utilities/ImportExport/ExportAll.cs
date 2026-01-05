@@ -47,33 +47,70 @@ public static class ExportAll
       return new Response(backupId, "Backup started successfully");
     }
 
-    private async Task ExecuteBackupAsync(string backupId, string partitionKey, CancellationToken cancellationToken)
+  private async Task ExecuteBackupAsync(string backupId, string partitionKey, CancellationToken cancellationToken)
+  {
+    try
     {
+      log.LogInformation("=== Starting ExecuteBackupAsync ===");
+      log.LogInformation("BackupId: {BackupId}, PartitionKey: {PartitionKey}", backupId, partitionKey);
+      
+      // Ensure container and table exist
+      var blobContainerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
+      log.LogInformation("Got BlobContainerClient for container: {ContainerName}", ContainerName);
+      log.LogInformation("BlobServiceClient URI: {Uri}", blobServiceClient.Uri);
+      
       try
       {
-        // Ensure container and table exist
-        var blobContainerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
+        log.LogInformation("Attempting to create container if not exists...");
         await blobContainerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+        log.LogInformation("? Container creation check complete");
+      }
+      catch (Exception ex)
+      {
+        log.LogError(ex, "? Failed to create/check blob container. Error: {Message}", ex.Message);
+        if (ex.InnerException != null)
+        {
+          log.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
+        }
+        throw;
+      }
 
-        var tableClient = tableServiceClient.GetTableClient(TableName);
+      log.LogInformation("TableServiceClient URI: {Uri}", tableServiceClient.Uri);
+      var tableClient = tableServiceClient.GetTableClient(TableName);
+      log.LogInformation("Got TableClient for table: {TableName}", TableName);
+      
+      try
+      {
+        log.LogInformation("Attempting to create table if not exists...");
         await tableClient.CreateIfNotExistsAsync(cancellationToken);
+        log.LogInformation("? Table creation check complete");
+      }
+      catch (Exception ex)
+      {
+        log.LogError(ex, "? Failed to create/check table. Error: {Message}", ex.Message);
+        if (ex.InnerException != null)
+        {
+          log.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
+        }
+        throw;
+      }
 
-        // Create a new scope for the background task to get a fresh DbContext
-        using var scope = serviceScopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+      // Create a new scope for the background task to get a fresh DbContext
+      using var scope = serviceScopeFactory.CreateScope();
+      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-        // Query database for all table names in the 'budget' schema, excluding migration history
-        var tableNames = await db.Database.SqlQueryRaw<string>(
-          @"SELECT TABLE_NAME 
-            FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_SCHEMA = 'budget' 
-            AND TABLE_TYPE = 'BASE TABLE' 
-            AND TABLE_NAME != '__EFMigrationsHistory'
-            ORDER BY TABLE_NAME"
-        ).ToListAsync(cancellationToken);
+      // Query database for all table names in the 'budget' schema, excluding migration history
+      var tableNames = await db.Database.SqlQueryRaw<string>(
+        @"SELECT TABLE_NAME 
+          FROM INFORMATION_SCHEMA.TABLES 
+          WHERE TABLE_SCHEMA = 'budget' 
+          AND TABLE_TYPE = 'BASE TABLE' 
+          AND TABLE_NAME != '__EFMigrationsHistory'
+          ORDER BY TABLE_NAME"
+      ).ToListAsync(cancellationToken);
 
-        log.LogInformation("Found {TableCount} tables to export: {TableNames}", 
-          tableNames.Count, string.Join(", ", tableNames));
+      log.LogInformation("Found {TableCount} tables to export: {TableNames}", 
+        tableNames.Count, string.Join(", ", tableNames));
 
         int completed = 0;
         int failed = 0;

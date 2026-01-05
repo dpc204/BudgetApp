@@ -167,7 +167,8 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
 
       updatedEnvelope.Should().NotBeNull();
       updatedEnvelope!.Name.Should().Be("Updated Name");
-      updatedEnvelope.Balance.Should().Be(250m);
+      updatedEnvelope.Budget.Should().Be(300m);
+      updatedEnvelope.Balance.Should().Be(100m);  // Balance should not be changed
     }
   }
 
