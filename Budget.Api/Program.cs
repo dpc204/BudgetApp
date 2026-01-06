@@ -28,6 +28,10 @@ builder.AddServiceDefaults();
 builder.Logging.AddJsonConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
+
+
+
+
 // Add HTTP logging
 builder.Services.AddHttpLogging(logging =>
 {
@@ -45,6 +49,8 @@ var assembly = typeof(Budget.Api.Program).Assembly;
 // Configure configuration sources (appsettings, secrets, environment, Key Vault)
 Misc.SetupConfigurationSources(builder, assembly, logger);
 
+// Log all configuration settings with their provider sources
+Misc.LogAllConfigurationSettings(builder, logger);
 
 // Add MediatR
 builder.Services.AddFantumMediator();
@@ -134,23 +140,14 @@ var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.SigningKey));
 // Use explicit scheme names to avoid conflicts
 const string EntraScheme = "EntraJwt";
 const string LocalScheme = "LocalJwt";
+const string DynamicScheme = "SmartJwt"; // Policy scheme that forwards to the right handler
 
 var authBuilder = builder.Services.AddAuthentication(options =>
 {
-  // Default to Entra ID if configured, otherwise fallback to local JWT
-  var azureAdSection = builder.Configuration.GetSection("AzureAd");
-  if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
-  {
-    options.DefaultScheme = EntraScheme;
-    options.DefaultChallengeScheme = EntraScheme;
-    logger.LogInformation("Default authentication scheme: {Scheme}", EntraScheme);
-  }
-  else
-  {
-    options.DefaultScheme = LocalScheme;
-    options.DefaultChallengeScheme = LocalScheme;
-    logger.LogInformation("Default authentication scheme: {Scheme} (Entra ID not configured)", LocalScheme);
-  }
+  // Use the dynamic policy scheme as default
+  options.DefaultScheme = DynamicScheme;
+  options.DefaultChallengeScheme = DynamicScheme;
+  logger.LogInformation("Using smart JWT authentication with dynamic scheme selection");
 });
 
 // Add custom JWT Bearer for backward compatibility (local auth)
@@ -170,7 +167,9 @@ authBuilder.AddJwtBearer(LocalScheme, options =>
 
 // Add Microsoft Entra ID JWT Bearer authentication
 var azureAdSection = builder.Configuration.GetSection("AzureAd");
-if (!string.IsNullOrWhiteSpace(azureAdSection["ClientId"]))
+var isEntraConfigured = !string.IsNullOrWhiteSpace(azureAdSection["ClientId"]);
+
+if (isEntraConfigured)
 {
   authBuilder.AddMicrosoftIdentityWebApi(azureAdSection, EntraScheme);
   logger.LogInformation("Microsoft Entra ID JWT Bearer authentication configured with scheme: {Scheme}", EntraScheme);
@@ -180,30 +179,79 @@ else
   logger.LogWarning("AzureAd:ClientId not configured - Entra ID authentication disabled");
 }
 
-// Configure authorization policies matching Budget.Web
+
+// Add policy scheme that intelligently forwards to the correct JWT handler
+// This prevents both handlers from trying to validate every token
+authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
+{
+  options.ForwardDefaultSelector = context =>
+  {
+    // Extract the Authorization header
+    var authHeader = context.Request.Headers.Authorization.ToString();
+    
+    if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+    {
+      // Return default scheme instead of null - PolicySchemeHandler needs a valid scheme
+      return isEntraConfigured ? EntraScheme : LocalScheme;
+    }
+
+    var token = authHeader.Substring("Bearer ".Length).Trim();
+    
+    // Quick inspection: decode the token header to determine issuer
+    try
+    {
+      var handler = new JwtSecurityTokenHandler();
+      if (handler.CanReadToken(token))
+      {
+        var jwtToken = handler.ReadJwtToken(token);
+        var issuer = jwtToken.Issuer;
+        
+        // If issuer is from Microsoft (Entra ID), use EntraScheme
+        if (isEntraConfigured && (issuer.Contains("login.microsoftonline.com") || issuer.Contains("sts.windows.net")))
+        {
+          return EntraScheme;
+        }
+      }
+    }
+    catch
+    {
+      // If we can't read the token, try LocalScheme first
+    }
+    
+    // Default to LocalScheme for custom tokens
+    return LocalScheme;
+  };
+});
+
+logger.LogInformation("Smart JWT selector configured - will route to {EntraScheme} or {LocalScheme} based on token issuer", 
+  EntraScheme, LocalScheme);
+
+// Configure authorization policies - use the dynamic scheme
 builder.Services.AddAuthorization(options =>
 {
-  // Default policy requires authentication from either scheme
+  logger.LogInformation("Configuring authorization with dynamic scheme: {Scheme}", DynamicScheme);
+
+  // Default policy requires authentication from the dynamic scheme
   options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
     .RequireAuthenticatedUser()
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme)
+    .AddAuthenticationSchemes(DynamicScheme)
     .Build();
 
   // Admin-only policy
   options.AddPolicy("AdminOnly", policy => policy
     .RequireRole("Admin")
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+    .AddAuthenticationSchemes(DynamicScheme));
 
   // PowerUser or above policy
   options.AddPolicy("PowerUserOrAbove", policy => policy
     .RequireAssertion(context =>
       context.User.IsInRole("Admin") || context.User.IsInRole("PowerUser"))
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+    .AddAuthenticationSchemes(DynamicScheme));
 
   // Authenticated user policy (any role)
   options.AddPolicy("AuthenticatedUser", policy => policy
     .RequireAuthenticatedUser()
-    .AddAuthenticationSchemes(EntraScheme, LocalScheme));
+    .AddAuthenticationSchemes(DynamicScheme));
 });
 
 // Register JWT token service
@@ -211,6 +259,64 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Register BackupAzureSql service with HttpClient
 builder.Services.AddHttpClient<BackupAzureSql>();
+
+// Register BackupProgressService for tracking background backup jobs
+builder.Services.AddSingleton<IBackupProgressService, BackupProgressService>();
+
+// Configure Azure Storage (Blob and Table) for backup functionality
+var azureStorageConnectionString = builder.Configuration["AzureStorage:ConnectionString"];
+var storageBlobEndpoint = builder.Configuration["AZURE_STORAGE_BLOB_ENDPOINT"];
+var storageTableEndpoint = builder.Configuration["AZURE_STORAGE_TABLE_ENDPOINT"];
+
+// Determine if running on Azure (managed identity available)
+var isRunningOnAzure = AzureEnvironment.IsRunningOnAzure;
+
+logger.LogInformation("=== Azure Storage Configuration ===");
+logger.LogInformation("IsRunningOnAzure: {IsRunningOnAzure}", isRunningOnAzure);
+logger.LogInformation("StorageBlobEndpoint: {Endpoint}", storageBlobEndpoint ?? "(not set)");
+logger.LogInformation("StorageTableEndpoint: {Endpoint}", storageTableEndpoint ?? "(not set)");
+logger.LogInformation("Has ConnectionString: {HasConnStr}", !string.IsNullOrWhiteSpace(azureStorageConnectionString));
+
+if (isRunningOnAzure && !string.IsNullOrWhiteSpace(storageBlobEndpoint))
+{
+  // Use Managed Identity on Azure
+  var blobUri = new Uri(storageBlobEndpoint);
+  var tableUri = new Uri(storageTableEndpoint!);
+  
+  logger.LogInformation("Creating BlobServiceClient with Managed Identity for: {Uri}", blobUri);
+  logger.LogInformation("Creating TableServiceClient with Managed Identity for: {Uri}", tableUri);
+  
+  var credential = new Azure.Identity.DefaultAzureCredential(new Azure.Identity.DefaultAzureCredentialOptions
+  {
+    ExcludeEnvironmentCredential = false,
+    ExcludeManagedIdentityCredential = false,
+    ExcludeSharedTokenCacheCredential = true,
+    ExcludeVisualStudioCredential = true,
+    ExcludeVisualStudioCodeCredential = true,
+    ExcludeAzureCliCredential = true,
+    ExcludeAzurePowerShellCredential = true,
+    ExcludeInteractiveBrowserCredential = true
+  });
+  
+  builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(blobUri, credential));
+  builder.Services.AddSingleton(sp => new Azure.Data.Tables.TableServiceClient(tableUri, credential));
+  
+  logger.LogInformation("? Azure Storage configured with Managed Identity (Blob: {BlobEndpoint}, Table: {TableEndpoint})", 
+    storageBlobEndpoint, storageTableEndpoint);
+}
+else if (!string.IsNullOrWhiteSpace(azureStorageConnectionString))
+{
+  // Use Connection String locally
+  logger.LogInformation("Creating storage clients with connection string (local development)");
+  builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(azureStorageConnectionString));
+  builder.Services.AddSingleton(sp => new Azure.Data.Tables.TableServiceClient(azureStorageConnectionString));
+  logger.LogInformation("? Azure Storage configured with connection string (local development)");
+}
+else
+{
+  logger.LogWarning("?? Azure Storage not configured - backup functionality will not be available");
+}
+
 var app = builder.Build();
 
 // Ensure databases exist
@@ -255,6 +361,81 @@ app.MapGet("/weatherforecast", () =>
     .ToArray();
   return forecast;
 }).WithName("GetWeatherForecast");
+
+// DEBUG: Temporary endpoint to check user roles and claims
+if (app.Environment.IsDevelopment())
+{
+  // Anonymous version - see if any auth data exists
+  app.MapGet("/api/debug/my-auth-status", (HttpContext httpContext) =>
+  {
+    var user = httpContext.User;
+    var authHeader = httpContext.Request.Headers.Authorization.ToString();
+    var cookies = httpContext.Request.Cookies.Keys.ToList();
+    
+    var roles = user.Claims
+        .Where(c => c.Type == ClaimTypes.Role || c.Type == "roles")
+        .Select(c => c.Value)
+        .ToList();
+    
+    var allClaims = user.Claims.Select(c => new { 
+        Type = c.Type, 
+        Value = c.Value,
+        TypeFriendly = c.Type.Split('/').Last()
+    }).ToList();
+    
+    return Results.Ok(new { 
+        IsAuthenticated = user.Identity?.IsAuthenticated ?? false,
+        AuthenticationType = user.Identity?.AuthenticationType,
+        Name = user.Identity?.Name,
+        HasAuthorizationHeader = !string.IsNullOrEmpty(authHeader),
+        AuthorizationHeaderPreview = authHeader?.Length > 20 ? authHeader.Substring(0, 20) + "..." : authHeader,
+        CookieNames = cookies,
+        Roles = roles,
+        RoleCount = roles.Count,
+        HasAdminRole = user.IsInRole("Admin"),
+        HasPowerUserRole = user.IsInRole("PowerUser"),
+        HasUserRole = user.IsInRole("User"),
+        AllClaims = allClaims,
+        ClaimCount = allClaims.Count,
+        RequestScheme = httpContext.Request.Scheme,
+        RequestHost = httpContext.Request.Host.ToString()
+    });
+  })
+  .AllowAnonymous()
+  .WithName("GetAuthStatus")
+  .WithTags("Debug");
+
+  // Authenticated version - requires valid token
+  app.MapGet("/api/debug/my-roles", (ClaimsPrincipal user) =>
+  {
+    var roles = user.Claims
+        .Where(c => c.Type == ClaimTypes.Role || c.Type == "roles")
+        .Select(c => c.Value)
+        .ToList();
+    
+    var allClaims = user.Claims.Select(c => new { 
+        Type = c.Type, 
+        Value = c.Value,
+        TypeFriendly = c.Type.Split('/').Last()
+    }).ToList();
+    
+    return Results.Ok(new { 
+        IsAuthenticated = user.Identity?.IsAuthenticated ?? false,
+        AuthenticationType = user.Identity?.AuthenticationType,
+        Name = user.Identity?.Name,
+        Roles = roles,
+        RoleCount = roles.Count,
+        HasAdminRole = user.IsInRole("Admin"),
+        HasPowerUserRole = user.IsInRole("PowerUser"),
+        HasUserRole = user.IsInRole("User"),
+        AllClaims = allClaims,
+        ClaimCount = allClaims.Count
+    });
+  })
+  .RequireAuthorization()
+  .WithName("GetMyRoles")
+  .WithTags("Debug");
+}
 
 app.Run();
 

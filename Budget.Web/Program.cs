@@ -56,6 +56,9 @@ ConfigureIdentity.AddIdentityCore(builder);
 
 var app = builder.Build();
 
+Misc.LogAllConfigurationSettings(builder, logger);
+
+
 // Initialize ServiceAccessor with built service provider for parameterless constructors
 ServiceAccessor.Configure(app.Services);
 

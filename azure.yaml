@@ -6,3 +6,12 @@ services:
     language: dotnet
     project: ./Budget.AppHost/Budget.AppHost.csproj
     host: containerapp
+
+hooks:
+  postdeploy:
+    windows:
+      shell: pwsh
+      run: ./hooks/postdeploy.ps1
+    posix:
+      shell: sh
+      run: ./hooks/postdeploy.sh

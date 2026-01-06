@@ -4,14 +4,16 @@ using System.Linq;
 using System.Net.Http;
 using Budget.Api;
 using Budget.DB;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Configuration;
 using Xunit;
+
+namespace Budget.ApiTests;
 
 public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -57,6 +59,10 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
           // Register in-memory DB for ApiIdentityContext
           services.AddDbContext<ApiIdentityContext>(options =>
             options.UseInMemoryDatabase(_identityDbName));
+
+          // Override authentication with test scheme to bypass PolicyScheme issues
+          services.AddAuthentication(defaultScheme: "Test")
+            .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
         });
       });
 

@@ -28,7 +28,20 @@ public interface IBudgetMaintApiClient
 
   // Backup maintenance
   Task<BackupPlanDto> GetBackupPlanAsync(CancellationToken cancellationToken = default);
+  Task<ExportAllResponse> ExportAllTablesAsync(CancellationToken cancellationToken = default);
+  Task<BackupStatusDto?> GetBackupStatusAsync(string backupId, CancellationToken cancellationToken = default);
 }
 
 public sealed record BackupPlanDto(string FileName);
 public sealed record ImportResult(int ImportedCount, List<string> Errors);
+public sealed record ExportAllResponse(string BackupId, string Message);
+public sealed record BackupStatusDto(
+  string BackupId,
+  DateTime StartTime,
+  DateTime? EndTime,
+  int TotalTables,
+  int CompletedTables,
+  int FailedTables,
+  string? CurrentTable,
+  string? ErrorMessage,
+  bool IsComplete);

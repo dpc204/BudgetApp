@@ -164,6 +164,39 @@ public static class ConfigureServices
   /// </summary>
   public static void AddApplicationServices(WebApplicationBuilder builder)
   {
+    // Token cache persistence strategy:
+    // - Always use SQL Server distributed cache (works both locally and in Azure)
+    // - Fallback to in-memory if SQL Server is not available
+    
+    var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+    
+    var sqlConnection = builder.Configuration["LocalBudgetConnection"] ?? builder.Configuration["BudgetConnection"];
+    
+
+
+
+    if (!string.IsNullOrEmpty(sqlConnection))
+    {
+      logger.LogInformation("Configuring SQL Server distributed cache for token persistence");
+      logger.LogInformation("Connection string source: {Source}", 
+        builder.Configuration.GetConnectionString("BudgetConnection") != null ? "BudgetConnection" : "LocalBudgetConnection");
+      logger.LogInformation("Connection string (first 50 chars): {ConnString}", sqlConnection.Substring(0, Math.Min(50, sqlConnection.Length)));
+      
+      builder.Services.AddDistributedSqlServerCache(options =>
+      {
+        options.ConnectionString = sqlConnection;
+        options.SchemaName = "dbo";
+        options.TableName = "SessionCache";
+        logger.LogInformation("SQL Distributed Cache configured: Schema={Schema}, Table={Table}", options.SchemaName, options.TableName);
+      });
+    }
+    else
+    {
+      // Fallback to in-memory (development only - tokens won't persist)
+      logger.LogWarning("NO SQL CONNECTION STRING FOUND! Using in-memory cache (tokens will NOT persist across restarts)");
+      builder.Services.AddDistributedMemoryCache();
+    }
+    
     builder.Services.AddScoped<EnvelopeState>();
     builder.Services.AddSingleton<ThemeService>();
     builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();

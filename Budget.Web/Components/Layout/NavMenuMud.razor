@@ -29,7 +29,11 @@
     </Authorized>
 
     <NotAuthorized>
-      <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">Sign in with Microsoft</MudNavLink>
+      <MudNavLink Href="MicrosoftIdentity/Account/SignIn" Icon="@Icons.Material.Filled.Login">Sign in with Microsoft</MudNavLink>
     </NotAuthorized>
+    
+    <Authorizing>
+      <MudNavLink Disabled="true" Icon="@Icons.Material.Filled.HourglassEmpty">Loading...</MudNavLink>
+    </Authorizing>
   </AuthorizeView>
 </MudNavMenu>
