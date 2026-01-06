@@ -44,12 +44,36 @@ public static class Misc
     {
       try
       {
-        logger.Log(LogLevel.Information, $"Adding AzureKeyVault next");
+        logger.Log(LogLevel.Information, "Adding AzureKeyVault next");
 
         var keyVaultUri = webApplicationBuilder.Configuration["KeyVault:Uri"]
+          ?? webApplicationBuilder.Configuration["AZURE_KEY_VAULT_ENDPOINT"]
           ?? "https://fantumkeyvault.vault.azure.net/";
-          webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri),
-          new DefaultAzureCredential());
+        
+        // Get the Managed Identity Client ID for authentication
+        // Try custom variable first (to avoid azd override), then fall back to standard names
+        var managedIdentityClientId = webApplicationBuilder.Configuration["BUDGET_MANAGED_IDENTITY_CLIENT_ID"]
+          ?? webApplicationBuilder.Configuration["AZURE_CLIENT_ID"]
+          ?? webApplicationBuilder.Configuration["MANAGED_IDENTITY_CLIENT_ID"];
+        
+        Azure.Core.TokenCredential credential;
+        
+        if (!string.IsNullOrEmpty(managedIdentityClientId))
+        {
+          logger.LogInformation("Using Managed Identity with Client ID: {ClientId}", managedIdentityClientId);
+          credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+          {
+            ManagedIdentityClientId = managedIdentityClientId
+          });
+        }
+        else
+        {
+          logger.LogInformation("Using DefaultAzureCredential without explicit Managed Identity Client ID");
+          credential = new DefaultAzureCredential();
+        }
+        
+        logger.LogInformation("Connecting to Key Vault: {KeyVaultUri}", keyVaultUri);
+        webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), credential);
 
         logger.Log(LogLevel.Information, "SetupConfigurationSources Using AzureDB - KeyVault Done");
       }
@@ -86,7 +110,7 @@ public static class Misc
         logger.Log(LogLevel.Information, $"IsRunningOnAzure = false");
       }
 
-      var sValue = webApplicationBuilder.Configuration["UseAzureDB"];
+      var sValue = webApplicationBuilder.Configuration["UseAzureDB"]?.ToLower();
       logger.Log(LogLevel.Information, "UseAzureDB from config: {SValue}", sValue);
       if (bool.TryParse(sValue, out var bValue))
       {

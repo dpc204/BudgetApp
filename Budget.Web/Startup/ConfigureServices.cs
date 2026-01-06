@@ -172,6 +172,9 @@ public static class ConfigureServices
     
     var sqlConnection = builder.Configuration["LocalBudgetConnection"] ?? builder.Configuration["BudgetConnection"];
     
+
+
+
     if (!string.IsNullOrEmpty(sqlConnection))
     {
       logger.LogInformation("Configuring SQL Server distributed cache for token persistence");
