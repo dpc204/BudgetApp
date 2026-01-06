@@ -117,9 +117,15 @@ public partial class BackupRestoreIndex : IDisposable
     try
     {
       Logger.LogInformation("Downloading CSV for table: {TableName}", table.TableName);
-      var downloadUrl = await MaintApiClient.GetBackupCsvDownloadUrlAsync(table.BlobName);
-      await JS.InvokeVoidAsync("open", downloadUrl, "_blank");
-      Snackbar.Add($"Downloading {table.TableName}.csv", Severity.Success);
+      
+      var fileDownload = await MaintApiClient.DownloadBackupCsvAsync(table.BlobName);
+      
+      // Convert to base64 for JavaScript download
+      var base64 = Convert.ToBase64String(fileDownload.Content);
+      var dataUrl = $"data:{fileDownload.ContentType};base64,{base64}";
+      
+      await JS.InvokeVoidAsync("downloadFileFromStream", fileDownload.FileName, dataUrl);
+      Snackbar.Add($"Downloaded {table.TableName}.csv", Severity.Success);
     }
     catch (Exception ex)
     {

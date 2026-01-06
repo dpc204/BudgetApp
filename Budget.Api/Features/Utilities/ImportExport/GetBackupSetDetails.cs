@@ -55,7 +55,7 @@ public static class GetBackupSetDetails
       {
         var tableName = entity.RowKey;
         var blobName = entity.GetString("BlobName") ?? string.Empty;
-        var sizeBytes = entity.GetInt64("SizeBytes") ?? 0;
+        var sizeBytes = entity.GetInt32("SizeBytes") ?? 0;
         var exportedAt = entity.GetDateTime("ExportedAt") ?? DateTime.MinValue;
 
         tables.Add(new BackupTableDto(tableName, blobName, sizeBytes, exportedAt, request.PartitionKey));

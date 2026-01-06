@@ -25,10 +25,18 @@ public partial class Maintenance : IDisposable
       var plan = await MaintApiClient.GetBackupPlanAsync();
       var fileName = plan.FileName;
 
-      // Start download with agreed filename
-      var url = $"/api/maintenance/backup-download?name={Uri.EscapeDataString(fileName)}";
-      await JS.InvokeVoidAsync("open", url, "_blank");
-      Snackbar.Add("Backup export started. Your browser should download the .bacpac.", Severity.Success);
+      ButtonText = "Downloading...";
+      
+      // Download file via HttpClient
+      var fileDownload = await MaintApiClient.DownloadDatabaseBackupAsync(fileName);
+      
+      // Convert to base64 for JavaScript download
+      var base64 = Convert.ToBase64String(fileDownload.Content);
+      var dataUrl = $"data:{fileDownload.ContentType};base64,{base64}";
+      
+      await JS.InvokeVoidAsync("downloadFileFromStream", fileDownload.FileName, dataUrl);
+      
+      Snackbar.Add("Backup export complete. File downloaded.", Severity.Success);
       Status = $"Backup: {fileName} downloaded";
     }
     catch (Exception ex)

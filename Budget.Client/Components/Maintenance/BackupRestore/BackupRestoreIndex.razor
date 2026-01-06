@@ -32,7 +32,7 @@ else if (_backupSets.Count == 0)
 }
 else
 {
-    <MudDataGrid T="BackupSetDto" Items="_backupSets" Dense="true" Class="mb-4">
+    <MudDataGrid T="BackupSetDto" Items="_backupSets" Dense="true" Class="mb-4" Style="width: auto; max-width: fit-content;">
         <Columns>
             <PropertyColumn Property="x => x.BackupDate" Title="Backup Date" Format="yyyy-MM-dd HH:mm:ss" />
             <PropertyColumn Property="x => x.TableCount" Title="Tables" />
@@ -77,7 +77,7 @@ else
     }
     else
     {
-        <MudDataGrid T="BackupTableDto" Items="_backupTables" Dense="true">
+        <MudDataGrid T="BackupTableDto" Items="_backupTables" Dense="true" Style="width: auto; max-width: fit-content;">
             <Columns>
                 <PropertyColumn Property="x => x.TableName" Title="Table Name" />
                 <PropertyColumn Property="x => x.SizeBytes" Title="Size">

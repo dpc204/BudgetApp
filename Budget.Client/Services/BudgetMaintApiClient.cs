@@ -202,10 +202,27 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     return true;
   }
 
-  public async Task<string> GetBackupCsvDownloadUrlAsync(string blobName, CancellationToken cancellationToken = default)
+  public async Task<FileDownloadDto> DownloadBackupCsvAsync(string blobName, CancellationToken cancellationToken = default)
   {
     var encodedBlobName = Uri.EscapeDataString(blobName);
-    return $"/api/utilities/backup-csv/download?blobName={encodedBlobName}";
+    using var resp = await http.GetAsync($"utilities/backup-csv/download?blobName={encodedBlobName}", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    
+    var content = await resp.Content.ReadAsByteArrayAsync(cancellationToken);
+    var fileName = Path.GetFileName(blobName);
+    
+    return new FileDownloadDto(content, fileName, "text/csv");
+  }
+
+  public async Task<FileDownloadDto> DownloadDatabaseBackupAsync(string fileName, CancellationToken cancellationToken = default)
+  {
+    var encodedFileName = Uri.EscapeDataString(fileName);
+    using var resp = await http.GetAsync($"/api/maintenance/backup-download?name={encodedFileName}", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    
+    var content = await resp.Content.ReadAsByteArrayAsync(cancellationToken);
+    
+    return new FileDownloadDto(content, fileName, "application/octet-stream");
   }
 
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)

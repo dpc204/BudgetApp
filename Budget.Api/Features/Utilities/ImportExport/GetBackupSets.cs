@@ -52,7 +52,7 @@ public static class GetBackupSets
       await foreach (var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
       {
         var partitionKey = entity.PartitionKey;
-        var sizeBytes = entity.GetInt64("SizeBytes") ?? 0;
+        var sizeBytes = entity.GetInt32("SizeBytes") ?? 0;
         var exportedAt = entity.GetDateTime("ExportedAt") ?? DateTime.MinValue;
 
         if (!backupSets.ContainsKey(partitionKey))
