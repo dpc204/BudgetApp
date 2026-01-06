@@ -1,0 +1,113 @@
+@using Budget.Client.Components.Maintenance.BackupRestore
+
+<MudText Typo="Typo.h6" Class="mb-3">Backup/Restore Tables</MudText>
+
+@if (IsAdmin)
+{
+    <MudStack Row="true" Spacing="2" Class="mb-4" AlignItems="AlignItems.Center">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="TriggerBackupAllTablesAsync" Disabled="@BackupAllBusy">
+            @BackupAllButtonText
+        </MudButton>
+        @if (BackupAllBusy)
+        {
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Secondary" />
+        }
+    </MudStack>
+
+    @if (!string.IsNullOrWhiteSpace(BackupAllStatus))
+    {
+        <MudAlert Severity="Severity.Info" Class="mb-2">@BackupAllStatus</MudAlert>
+    }
+}
+
+<MudText Typo="Typo.subtitle1" Class="mb-2 mt-4">Backup Sets</MudText>
+
+@if (_backupSets == null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_backupSets.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No backup sets found</MudAlert>
+}
+else
+{
+    <MudDataGrid T="BackupSetDto" Items="_backupSets" Dense="true" Class="mb-4">
+        <Columns>
+            <PropertyColumn Property="x => x.BackupDate" Title="Backup Date" Format="yyyy-MM-dd HH:mm:ss" />
+            <PropertyColumn Property="x => x.TableCount" Title="Tables" />
+            <PropertyColumn Property="x => x.TotalSizeBytes" Title="Size">
+                <CellTemplate>
+                    @FormatBytes(context.Item.TotalSizeBytes)
+                </CellTemplate>
+            </PropertyColumn>
+            <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudStack Row="true" Spacing="1">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                       Size="Size.Small" 
+                                       Color="Color.Primary"
+                                       OnClick="() => SelectBackupSet(context.Item)" 
+                                       title="View Tables" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                       Size="Size.Small" 
+                                       Color="Color.Error"
+                                       OnClick="() => DeleteBackupSetAsync(context.Item)" 
+                                       title="Delete Backup Set" />
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+}
+
+@if (_selectedBackupSet != null)
+{
+    <MudDivider Class="my-4" />
+    
+    <MudText Typo="Typo.subtitle1" Class="mb-2">Tables in Backup Set: @_selectedBackupSet.BackupDate.ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+    
+    @if (_backupTables == null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (_backupTables.Count == 0)
+    {
+        <MudAlert Severity="Severity.Warning">No tables found in this backup set</MudAlert>
+    }
+    else
+    {
+        <MudDataGrid T="BackupTableDto" Items="_backupTables" Dense="true">
+            <Columns>
+                <PropertyColumn Property="x => x.TableName" Title="Table Name" />
+                <PropertyColumn Property="x => x.SizeBytes" Title="Size">
+                    <CellTemplate>
+                        @FormatBytes(context.Item.SizeBytes)
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.ExportedAt" Title="Exported At" Format="yyyy-MM-dd HH:mm:ss" />
+                <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
+                    <CellTemplate>
+                        <MudStack Row="true" Spacing="1">
+                            <MudButton Size="Size.Small" 
+                                       Variant="Variant.Outlined" 
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Download"
+                                       OnClick="() => DownloadCsvAsync(context.Item)">
+                                Download CSV
+                            </MudButton>
+                            <MudButton Size="Size.Small" 
+                                       Variant="Variant.Outlined" 
+                                       Color="Color.Secondary"
+                                       StartIcon="@Icons.Material.Filled.Upload"
+                                       Disabled="true"
+                                       title="Import functionality coming soon">
+                                Import Table
+                            </MudButton>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    }
+}
