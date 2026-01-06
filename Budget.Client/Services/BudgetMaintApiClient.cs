@@ -178,6 +178,53 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     return result;
   }
 
+  public async Task<IEnumerable<BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default)
+  {
+    var readOnlyList = await GetListAsync<BackupSetDto>("utilities/backup-sets", cancellationToken);
+    return readOnlyList;
+  }
+
+  public async Task<IEnumerable<BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default)
+  {
+    var encodedPartitionKey = Uri.EscapeDataString(partitionKey);
+    var readOnlyList = await GetListAsync<BackupTableDto>($"utilities/backup-sets/{encodedPartitionKey}/details", cancellationToken);
+    return readOnlyList;
+  }
+
+  public async Task<bool> DeleteBackupSetAsync(string partitionKey, CancellationToken cancellationToken = default)
+  {
+    var encodedPartitionKey = Uri.EscapeDataString(partitionKey);
+    using var resp = await http.DeleteAsync($"utilities/backup-sets/{encodedPartitionKey}", cancellationToken);
+    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+      return false;
+    
+    resp.EnsureSuccessStatusCode();
+    return true;
+  }
+
+  public async Task<FileDownloadDto> DownloadBackupCsvAsync(string blobName, CancellationToken cancellationToken = default)
+  {
+    var encodedBlobName = Uri.EscapeDataString(blobName);
+    using var resp = await http.GetAsync($"utilities/backup-csv/download?blobName={encodedBlobName}", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    
+    var content = await resp.Content.ReadAsByteArrayAsync(cancellationToken);
+    var fileName = Path.GetFileName(blobName);
+    
+    return new FileDownloadDto(content, fileName, "text/csv");
+  }
+
+  public async Task<FileDownloadDto> DownloadDatabaseBackupAsync(string fileName, CancellationToken cancellationToken = default)
+  {
+    var encodedFileName = Uri.EscapeDataString(fileName);
+    using var resp = await http.GetAsync($"/api/maintenance/backup-download?name={encodedFileName}", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    
+    var content = await resp.Content.ReadAsByteArrayAsync(cancellationToken);
+    
+    return new FileDownloadDto(content, fileName, "application/octet-stream");
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     logger.LogDebug("Fetching list of {Type} from {Url}", typeof(T).Name, relativeUrl);

@@ -259,7 +259,9 @@ Generated_Code/
 # to a newer Visual Studio version. Backup files are not needed,
 # because we have git ;-)
 _UpgradeReport_Files/
-Backup*/
+Backup*.zip
+Backup*.rar
+Backup*.[0-9]*
 UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/

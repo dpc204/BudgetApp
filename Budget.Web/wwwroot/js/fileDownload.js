@@ -19,6 +19,16 @@ export function downloadFile(fileName, contentType, base64Data) {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
+// Simpler download from data URL (for backward compatibility)
+function downloadFileFromStream(fileName, dataUrl) {
+  const anchorElement = document.createElement('a');
+  anchorElement.href = dataUrl;
+  anchorElement.download = fileName ?? '';
+  anchorElement.click();
+  anchorElement.remove();
+}
+
 export function initialize() {
   window.downloadFile = downloadFile;
+  window.downloadFileFromStream = downloadFileFromStream;
 }
