@@ -30,6 +30,10 @@ public interface IBudgetMaintApiClient
   Task<BackupPlanDto> GetBackupPlanAsync(CancellationToken cancellationToken = default);
   Task<ExportAllResponse> ExportAllTablesAsync(CancellationToken cancellationToken = default);
   Task<BackupStatusDto?> GetBackupStatusAsync(string backupId, CancellationToken cancellationToken = default);
+  Task<IEnumerable<BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default);
+  Task<IEnumerable<BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default);
+  Task<bool> DeleteBackupSetAsync(string partitionKey, CancellationToken cancellationToken = default);
+  Task<string> GetBackupCsvDownloadUrlAsync(string blobName, CancellationToken cancellationToken = default);
 }
 
 public sealed record BackupPlanDto(string FileName);

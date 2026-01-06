@@ -178,6 +178,36 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     return result;
   }
 
+  public async Task<IEnumerable<BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default)
+  {
+    var readOnlyList = await GetListAsync<BackupSetDto>("utilities/backup-sets", cancellationToken);
+    return readOnlyList;
+  }
+
+  public async Task<IEnumerable<BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default)
+  {
+    var encodedPartitionKey = Uri.EscapeDataString(partitionKey);
+    var readOnlyList = await GetListAsync<BackupTableDto>($"utilities/backup-sets/{encodedPartitionKey}/details", cancellationToken);
+    return readOnlyList;
+  }
+
+  public async Task<bool> DeleteBackupSetAsync(string partitionKey, CancellationToken cancellationToken = default)
+  {
+    var encodedPartitionKey = Uri.EscapeDataString(partitionKey);
+    using var resp = await http.DeleteAsync($"utilities/backup-sets/{encodedPartitionKey}", cancellationToken);
+    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+      return false;
+    
+    resp.EnsureSuccessStatusCode();
+    return true;
+  }
+
+  public async Task<string> GetBackupCsvDownloadUrlAsync(string blobName, CancellationToken cancellationToken = default)
+  {
+    var encodedBlobName = Uri.EscapeDataString(blobName);
+    return $"/api/utilities/backup-csv/download?blobName={encodedBlobName}";
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     logger.LogDebug("Fetching list of {Type} from {Url}", typeof(T).Name, relativeUrl);

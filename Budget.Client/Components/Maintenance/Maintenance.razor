@@ -3,6 +3,7 @@
 @using Budget.Client.Components.Maintenance.AccountCRUD
 @using Budget.Client.Components.Maintenance.CategoryCRUD
 @using Budget.Client.Components.Maintenance.EnvelopePagesCRUD
+@using Budget.Client.Components.Maintenance.BackupRestore
 @using Budget.Client.Components.Import
 
 <MudText Typo="Typo.h5" Class="mb-4">Maintenance</MudText>
@@ -11,29 +12,15 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TriggerBackupAsync" Disabled="@Busy">
         @ButtonText
     </MudButton>
-    @if (IsAdmin)
-    {
-        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="TriggerBackupAllTablesAsync" Disabled="@BackupAllBusy">
-            @BackupAllButtonText
-        </MudButton>
-    }
     @if (Busy)
     {
         <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Primary" />
-    }
-    @if (BackupAllBusy)
-    {
-        <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Secondary" />
     }
 </MudStack>
 
 @if (!string.IsNullOrWhiteSpace(Status))
 {
     <MudAlert Severity="Severity.Info" Class="mb-2">@Status</MudAlert>
-}
-@if (!string.IsNullOrWhiteSpace(BackupAllStatus))
-{
-    <MudAlert Severity="Severity.Info" Class="mb-2">@BackupAllStatus</MudAlert>
 }
 
 <MudTabs Elevation="1" Rounded="true">
@@ -48,6 +35,9 @@
     </MudTabPanel>
     <MudTabPanel Text="Import">
         <TransactionsCsvImport />
+    </MudTabPanel>
+    <MudTabPanel Text="Backup/Restore">
+        <BackupRestoreIndex />
     </MudTabPanel>
     <MudTabPanel Text="Users">
         <div>Content of tab3</div>
