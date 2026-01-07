@@ -1,6 +1,7 @@
 namespace Budget.Web.Services;
 
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 
 /// <summary>
@@ -45,10 +46,42 @@ public sealed class ForwardAuthCookiesHandler(
         logger.LogError("? Failed to acquire access token for {Url}", request.RequestUri);
       }
     }
+    catch (MicrosoftIdentityWebChallengeUserException ex)
+    {
+      // User needs to consent or re-authenticate
+      logger.LogError(ex, "? User consent required for {Url}. User needs to sign out and sign back in to grant API access. MsalError: {Error}",
+        request.RequestUri, ex.MsalUiRequiredException?.ErrorCode);
+      
+      // Don't proceed without a token - return 401 with clear error
+      var response = new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized)
+      {
+        ReasonPhrase = "User consent required - please sign out and sign back in"
+      };
+      return response;
+    }
+    catch (MsalUiRequiredException ex)
+    {
+      // MSAL requires UI interaction (consent, MFA, etc.)
+      logger.LogError(ex, "? MSAL UI interaction required for {Url}. User should sign out and sign back in. Error: {Error}, ErrorCode: {ErrorCode}",
+        request.RequestUri, ex.Message, ex.ErrorCode);
+      
+      var response = new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized)
+      {
+        ReasonPhrase = $"Authentication required: {ex.ErrorCode}"
+      };
+      return response;
+    }
     catch (Exception ex)
     {
       logger.LogError(ex, "? Error acquiring access token for {Url}. Exception: {Message}", 
         request.RequestUri, ex.Message);
+      
+      // Don't proceed without a token
+      var response = new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized)
+      {
+        ReasonPhrase = "Token acquisition failed"
+      };
+      return response;
     }
 
     return await base.SendAsync(request, cancellationToken);

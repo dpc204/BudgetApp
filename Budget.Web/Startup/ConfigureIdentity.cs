@@ -69,6 +69,39 @@ public static class ConfigureIdentity
           options.Scope.Add(apiScope);
           logger.LogInformation("Requesting API scope during sign-in: {ApiScope}", apiScope);
         }
+        
+        // Force token acquisition after successful authentication
+        options.Events.OnTokenValidated = async context =>
+        {
+          if (string.IsNullOrEmpty(apiScope))
+            return;
+            
+          logger.LogInformation("Token validated - attempting to acquire API token for scope: {ApiScope}", apiScope);
+          
+          try
+          {
+            var tokenAcquisition = context.HttpContext.RequestServices.GetRequiredService<ITokenAcquisition>();
+            
+            // Proactively acquire and cache the API token
+            var token = await tokenAcquisition.GetAccessTokenForUserAsync(
+              new[] { apiScope },
+              authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
+            
+            if (!string.IsNullOrEmpty(token))
+            {
+              logger.LogInformation("\u2713 Successfully acquired and cached API token during sign-in (length: {Length})", token.Length);
+            }
+            else
+            {
+              logger.LogWarning("\u2717 Failed to acquire API token during sign-in - token was null");
+            }
+          }
+          catch (Exception ex)
+          {
+            logger.LogError(ex, "\u2717 Error acquiring API token during sign-in: {Message}", ex.Message);
+            // Don't fail the sign-in, but log the issue
+          }
+        };
       })
       .EnableTokenAcquisitionToCallDownstreamApi(options =>
       {

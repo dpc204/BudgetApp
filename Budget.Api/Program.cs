@@ -295,7 +295,8 @@ if (isRunningOnAzure && !string.IsNullOrWhiteSpace(storageBlobEndpoint))
     ExcludeVisualStudioCodeCredential = true,
     ExcludeAzureCliCredential = true,
     ExcludeAzurePowerShellCredential = true,
-    ExcludeInteractiveBrowserCredential = true
+    ExcludeInteractiveBrowserCredential = true,
+    ManagedIdentityClientId = "c5817686-acae-494b-a8e9-f5620f83b0d4"
   });
   
   builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(blobUri, credential));

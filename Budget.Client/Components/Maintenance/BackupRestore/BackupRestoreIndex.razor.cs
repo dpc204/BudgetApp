@@ -38,6 +38,12 @@ public partial class BackupRestoreIndex : IDisposable
       _backupSets = (await MaintApiClient.GetBackupSetsAsync()).ToList();
       Logger.LogInformation("Loaded {Count} backup sets", _backupSets.Count);
     }
+    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+    {
+      Logger.LogError(ex, "Unauthorized error loading backup sets - user may need to re-authenticate");
+      Snackbar.Add("Authentication required. Please sign out and sign back in to grant API access.", Severity.Warning);
+      _backupSets = [];
+    }
     catch (Exception ex)
     {
       Logger.LogError(ex, "Error loading backup sets");
