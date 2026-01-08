@@ -103,7 +103,7 @@ public static class TriggerAzureBackup
         var result = await sender.Send(new Command());
         return result;
       })
-      .RequireAuthorization("Admin")
+      .RequireAuthorization()
       .WithName("TriggerAzureBackup")
       .WithTags("Maintenance");
     }

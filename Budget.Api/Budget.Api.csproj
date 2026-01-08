@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>37834f08-c42f-4f1e-9a80-3911e57d81ac</UserSecretsId>
-  </PropertyGroup>
+<PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework>
+  <Nullable>enable</Nullable>
+  <ImplicitUsings>enable</ImplicitUsings>
+  <UserSecretsId>37834f08-c42f-4f1e-9a80-3911e57d81ac</UserSecretsId>
+  <!-- Preserve Carter modules for reflection-based discovery -->
+  <PublishTrimmed>false</PublishTrimmed>
+</PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Features\Catagories\**" />

@@ -85,6 +85,6 @@ if ($budgetSuccess -and $apiSuccess) {
 
 Write-Host "`n=== Post-Deploy Hook Complete ===" -ForegroundColor Cyan
 Write-Host "`nPress any key to close this window..." -ForegroundColor Yellow
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+#$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
 exit $exitCode

@@ -90,8 +90,7 @@ public static class GetBackupSets
       {
         var result = await sender.Send(new Query());
         return Results.Ok(result.BackupSets);
-      })
-      .RequireAuthorization("AdminOnly");
+      });
     }
   }
 }

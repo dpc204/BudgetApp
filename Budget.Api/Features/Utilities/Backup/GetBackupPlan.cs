@@ -37,7 +37,6 @@ public static class GetBackupPlan
         var result = await sender.Send(new Query());
         return Results.Ok(result);
       })
-      .RequireAuthorization("Admin")
       .WithName("GetBackupPlan")
       .WithTags("Maintenance");
     }

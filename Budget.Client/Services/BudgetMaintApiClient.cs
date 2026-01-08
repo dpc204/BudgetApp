@@ -227,6 +227,13 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
 
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
+    // Log the base address and full URL for debugging
+    var baseAddress = http.BaseAddress?.ToString() ?? "NO BASE ADDRESS";
+    var fullUrl = new Uri(http.BaseAddress!, relativeUrl).ToString();
+    
+    logger.LogInformation("GetListAsync - Base: {BaseAddress}, Relative: {RelativeUrl}, Full: {FullUrl}", 
+      baseAddress, relativeUrl, fullUrl);
+    
     logger.LogDebug("Fetching list of {Type} from {Url}", typeof(T).Name, relativeUrl);
     var result = await http.GetFromJsonAsync<List<T>>(relativeUrl, cancellationToken: ct);
     logger.LogDebug("Fetched {Count} items of type {Type} from {Url}", result?.Count ?? 0, typeof(T).Name, relativeUrl);

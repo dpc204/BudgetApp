@@ -82,8 +82,7 @@ public static class GetBackupSetDetails
       {
         var result = await sender.Send(new Query(partitionKey));
         return Results.Ok(result.Tables);
-      })
-      .RequireAuthorization("AdminOnly");
+      });
     }
   }
 }

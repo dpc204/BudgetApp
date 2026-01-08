@@ -61,8 +61,7 @@ public static class GetBackupStatus
       {
         var result = await sender.Send(new Query(backupId));
         return result != null ? Results.Ok(result) : Results.NotFound();
-      })
-      .RequireAuthorization("AdminOnly");
+      });
     }
   }
 }

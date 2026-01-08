@@ -278,8 +278,7 @@ public static class ExportAll
       {
         var result = await sender.Send(new Command());
         return Results.Ok(result);
-      })
-      .RequireAuthorization("AdminOnly");
+      });
     }
   }
 }

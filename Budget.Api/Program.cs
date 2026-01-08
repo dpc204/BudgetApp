@@ -171,7 +171,19 @@ var isEntraConfigured = !string.IsNullOrWhiteSpace(azureAdSection["ClientId"]);
 
 if (isEntraConfigured)
 {
-  authBuilder.AddMicrosoftIdentityWebApi(azureAdSection, EntraScheme);
+  authBuilder.AddMicrosoftIdentityWebApi(options =>
+  {
+    azureAdSection.Bind(options);
+    
+    // Map Azure AD "roles" claims to standard ClaimTypes.Role
+    options.TokenValidationParameters.RoleClaimType = "roles";
+  }, 
+  options =>
+  {
+    azureAdSection.Bind(options);
+  },
+  EntraScheme);
+  
   logger.LogInformation("Microsoft Entra ID JWT Bearer authentication configured with scheme: {Scheme}", EntraScheme);
 }
 else
@@ -239,6 +251,11 @@ builder.Services.AddAuthorization(options =>
 
   // Admin-only policy
   options.AddPolicy("AdminOnly", policy => policy
+    .RequireRole("Admin")
+    .AddAuthenticationSchemes(DynamicScheme));
+
+  // Admin policy (alias for AdminOnly - some endpoints use "Admin" instead)
+  options.AddPolicy("Admin", policy => policy
     .RequireRole("Admin")
     .AddAuthenticationSchemes(DynamicScheme));
 

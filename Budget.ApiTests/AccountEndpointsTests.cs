@@ -37,7 +37,7 @@ public class AccountEndpointsTests : IntegrationTestBase
 
       // Act
       var response = await Client.GetAsync("/accounts/maint/getall");
-
+      
       // Assert
       response.EnsureSuccessStatusCode();
       var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
