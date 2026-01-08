@@ -332,7 +332,16 @@ else if (!string.IsNullOrWhiteSpace(azureStorageConnectionString))
 }
 else
 {
-  logger.LogWarning("?? Azure Storage not configured - backup functionality will not be available");
+  // Always register storage clients even if not configured
+  // Use UseDevelopmentStorage=true for local Azure Storage Emulator / Azurite
+  logger.LogWarning("?? Azure Storage not configured - using development storage (UseDevelopmentStorage=true)");
+  logger.LogWarning("   To enable backup functionality, configure Azure Storage connection string or endpoints");
+  
+  var devStorageConnectionString = "UseDevelopmentStorage=true";
+  builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(devStorageConnectionString));
+  builder.Services.AddSingleton(sp => new Azure.Data.Tables.TableServiceClient(devStorageConnectionString));
+  
+  logger.LogInformation("? Registered storage clients with development storage connection string");
 }
 
 var app = builder.Build();

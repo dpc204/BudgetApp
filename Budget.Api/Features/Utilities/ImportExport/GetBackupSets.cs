@@ -31,9 +31,11 @@ public static class GetBackupSets
 
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
-      log.LogInformation("Retrieving backup sets from Azure Table Storage");
+      try
+      {
+        log.LogInformation("Retrieving backup sets from Azure Table Storage");
 
-      var tableClient = tableServiceClient.GetTableClient(TableName);
+        var tableClient = tableServiceClient.GetTableClient(TableName);
       
       // Ensure table exists
       try
@@ -42,40 +44,46 @@ public static class GetBackupSets
       }
       catch (Exception ex)
       {
-        log.LogError(ex, "Failed to access TableBackups table");
+        log.LogWarning(ex, "Azure Table Storage not available - backup functionality disabled. Configure AZURE_STORAGE_TABLE_ENDPOINT to enable.");
         return new Response([]);
       }
 
-      // Query all entities and group by PartitionKey
-      var backupSets = new Dictionary<string, (DateTime BackupDate, int TableCount, long TotalSize)>();
+        // Query all entities and group by PartitionKey
+        var backupSets = new Dictionary<string, (DateTime BackupDate, int TableCount, long TotalSize)>();
 
-      await foreach (var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
-      {
-        var partitionKey = entity.PartitionKey;
-        var sizeBytes = entity.GetInt32("SizeBytes") ?? 0;
-        var exportedAt = entity.GetDateTime("ExportedAt") ?? DateTime.MinValue;
-
-        if (!backupSets.ContainsKey(partitionKey))
+        await foreach (var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
         {
-          backupSets[partitionKey] = (exportedAt, 0, 0);
+          var partitionKey = entity.PartitionKey;
+          var sizeBytes = entity.GetInt32("SizeBytes") ?? 0;
+          var exportedAt = entity.GetDateTime("ExportedAt") ?? DateTime.MinValue;
+
+          if (!backupSets.ContainsKey(partitionKey))
+          {
+            backupSets[partitionKey] = (exportedAt, 0, 0);
+          }
+
+          var current = backupSets[partitionKey];
+          backupSets[partitionKey] = (current.BackupDate, current.TableCount + 1, current.TotalSize + sizeBytes);
         }
 
-        var current = backupSets[partitionKey];
-        backupSets[partitionKey] = (current.BackupDate, current.TableCount + 1, current.TotalSize + sizeBytes);
+        // Convert to DTOs and sort by date descending (newest first)
+        var result = backupSets
+          .Select(kvp => new BackupSetDto(
+            kvp.Key,
+            kvp.Value.BackupDate,
+            kvp.Value.TableCount,
+            kvp.Value.TotalSize))
+          .OrderByDescending(x => x.BackupDate)
+          .ToList();
+
+        log.LogInformation("Found {Count} backup sets", result.Count);
+        return new Response(result);
       }
-
-      // Convert to DTOs and sort by date descending (newest first)
-      var result = backupSets
-        .Select(kvp => new BackupSetDto(
-          kvp.Key,
-          kvp.Value.BackupDate,
-          kvp.Value.TableCount,
-          kvp.Value.TotalSize))
-        .OrderByDescending(x => x.BackupDate)
-        .ToList();
-
-      log.LogInformation("Found {Count} backup sets", result.Count);
-      return new Response(result);
+      catch (Exception e)
+      {
+        log.LogError("Exception!!:{exception}", e.Message);
+        throw;
+      }
     }
   }
 
@@ -88,8 +96,17 @@ public static class GetBackupSets
     {
       app.MapGet("/utilities/backup-sets", async ([FromServices] ISender sender) =>
       {
-        var result = await sender.Send(new Query());
-        return Results.Ok(result.BackupSets);
+        try
+        {
+
+          var result = await sender.Send(new Query());
+          return Results.Ok(result.BackupSets);
+        }
+        catch (Exception e)
+        {
+          Console.WriteLine("EXCEPTION:!!!!!!!"+e.Message);
+          throw;
+        }
       });
     }
   }

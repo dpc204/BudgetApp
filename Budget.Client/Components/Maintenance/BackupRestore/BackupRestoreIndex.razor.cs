@@ -40,7 +40,7 @@ public partial class BackupRestoreIndex : IDisposable
     }
     catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
     {
-      Logger.LogError(ex, "Unauthorized error loading backup sets - user may need to re-authenticate");
+      Logger.LogError(ex,ex.Message + "**** Unauthorized error loading backup sets - user may need to re-authenticate");
       Snackbar.Add("Authentication required. Please sign out and sign back in to grant API access.", Severity.Warning);
       _backupSets = [];
     }

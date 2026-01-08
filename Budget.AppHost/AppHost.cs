@@ -16,6 +16,8 @@ Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {aspnetEnv}");
 Console.WriteLine($"MANAGED_IDENTITY_CLIENT_ID: {managedIdentityClientId}");
 Console.WriteLine($"AZURE_KEY_VAULT_ENDPOINT: {keyVaultEndpoint}");
 Console.WriteLine($"AZURE_STORAGE_ACCOUNT_NAME: {storageAccountName}");
+Console.WriteLine($"AZURE_STORAGE_BLOB_ENDPOINT: {storageBlobEndpoint}");
+Console.WriteLine($"AZURE_STORAGE_TABLE_ENDPOINT: {storageTableEndpoint}");
 
 // Define the Budget API service with service discovery and environment configuration
 var budgetApi = builder.AddProject<Projects.Budget_Api>("budget-api")
@@ -23,9 +25,9 @@ var budgetApi = builder.AddProject<Projects.Budget_Api>("budget-api")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", aspnetEnv)
     .WithEnvironment("AZURE_CLIENT_ID", managedIdentityClientId)
     .WithEnvironment("KeyVault__Uri", keyVaultEndpoint)
-    .WithEnvironment("AzureStorage__AccountName", storageAccountName)
-    .WithEnvironment("AzureStorage__BlobEndpoint", storageBlobEndpoint)
-    .WithEnvironment("AzureStorage__TableEndpoint", storageTableEndpoint)
+    .WithEnvironment("AZURE_STORAGE_ACCOUNT_NAME", storageAccountName)
+    .WithEnvironment("AZURE_STORAGE_BLOB_ENDPOINT", storageBlobEndpoint)
+    .WithEnvironment("AZURE_STORAGE_TABLE_ENDPOINT", storageTableEndpoint)
     .WithExternalHttpEndpoints();
 
 // Define the Blazor Server app with environment configuration
