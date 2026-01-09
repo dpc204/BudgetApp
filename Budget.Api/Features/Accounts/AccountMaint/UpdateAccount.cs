@@ -31,7 +31,7 @@ public static class UpdateAccount
         if (id != body.Id) return Results.BadRequest("Route id and payload id differ.");
         var result = await sender.Send(new Command(body.Id, body.Name, body.Balance, body.AccountType));
         return result is null ? Results.NotFound() : Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 

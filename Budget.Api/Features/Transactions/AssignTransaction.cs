@@ -34,7 +34,7 @@ public static class AssignTransaction
       {
         var result = await sender.Send(command);
         return result ? Results.Ok() : Results.NotFound();
-      });
+      }).RequireAuthorization();
     }
   }
 }

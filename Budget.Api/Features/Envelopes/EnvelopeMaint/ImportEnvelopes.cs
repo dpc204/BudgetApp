@@ -76,7 +76,7 @@ public static class ImportEnvelopes
         }
 
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 

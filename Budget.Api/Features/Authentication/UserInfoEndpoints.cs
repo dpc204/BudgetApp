@@ -42,6 +42,6 @@ public sealed class UserInfoEndpoints : ICarterModule
         Roles = roles
       };
       return Results.Ok(dto);
-    });
+    }).RequireAuthorization();
   }
 }

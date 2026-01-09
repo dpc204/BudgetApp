@@ -57,7 +57,7 @@ public static class UpdateBudgetLock
       {
         var result = await sender.Send(command);
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

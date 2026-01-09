@@ -116,7 +116,7 @@ public static class CopyBudgetToNextMonth
       {
         var result = await sender.Send(command);
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

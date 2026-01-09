@@ -89,7 +89,8 @@ public static class DownloadBackup
       })
       
       .WithName("DownloadBackup")
-      .WithTags("Maintenance");
+      .WithTags("Maintenance")
+      .RequireAuthorization();
     }
   }
 }

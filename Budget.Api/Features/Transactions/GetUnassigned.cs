@@ -30,7 +30,7 @@ public static class GetUnassigned
       {
         var result = await sender.Send(new Query());
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

@@ -62,7 +62,8 @@ public static class GetUserOptions
         var result = await sender.Send(new Query(userId));
         return Results.Ok(result);
       })
-      .WithTags("UserOptions");
+      .WithTags("UserOptions")
+      .RequireAuthorization();
     }
   }
 }

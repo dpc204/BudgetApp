@@ -39,7 +39,7 @@ public static class InsertEnvelope
       {
         var env = await sender.Send(command);
         return Results.Created($"envelopes/maint/{env.Id}", env);
-      });
+      }).RequireAuthorization();
     }
   }
 }

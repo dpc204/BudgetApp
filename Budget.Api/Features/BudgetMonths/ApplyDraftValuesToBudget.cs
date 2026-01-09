@@ -46,7 +46,7 @@ public static class ApplyDraftValuesToBudget
       {
         var result = await sender.Send(new Command());
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

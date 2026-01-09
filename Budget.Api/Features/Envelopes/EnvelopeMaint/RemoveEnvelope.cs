@@ -27,7 +27,7 @@ public static class RemoveEnvelope
       {
         var success = await sender.Send(new Command(id));
         return success ? Results.NoContent() : Results.NotFound($"Envelope with Id {id} not found");
-      });
+      }).RequireAuthorization();
     }
   }
 }

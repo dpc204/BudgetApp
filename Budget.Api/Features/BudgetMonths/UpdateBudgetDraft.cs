@@ -56,7 +56,7 @@ public static class UpdateBudgetDraft
       {
         var result = await sender.Send(command);
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

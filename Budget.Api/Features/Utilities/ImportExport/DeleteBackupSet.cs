@@ -136,7 +136,7 @@ public static class DeleteBackupSet
       {
         var result = await sender.Send(new Command(partitionKey));
         return result.Success ? Results.Ok(result) : Results.BadRequest(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

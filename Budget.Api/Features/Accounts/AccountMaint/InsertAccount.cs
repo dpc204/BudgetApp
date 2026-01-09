@@ -30,7 +30,7 @@ public static class InsertAccount
       {
         var acct = await sender.Send(command);
         return Results.Created($"accounts/maint/{acct.Id}", acct);
-      });
+      }).RequireAuthorization();
     }
   }
 }

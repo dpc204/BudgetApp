@@ -80,7 +80,7 @@ public static class GetBudgetMonth
         var acctPeriod = year * 100 + month;
         var result = await sender.Send(new Query(acctPeriod));
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

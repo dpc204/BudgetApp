@@ -5,6 +5,7 @@ using System.Net.Http;
 using Budget.Api;
 using Budget.DB;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -60,9 +61,27 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
           services.AddDbContext<ApiIdentityContext>(options =>
             options.UseInMemoryDatabase(_identityDbName));
 
-          // Override authentication with test scheme to bypass PolicyScheme issues
-          services.AddAuthentication(defaultScheme: "Test")
-            .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
+          // Remove existing authentication services
+          services.RemoveAll<IAuthenticationService>();
+          services.RemoveAll<IAuthenticationSchemeProvider>();
+          services.RemoveAll<IAuthenticationHandlerProvider>();
+          
+          // Override authentication with test scheme that always succeeds
+          services.AddAuthentication(options =>
+          {
+            options.DefaultScheme = "TestScheme";
+            options.DefaultAuthenticateScheme = "TestScheme";
+            options.DefaultChallengeScheme = "TestScheme";
+          })
+          .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", options => { });
+          
+          // Override authorization to always succeed
+          services.AddAuthorization(options =>
+          {
+            options.DefaultPolicy = new AuthorizationPolicyBuilder()
+              .RequireAssertion(_ => true) // Always authorize
+              .Build();
+          });
         });
       });
 

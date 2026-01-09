@@ -132,7 +132,7 @@ public static class UpdateTransaction
         return result.IsSuccess
           ? Results.Ok(result.Value)
           : Results.NotFound(new { error = result.Errors });
-      });
+      }).RequireAuthorization();
     }
   }
 }

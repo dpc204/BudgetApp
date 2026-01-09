@@ -26,7 +26,7 @@ public static class GetAll
 
         var result = await sender.Send(new Query());
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

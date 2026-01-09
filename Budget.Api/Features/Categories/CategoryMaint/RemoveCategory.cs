@@ -27,7 +27,7 @@ public static class RemoveCategory
       {
         var success = await sender.Send(new Command(id));
         return success ? Results.NoContent() : Results.NotFound($"Category with Id {id} not found");
-      });
+      }).RequireAuthorization();
     }
   }
 }

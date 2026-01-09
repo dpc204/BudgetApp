@@ -40,7 +40,7 @@ public static class UpdateEnvelope
         if (id != body.Id) return Results.BadRequest("Route id and payload id differ.");
         var result = await sender.Send(new Command(body));
         return result is null ? Results.NotFound() : Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 

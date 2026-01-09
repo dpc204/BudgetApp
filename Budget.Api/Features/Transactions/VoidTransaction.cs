@@ -102,7 +102,7 @@ public static class VoidTransaction
         }
         
         return Results.Ok(result.Value);
-      });
+      }).RequireAuthorization();
     }
   }
 }

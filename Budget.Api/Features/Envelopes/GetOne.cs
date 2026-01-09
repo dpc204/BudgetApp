@@ -43,7 +43,7 @@ public static class GetOne
       {
         var result = await sender.Send(new Query(envelopeId));
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

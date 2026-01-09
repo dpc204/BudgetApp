@@ -107,7 +107,7 @@ public static class AddNewTransaction
       {
         var envelopes = await sender.Send(command);
         return Results.Ok(envelopes);
-      });
+      }).RequireAuthorization();
     }
   }
 }

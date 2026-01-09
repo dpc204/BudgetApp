@@ -55,7 +55,7 @@ public static class ClearMonthDrafts
       {
         var result = await sender.Send(command);
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

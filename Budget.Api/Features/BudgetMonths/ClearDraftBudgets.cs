@@ -49,7 +49,7 @@ public static class ClearDraftBudgets
       {
         var result = await sender.Send(new Command());
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

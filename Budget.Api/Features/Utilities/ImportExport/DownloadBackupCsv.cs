@@ -76,7 +76,7 @@ public static class DownloadBackupCsv
         }
 
         return Results.File(result.Content, result.ContentType!, result.FileName!);
-      });
+      }).RequireAuthorization();
     }
   }
 }

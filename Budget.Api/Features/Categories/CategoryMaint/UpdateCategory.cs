@@ -31,7 +31,7 @@ public static class UpdateCategory
         if (id != body.CategoryId) return Results.BadRequest("Route id and payload id differ.");
         var result = await sender.Send(new Command(body.CategoryId, body.Name, body.Description, body.SortOrder));
         return result is null ? Results.NotFound() : Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 

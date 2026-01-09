@@ -55,7 +55,7 @@ public static class ClearMonthBudgets
       {
         var result = await sender.Send(command);
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

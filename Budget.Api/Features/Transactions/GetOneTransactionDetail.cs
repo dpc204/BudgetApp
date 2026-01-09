@@ -71,7 +71,7 @@ public static class GetOneTransactionDetail
       {
         var result = await sender.Send(new Query(transactionId));
         return result is null ? Results.NotFound() : Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

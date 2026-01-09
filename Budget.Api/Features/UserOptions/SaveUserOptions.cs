@@ -61,7 +61,8 @@ public static class SaveUserOptions
         var result = await sender.Send(command);
         return Results.Ok(result);
       })
-      .WithTags("UserOptions");
+      .WithTags("UserOptions")
+      .RequireAuthorization();
     }
   }
 }

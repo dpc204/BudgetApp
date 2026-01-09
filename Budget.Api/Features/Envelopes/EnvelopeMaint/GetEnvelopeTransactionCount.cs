@@ -35,7 +35,7 @@ public static class GetEnvelopeTransactionCount
       {
         var result = await sender.Send(new Query(envelopeId));
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

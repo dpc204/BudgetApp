@@ -31,7 +31,7 @@ public static class InsertCategory
       {
         var cat = await sender.Send(command);
         return Results.Created($"categories/maint/{cat.CategoryId}", cat);
-      });
+      }).RequireAuthorization();
     }
   }
 }

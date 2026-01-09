@@ -38,7 +38,8 @@ public static class GetBackupPlan
         return Results.Ok(result);
       })
       .WithName("GetBackupPlan")
-      .WithTags("Maintenance");
+      .WithTags("Maintenance")
+      .RequireAuthorization();
     }
   }
 }

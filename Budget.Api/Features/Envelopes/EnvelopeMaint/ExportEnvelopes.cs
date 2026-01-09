@@ -40,7 +40,7 @@ public static class ExportEnvelopes
       {
         var csv = await sender.Send(new Query());
         return Results.Text(csv, "text/csv");
-      });
+      }).RequireAuthorization();
     }
   }
 }

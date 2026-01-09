@@ -35,7 +35,7 @@ public static class GetByEnvelopeId
       {
         var result = await sender.Send(new Query(envelope));
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 }

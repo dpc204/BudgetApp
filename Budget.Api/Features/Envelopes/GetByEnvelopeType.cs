@@ -38,7 +38,7 @@ public static class GetByEnvelopeType
             return Results.NotFound();
 
           return Results.Ok(envelope);
-        });
+        }).RequireAuthorization();
     }
   }
 }

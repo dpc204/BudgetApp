@@ -55,7 +55,7 @@ public static class ImportCategories
         }
 
         return Results.Ok(result);
-      });
+      }).RequireAuthorization();
     }
   }
 

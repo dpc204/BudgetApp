@@ -27,7 +27,7 @@ public static class RemoveAccount
       {
         var success = await sender.Send(new Command(id));
         return success ? Results.NoContent() : Results.NotFound($"Account with Id {id} not found");
-      });
+      }).RequireAuthorization();
     }
   }
 }
