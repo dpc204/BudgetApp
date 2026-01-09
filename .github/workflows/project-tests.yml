@@ -6,9 +6,9 @@ on:
       - '**'
 
 jobs:
-test:
-  name: Build and Test
-  runs-on: ubuntu-latest
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
     
   services:
     sqlserver:
