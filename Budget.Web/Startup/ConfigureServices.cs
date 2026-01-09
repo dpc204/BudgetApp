@@ -68,6 +68,7 @@ public static class ConfigureServices
   public static void AddHttpClients(WebApplicationBuilder builder)
   {
     builder.Services.AddHttpContextAccessor();
+    builder.Services.AddSingleton<TokenCacheManager>();
     builder.Services.AddTransient<ForwardAuthCookiesHandler>();
 
     // Get timeout from configuration (default 100 seconds if not specified)

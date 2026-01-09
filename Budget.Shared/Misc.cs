@@ -148,6 +148,9 @@ public static class Misc
   /// </summary>
   public static void LogAllConfigurationSettings(WebApplicationBuilder webApplicationBuilder, ILogger logger)
   {
+    if (!Debugger.IsAttached)
+      return;
+
     if (webApplicationBuilder.Configuration is IConfigurationRoot configRoot)
     {
       var headerMessage = "===================== Configuration Settings by Provider === === === === === === === === === === === === === === === === === === === === === === === === === === === ";

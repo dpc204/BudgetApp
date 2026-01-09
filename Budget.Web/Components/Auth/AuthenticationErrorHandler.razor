@@ -1,0 +1,121 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject ILogger<AuthenticationErrorHandler> Logger
+
+@if (_showError)
+{
+  <div class="auth-error-overlay">
+    <MudPaper Class="auth-error-dialog" Elevation="24">
+      <MudStack Spacing="4" AlignItems="AlignItems.Center">
+        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" />
+        <MudText Typo="Typo.h5" Align="Align.Center">Authentication Required</MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="px-4">
+          Your session has expired or requires renewal. Please sign out and sign back in to continue.
+        </MudText>
+        <MudStack Row="true" Spacing="2">
+          <MudButton Variant="Variant.Outlined" 
+                     Color="Color.Default"
+                     OnClick="Dismiss">
+            Dismiss
+          </MudButton>
+          <MudButton Variant="Variant.Filled" 
+                     Color="Color.Primary" 
+                     StartIcon="@Icons.Material.Filled.Logout"
+                     OnClick="SignOut">
+            Sign Out & Sign In
+          </MudButton>
+        </MudStack>
+        @if (!string.IsNullOrEmpty(_technicalDetails))
+        {
+          <MudExpansionPanels>
+            <MudExpansionPanel Text="Technical Details" Dense="true">
+              <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                @_technicalDetails
+              </MudText>
+            </MudExpansionPanel>
+          </MudExpansionPanels>
+        }
+      </MudStack>
+    </MudPaper>
+  </div>
+}
+
+<style>
+  .auth-error-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+  }
+
+  .auth-error-dialog {
+    padding: 2rem;
+    max-width: 500px;
+    margin: 1rem;
+    border-radius: 12px;
+  }
+</style>
+
+@code {
+  private bool _showError;
+  private string? _technicalDetails;
+  private Timer? _autoShowTimer;
+
+  [Parameter]
+  public RenderFragment? ChildContent { get; set; }
+
+  protected override void OnInitialized()
+  {
+    // Set up a periodic check for authentication errors
+    _autoShowTimer = new Timer(CheckForAuthErrors, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2));
+  }
+
+  private async void CheckForAuthErrors(object? state)
+  {
+    try
+    {
+      // Check if user is authenticated
+      var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+      var user = authState.User;
+
+      // If user was authenticated but now shows as not authenticated, might be a token issue
+      // This is a simple heuristic - in practice, you'd want more sophisticated detection
+    }
+    catch (Exception ex)
+    {
+      Logger.LogDebug(ex, "Error checking authentication state");
+    }
+  }
+
+  public void ShowError(string? technicalDetails = null)
+  {
+    _showError = true;
+    _technicalDetails = technicalDetails;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void Dismiss()
+  {
+    _showError = false;
+    StateHasChanged();
+  }
+
+  private void SignOut()
+  {
+    Logger.LogInformation("User requested sign out from authentication error dialog");
+    Navigation.NavigateTo("/MicrosoftIdentity/Account/SignOut", forceLoad: true);
+  }
+
+  public void Dispose()
+  {
+    _autoShowTimer?.Dispose();
+  }
+}

@@ -3,14 +3,18 @@ namespace Budget.Web.Services;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
+using Budget.Web.Services;
 
 /// <summary>
 /// Forwards Entra ID access tokens to downstream API requests.
 /// Budget.Api uses Entra ID JWT Bearer authentication.
+/// Includes automatic stale token detection and cache clearing.
 /// </summary>
 public sealed class ForwardAuthCookiesHandler(
   ITokenAcquisition tokenAcquisition,
   IConfiguration configuration,
+  TokenCacheManager tokenCacheManager,
+  IHttpContextAccessor httpContextAccessor,
   ILogger<ForwardAuthCookiesHandler> logger) : DelegatingHandler
 {
   protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
@@ -49,25 +53,74 @@ public sealed class ForwardAuthCookiesHandler(
     catch (MicrosoftIdentityWebChallengeUserException ex)
     {
       // User needs to consent or re-authenticate
-      logger.LogError(ex, "? User consent required for {Url}. User needs to sign out and sign back in to grant API access. MsalError: {Error}",
+      logger.LogError(ex, "? User consent required for {Url}. MsalError: {Error}",
         request.RequestUri, ex.MsalUiRequiredException?.ErrorCode);
+      
+      // Auto-detect and clear stale tokens (synchronously to avoid unhandled exceptions)
+      var errorCode = ex.MsalUiRequiredException?.ErrorCode ?? "unknown";
+      if (tokenCacheManager.ShouldClearCache(errorCode, "consent required"))
+      {
+        var userId = httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+        
+        try
+        {
+          // Clear cache synchronously to handle errors properly
+          var cleared = await tokenCacheManager.HandleStaleTokenAsync(userId, cancellationToken);
+          if (cleared)
+          {
+            logger.LogWarning("? Stale token cache cleared. User will be prompted to sign in again.");
+          }
+          else
+          {
+            logger.LogWarning("? Token cache clear was skipped or failed. User may need to manually clear cookies.");
+          }
+        }
+        catch (Exception clearEx)
+        {
+          logger.LogError(clearEx, "? Exception while clearing token cache - continuing with 401 response");
+        }
+      }
       
       // Don't proceed without a token - return 401 with clear error
       var response = new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized)
       {
-        ReasonPhrase = "User consent required - please sign out and sign back in"
+        ReasonPhrase = "Authentication required - please sign out and sign in again"
       };
       return response;
     }
     catch (MsalUiRequiredException ex)
     {
       // MSAL requires UI interaction (consent, MFA, etc.)
-      logger.LogError(ex, "? MSAL UI interaction required for {Url}. User should sign out and sign back in. Error: {Error}, ErrorCode: {ErrorCode}",
+      logger.LogError(ex, "? MSAL UI interaction required for {Url}. Error: {Error}, ErrorCode: {ErrorCode}",
         request.RequestUri, ex.Message, ex.ErrorCode);
+      
+      // Auto-detect and clear stale tokens (synchronously to avoid unhandled exceptions)
+      if (tokenCacheManager.ShouldClearCache(ex.ErrorCode, ex.Message))
+      {
+        var userId = httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+        
+        try
+        {
+          // Clear cache synchronously to handle errors properly
+          var cleared = await tokenCacheManager.HandleStaleTokenAsync(userId, cancellationToken);
+          if (cleared)
+          {
+            logger.LogWarning("? Stale token cache cleared. User will be prompted to sign in again.");
+          }
+          else
+          {
+            logger.LogWarning("? Token cache clear was skipped or failed. User may need to manually clear cookies.");
+          }
+        }
+        catch (Exception clearEx)
+        {
+          logger.LogError(clearEx, "? Exception while clearing token cache - continuing with 401 response");
+        }
+      }
       
       var response = new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized)
       {
-        ReasonPhrase = $"Authentication required: {ex.ErrorCode}"
+        ReasonPhrase = $"Authentication required - please sign out and sign in again"
       };
       return response;
     }

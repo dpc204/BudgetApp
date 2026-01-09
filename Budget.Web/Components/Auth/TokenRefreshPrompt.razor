@@ -1,0 +1,78 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject ILogger<TokenRefreshPrompt> Logger
+
+@if (_showPrompt)
+{
+  <div class="token-refresh-overlay">
+    <MudPaper Class="token-refresh-dialog" Elevation="8">
+      <MudStack Spacing="3" AlignItems="AlignItems.Center">
+        <MudIcon Icon="@Icons.Material.Filled.Refresh" Size="Size.Large" Color="Color.Warning" />
+        <MudText Typo="Typo.h6">Authentication Update Required</MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center">
+          Your authentication tokens have been refreshed. Please reload the page to continue.
+        </MudText>
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary" 
+                   StartIcon="@Icons.Material.Filled.Refresh"
+                   OnClick="RefreshPage">
+          Reload Page
+        </MudButton>
+      </MudStack>
+    </MudPaper>
+  </div>
+}
+
+<style>
+  .token-refresh-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .token-refresh-dialog {
+    padding: 2rem;
+    max-width: 400px;
+    margin: 1rem;
+  }
+</style>
+
+@code {
+  private bool _showPrompt;
+
+  protected override void OnInitialized()
+  {
+    // Listen for 401 errors from the API
+    // This would be triggered by the ForwardAuthCookiesHandler
+    Navigation.LocationChanged += OnLocationChanged;
+  }
+
+  private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+  {
+    // Check if we need to show the prompt based on query parameters
+    var uri = new Uri(Navigation.Uri);
+    if (uri.Query.Contains("tokenRefresh=true"))
+    {
+      _showPrompt = true;
+      StateHasChanged();
+    }
+  }
+
+  private void RefreshPage()
+  {
+    Logger.LogInformation("User requested page refresh after token cache clear");
+    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+  }
+
+  public void Dispose()
+  {
+    Navigation.LocationChanged -= OnLocationChanged;
+  }
+}
