@@ -5,6 +5,12 @@ on:
     branches:
       - '**'
 
+# Required permissions for dorny/test-reporter to create check runs
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     name: Build and Test
