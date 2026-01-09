@@ -4,7 +4,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 // Add Azure Container Apps Environment (required for PublishAsAzureContainerApp)
 // WithAzdResourceNaming() makes it reference the existing environment created by azd
-builder.AddAzureContainerAppEnvironment("cae")
+var cae = builder.AddAzureContainerAppEnvironment("cae")
     .WithAzdResourceNaming();
 
 // Get environment variables for Azure deployment
