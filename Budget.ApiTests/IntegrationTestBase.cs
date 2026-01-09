@@ -86,14 +86,12 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
       });
 
     // Seed the Family entity for tests
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    if (!db.Families.Any())
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      if (!db.Families.Any())
-      {
-        db.Families.Add(new Family { Id = 1, Name = "Test Family" });
-        db.SaveChanges();
-      }
+      db.Families.Add(new Family { Id = 1, Name = "Test Family" });
+      db.SaveChanges();
     }
   }
 }

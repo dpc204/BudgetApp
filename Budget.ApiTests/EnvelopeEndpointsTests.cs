@@ -23,31 +23,29 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task GetAllEnvelopes_Should_Return_All_Envelopes()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var envelope1 = TestHelpers.CreateTestEnvelope(id: 400, name: "Groceries", categoryId: "1", balance: 100m);
-      var envelope2 = TestHelpers.CreateTestEnvelope(id: 401, name: "Gas", categoryId: "1", balance: 50m);
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var envelope1 = TestHelpers.CreateTestEnvelope(id: 400, name: "Groceries", categoryId: "1", balance: 100m);
+    var envelope2 = TestHelpers.CreateTestEnvelope(id: 401, name: "Gas", categoryId: "1", balance: 50m);
 
-      db.Envelopes.Add(envelope1);
-      db.Envelopes.Add(envelope2);
-      await db.SaveChangesAsync();
+    db.Envelopes.Add(envelope1);
+    db.Envelopes.Add(envelope2);
+    await db.SaveChangesAsync();
 
-      // Act
-      var response = await Client.GetAsync("/envelopes/getall");
+    // Act
+    var response = await Client.GetAsync("/envelopes/getall");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<List<EnvelopeGetAll.Response>>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<List<EnvelopeGetAll.Response>>();
 
-      result.Should().NotBeNull();
-      result.Should().HaveCount(c => c >= 2);
+    result.Should().NotBeNull();
+    result.Should().HaveCount(c => c >= 2);
 
-      var env1 = result!.FirstOrDefault(e => e.Id == 400);
-      env1.Should().NotBeNull();
-      env1!.Name.Should().Be("Groceries");
-      env1.Balance.Should().Be(100m);
-    }
+    var env1 = result!.FirstOrDefault(e => e.Id == 400);
+    env1.Should().NotBeNull();
+    env1!.Name.Should().Be("Groceries");
+    env1.Balance.Should().Be(100m);
   }
 
 
@@ -59,29 +57,27 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task GetEnvelope_Should_Return_All_Envelopes_With_Details()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 402, name: "Test Envelope", categoryId: "1", balance: 200m);
-      db.Envelopes.Add(envelope);
-      await db.SaveChangesAsync();
+    var envelope = TestHelpers.CreateTestEnvelope(id: 402, name: "Test Envelope", categoryId: "1", balance: 200m);
+    db.Envelopes.Add(envelope);
+    await db.SaveChangesAsync();
 
-      // Act
-      var response = await Client.GetAsync("/envelopes/maint/getall");
+    // Act
+    var response = await Client.GetAsync("/envelopes/maint/getall");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
 
-      result.Should().NotBeNull();
-      result.Should().HaveCount(c => c >= 1);
+    result.Should().NotBeNull();
+    result.Should().HaveCount(c => c >= 1);
 
-      var env = result!.FirstOrDefault(e => e.Id == 402);
-      env.Should().NotBeNull();
-      env!.Name.Should().Be("Test Envelope");
-      env.Balance.Should().Be(200m);
-    }
+    var env = result!.FirstOrDefault(e => e.Id == 402);
+    env.Should().NotBeNull();
+    env!.Name.Should().Be("Test Envelope");
+    env.Balance.Should().Be(200m);
   }
 
   /// <summary>
@@ -91,37 +87,35 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task InsertEnvelope_Should_Create_New_Envelope()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var command = new InsertEnvelope.Command(
-          Name: "New Envelope",
-          Description: "Test description",
-          Balance: 150m,
-          Budget: 200m,
-          CategoryId: "1",
-          SortOrder: 10);
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var command = new InsertEnvelope.Command(
+      Name: "New Envelope",
+      Description: "Test description",
+      Balance: 150m,
+      Budget: 200m,
+      CategoryId: "1",
+      SortOrder: 10);
 
-      // Act
-      var response = await Client.PostAsJsonAsync("/envelopes/maint/Insert", command);
+    // Act
+    var response = await Client.PostAsJsonAsync("/envelopes/maint/Insert", command);
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<InsertEnvelope.Response>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<InsertEnvelope.Response>();
 
-      result.Should().NotBeNull();
-      result!.Name.Should().Be("New Envelope");
-      result.Balance.Should().Be(150m);
-      result.Budget.Should().Be(200m);
-      result.Id.Should().BeGreaterThan(0);
+    result.Should().NotBeNull();
+    result!.Name.Should().Be("New Envelope");
+    result.Balance.Should().Be(150m);
+    result.Budget.Should().Be(200m);
+    result.Id.Should().BeGreaterThan(0);
 
-      // Verify in database
-      db.ChangeTracker.Clear();
-      var savedEnvelope = await db.Envelopes.FindAsync(result.Id);
+    // Verify in database
+    db.ChangeTracker.Clear();
+    var savedEnvelope = await db.Envelopes.FindAsync(result.Id);
 
-      savedEnvelope.Should().NotBeNull();
-      savedEnvelope!.Name.Should().Be("New Envelope");
-    }
+    savedEnvelope.Should().NotBeNull();
+    savedEnvelope!.Name.Should().Be("New Envelope");
   }
 
   /// <summary>
@@ -131,45 +125,43 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task UpdateEnvelope_Should_Update_Existing_Envelope()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+    var envelope = TestHelpers.CreateTestEnvelope(id: 403, name: "Original Name", categoryId: "1", balance: 100m);
+    db.Envelopes.Add(envelope);
+    await db.SaveChangesAsync();
+
+    var commandBody = new EnvelopeUpdateDto()
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+      Id = 403,
+      Name = "Updated Name",
+      Description = "Updated description",
+      Budget = 300m,
+      CategoryId = "1",
+      SortOrder = 5
+    };
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 403, name: "Original Name", categoryId: "1", balance: 100m);
-      db.Envelopes.Add(envelope);
-      await db.SaveChangesAsync();
+    // Act
+    var response = await Client.PutAsJsonAsync("/envelopes/maint/403", commandBody);
 
-      var commandBody = new EnvelopeUpdateDto()
-      {
-        Id = 403,
-        Name = "Updated Name",
-        Description = "Updated description",
-        Budget = 300m,
-        CategoryId = "1",
-        SortOrder = 5
-      };
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<UpdateEnvelope.Response>();
 
-      // Act
-      var response = await Client.PutAsJsonAsync("/envelopes/maint/403", commandBody);
+    result.Should().NotBeNull();
+    result!.envelope.Id.Should().Be(403);
+    result.envelope.Name.Should().Be("Updated Name");
+    result.envelope.Budget.Should().Be(300m);
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<UpdateEnvelope.Response>();
+    // Verify in database
+    db.ChangeTracker.Clear();
+    var updatedEnvelope = await db.Envelopes.FindAsync(403);
 
-      result.Should().NotBeNull();
-      result!.envelope.Id.Should().Be(403);
-      result.envelope.Name.Should().Be("Updated Name");
-      result.envelope.Budget.Should().Be(300m);
-
-      // Verify in database
-      db.ChangeTracker.Clear();
-      var updatedEnvelope = await db.Envelopes.FindAsync(403);
-
-      updatedEnvelope.Should().NotBeNull();
-      updatedEnvelope!.Name.Should().Be("Updated Name");
-      updatedEnvelope.Budget.Should().Be(300m);
-      updatedEnvelope.Balance.Should().Be(100m);  // Balance should not be changed
-    }
+    updatedEnvelope.Should().NotBeNull();
+    updatedEnvelope!.Name.Should().Be("Updated Name");
+    updatedEnvelope.Budget.Should().Be(300m);
+    updatedEnvelope.Balance.Should().Be(100m);  // Balance should not be changed
   }
 
   /// <summary>
@@ -179,25 +171,23 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task UpdateEnvelope_With_Mismatched_Ids_Should_Return_BadRequest()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var commandBody = new EnvelopeUpdateDto()
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var commandBody = new EnvelopeUpdateDto()
-      {
-        Id = 999,
-        Name = "Test",
-        Description = "Test",
-        Budget = null,
-        CategoryId = "1",
-        SortOrder = 1
-      };
+      Id = 999,
+      Name = "Test",
+      Description = "Test",
+      Budget = null,
+      CategoryId = "1",
+      SortOrder = 1
+    };
 
-      // Act
-      var response = await Client.PutAsJsonAsync("/envelopes/maint/404", commandBody);
+    // Act
+    var response = await Client.PutAsJsonAsync("/envelopes/maint/404", commandBody);
 
-      // Assert
-      response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
-    }
+    // Assert
+    response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
   }
 
   /// <summary>
@@ -207,26 +197,24 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task RemoveEnvelope_Should_Delete_Envelope()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 405, name: "To Delete", categoryId: "1", balance: 50m);
-      db.Envelopes.Add(envelope);
-      await db.SaveChangesAsync();
+    var envelope = TestHelpers.CreateTestEnvelope(id: 405, name: "To Delete", categoryId: "1", balance: 50m);
+    db.Envelopes.Add(envelope);
+    await db.SaveChangesAsync();
 
-      // Act
-      var response = await Client.DeleteAsync("/envelopes/maint/405");
+    // Act
+    var response = await Client.DeleteAsync("/envelopes/maint/405");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
+    // Assert
+    response.EnsureSuccessStatusCode();
+    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
 
-      // Verify deletion in database
-      db.ChangeTracker.Clear();
-      var deletedEnvelope = await db.Envelopes.FindAsync(405);
-      deletedEnvelope.Should().BeNull();
-    }
+    // Verify deletion in database
+    db.ChangeTracker.Clear();
+    var deletedEnvelope = await db.Envelopes.FindAsync(405);
+    deletedEnvelope.Should().BeNull();
   }
 
   /// <summary>
@@ -236,16 +224,14 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task RemoveEnvelope_With_NonExistent_Envelope_Should_Return_NotFound()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      // Act
-      var response = await Client.DeleteAsync("/envelopes/maint/99999");
+    // Act
+    var response = await Client.DeleteAsync("/envelopes/maint/99999");
 
-      // Assert
-      response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
-    }
+    // Assert
+    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
   }
 
   /// <summary>
@@ -255,40 +241,38 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task GetEnvelopeTransactionCount_Should_Return_Transaction_Count()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+    var account = TestHelpers.CreateTestAccount(id: 406, balance: 1000m);
+    db.BankAccounts.Add(account);
+
+    var envelope = TestHelpers.CreateTestEnvelope(id: 406, name: "Test Envelope", categoryId: "1", balance: 500m);
+    db.Envelopes.Add(envelope);
+
+    var details = new List<TransactionDetail>
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+      TestHelpers.CreateTestTransactionDetail(transactionId: 406, lineId: 1, envelopeId: envelope.Id, amount: 50m),
+      TestHelpers.CreateTestTransactionDetail(transactionId: 407, lineId: 1, envelopeId: envelope.Id, amount: 75m)
+    };
 
-      var account = TestHelpers.CreateTestAccount(id: 406, balance: 1000m);
-      db.BankAccounts.Add(account);
+    var transaction1 = TestHelpers.CreateTestTransaction(id: 406, accountId: account.Id, totalAmount: 50m, details: [details[0]]);
+    var transaction2 = TestHelpers.CreateTestTransaction(id: 407, accountId: account.Id, totalAmount: 75m, details: [details[1]]);
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 406, name: "Test Envelope", categoryId: "1", balance: 500m);
-      db.Envelopes.Add(envelope);
+    db.Transactions.Add(transaction1);
+    db.Transactions.Add(transaction2);
+    await db.SaveChangesAsync();
 
-      var details = new List<TransactionDetail>
-      {
-        TestHelpers.CreateTestTransactionDetail(transactionId: 406, lineId: 1, envelopeId: envelope.Id, amount: 50m),
-        TestHelpers.CreateTestTransactionDetail(transactionId: 407, lineId: 1, envelopeId: envelope.Id, amount: 75m)
-      };
+    // Act
+    var response = await Client.GetAsync($"/envelopes/maint/{envelope.Id}/transaction-count");
 
-      var transaction1 = TestHelpers.CreateTestTransaction(id: 406, accountId: account.Id, totalAmount: 50m, details: [details[0]]);
-      var transaction2 = TestHelpers.CreateTestTransaction(id: 407, accountId: account.Id, totalAmount: 75m, details: [details[1]]);
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<GetEnvelopeTransactionCount.Response>();
 
-      db.Transactions.Add(transaction1);
-      db.Transactions.Add(transaction2);
-      await db.SaveChangesAsync();
-
-      // Act
-      var response = await Client.GetAsync($"/envelopes/maint/{envelope.Id}/transaction-count");
-
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<GetEnvelopeTransactionCount.Response>();
-
-      result.Should().NotBeNull();
-      result!.EnvelopeId.Should().Be(envelope.Id);
-      result.TransactionCount.Should().Be(2);
-    }
+    result.Should().NotBeNull();
+    result!.EnvelopeId.Should().Be(envelope.Id);
+    result.TransactionCount.Should().Be(2);
   }
 
   /// <summary>
@@ -298,26 +282,24 @@ public class EnvelopeEndpointTests2 : IntegrationTestBase
   public async Task ImportEnvelopes_Should_Import_From_CSV()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var csvContent = "Name,Description,Balance,Budget,CategoryId,SortOrder\nImported Env 1,Desc 1,100,200,1,1\nImported Env 2,Desc 2,150,250,1,2";
+
+    var request = new ImportEnvelopes.ImportRequest
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var csvContent = "Name,Description,Balance,Budget,CategoryId,SortOrder\nImported Env 1,Desc 1,100,200,1,1\nImported Env 2,Desc 2,150,250,1,2";
+      CsvContent = csvContent
+    };
 
-      var request = new ImportEnvelopes.ImportRequest
-      {
-        CsvContent = csvContent
-      };
+    // Act
+    var response = await Client.PostAsJsonAsync("/envelopes/maint/import", request);
 
-      // Act
-      var response = await Client.PostAsJsonAsync("/envelopes/maint/import", request);
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<ImportEnvelopes.Response>();
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<ImportEnvelopes.Response>();
-
-      result.Should().NotBeNull();
-      result!.ImportedCount.Should().BeGreaterThan(0);
-      result.Errors.Should().BeEmpty();
-    }
+    result.Should().NotBeNull();
+    result!.ImportedCount.Should().BeGreaterThan(0);
+    result.Errors.Should().BeEmpty();
   }
 }

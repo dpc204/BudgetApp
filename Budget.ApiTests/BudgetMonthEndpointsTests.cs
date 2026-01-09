@@ -24,23 +24,21 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
   public async Task GetBudgetMonth_Should_Return_Budget_Data_For_Month()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var year = 2024;
-      var month = 12;
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var year = 2024;
+    var month = 12;
 
-      // Act
-      var response = await Client.GetAsync($"/budgetmonths/{year}/{month}");
+    // Act
+    var response = await Client.GetAsync($"/budgetmonths/{year}/{month}");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<List<GetBudgetMonth.Response>>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<List<GetBudgetMonth.Response>>();
 
-      result.Should().NotBeNull();
-      // Should return data for all envelopes, even if no budget data exists
-      result.Should().HaveCount(c => c >= 0);
-    }
+    result.Should().NotBeNull();
+    // Should return data for all envelopes, even if no budget data exists
+    result.Should().HaveCount(c => c >= 0);
   }
 
   /// <summary>
@@ -50,20 +48,18 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
   public async Task CheckDraftBudgets_Should_Indicate_If_Drafts_Exist()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      // Act
-      var response = await Client.GetAsync("/budgetmonths/hasdrafts");
+    // Act
+    var response = await Client.GetAsync("/budgetmonths/hasdrafts");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<CheckDraftBudgets.Response>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<CheckDraftBudgets.Response>();
 
-      result.Should().NotBeNull();
-      result!.DraftCount.Should().BeGreaterThanOrEqualTo(0);
-    }
+    result.Should().NotBeNull();
+    result!.DraftCount.Should().BeGreaterThanOrEqualTo(0);
   }
 
   /// <summary>
@@ -73,37 +69,35 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
   public async Task UpdateBudgetDraft_Should_Create_Or_Update_Draft()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 600, name: "Test Envelope", categoryId: "1");
-      db.Envelopes.Add(envelope);
-      await db.SaveChangesAsync();
+    var envelope = TestHelpers.CreateTestEnvelope(id: 600, name: "Test Envelope", categoryId: "1");
+    db.Envelopes.Add(envelope);
+    await db.SaveChangesAsync();
 
-      var command = new UpdateBudgetDraft.Command(
-          AcctPeriod: 202412,
-          EnvelopeId: envelope.Id,
-          DraftValue: 500m);
+    var command = new UpdateBudgetDraft.Command(
+      AcctPeriod: 202412,
+      EnvelopeId: envelope.Id,
+      DraftValue: 500m);
 
-      // Act
-      var response = await Client.PutAsJsonAsync("/budgetmonths/draft", command);
+    // Act
+    var response = await Client.PutAsJsonAsync("/budgetmonths/draft", command);
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<UpdateBudgetDraft.Response>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<UpdateBudgetDraft.Response>();
 
-      result.Should().NotBeNull();
-      result!.Success.Should().BeTrue();
+    result.Should().NotBeNull();
+    result!.Success.Should().BeTrue();
 
-      // Verify in database
-      db.ChangeTracker.Clear();
-      var budgetMonth = await db.BudgetMonths
-          .FirstOrDefaultAsync(b => b.AcctPeriod == 202412 && b.EnvelopeId == envelope.Id);
+    // Verify in database
+    db.ChangeTracker.Clear();
+    var budgetMonth = await db.BudgetMonths
+      .FirstOrDefaultAsync(b => b.AcctPeriod == 202412 && b.EnvelopeId == envelope.Id);
 
-      budgetMonth.Should().NotBeNull();
-      budgetMonth!.BudgetDraft.Should().Be(500m);
-    }
+    budgetMonth.Should().NotBeNull();
+    budgetMonth!.BudgetDraft.Should().Be(500m);
   }
 
   /// <summary>
@@ -113,45 +107,43 @@ public class BudgetMonthEndpointsTests : IntegrationTestBase
   public async Task ApplyDraftValuesToBudget_Should_Apply_Drafts_To_Budget()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+    var envelope = TestHelpers.CreateTestEnvelope(id: 601, name: "Test Envelope", categoryId: "1");
+    db.Envelopes.Add(envelope);
+
+    var budgetMonth = new BudgetMonth
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+      AcctPeriod = 202501,
+      EnvelopeId = envelope.Id,
+      Budget = null,
+      BudgetDraft = 300m
+    };
+    db.BudgetMonths.Add(budgetMonth);
+    await db.SaveChangesAsync();
 
-      var envelope = TestHelpers.CreateTestEnvelope(id: 601, name: "Test Envelope", categoryId: "1");
-      db.Envelopes.Add(envelope);
+    var command = new ApplyDraftValuesToBudget.Command();
 
-      var budgetMonth = new BudgetMonth
-      {
-        AcctPeriod = 202501,
-        EnvelopeId = envelope.Id,
-        Budget = null,
-        BudgetDraft = 300m
-      };
-      db.BudgetMonths.Add(budgetMonth);
-      await db.SaveChangesAsync();
+    // Act
+    var response = await Client.PostAsJsonAsync("/budgetmonths/applydrafts", command);
 
-      var command = new ApplyDraftValuesToBudget.Command();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<ApplyDraftValuesToBudget.Response>();
 
-      // Act
-      var response = await Client.PostAsJsonAsync("/budgetmonths/applydrafts", command);
+    result.Should().NotBeNull();
+    result!.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().BeGreaterThan(0);
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<ApplyDraftValuesToBudget.Response>();
+    // Verify in database
+    db.ChangeTracker.Clear();
+    var updated = await db.BudgetMonths
+      .FirstOrDefaultAsync(b => b.AcctPeriod == 202501 && b.EnvelopeId == envelope.Id);
 
-      result.Should().NotBeNull();
-      result!.Success.Should().BeTrue();
-      result.RecordsUpdated.Should().BeGreaterThan(0);
-
-      // Verify in database
-      db.ChangeTracker.Clear();
-      var updated = await db.BudgetMonths
-          .FirstOrDefaultAsync(b => b.AcctPeriod == 202501 && b.EnvelopeId == envelope.Id);
-
-      updated.Should().NotBeNull();
-      updated!.Budget.Should().Be(300m);
-      updated.BudgetDraft.Should().BeNull();
-    }
+    updated.Should().NotBeNull();
+    updated!.Budget.Should().Be(300m);
+    updated.BudgetDraft.Should().BeNull();
   }
 
     /// <summary>

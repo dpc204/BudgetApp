@@ -9,12 +9,12 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for User.Email uppercase trigger functionality
 /// 
-/// NOTE: These tests use SQL Server LocalDB because triggers cannot be tested with EF Core InMemory provider.
+/// NOTE: These tests use SQL Server because triggers cannot be tested with EF Core InMemory provider.
 /// The trigger is a database-level feature that only works with actual SQL Server.
 /// 
-/// To run these tests, you need:
-/// 1. SQL Server LocalDB installed
-/// 2. Run migrations against a test database first
+/// To run these tests:
+/// - Locally: SQL Server LocalDB will be used automatically
+/// - CI/CD: Uses SQL Server from environment variables (LocalBudgetConnection or BudgetConnection)
 /// </summary>
 public class UserEmailTriggerTests : IDisposable
 {
@@ -26,14 +26,37 @@ public class UserEmailTriggerTests : IDisposable
     // Use a unique database name for each test run
     _testDbName = $"BudgetTest_{Guid.NewGuid():N}";
     
+    // Get connection string from environment or use LocalDB as fallback
+    var connectionString = GetConnectionString();
+    
     var options = new DbContextOptionsBuilder<BudgetContext>()
-      .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database={_testDbName};Trusted_Connection=True;TrustServerCertificate=True;")
+      .UseSqlServer(connectionString)
       .Options;
       
     _context = new BudgetContext(options);
     
     // Create database and run migrations
     _context.Database.Migrate();
+  }
+  
+  private string GetConnectionString()
+  {
+    // Check for CI/CD environment variables first
+    var ciConnectionString = Environment.GetEnvironmentVariable("LocalBudgetConnection") 
+                             ?? Environment.GetEnvironmentVariable("BudgetConnection");
+    
+    if (!string.IsNullOrEmpty(ciConnectionString))
+    {
+      // Replace database name in CI connection string
+      var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(ciConnectionString)
+      {
+        InitialCatalog = _testDbName
+      };
+      return builder.ConnectionString;
+    }
+    
+    // Fallback to LocalDB for local development
+    return $"Server=(localdb)\\mssqllocaldb;Database={_testDbName};Trusted_Connection=True;TrustServerCertificate=True;";
   }
   
   [Fact]

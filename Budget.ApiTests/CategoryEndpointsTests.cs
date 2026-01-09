@@ -24,31 +24,29 @@ public class CategoryEndpointsTests : IntegrationTestBase
   public async Task GetCategories_Should_Return_All_Categories()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var category1 = TestHelpers.CreateTestCategory(id: "500", name: "Food", sortOrder: 1);
-      var category2 = TestHelpers.CreateTestCategory(id: "501", name: "Transportation", sortOrder: 2);
+    var category1 = TestHelpers.CreateTestCategory(id: "500", name: "Food", sortOrder: 1);
+    var category2 = TestHelpers.CreateTestCategory(id: "501", name: "Transportation", sortOrder: 2);
 
-      db.Categories.Add(category1);
-      db.Categories.Add(category2);
-      await db.SaveChangesAsync();
+    db.Categories.Add(category1);
+    db.Categories.Add(category2);
+    await db.SaveChangesAsync();
 
-      // Act
-      var response = await Client.GetAsync("/categories/maint/getall");
+    // Act
+    var response = await Client.GetAsync("/categories/maint/getall");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
 
-      result.Should().NotBeNull();
-      result.Should().HaveCount(c => c >= 2);
+    result.Should().NotBeNull();
+    result.Should().HaveCount(c => c >= 2);
 
-      var cat1 = result!.FirstOrDefault(c => c.CategoryId == "500");
-      cat1.Should().NotBeNull();
-      cat1!.Name.Should().Be("Food");
-    }
+    var cat1 = result!.FirstOrDefault(c => c.CategoryId == "500");
+    cat1.Should().NotBeNull();
+    cat1!.Name.Should().Be("Food");
   }
 
   /// <summary>
@@ -58,24 +56,22 @@ public class CategoryEndpointsTests : IntegrationTestBase
   public async Task GetAllByEnvelopeId_Should_Return_All_Categories()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var category = TestHelpers.CreateTestCategory(id: "502", name: "Test Category", sortOrder: 1);
-      db.Categories.Add(category);
-      await db.SaveChangesAsync();
+    var category = TestHelpers.CreateTestCategory(id: "502", name: "Test Category", sortOrder: 1);
+    db.Categories.Add(category);
+    await db.SaveChangesAsync();
 
-      // Act
-      var response = await Client.GetAsync("/categories/getbyenvelopeid");
+    // Act
+    var response = await Client.GetAsync("/categories/getbyenvelopeid");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<List<CategoryGetAll.Response>>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<List<CategoryGetAll.Response>>();
 
-      result.Should().NotBeNull();
-      result.Should().HaveCount(c => c >= 1);
-    }
+    result.Should().NotBeNull();
+    result.Should().HaveCount(c => c >= 1);
   }
 
   /// <summary>
@@ -85,34 +81,32 @@ public class CategoryEndpointsTests : IntegrationTestBase
   public async Task InsertCategory_Should_Create_New_Category()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var command = new InsertCategory.Command(
-          Name: "New Category",
-          Description: "Test description",
-          SortOrder: 10);
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var command = new InsertCategory.Command(
+      Name: "New Category",
+      Description: "Test description",
+      SortOrder: 10);
 
-      // Act
-      var response = await Client.PostAsJsonAsync("/categories/maint/Insert", command);
+    // Act
+    var response = await Client.PostAsJsonAsync("/categories/maint/Insert", command);
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<InsertCategory.Response>();
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<InsertCategory.Response>();
 
-      result.Should().NotBeNull();
-      result!.Name.Should().Be("New Category");
-      result.Description.Should().Be("Test description");
-      result.SortOrder.Should().Be(10);
-      result.CategoryId.Should().NotBeNullOrEmpty();
+    result.Should().NotBeNull();
+    result!.Name.Should().Be("New Category");
+    result.Description.Should().Be("Test description");
+    result.SortOrder.Should().Be(10);
+    result.CategoryId.Should().NotBeNullOrEmpty();
 
-      // Verify in database
-      db.ChangeTracker.Clear();
-      var savedCategory = await db.Categories.FindAsync(result.CategoryId);
+    // Verify in database
+    db.ChangeTracker.Clear();
+    var savedCategory = await db.Categories.FindAsync(result.CategoryId);
 
-      savedCategory.Should().NotBeNull();
-      savedCategory!.Name.Should().Be("New Category");
-    }
+    savedCategory.Should().NotBeNull();
+    savedCategory!.Name.Should().Be("New Category");
   }
 
   /// <summary>
@@ -122,42 +116,40 @@ public class CategoryEndpointsTests : IntegrationTestBase
   public async Task UpdateCategory_Should_Update_Existing_Category()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
+    var category = TestHelpers.CreateTestCategory(id: "503", name: "Original Name", sortOrder: 1);
+    db.Categories.Add(category);
+    await db.SaveChangesAsync();
+
+    var commandBody = new UpdateCategory.CommandBody
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+      CategoryId = "503",
+      Name = "Updated Name",
+      Description = "Updated description",
+      SortOrder = 5
+    };
 
-      var category = TestHelpers.CreateTestCategory(id: "503", name: "Original Name", sortOrder: 1);
-      db.Categories.Add(category);
-      await db.SaveChangesAsync();
+    // Act
+    var response = await Client.PutAsJsonAsync("/categories/maint/503", commandBody);
 
-      var commandBody = new UpdateCategory.CommandBody
-      {
-        CategoryId = "503",
-        Name = "Updated Name",
-        Description = "Updated description",
-        SortOrder = 5
-      };
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<UpdateCategory.Response>();
 
-      // Act
-      var response = await Client.PutAsJsonAsync("/categories/maint/503", commandBody);
+    result.Should().NotBeNull();
+    result!.CategoryId.Should().Be("503");
+    result.Name.Should().Be("Updated Name");
+    result.Description.Should().Be("Updated description");
+    result.SortOrder.Should().Be(5);
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      var result = await response.Content.ReadFromJsonAsync<UpdateCategory.Response>();
+    // Verify in database
+    db.ChangeTracker.Clear();
+    var updatedCategory = await db.Categories.FindAsync("503");
 
-      result.Should().NotBeNull();
-      result!.CategoryId.Should().Be("503");
-      result.Name.Should().Be("Updated Name");
-      result.Description.Should().Be("Updated description");
-      result.SortOrder.Should().Be(5);
-
-      // Verify in database
-      db.ChangeTracker.Clear();
-      var updatedCategory = await db.Categories.FindAsync("503");
-
-      updatedCategory.Should().NotBeNull();
-      updatedCategory!.Name.Should().Be("Updated Name");
-    }
+    updatedCategory.Should().NotBeNull();
+    updatedCategory!.Name.Should().Be("Updated Name");
   }
 
   /// <summary>
@@ -167,23 +159,21 @@ public class CategoryEndpointsTests : IntegrationTestBase
   public async Task UpdateCategory_With_Mismatched_Ids_Should_Return_BadRequest()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var commandBody = new UpdateCategory.CommandBody
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var commandBody = new UpdateCategory.CommandBody
-      {
-        CategoryId = "999",
-        Name = "Test",
-        Description = "Test",
-        SortOrder = 1
-      };
+      CategoryId = "999",
+      Name = "Test",
+      Description = "Test",
+      SortOrder = 1
+    };
 
-      // Act
-      var response = await Client.PutAsJsonAsync("/categories/maint/504", commandBody);
+    // Act
+    var response = await Client.PutAsJsonAsync("/categories/maint/504", commandBody);
 
-      // Assert
-      response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
-    }
+    // Assert
+    response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
   }
 
   /// <summary>
@@ -193,26 +183,24 @@ public class CategoryEndpointsTests : IntegrationTestBase
   public async Task RemoveCategory_Should_Delete_Category()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      var category = TestHelpers.CreateTestCategory(id: "505", name: "To Delete", sortOrder: 1);
-      db.Categories.Add(category);
-      await db.SaveChangesAsync();
+    var category = TestHelpers.CreateTestCategory(id: "505", name: "To Delete", sortOrder: 1);
+    db.Categories.Add(category);
+    await db.SaveChangesAsync();
 
-      // Act
-      var response = await Client.DeleteAsync("/categories/maint/505");
+    // Act
+    var response = await Client.DeleteAsync("/categories/maint/505");
 
-      // Assert
-      response.EnsureSuccessStatusCode();
-      response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
+    // Assert
+    response.EnsureSuccessStatusCode();
+    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
 
-      // Verify deletion in database
-      db.ChangeTracker.Clear();
-      var deletedCategory = await db.Categories.FindAsync("505");
-      deletedCategory.Should().BeNull();
-    }
+    // Verify deletion in database
+    db.ChangeTracker.Clear();
+    var deletedCategory = await db.Categories.FindAsync("505");
+    deletedCategory.Should().BeNull();
   }
 
   /// <summary>
@@ -222,15 +210,13 @@ public class CategoryEndpointsTests : IntegrationTestBase
   public async Task RemoveCategory_With_NonExistent_Category_Should_Return_NotFound()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    using var scope = _factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
 
-      // Act
-      var response = await Client.DeleteAsync("/categories/maint/99999");
+    // Act
+    var response = await Client.DeleteAsync("/categories/maint/99999");
 
-      // Assert
-      response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
-    }
+    // Assert
+    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
   }
 }
