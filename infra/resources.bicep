@@ -169,3 +169,10 @@ output AZURE_STORAGE_BLOB_ENDPOINT string = storageAccount.properties.primaryEnd
 output AZURE_STORAGE_TABLE_ENDPOINT string = storageAccount.properties.primaryEndpoints.table
 output AZURE_KEY_VAULT_NAME string = keyVault.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.properties.vaultUri
+
+// Outputs with CAE_ prefix for Aspire Container Apps Environment resource
+output CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = containerAppEnvironment.name
+output CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = containerAppEnvironment.id
+output CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = containerAppEnvironment.properties.defaultDomain
+output CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.properties.loginServer
+output CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = managedIdentity.id

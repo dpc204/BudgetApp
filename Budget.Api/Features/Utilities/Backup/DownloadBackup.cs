@@ -87,7 +87,7 @@ public static class DownloadBackup
         var result = await sender.Send(new Query(name));
         return result;
       })
-      .RequireAuthorization()
+      
       .WithName("DownloadBackup")
       .WithTags("Maintenance");
     }

@@ -20,5 +20,5 @@ if errorlevel 1 (
   exit /b 1
 )
 echo Entra Redirect URI Binding SUCCEEDED.
-
+date
 ENDLOCAL

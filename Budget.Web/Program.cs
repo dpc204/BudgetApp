@@ -1,4 +1,6 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿var stopWatch = Stopwatch.StartNew();
+
+var builder = WebApplication.CreateBuilder(args);
 var assembly = typeof(App).Assembly;
 
 using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
@@ -86,5 +88,7 @@ ConfigureMiddleware.ConfigurePipeline(app);
 // Map endpoints
 ConfigureMiddleware.MapEndpoints(app);
 
+logger.LogInformation("Program Startup Time: {time}ms", stopWatch.ElapsedMilliseconds);
+Debug.WriteLine($"Program Startup: {stopWatch.ElapsedMilliseconds}");
 app.Run();
 

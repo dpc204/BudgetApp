@@ -1,6 +1,7 @@
 // Global using directives
 
 global using System.ComponentModel.DataAnnotations;
+global using System.Diagnostics;
 global using System.Net.Http;
 global using System.Net.Http.Json;
 global using System.Reflection;

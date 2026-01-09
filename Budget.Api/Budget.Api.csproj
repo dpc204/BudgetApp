@@ -7,6 +7,8 @@
   <UserSecretsId>37834f08-c42f-4f1e-9a80-3911e57d81ac</UserSecretsId>
   <!-- Preserve Carter modules for reflection-based discovery -->
   <PublishTrimmed>false</PublishTrimmed>
+  <!-- Enable ReadyToRun for faster startup -->
+  <PublishReadyToRun>true</PublishReadyToRun>
 </PropertyGroup>
 
   <ItemGroup>

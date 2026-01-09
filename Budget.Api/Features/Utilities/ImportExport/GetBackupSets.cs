@@ -107,7 +107,8 @@ public static class GetBackupSets
           Console.WriteLine("EXCEPTION:!!!!!!!"+e.Message);
           throw;
         }
-      });
+      })
+      ;
     }
   }
 }

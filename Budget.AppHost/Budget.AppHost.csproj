@@ -8,11 +8,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>d438806e-e51e-4407-91ac-ed556ed9cbd2</UserSecretsId>
+    <!-- Enable ReadyToRun for faster startup -->
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.0" />
     <PackageReference Include="Aspire.Hosting.Azure" Version="13.1.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.1.0" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="13.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.18.0-beta.2" />
   </ItemGroup>

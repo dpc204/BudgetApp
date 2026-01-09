@@ -81,7 +81,7 @@ The API provides role-based authorization policies:
 ```csharp
 // Require Admin role
 app.MapGet("/api/admin/users", () => { })
-   .RequireAuthorization();
+   ;
 
 // Require PowerUser or Admin
 app.MapPost("/api/reports", () => { })

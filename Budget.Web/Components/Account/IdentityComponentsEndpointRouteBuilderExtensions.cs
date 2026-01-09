@@ -112,7 +112,7 @@ namespace Budget.Web.Components.Account
                 );
             });
 
-            var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
+            var manageGroup = accountGroup.MapGroup("/Manage");
 
             manageGroup.MapPost("/LinkExternalLogin", async (
                 HttpContext context,

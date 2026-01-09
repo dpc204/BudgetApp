@@ -459,7 +459,7 @@ if (app.Environment.IsDevelopment())
         ClaimCount = allClaims.Count
     });
   })
-  .RequireAuthorization()
+  
   .WithName("GetMyRoles")
   .WithTags("Debug");
 }
