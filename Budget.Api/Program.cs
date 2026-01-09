@@ -52,7 +52,7 @@ Misc.SetupConfigurationSources(builder, assembly, logger);
 // Log all configuration settings with their provider sources
 Misc.LogAllConfigurationSettings(builder, logger);
 
-// Add MediatR
+// Add FantumMediator
 builder.Services.AddFantumMediator();
 
 // Register HttpContextAccessor and CurrentFamilyService for multi-tenancy
