@@ -65,16 +65,23 @@ var isTest = AppDomain.CurrentDomain.GetAssemblies()
                                    || a.FullName.StartsWith("nunit")
                                    || a.FullName.StartsWith("Microsoft.VisualStudio.TestPlatform")));
 
+// Register connection string provider as a singleton
+IConnectionStringProvider connectionStringProvider;
+if (isTest)
+{
+  connectionStringProvider = new ConnectionStringProvider("TestConnection", "TestConnection", useAzureDatabase: false);
+}
+else
+{
+  connectionStringProvider = ConnectionStringProvider.Create(builder, logger);
+}
+builder.Services.AddSingleton<IConnectionStringProvider>(connectionStringProvider);
 
+// Get connection strings from the provider
+var budgetConnectionString = connectionStringProvider.BudgetConnectionString;
+var identityConnectionString = connectionStringProvider.IdentityConnectionString;
 
-// Get connection strings (not required for tests)
-var budgetConnectionString = isTest ? "TestConnection" : Misc.GetConnectionString(builder, Misc.ConnectionStringType.Budget, logger);
-var identityConnectionString = isTest ? "TestConnection" : Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
-
-if (string.IsNullOrWhiteSpace(budgetConnectionString))
-  throw new InvalidOperationException("Missing Budget DB connection string.");
-if (string.IsNullOrWhiteSpace(identityConnectionString))
-  throw new InvalidOperationException("Missing Identity DB connection string.");
+var isDev = builder.Environment.IsDevelopment();
 
 var isDev = builder.Environment.IsDevelopment();
 
