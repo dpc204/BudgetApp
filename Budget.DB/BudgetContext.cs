@@ -16,6 +16,7 @@ namespace Budget.DB
     public DbSet<Favorite> Favorites { get; set; } // <-- add this
     public DbSet<BudgetMonth> BudgetMonths { get; set; }
     public DbSet<SavedUserOptions> SavedUserOptions { get; set; }
+    public DbSet<TransactionImport> TransactionImports { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -37,6 +38,7 @@ namespace Budget.DB
       modelBuilder.ApplyConfiguration(new Favorite.FavoriteConfiguration()); // <-- add this
       modelBuilder.ApplyConfiguration(new BudgetMonth.BudgetMonthConfiguration());
       modelBuilder.ApplyConfiguration(new SavedUserOptions.SavedUserOptionsConfiguration());
+      modelBuilder.ApplyConfiguration(new TransactionImport.TransactionImportConfiguration());
 
       // Apply global query filters for multi-tenancy by FamilyId
       // Only filter when ICurrentFamilyService is available (not in migrations or seeding)
@@ -51,6 +53,7 @@ namespace Budget.DB
         modelBuilder.Entity<Transaction>().HasQueryFilter(e => e.FamilyId == familyId);
         modelBuilder.Entity<Favorite>().HasQueryFilter(e => e.FamilyId == familyId);
         modelBuilder.Entity<BudgetMonth>().HasQueryFilter(e => e.FamilyId == familyId);
+        modelBuilder.Entity<TransactionImport>().HasQueryFilter(e => e.FamilyId == familyId);
       }
 
 #if DEBUG
