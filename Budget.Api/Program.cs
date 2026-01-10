@@ -1,4 +1,4 @@
-using Scalar.AspNetCore;
+﻿using Scalar.AspNetCore;
 using Budget.Api;
 using Budget.Api.Services;
 using ServiceDefaults;
@@ -52,7 +52,7 @@ Misc.SetupConfigurationSources(builder, assembly, logger);
 // Log all configuration settings with their provider sources
 Misc.LogAllConfigurationSettings(builder, logger);
 
-// Add FantumMediator
+// Add MediatR
 builder.Services.AddFantumMediator();
 
 // Register HttpContextAccessor and CurrentFamilyService for multi-tenancy
@@ -83,7 +83,6 @@ var identityConnectionString = connectionStringProvider.IdentityConnectionString
 
 var isDev = builder.Environment.IsDevelopment();
 
-var isDev = builder.Environment.IsDevelopment();
 
 // Configure BudgetContext
 builder.Services.AddDbContext<BudgetContext>(options =>
@@ -210,6 +209,8 @@ authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
     
     if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
     {
+      logger.LogWarning("🔍 SmartJwt: No Bearer token found, defaulting to {Scheme}", 
+        isEntraConfigured ? EntraScheme : LocalScheme);
       // Return default scheme instead of null - PolicySchemeHandler needs a valid scheme
       return isEntraConfigured ? EntraScheme : LocalScheme;
     }
@@ -225,18 +226,23 @@ authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
         var jwtToken = handler.ReadJwtToken(token);
         var issuer = jwtToken.Issuer;
         
+        logger.LogWarning("🔍 SmartJwt: Token issuer: {Issuer}", issuer);
+        
         // If issuer is from Microsoft (Entra ID), use EntraScheme
         if (isEntraConfigured && (issuer.Contains("login.microsoftonline.com") || issuer.Contains("sts.windows.net")))
         {
+          logger.LogWarning("🔍 SmartJwt: Routing to {Scheme}", EntraScheme);
           return EntraScheme;
         }
       }
     }
-    catch
+    catch (Exception ex)
     {
+      logger.LogError(ex, "🔍 SmartJwt: Error reading token");
       // If we can't read the token, try LocalScheme first
     }
     
+    logger.LogWarning("🔍 SmartJwt: Routing to {Scheme}", LocalScheme);
     // Default to LocalScheme for custom tokens
     return LocalScheme;
   };

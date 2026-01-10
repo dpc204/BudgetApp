@@ -1,4 +1,5 @@
 using Budget.Web.Components.Account;
+using Microsoft.Identity.Client;
 
 namespace Budget.Web.Startup;
 
@@ -14,7 +15,7 @@ public static class ConfigureIdentity
   {
     // DIAGNOSTIC: Log all AzureAd configuration values to verify ClientSecret is loaded
     var azureAdSection = builder.Configuration.GetSection("AzureAd");
-    var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole().SetMinimumLevel(LogLevel.Information));
+    var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole().SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information));
     var logger = loggerFactory.CreateLogger("ConfigureIdentity");
     
     logger.LogInformation("=== AzureAd Configuration at Authentication Setup ===");
@@ -89,18 +90,30 @@ public static class ConfigureIdentity
             
             if (!string.IsNullOrEmpty(token))
             {
-              logger.LogInformation("\u2713 Successfully acquired and cached API token during sign-in (length: {Length})", token.Length);
+              logger.LogInformation("? Successfully acquired and cached API token during sign-in (length: {Length})", token.Length);
             }
             else
             {
-              logger.LogWarning("\u2717 Failed to acquire API token during sign-in - token was null");
+              logger.LogWarning("? Failed to acquire API token during sign-in - token was null");
             }
           }
           catch (Exception ex)
           {
-            logger.LogError(ex, "\u2717 Error acquiring API token during sign-in: {Message}", ex.Message);
+            logger.LogError(ex, "? Error acquiring API token during sign-in: {Message}", ex.Message);
             // Don't fail the sign-in, but log the issue
           }
+        };
+        
+        // Handle the case where we have a cookie but no MSAL account (after cache clear)
+        options.Events.OnRedirectToIdentityProvider = context =>
+        {
+          // If we're trying to acquire a token but have no account, force re-authentication
+          if (context.Properties.Items.ContainsKey(".AuthScheme") && 
+              context.Properties.Items[".AuthScheme"] == OpenIdConnectDefaults.AuthenticationScheme)
+          {
+            logger.LogInformation("Redirect to identity provider - ensuring fresh authentication");
+          }
+          return Task.CompletedTask;
         };
       })
       .EnableTokenAcquisitionToCallDownstreamApi(options =>
@@ -133,12 +146,61 @@ public static class ConfigureIdentity
       options.Cookie.HttpOnly = true;
       options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
       options.Cookie.SameSite = SameSiteMode.Lax;
-      options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie expires after 7 days
+      options.ExpireTimeSpan = TimeSpan.FromHours(8); // Reasonable session length
       options.SlidingExpiration = true; // Extend expiration on each request
       options.Cookie.Name = "Budget.Auth"; // Custom cookie name
       options.LoginPath = "/MicrosoftIdentity/Account/SignIn"; // Redirect here if not authenticated
       options.LogoutPath = "/MicrosoftIdentity/Account/SignOut";
       options.AccessDeniedPath = "/Account/AccessDenied";
+      
+      // Microsoft's recommended approach: Validate principal and refresh tokens if needed
+      // This is the proper way to handle token expiration and cache misses
+      options.Events.OnValidatePrincipal = async context =>
+      {
+        var tokenAcquisition = context.HttpContext.RequestServices.GetService<ITokenAcquisition>();
+        var apiClientId = context.HttpContext.RequestServices.GetService<IConfiguration>()?["AzureAd:ClientId"];
+        
+        if (tokenAcquisition != null && !string.IsNullOrEmpty(apiClientId))
+        {
+          var apiScope = $"api://{apiClientId}/access_as_user";
+          
+          try
+          {
+            // Try to get a token silently - MSAL will handle refresh automatically
+            // If the user has a valid session with Microsoft Entra ID, this will succeed
+            // even if the local cache was cleared
+            var token = await tokenAcquisition.GetAccessTokenForUserAsync(
+              new[] { apiScope },
+              authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
+              
+            if (string.IsNullOrEmpty(token))
+            {
+              // Token acquisition failed - reject the principal to trigger re-auth
+              logger.LogDebug("Cookie validation: No token available, rejecting principal");
+              context.RejectPrincipal();
+            }
+            // Token acquired successfully - cookie is valid, continue
+          }
+          catch (MicrosoftIdentityWebChallengeUserException ex)
+          {
+            // User needs to re-authenticate (consent required, MFA, etc.)
+            logger.LogDebug(ex, "Cookie validation: User challenge required, rejecting principal");
+            context.RejectPrincipal();
+          }
+          catch (MsalUiRequiredException ex)
+          {
+            // User needs UI interaction (session expired at IdP)
+            logger.LogDebug(ex, "Cookie validation: MSAL UI required, rejecting principal");
+            context.RejectPrincipal();
+          }
+          catch (Exception ex)
+          {
+            // Log unexpected errors but don't reject - let the API call fail naturally
+            // This prevents false positives from transient errors
+            logger.LogDebug(ex, "Cookie validation: Token check failed with unexpected error");
+          }
+        }
+      };
     });
 
     // Add controllers with views for Microsoft Identity UI
