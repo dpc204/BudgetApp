@@ -20,11 +20,9 @@ public static class ClearTransactionImports
   {
     public async Task<int> Handle(Command request, CancellationToken cancellationToken)
     {
-      var imports = await db.TransactionImports.ToListAsync(cancellationToken);
-      db.TransactionImports.RemoveRange(imports);
-      await db.SaveChangesAsync(cancellationToken);
-
-      return imports.Count;
+      var count = await db.TransactionImports.CountAsync(cancellationToken);
+      await db.TransactionImports.ExecuteDeleteAsync(cancellationToken);
+      return count;
     }
   }
 

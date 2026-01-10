@@ -16,7 +16,7 @@ public class TransactionImport
   public int EnvelopeId { get; set; }
   public string EnvelopeName { get; set; } = string.Empty;
   public int UserId { get; set; }
-  public int FamilyId { get; set; } = 1;
+  public int FamilyId { get; set; }
   public Family Family { get; set; } = null!;
   public DateTime ImportedAt { get; set; }
 

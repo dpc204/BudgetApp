@@ -15,10 +15,12 @@ public static class ImportTransactions
   /// <summary>
   /// Handles bulk import of transactions to staging table
   /// </summary>
-  public class Handler(BudgetContext db) : IRequestHandler<Command, int>
+  public class Handler(BudgetContext db, ICurrentFamilyService currentFamilyService) : IRequestHandler<Command, int>
   {
     public async Task<int> Handle(Command request, CancellationToken cancellationToken)
     {
+      var familyId = currentFamilyService.GetCurrentFamilyId();
+      
       var entities = request.Transactions.Select(dto => new TransactionImport
       {
         Date = dto.Date,
@@ -28,6 +30,7 @@ public static class ImportTransactions
         EnvelopeId = dto.EnvelopeId,
         EnvelopeName = dto.EnvelopeName,
         UserId = dto.UserId,
+        FamilyId = familyId,
         ImportedAt = DateTime.UtcNow
       }).ToList();
 
