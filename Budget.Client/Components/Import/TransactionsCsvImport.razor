@@ -51,13 +51,20 @@
         <MudTh>Description</MudTh>
         <MudTh class="text-end">Amount</MudTh>
         <MudTh>Envelope</MudTh>
+        <MudTh>Duplicate</MudTh>
       </HeaderContent>
       <RowTemplate>
         <MudTd DataLabel="Date">@context.Date.ToShortDateString()</MudTd>
         <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
         <MudTd DataLabel="Description">@context.Description</MudTd>
-        <MudTd DataLabel="Amount" Class="text-end">@context.Amount</MudTd>
-        <MudTd DataLabel="Envelope">@context.EnvelopeId</MudTd>
+        <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("C")</MudTd>
+        <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
+        <MudTd DataLabel="Duplicate">
+          <MudCheckBox Value="@context.Duplicate" 
+                       Color="Color.Warning" 
+                       ValueChanged="@(async (bool value) => { context.Duplicate = value; await OnDuplicateToggled(context); })"
+                       Disabled="Busy" />
+        </MudTd>
       </RowTemplate>
     </MudTable>
   }

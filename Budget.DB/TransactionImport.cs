@@ -19,6 +19,7 @@ public class TransactionImport
   public int FamilyId { get; set; }
   public Family Family { get; set; } = null!;
   public DateTime ImportedAt { get; set; }
+  public bool Duplicate { get; set; } = false;
 
   public class TransactionImportConfiguration : IEntityTypeConfiguration<TransactionImport>
   {

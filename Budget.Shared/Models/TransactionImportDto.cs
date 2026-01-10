@@ -11,4 +11,5 @@ public class TransactionImportDto
   public string EnvelopeName { get; set; } = string.Empty;
   public int UserId { get; set; }
   public DateTime ImportedAt { get; set; }
+  public bool Duplicate { get; set; } = false;
 }

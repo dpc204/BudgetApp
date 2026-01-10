@@ -12,7 +12,7 @@ public partial class TransactionsCsvImport : ComponentBase
 
   protected IBrowserFile? SelectedFile { get; set; }
   protected List<string> Errors { get; } = [];
-  protected List<TransactionDto> Preview { get; } = [];
+  protected List<TransactionImportDto> Preview { get; } = [];
 
   protected List<BankAccountDto> Accounts { get; } = [];
   protected int SelectedAccountId { get; set; }
@@ -114,27 +114,22 @@ public partial class TransactionsCsvImport : ComponentBase
   {
     Preview.Clear();
     var imports = await Api.GetTransactionImportsAsync();
-    
-    // Convert TransactionImportDto to TransactionDto for display
-    foreach (var import in imports)
-    {
-      Preview.Add(new TransactionDto
-      {
-        Date = import.Date,
-        Vendor = import.Vendor,
-        Description = import.Description,
-        Amount = import.Amount,
-        EnvelopeId = import.EnvelopeId,
-        EnvelopeName = import.EnvelopeName,
-        UserId = import.UserId
-      });
-    }
+    Preview.AddRange(imports);
   }
 
   protected async Task ImportAsync()
   {
     if (Preview.Count == 0 || SelectedAccountId == 0)
     {
+      return;
+    }
+
+    // Filter out duplicates
+    var nonDuplicates = Preview.Where(p => !p.Duplicate).ToList();
+    
+    if (nonDuplicates.Count == 0)
+    {
+      Snackbar.Add("No non-duplicate transactions to import", Severity.Warning);
       return;
     }
 
@@ -146,10 +141,10 @@ public partial class TransactionsCsvImport : ComponentBase
     {
       var unassigned = await BudgetMonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
 
-      int totalCount = Preview.Count;
+      int totalCount = nonDuplicates.Count;
       int currentIndex = 0;
 
-      foreach (var rec in Preview)
+      foreach (var rec in nonDuplicates)
       {
         var trans = new OneTransactionDetail
         {
@@ -185,7 +180,7 @@ public partial class TransactionsCsvImport : ComponentBase
       // Clear the staging table after successful import
       await Api.ClearTransactionImportsAsync();
 
-      Snackbar.Add($"Imported {Preview.Count} items across  transactions", Severity.Success);
+      Snackbar.Add($"Imported {nonDuplicates.Count} items across  transactions", Severity.Success);
       Status = "Import complete.";
       Preview.Clear();
       SelectedFile = null;
@@ -200,6 +195,20 @@ public partial class TransactionsCsvImport : ComponentBase
       Busy = false;
       Value = 0;
       await InvokeAsync(StateHasChanged);
+    }
+  }
+
+  protected async Task OnDuplicateToggled(TransactionImportDto import)
+  {
+    // Save the change immediately
+    var success = await Api.UpdateTransactionImportAsync(import.Id, import.Duplicate);
+    if (success)
+    {
+      await InvokeAsync(StateHasChanged);
+    }
+    else
+    {
+      Errors.Add($"Failed to update duplicate flag for transaction {import.Id}");
     }
   }
 

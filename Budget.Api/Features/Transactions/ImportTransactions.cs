@@ -31,13 +31,42 @@ public static class ImportTransactions
         EnvelopeName = dto.EnvelopeName,
         UserId = dto.UserId,
         FamilyId = familyId,
-        ImportedAt = DateTime.UtcNow
+        ImportedAt = DateTime.UtcNow,
+        Duplicate = false
       }).ToList();
 
       db.TransactionImports.AddRange(entities);
       await db.SaveChangesAsync(cancellationToken);
 
+      // Detect duplicates by comparing with existing transactions
+      await DetectDuplicatesAsync(entities, cancellationToken);
+
       return entities.Count;
+    }
+
+    private async Task DetectDuplicatesAsync(List<TransactionImport> imports, CancellationToken cancellationToken)
+    {
+      // Get all existing transactions for the family to compare
+      var existingTransactions = await db.Transactions
+        .Where(t => !t.IsVoided)
+        .Select(t => new { t.Date, t.Vendor, t.TotalAmount })
+        .ToListAsync(cancellationToken);
+
+      // Mark imports as duplicates if they match existing transactions
+      foreach (var import in imports)
+      {
+        var isDuplicate = existingTransactions.Any(t =>
+          t.Date.Date == import.Date.Date &&
+          t.Vendor.Equals(import.Vendor, StringComparison.OrdinalIgnoreCase) &&
+          t.TotalAmount == import.Amount);
+
+        if (isDuplicate)
+        {
+          import.Duplicate = true;
+        }
+      }
+
+      await db.SaveChangesAsync(cancellationToken);
     }
   }
 

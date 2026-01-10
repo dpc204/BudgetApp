@@ -61,6 +61,13 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return result?.Count ?? 0;
   }
 
+  public async Task<bool> UpdateTransactionImportAsync(int id, bool duplicate, CancellationToken cancellationToken = default)
+  {
+    var payload = new { Duplicate = duplicate };
+    using var resp = await http.PutAsJsonAsync($"/Transaction/Import/{id}", payload, cancellationToken);
+    return resp.IsSuccessStatusCode;
+  }
+
   public async Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default)
   {
     using var resp = await http.PostAsync("/api/maintenance/backup-azure-sql", null, cancellationToken);

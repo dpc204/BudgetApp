@@ -34,7 +34,8 @@ public static class GetTransactionImports
           EnvelopeId = t.EnvelopeId,
           EnvelopeName = t.EnvelopeName,
           UserId = t.UserId,
-          ImportedAt = t.ImportedAt
+          ImportedAt = t.ImportedAt,
+          Duplicate = t.Duplicate
         })
         .ToListAsync(cancellationToken);
 
