@@ -320,7 +320,6 @@ if (isRunningOnAzure && !string.IsNullOrWhiteSpace(storageBlobEndpoint))
   {
     ExcludeEnvironmentCredential = false,
     ExcludeManagedIdentityCredential = false,
-    ExcludeSharedTokenCacheCredential = true,
     ExcludeVisualStudioCredential = true,
     ExcludeVisualStudioCodeCredential = true,
     ExcludeAzureCliCredential = true,
@@ -417,9 +416,9 @@ if (app.Environment.IsDevelopment())
         .Select(c => c.Value)
         .ToList();
     
-    var allClaims = user.Claims.Select(c => new { 
-        Type = c.Type, 
-        Value = c.Value,
+    var allClaims = user.Claims.Select(c => new {
+      Type = c.Type,
+      Value = c.Value,
         TypeFriendly = c.Type.Split('/').Last()
     }).ToList();
     

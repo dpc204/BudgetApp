@@ -245,7 +245,7 @@ public partial class Fund : ComponentBase
           targetAmount = budgetAmount - envelope.CurrentBalance;
         break;
       default:
-        throw new ArgumentOutOfRangeException();
+        throw new ArgumentOutOfRangeException(nameof(fillType), fillType, null);
     }
 
     envelope.FundAmount = targetAmount;

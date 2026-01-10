@@ -35,9 +35,11 @@ public sealed class ForwardAuthCookiesHandler(
       
       // Acquire access token for Budget.Api using OpenIdConnect scheme
       // Must specify the scheme because ITokenAcquisition needs to know which token cache to use
+#pragma warning disable IDE0300 // Simplify collection initialization
       var accessToken = await tokenAcquisition.GetAccessTokenForUserAsync(
         new[] { apiScope },
         authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
+#pragma warning restore IDE0300 // Simplify collection initialization
 
       if (!string.IsNullOrEmpty(accessToken))
       {

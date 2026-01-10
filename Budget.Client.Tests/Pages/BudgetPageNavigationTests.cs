@@ -8,7 +8,7 @@ namespace Budget.Client.Tests.Pages;
 /// <summary>
 /// Tests for the Budget page Tab/Enter navigation functionality
 /// </summary>
-public class BudgetPageNavigationTests : TestContext, IDisposable
+public class BudgetPageNavigationTests : BunitContext, IDisposable
 {
   private readonly Mock<IBudgetMonthlyApiClient> _mockBudgetApi;
   private readonly Mock<IDialogService> _mockDialogService;
@@ -100,7 +100,7 @@ public class BudgetPageNavigationTests : TestContext, IDisposable
       .ReturnsAsync(1920);
       
     // Act
-    var width = await _mockJsRuntime.Object.InvokeAsync<int>("windowUtils.getInnerWidth", Array.Empty<object>());
+    var width = await _mockJsRuntime.Object.InvokeAsync<int>("windowUtils.getInnerWidth", []);
     
     // Assert
     Assert.Equal(1920, width);
@@ -119,8 +119,8 @@ public class BudgetPageNavigationTests : TestContext, IDisposable
       
     // Act
     var result = await _mockJsRuntime.Object.InvokeAsync<IJSObjectReference>(
-      "initializeDraftFieldNavigation", 
-      Array.Empty<object>());
+      "initializeDraftFieldNavigation",
+      []);
     
     // Assert
     Assert.Null(result);
@@ -336,11 +336,13 @@ public class FakeAuthenticationStateProvider : AuthenticationStateProvider
 {
   public override Task<AuthenticationState> GetAuthenticationStateAsync()
   {
+#pragma warning disable IDE0300 // Simplify collection initialization
     var identity = new System.Security.Claims.ClaimsIdentity(new[]
     {
       new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "Test User"),
       new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, "test@example.com")
     }, "Test");
+#pragma warning restore IDE0300 // Simplify collection initialization
     
     var user = new System.Security.Claims.ClaimsPrincipal(identity);
     return Task.FromResult(new AuthenticationState(user));

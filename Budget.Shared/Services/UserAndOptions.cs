@@ -49,7 +49,7 @@ public class UserAndOptions : IUserAndOptions
     return HasInfo && User.Roles.Contains("Admin");
   }
 
-  private UserOptions _options = new UserOptions();
+  private UserOptions _options = new();
   public UserOptions Options
   {
     get => _options;

@@ -8,7 +8,7 @@ namespace Budget.Web.Middleware;
 public class AuthCookieValidationMiddleware(RequestDelegate next, ILogger<AuthCookieValidationMiddleware> logger)
 {
   // Track which users have been checked this app instance (by user ID hash)
-  private static readonly HashSet<string> _checkedUsers = new();
+  private static readonly HashSet<string> _checkedUsers = [];
   private static readonly object _lock = new();
   private static DateTime _appStartTime = DateTime.UtcNow;
 

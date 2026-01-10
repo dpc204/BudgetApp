@@ -8,7 +8,6 @@ using Budget.Shared.Services;
 /// Manages token cache operations including detection and clearing of stale tokens
 /// </summary>
 public sealed class TokenCacheManager(
-  IDistributedCache cache,
   IConnectionStringProvider connectionStringProvider,
   ILogger<TokenCacheManager> logger)
 {
@@ -149,18 +148,5 @@ public sealed class TokenCacheManager(
     };
   }
 
-  /// <summary>
-  /// Clears all tokens from the cache on application startup to prevent stale token issues.
-  /// REMOVED: This approach is incorrect for distributed caches.
-  /// Distributed caches are designed to persist tokens across restarts.
-  /// Token validation should happen per-request via OnValidatePrincipal, not at startup.
-  /// </summary>
-  [Obsolete("Do not use - clearing cache on startup breaks cookie-based sessions. Use OnValidatePrincipal instead.")]
-  public async Task ClearCacheOnStartupAsync()
-  {
-    // This method is now a no-op to preserve existing sessions
-    // Token validation happens via OnValidatePrincipal in ConfigureIdentity.cs
-    logger.LogInformation("Skipping token cache clear on startup - using per-request validation instead");
-    await Task.CompletedTask;
-  }
+ 
 }

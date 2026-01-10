@@ -84,9 +84,11 @@ public static class ConfigureIdentity
             var tokenAcquisition = context.HttpContext.RequestServices.GetRequiredService<ITokenAcquisition>();
             
             // Proactively acquire and cache the API token
+#pragma warning disable IDE0300 // Simplify collection initialization
             var token = await tokenAcquisition.GetAccessTokenForUserAsync(
               new[] { apiScope },
               authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
+#pragma warning restore IDE0300 // Simplify collection initialization
             
             if (!string.IsNullOrEmpty(token))
             {
@@ -169,9 +171,11 @@ public static class ConfigureIdentity
             // Try to get a token silently - MSAL will handle refresh automatically
             // If the user has a valid session with Microsoft Entra ID, this will succeed
             // even if the local cache was cleared
+#pragma warning disable IDE0300 // Simplify collection initialization
             var token = await tokenAcquisition.GetAccessTokenForUserAsync(
               new[] { apiScope },
               authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
+#pragma warning restore IDE0300 // Simplify collection initialization
               
             if (string.IsNullOrEmpty(token))
             {

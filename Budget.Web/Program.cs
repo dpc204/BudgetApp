@@ -65,12 +65,6 @@ var app = builder.Build();
 
 Misc.LogAllConfigurationSettings(builder, logger);
 
-// Clear token cache on startup to prevent stale token issues
-using (var scope = app.Services.CreateScope())
-{
-  var tokenCacheManager = scope.ServiceProvider.GetRequiredService<Budget.Web.Services.TokenCacheManager>();
-  await tokenCacheManager.ClearCacheOnStartupAsync();
-}
 
 // Initialize ServiceAccessor with built service provider for parameterless constructors
 ServiceAccessor.Configure(app.Services);
