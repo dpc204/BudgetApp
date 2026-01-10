@@ -44,28 +44,58 @@
 
   @if (Preview.Count > 0)
   {
-    <MudTable Items="Preview" dense="true" Hover="true" Bordered="true" Elevation="0">
-      <HeaderContent>
-        <MudTh>Date</MudTh>
-        <MudTh>Vendor</MudTh>
-        <MudTh>Description</MudTh>
-        <MudTh class="text-end">Amount</MudTh>
-        <MudTh>Envelope</MudTh>
-        <MudTh>Duplicate</MudTh>
-      </HeaderContent>
-      <RowTemplate>
-        <MudTd DataLabel="Date">@context.Date.ToShortDateString()</MudTd>
-        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-        <MudTd DataLabel="Description">@context.Description</MudTd>
-        <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("C")</MudTd>
-        <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
-        <MudTd DataLabel="Duplicate">
-          <MudCheckBox Value="@context.Duplicate" 
-                       Color="Color.Warning" 
-                       ValueChanged="@(async (bool value) => { context.Duplicate = value; await OnDuplicateToggled(context); })"
-                       Disabled="Busy" />
-        </MudTd>
-      </RowTemplate>
-    </MudTable>
+    <MudDataGrid T="TransactionImportDto" 
+                 Items="@Preview" 
+                 Filterable="true"
+                 FilterMode="DataGridFilterMode.ColumnFilterRow"
+                 SortMode="SortMode.Multiple"
+                 Dense="true" 
+                 Hover="true" 
+                 Bordered="true" 
+                 FixedHeader="true"
+                 Height="600px">
+      <Columns>
+        <PropertyColumn Property="x => x.Date" 
+                       Title="Date" 
+                       Format="d"
+                       Filterable="true" 
+                       Sortable="true" />
+        
+        <PropertyColumn Property="x => x.Vendor" 
+                       Title="Vendor" 
+                       Filterable="true" 
+                       Sortable="true" />
+        
+        <PropertyColumn Property="x => x.Description" 
+                       Title="Description" 
+                       Filterable="true" 
+                       Sortable="true" />
+        
+        <PropertyColumn Property="x => x.Amount" 
+                       Title="Amount"
+                       Format="C"
+                       Filterable="true" 
+                       Sortable="true"
+                       CellClass="text-end"
+                       HeaderStyle="text-align: right;" />
+        
+        <PropertyColumn Property="x => x.EnvelopeName" 
+                       Title="Envelope" 
+                       Filterable="true" 
+                       Sortable="true" />
+        
+        <TemplateColumn Title="Duplicate" 
+                       Filterable="false" 
+                       Sortable="true"
+                       SortBy="@(x => x.Duplicate)">
+          <CellTemplate>
+            <MudCheckBox Value="@context.Item.Duplicate" 
+                        Color="Color.Warning" 
+                        ValueChanged="@(async (bool value) => { context.Item.Duplicate = value; await OnDuplicateToggled(context.Item); })"
+                        Disabled="Busy" />
+          </CellTemplate>
+        </TemplateColumn>
+      </Columns>
+    </MudDataGrid>
   }
 </MudStack>

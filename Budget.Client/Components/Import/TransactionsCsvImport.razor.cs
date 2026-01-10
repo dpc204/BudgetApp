@@ -24,6 +24,9 @@ public partial class TransactionsCsvImport : ComponentBase
     Accounts.Clear();
     Accounts.AddRange(accounts);
     SelectedAccountId = Accounts.FirstOrDefault()?.Id ?? 0;
+    
+    // Load any existing staged imports when page loads
+    await LoadPreviewAsync();
   }
 
   protected async Task OnInputFileChange(InputFileChangeEventArgs e)
