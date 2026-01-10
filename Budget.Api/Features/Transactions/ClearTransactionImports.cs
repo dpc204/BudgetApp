@@ -20,8 +20,17 @@ public static class ClearTransactionImports
   {
     public async Task<int> Handle(Command request, CancellationToken cancellationToken)
     {
-      var count = await db.TransactionImports.CountAsync(cancellationToken);
-      await db.TransactionImports.ExecuteDeleteAsync(cancellationToken);
+      // ExecuteDeleteAsync with query filters can be problematic in some EF Core versions
+      // Use ToListAsync then RemoveRange as a more reliable approach
+      var imports = await db.TransactionImports.ToListAsync(cancellationToken);
+      var count = imports.Count;
+      
+      if (count > 0)
+      {
+        db.TransactionImports.RemoveRange(imports);
+        await db.SaveChangesAsync(cancellationToken);
+      }
+      
       return count;
     }
   }
