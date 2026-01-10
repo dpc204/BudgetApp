@@ -4,7 +4,7 @@ public partial class TransactionsCsvImport : ComponentBase
 {
   [Inject] protected IBudgetApiClient Api { get; set; } = default!;
   [Inject] protected ISnackbar Snackbar { get; set; } = default!;
-
+  [Inject] protected IBudgetMonthlyApiClient BudgetMonthlyApi { get; set; } = default!;
   protected bool Busy { get; set; }
   protected string Status { get; set; } = string.Empty;
   protected int ParsedRowsCount => Preview.Count;
@@ -109,8 +109,10 @@ public partial class TransactionsCsvImport : ComponentBase
 
     try
     {
-      var allEnvelopes = await Api.GetEnvelopesAsync();
-      var envelopeByName = allEnvelopes.ToDictionary(e => e.Name, e => e.Id, StringComparer.OrdinalIgnoreCase);
+      //var allEnvelopes = await Api.GetEnvelopesAsync();
+      //var envelopeByName = allEnvelopes.ToDictionary(e => e.Name, e => e.Id, StringComparer.OrdinalIgnoreCase);
+
+      var unassigned = await BudgetMonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
 
       int totalCount = Preview.Count;
       int currentIndex = 0;
@@ -135,7 +137,7 @@ public partial class TransactionsCsvImport : ComponentBase
           Description = rec.Description,
           Amount = rec.Amount,
           Date = rec.Date,
-          EnvelopeId = -1,
+          EnvelopeId = unassigned.Id,
           EnvelopeName = rec.EnvelopeName,
           UserId = rec.UserId
         });
