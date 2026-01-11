@@ -55,78 +55,14 @@ public static class ConfigureIdentity
     var apiClientId = azureAdSection["ClientId"];
     var apiScope = !string.IsNullOrEmpty(apiClientId) ? $"api://{apiClientId}/access_as_user" : "";
     
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-      .AddMicrosoftIdentityWebApp(options =>
-      {
-        azureAdSection.Bind(options);
-        
-        // Request API scope during sign-in so tokens are cached
-        if (!string.IsNullOrEmpty(apiScope))
-        {
-          options.Scope.Clear();
-          options.Scope.Add("openid");
-          options.Scope.Add("profile");
-          options.Scope.Add("offline_access"); // Enables refresh tokens
-          options.Scope.Add(apiScope);
-          logger.LogInformation("Requesting API scope during sign-in: {ApiScope}", apiScope);
-        }
-        
-        // Force token acquisition after successful authentication
-        options.Events.OnTokenValidated = async context =>
-        {
-          if (string.IsNullOrEmpty(apiScope))
-            return;
-            
-          logger.LogInformation("Token validated - attempting to acquire API token for scope: {ApiScope}", apiScope);
-          
-          try
-          {
-            var tokenAcquisition = context.HttpContext.RequestServices.GetRequiredService<ITokenAcquisition>();
-            
-            // Proactively acquire and cache the API token
-#pragma warning disable IDE0300 // Simplify collection initialization
-            var token = await tokenAcquisition.GetAccessTokenForUserAsync(
-              new[] { apiScope },
-              authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
-#pragma warning restore IDE0300 // Simplify collection initialization
-            
-            if (!string.IsNullOrEmpty(token))
-            {
-              logger.LogInformation("? Successfully acquired and cached API token during sign-in (length: {Length})", token.Length);
-            }
-            else
-            {
-              logger.LogWarning("? Failed to acquire API token during sign-in - token was null");
-            }
-          }
-          catch (Exception ex)
-          {
-            logger.LogError(ex, "? Error acquiring API token during sign-in: {Message}", ex.Message);
-            // Don't fail the sign-in, but log the issue
-          }
-        };
-        
-        // Handle the case where we have a cookie but no MSAL account (after cache clear)
-        options.Events.OnRedirectToIdentityProvider = context =>
-        {
-          // If we're trying to acquire a token but have no account, force re-authentication
-          if (context.Properties.Items.ContainsKey(".AuthScheme") && 
-              context.Properties.Items[".AuthScheme"] == OpenIdConnectDefaults.AuthenticationScheme)
-          {
-            logger.LogInformation("Redirect to identity provider - ensuring fresh authentication");
-          }
-          return Task.CompletedTask;
-        };
-      })
-      .EnableTokenAcquisitionToCallDownstreamApi(options =>
-      {
-        // Configure default scopes for token acquisition
-        if (!string.IsNullOrEmpty(apiScope))
-        {
-          logger.LogInformation("Configuring default scope for token acquisition: {ApiScope}", apiScope);
-        }
-      })
+    builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+      .AddMicrosoftIdentityWebApp(azureAdSection)
+      .EnableTokenAcquisitionToCallDownstreamApi(
+        new[] { apiScope } // Automatically acquires and caches API token during sign-in
+      )
       .AddDistributedTokenCaches(); // Uses SQL Server distributed cache configured in ConfigureServices
+    
+    logger.LogInformation("? Configured authentication with automatic token acquisition for scope: {ApiScope}", apiScope);
     
     logger.LogInformation("Token caching configured with distributed cache");
     
