@@ -46,6 +46,21 @@ public sealed class ForwardAuthCookiesHandler(
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         logger.LogInformation("? Added Bearer token for {Url} (token length: {Length})", 
           request.RequestUri, accessToken.Length);
+        
+        // DIAGNOSTIC: Decode and log token claims to troubleshoot 403 errors
+        try
+        {
+          var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+          var jsonToken = handler.ReadToken(accessToken) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
+          var roles = jsonToken?.Claims.Where(c => c.Type == "roles" || c.Type == System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value).ToList();
+          
+          logger.LogWarning("JWT Token roles: {Roles}", roles != null && roles.Any() ? string.Join(", ", roles) : "NONE");
+        }
+        catch (Exception ex)
+        {
+          logger.LogDebug(ex, "Could not decode JWT token");
+        }
       }
       else
       {

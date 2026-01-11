@@ -167,7 +167,8 @@ authBuilder.AddJwtBearer(LocalScheme, options =>
     ValidIssuer = jwtOpt.Issuer,
     ValidAudience = jwtOpt.Audience,
     IssuerSigningKey = key,
-    ClockSkew = TimeSpan.FromMinutes(1)
+    ClockSkew = TimeSpan.FromMinutes(1),
+    RoleClaimType = "roles" // Map roles claim for local JWT too
   };
 });
 
@@ -183,6 +184,29 @@ if (isEntraConfigured)
     
     // Map Azure AD "roles" claims to standard ClaimTypes.Role
     options.TokenValidationParameters.RoleClaimType = "roles";
+    
+    logger.LogWarning("✅ Configured Entra JWT with RoleClaimType = 'roles'");
+    
+    // Add event handler to log claims after validation
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+      OnTokenValidated = context =>
+      {
+        var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}").ToList();
+        logger.LogWarning("🔍 Token validated for {Scheme}. Claims: {Claims}", 
+          EntraScheme, claims != null ? string.Join(", ", claims) : "NONE");
+        
+        var roleClaims = context.Principal?.Claims
+          .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "roles")
+          .Select(c => c.Value)
+          .ToList();
+        
+        logger.LogWarning("🔍 Role claims after mapping: {Roles}", 
+          roleClaims != null && roleClaims.Any() ? string.Join(", ", roleClaims) : "NONE");
+        
+        return Task.CompletedTask;
+      }
+    };
   }, 
   options =>
   {
@@ -265,12 +289,27 @@ builder.Services.AddAuthorization(options =>
   // Admin-only policy
   options.AddPolicy("AdminOnly", policy => policy
     .RequireRole("Admin")
-    .AddAuthenticationSchemes(DynamicScheme));
+    .AddAuthenticationSchemes(DynamicScheme, EntraScheme, LocalScheme));
 
   // Admin policy (alias for AdminOnly - some endpoints use "Admin" instead)
+  // Use RequireAssertion to check both possible claim types
   options.AddPolicy("Admin", policy => policy
-    .RequireRole("Admin")
-    .AddAuthenticationSchemes(DynamicScheme));
+    .RequireAssertion(context =>
+    {
+      var isAdmin = context.User.IsInRole("Admin") ||
+                    context.User.HasClaim("roles", "Admin") ||
+                    context.User.HasClaim(System.Security.Claims.ClaimTypes.Role, "Admin");
+      
+      if (!isAdmin)
+      {
+        logger.LogWarning("❌ Admin authorization failed for user {Name}. Claims: {Claims}",
+          context.User.Identity?.Name ?? "Unknown",
+          string.Join(", ", context.User.Claims.Select(c => $"{c.Type}={c.Value}")));
+      }
+      
+      return isAdmin;
+    })
+    .AddAuthenticationSchemes(DynamicScheme, EntraScheme, LocalScheme));
 
   // PowerUser or above policy
   options.AddPolicy("PowerUserOrAbove", policy => policy

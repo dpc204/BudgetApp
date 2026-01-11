@@ -108,7 +108,7 @@ public static class GetBackupSets
           throw;
         }
       })
-      .RequireAuthorization();
+      .RequireAuthorization("Admin");
     }
   }
 }
