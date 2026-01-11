@@ -1,4 +1,4 @@
-namespace Budget.Client.Components.Envelopes;
+namespace Budget.Client.Pages;
 
 public partial class TransactionAssign : ComponentBase
 {
