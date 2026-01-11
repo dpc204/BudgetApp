@@ -39,7 +39,7 @@ public static class GetBackupPlan
       })
       .WithName("GetBackupPlan")
       .WithTags("Maintenance")
-      .RequireAuthorization();
+      .RequireAuthorization("Admin");
     }
   }
 }
