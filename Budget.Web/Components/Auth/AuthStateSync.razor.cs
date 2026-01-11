@@ -4,14 +4,16 @@ using Budget.Client.Services;
 
 namespace Budget.Web.Components.Auth;
 
+/// <summary>
+/// Synchronizes authentication state with UserAndOptions service.
+/// User options are loaded lazily when first accessed - no manual loading needed.
+/// </summary>
 public sealed partial class AuthStateSync : ComponentBase
 {
   [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
   [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
   [Inject] private IUserAndOptions UserAndOptions { get; set; } = null!;
-  [Inject] private EnvelopeState EnvelopeState { get; set; } = null!;
-  [Inject] private IBudgetApiClient ApiClient { get; set; } = null!;
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -22,39 +24,33 @@ public sealed partial class AuthStateSync : ComponentBase
     await ApplyOnceAsync(state);
   }
 
-  private async Task ApplyOnceAsync(AuthenticationState state)
+  private Task ApplyOnceAsync(AuthenticationState state)
   {
     var user = state.User;
     var isAuth = user?.Identity?.IsAuthenticated == true;
 
     if (isAuth)
     {
-      // Only set once per load
+      // Set user info once - options will load lazily when accessed
       if (!UserAndOptions.HasInfo)
       { 
         var dto = MapToDto(user!);
         UserAndOptions.SetUserInfo(dto);
         
-        // Load user options from the API
-        if (!string.IsNullOrEmpty(dto.Id))
-        {
-          var options = await ApiClient.GetUserOptionsAsync(dto.Id);
-            UserAndOptions.Options = options ?? new();
-          
-        }
-        
-        await EnvelopeState.RefreshAsync();
+        // That's it! Options load automatically when properties are accessed.
+        // No manual loading, no API calls here - just set user info.
       }
     }
     else
     {
-      // Only clear once per load
+      // Clear user info on logout
       if (UserAndOptions.HasInfo)
       {
         UserAndOptions.ClearUserInfo();
-        // No refresh on logout here to keep it minimal; page reload typically follows logout
       }
     }
+    
+    return Task.CompletedTask;
   }
 
   private static string? GetStableUserId(ClaimsPrincipal user)
