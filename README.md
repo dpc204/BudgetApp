@@ -42,7 +42,7 @@ FantumBudget is migrating from ASP.NET Core Identity to **Microsoft Entra ID** f
 - Azure CLI (for deployment)
 - Visual Studio 2022 or VS Code
 
-### Local Development
+### Local Dev
 
 1. Clone the repository:
    ```bash
