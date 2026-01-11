@@ -143,8 +143,10 @@ public sealed class TokenCacheManager(
       "interaction_required" => true,
       "invalid_grant" => true,
       "consent_required" => true,
+      "user_null" => true, // Token cache has no account data - must re-authenticate
       _ => reasonPhrase?.Contains("consent required", StringComparison.OrdinalIgnoreCase) == true ||
-           reasonPhrase?.Contains("stale", StringComparison.OrdinalIgnoreCase) == true
+           reasonPhrase?.Contains("stale", StringComparison.OrdinalIgnoreCase) == true ||
+           reasonPhrase?.Contains("user_null", StringComparison.OrdinalIgnoreCase) == true
     };
   }
 

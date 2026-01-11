@@ -56,9 +56,64 @@ public static class ConfigureIdentity
     var apiScope = !string.IsNullOrEmpty(apiClientId) ? $"api://{apiClientId}/access_as_user" : "";
     
     builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-      .AddMicrosoftIdentityWebApp(azureAdSection)
+      .AddMicrosoftIdentityWebApp(options =>
+      {
+        azureAdSection.Bind(options);
+        
+        // Configure OpenIdConnect events to ensure proper token caching
+        options.Events ??= new Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectEvents();
+        
+        var existingOnTokenValidated = options.Events.OnTokenValidated;
+        options.Events.OnTokenValidated = async context =>
+        {
+          // Call existing handler if any
+          if (existingOnTokenValidated != null)
+          {
+            await existingOnTokenValidated(context);
+          }
+          
+          // Clear any failed session state from TokenCacheValidationMiddleware
+          // This ensures a fresh start after successful re-authentication
+          var sessionId = context.Principal?.FindFirst("sid")?.Value ?? 
+                          context.Principal?.FindFirst("oid")?.Value ??
+                          context.Principal?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+          
+          if (!string.IsNullOrEmpty(sessionId))
+          {
+            Budget.Web.Middleware.TokenCacheValidationMiddleware.ClearSessionValidation(sessionId);
+            logger.LogInformation("Cleared session validation state for {SessionId} after successful token validation", sessionId);
+          }
+          
+          logger.LogInformation("? Token validated for user {User}. Tokens will be cached by Microsoft.Identity.Web.", 
+            context.Principal?.Identity?.Name ?? "unknown");
+        };
+        
+        var existingOnAuthorizationCodeReceived = options.Events.OnAuthorizationCodeReceived;
+        options.Events.OnAuthorizationCodeReceived = async context =>
+        {
+          // Call existing handler if any
+          if (existingOnAuthorizationCodeReceived != null)
+          {
+            await existingOnAuthorizationCodeReceived(context);
+          }
+          
+          logger.LogInformation("? Authorization code received - Microsoft.Identity.Web will exchange for tokens and cache them");
+        };
+        
+        var existingOnTokenResponseReceived = options.Events.OnTokenResponseReceived;
+        options.Events.OnTokenResponseReceived = async context =>
+        {
+          // Call existing handler if any
+          if (existingOnTokenResponseReceived != null)
+          {
+            await existingOnTokenResponseReceived(context);
+          }
+          
+          logger.LogInformation("? Token response received - tokens are now cached in distributed cache");
+        };
+      })
       .EnableTokenAcquisitionToCallDownstreamApi(
-        new[] { apiScope } // Automatically acquires and caches API token during sign-in
+        [apiScope] // Automatically acquires and caches API token during sign-in
       )
       .AddDistributedTokenCaches(); // Uses SQL Server distributed cache configured in ConfigureServices
     
@@ -79,6 +134,7 @@ public static class ConfigureIdentity
     
     logger.LogInformation("Microsoft Entra ID authentication with token acquisition configured successfully");
     loggerFactory.Dispose();
+
 
     // Configure cookie authentication options for the scheme used by Microsoft.Identity.Web
     // Microsoft.Identity.Web uses CookieAuthenticationDefaults.AuthenticationScheme for cookies
