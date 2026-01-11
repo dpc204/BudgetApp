@@ -1,12 +1,12 @@
-using Azure;
 using Budget.Client.Components.Dialogs;
+using Budget.Client.Services;
 using Budget.Shared.Utilities;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace Budget.Client.Pages;
 
-public partial class Fund : ComponentBase
+public partial class Fund(IFundDataService fundDataService, IFundAllocationService allocationService) : ComponentBase
 {
   private bool _loading = true;
   private bool _processing = false;
@@ -53,7 +53,7 @@ public partial class Fund : ComponentBase
   /// Loads fund data for the currently selected month and prepares the component's display rows.
   /// </summary>
   /// <remarks>
-  /// Sets the internal loading flag while fetching month data, populates the internal fund data map and aggregate totals, computes the available-to-fund placeholder value, and rebuilds the UI display rows. Ensures the loading flag is cleared when complete.
+  /// Uses FundDataService to load and transform data, then updates component state with results.
   /// </remarks>
   private async Task LoadFundDataAsync()
   {
@@ -61,86 +61,19 @@ public partial class Fund : ComponentBase
 
     try
     {
-      var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(_selectedMonth.Year, _selectedMonth.Month);
+      var result = await fundDataService.LoadFundDataAsync(_selectedMonth.Year, _selectedMonth.Month);
 
-      var allocateEnvelope =await BudgetMonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unallocated);
+      _fundData = result.FundData;
+      _totalBudget = result.TotalBudget;
+      _totalBalance = result.TotalBalance;
+      _availableToFund = result.AvailableToFund;
 
-      //if(!allocateEnvelope.IsCompletedSuccessfully)
-      //{
-      //  await InvokeAsync(() =>
-      //  { 
-      //    Snackbar.Add(allocateEnvelope.Exception?.Message ?? "Unable to get Unallocated Envelope", Severity.Warning);
-      //  });
-      //  return;
-      //}
-
-      _availableToFund = allocateEnvelope.Balance;
-
-      _fundData = [];
-      _totalBudget = 0;
-      _totalBalance = 0;
-
-      foreach (var item in monthData.Where(a=> a.CategoryType == CatTypes.User))
-      {
-        var envelopeData = new FundEnvelopeData
-        {
-          EnvelopeId = item.EnvelopeId,
-          EnvelopeName = item.EnvelopeName,
-          CategoryId = item.CategoryId,
-          CategoryName = item.CategoryName,
-          CategoryType = item.CategoryType,
-          SortOrder = item.SortOrder,
-          Budget = item.Budget,
-          CurrentBalance = item.Balance, // Placeholder: In production, this would come from Envelope.Balance
-          FundAmount = item.FundAmount
-        };
-        _availableToFund -= envelopeData.FundAmount ?? 0m;
-        _fundData[item.EnvelopeId] = envelopeData;
-
-        // Calculate totals
-        _totalBudget += item.Budget ?? 0;
-        // Placeholder: In production, balance would come from Envelope table
-        _totalBalance = 850.00m;
-      }
-
-
-      BuildDisplayRows();
+      _envelopeRows.Clear();
+      _envelopeRows.AddRange(fundDataService.BuildDisplayRows(_fundData));
     }
     finally
     {
       _loading = false;
-    }
-  }
-
-  /// <summary>
-  /// Builds the list of display rows used by the UI from the current internal fund data, ordered by each envelope's SortOrder.
-  /// </summary>
-  /// <remarks>
-  /// Clears any existing rows and repopulates <see cref="_envelopeRows"/> from <see cref="_fundData"/> entries, copying EnvelopeId, EnvelopeName, CurrentBalance, Budget, and FundAmount for each envelope.
-  /// If <see cref="_fundData"/> is null or empty, the method leaves <see cref="_envelopeRows"/> empty.
-  /// </remarks>
-  private void BuildDisplayRows()
-  {
-    _envelopeRows.Clear();
-
-    if (_fundData == null || _fundData.Count == 0)
-      return;
-
-    // Sort envelopes by SortOrder
-    var sortedEnvelopes = _fundData.Values
-      .OrderBy(e => e.SortOrder)
-      .ToList();
-
-    foreach (var envelope in sortedEnvelopes)
-    {
-      _envelopeRows.Add(new FundDisplayRow
-      {
-        EnvelopeId = envelope.EnvelopeId,
-        EnvelopeName = envelope.EnvelopeName,
-        CurrentBalance = envelope.CurrentBalance,
-        Budget = envelope.Budget,
-        FundAmount = envelope.FundAmount
-      });
     }
   }
 
@@ -190,66 +123,34 @@ public partial class Fund : ComponentBase
   /// Applies the currently selected fill percentage to each envelope's target funding amount for the selected month.
   /// </summary>
   /// <remarks>
-  /// For each envelope with a Budget, sets its FundAmount to the greater of 0 and (Budget * selected percentage) minus CurrentBalance.
-  /// After updating envelopes, rebuilds display rows, requests a UI refresh, and shows a success snackbar indicating the applied fill.
+  /// Uses FundAllocationService to calculate amounts, then updates each envelope and persists changes.
   /// </remarks>
   private async Task AllocateFill()
   {
     if (_fundData == null) return;
 
-    foreach (var envelope in _fundData.Values)
+    var envelopesWithBudget = _fundData.Values.Where(e => e.Budget.HasValue).ToList();
+    var calculations = allocationService.CalculateFundAmounts(envelopesWithBudget, _selectedFillType);
+
+    foreach (var (envelopeId, amount) in calculations)
     {
-      if (envelope.Budget.HasValue)
-      {
-        await AllocateOneEnvelope(envelope);
-      }
+      await UpdateFundAmountAsync(envelopeId, amount);
     }
 
-    BuildDisplayRows();
     StateHasChanged();
-
     Snackbar.Add($"Applied {GetFillButtonText()} to all envelopes", Severity.Success);
   }
 
-  private async Task AllocateOneEnvelope(int envelopeId, FillAmounts oneHundredPercent)
+  private async Task AllocateOneEnvelope(int envelopeId, FillAmounts fillType)
   {
-    var envelope = _fundData?[envelopeId];
-    if (envelope != null)
-      await AllocateOneEnvelope(envelope);
-  }
+    if (_fundData == null || !_fundData.TryGetValue(envelopeId, out var envelope))
+      return;
 
-  private async Task AllocateOneEnvelope(FundEnvelopeData envelope, FillAmounts fillType = FillAmounts.NotSet)
-  {
     if (!envelope.Budget.HasValue)
       return;
 
-
-    if (fillType == FillAmounts.NotSet)
-      fillType = _selectedFillType;
-
-    var budgetAmount = envelope.Budget.Value;
-
-    var targetAmount = 0.0m;
-
-    switch (fillType)
-    {
-      case FillAmounts.OneHundredPercent:
-        targetAmount = budgetAmount;
-        break;
-      case FillAmounts.FiftyPercent:
-        // You may want to implement logic here for 50% fill
-        targetAmount = budgetAmount * .5m;
-        break;
-      case FillAmounts.FillToBudget:
-        if (envelope.CurrentBalance >= budgetAmount)
-          targetAmount = budgetAmount - envelope.CurrentBalance;
-        break;
-      default:
-        throw new ArgumentOutOfRangeException();
-    }
-
-    envelope.FundAmount = targetAmount;
-    await UpdateFundAmountAsync(envelope.EnvelopeId, targetAmount);
+    var amount = allocationService.CalculateFundAmount(envelope.Budget, envelope.CurrentBalance, fillType);
+    await UpdateFundAmountAsync(envelopeId, amount);
   }
 
   /// <summary>
@@ -291,44 +192,6 @@ public partial class Fund : ComponentBase
       catch (Exception ex)
       {
         Snackbar.Add($"Error updating fund amount: {ex.Message}", Severity.Error);
-      }
-    }
-  }
-
-  /// <summary>
-  /// Set an envelope's FundAmount to the amount required to reach its budget for the selected period.
-  /// </summary>
-  /// <param name="envelopeId">The identifier of the envelope to update.</param>
-  /// <remarks>
-  /// If the envelope has no budget defined, no changes are made. When updated, the method rebuilds the display rows, triggers a UI refresh, and shows a success notification.
-  /// </remarks>
-  private async void FillToBudgetForPeriod(int envelopeId)
-  {
-    if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
-    {
-      if (envelope.Budget.HasValue)
-      {
-       await AllocateOneEnvelope(envelope);
-      }
-    }
-  }
-
-  /// <summary>
-  /// Set the fund amount for the specified envelope to its full budget for the selected period.
-  /// </summary>
-  /// <param name="envelopeId">The identifier of the envelope to update.</param>
-  private void AddFullBudgetAmountForPeriod(int envelopeId)
-  {
-    if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
-    {
-      if (envelope.Budget.HasValue)
-      {
-        // Add full budget amount regardless of current balance
-        envelope.FundAmount = envelope.Budget.Value;
-        BuildDisplayRows();
-        StateHasChanged();
-
-        Snackbar.Add($"Set {envelope.EnvelopeName} to full budget amount", Severity.Success);
       }
     }
   }
@@ -421,30 +284,5 @@ public partial class Fund : ComponentBase
         StateHasChanged();
       }
     }
-  }
-
- 
-  // Data models
-  private class FundEnvelopeData
-  {
-    public int EnvelopeId { get; set; }
-    public string EnvelopeName { get; set; } = string.Empty;
-    public string CategoryId { get; set; } = string.Empty;
-    public string CategoryName { get; set; } = string.Empty;
-    public CatTypes CategoryType { get; set; }
-    public int SortOrder { get; set; }
-    public decimal? Budget { get; set; }
-    public decimal CurrentBalance { get; set; }
-    public decimal? FundAmount { get; set; }
-  }
-
-  private class FundDisplayRow
-  {
-    public int EnvelopeId { get; set; }
-    public string EnvelopeName { get; set; } = string.Empty;
-    public decimal CurrentBalance { get; set; }
-    public decimal? Budget { get; set; }
-    public decimal? FundAmount { get; set; }
-    public int UpdateCounter { get; set; }
   }
 }

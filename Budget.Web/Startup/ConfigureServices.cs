@@ -201,6 +201,11 @@ public static class ConfigureServices
     builder.Services.AddScoped<EnvelopeState>();
     builder.Services.AddSingleton<ThemeService>();
     builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
+    
+    // Register Fund page services
+    builder.Services.AddScoped<IFundAllocationService, FundAllocationService>();
+    builder.Services.AddScoped<IFundDataService, FundDataService>();
+    
     // Do not register IBudgetMonthlyApiClient again here - configured by AddHttpClient
   }
 
