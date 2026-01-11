@@ -1,4 +1,6 @@
-namespace Budget.Client.Components.Envelopes;
+using Budget.Client.Components.Envelopes;
+
+namespace Budget.Client.Pages;
 
 public partial class EnvelopePage : ComponentBase
 {
