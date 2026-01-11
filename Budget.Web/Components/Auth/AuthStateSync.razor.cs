@@ -4,16 +4,14 @@ using Budget.Client.Services;
 
 namespace Budget.Web.Components.Auth;
 
-/// <summary>
-/// Synchronizes authentication state with UserAndOptions service.
-/// User options are loaded lazily when first accessed - no manual loading needed.
-/// </summary>
 public sealed partial class AuthStateSync : ComponentBase
 {
   [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
   [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
   [Inject] private IUserAndOptions UserAndOptions { get; set; } = null!;
+  [Inject] private EnvelopeState EnvelopeState { get; set; } = null!;
+  [Inject] private IBudgetApiClient ApiClient { get; set; } = null!;
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -24,33 +22,43 @@ public sealed partial class AuthStateSync : ComponentBase
     await ApplyOnceAsync(state);
   }
 
-  private Task ApplyOnceAsync(AuthenticationState state)
+  private async Task ApplyOnceAsync(AuthenticationState state)
   {
     var user = state.User;
     var isAuth = user?.Identity?.IsAuthenticated == true;
 
     if (isAuth)
     {
-      // Set user info once - options will load lazily when accessed
+      // Only set user info once per load
+      // Options will be loaded lazily when first accessed via EnsureOptionsLoadedAsync()
       if (!UserAndOptions.HasInfo)
       { 
         var dto = MapToDto(user!);
         UserAndOptions.SetUserInfo(dto);
         
-        // That's it! Options load automatically when properties are accessed.
-        // No manual loading, no API calls here - just set user info.
+        // Don't load options here - too early in auth pipeline
+        // Components that need options should call: await UserAndOptions.EnsureOptionsLoadedAsync()
+        
+        //try
+        //{
+        //  await EnvelopeState.RefreshAsync();
+        //}
+        //catch (Exception ex)
+        //{
+        //  // Log but don't fail
+        //  Console.WriteLine($"Failed to refresh envelope state: {ex.Message}");
+        //}
       }
     }
     else
     {
-      // Clear user info on logout
+      // Only clear once per load
       if (UserAndOptions.HasInfo)
       {
         UserAndOptions.ClearUserInfo();
+        // No refresh on logout here to keep it minimal; page reload typically follows logout
       }
     }
-    
-    return Task.CompletedTask;
   }
 
   private static string? GetStableUserId(ClaimsPrincipal user)
