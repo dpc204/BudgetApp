@@ -6,6 +6,7 @@ global using System.Net.Http.Json;
 global using System.Text;
 global using Budget.Client;
 global using Budget.Client.Components.Transactions;
+global using Budget.Client.Services;
 global using Budget.Shared.Enums;
 global using Budget.Shared.Models;
 global using Budget.Shared.Services;

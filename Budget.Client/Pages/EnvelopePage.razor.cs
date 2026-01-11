@@ -2,16 +2,15 @@ using Budget.Client.Components.Envelopes;
 
 namespace Budget.Client.Pages;
 
-public partial class EnvelopePage : ComponentBase
+public partial class EnvelopePage(
+  IEnvelopeDataService dataService,
+  IEnvelopeTransactionService transactionService,
+  EnvelopeState state,
+  ILogger<EnvelopePage> logger) : ComponentBase
 {
-  [Inject] private EnvelopeState State { get; set; } = default!;
-  [Inject] private IBudgetApiClient Api { get; set; } = default!;
-  [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-  [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
-  [Inject] private IDialogService DialogService { get; set; } = default!;
   [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
 
-  public List<EnvelopeResult> AllEnvelopeData => State.AllEnvelopeData ?? [];
+  public List<EnvelopeResult> AllEnvelopeData => state.AllEnvelopeData ?? [];
   public List<EnvelopeResult> SelectedEnvelopeData { get; set; } = [];
   public List<TransactionDto> TransactionData { get; set; } = [];
 
@@ -48,8 +47,8 @@ public partial class EnvelopePage : ComponentBase
   {
     try
     {
-      State.InOnInitializedAsync = true;
-      await State.RefreshAsync();
+      state.InOnInitializedAsync = true;
+      await state.RefreshAsync();
 
       // Ensure selection class applied on first render when an item is already selected
       await InvokeAsync(StateHasChanged);
@@ -57,14 +56,14 @@ public partial class EnvelopePage : ComponentBase
     catch (Exception ex)
     {
       _loadError = ex.Message;
-      if (Logger.IsEnabled(LogLevel.Error))
+      if (logger.IsEnabled(LogLevel.Error))
       {
-        Logger.LogError(ex, "Error in OnInitializedAsync");
+        logger.LogError(ex, "Error in OnInitializedAsync");
       }
     }
     finally
     {
-      State.InOnInitializedAsync = false;
+      state.InOnInitializedAsync = false;
     }
   }
 
@@ -76,22 +75,16 @@ public partial class EnvelopePage : ComponentBase
 
       try
       {
-        await State.TryLoadFromCacheAsync();
-        if (!State.IsLoaded)
-        {
-          await State.RefreshAsync();
-        }
-
-        SelectedCategoryId = UserOptions.Options.SelectedCategoryType;
-
-
-        CategoriesForSelect = GetCategoriesForSelect();
+        var result = await dataService.LoadEnvelopeDataAsync();
+        
+        SelectedCategoryId = result.SelectedCategoryId;
+        CategoriesForSelect = result.Categories;
         ApplyCategorySelection();
       }
       catch (Exception ex)
       {
         _loadError = ex.Message;
-        Logger.LogError(ex, "Error in OnAfterRenderAsync");
+        logger.LogError(ex, "Error in OnAfterRenderAsync");
       }
       finally
       {
@@ -110,24 +103,12 @@ public partial class EnvelopePage : ComponentBase
 
   private void ApplyCategorySelection()
   {
-    var selected = SelectedCategoryId ?? "0";
+    SelectedEnvelopeData = dataService.ApplyCategoryFilter(
+      AllEnvelopeData,
+      CategoriesForSelect,
+      SelectedCategoryId);
 
-    var list = new List<EnvelopeResult>();
-
-    //var list = selected == 0
-    //  ? AllEnvelopeData?.ToList() ?? []
-    //  : AllEnvelopeData?.Where(a => a.CategoryId == selected).ToList() ?? [];
-    if (SelectedCategoryId == "0")
-    {
-      list = [.. (AllEnvelopeData!.Join(CategoriesForSelect, e => e.CategoryId, c => c.CategoryId, (e, c) => e))];
-    }
-    else
-      list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
-    // list = [.. AllEnvelopeData.Where(a => a.CategoryId == SelectedCategoryId).OrderBy(a => a.EnvelopeId)];
-
-    SelectedEnvelopeData = list;
-
-    if (_selectedEnvelope is not null && list.All(e => e.EnvelopeId != _selectedEnvelope.EnvelopeId))
+    if (_selectedEnvelope is not null && SelectedEnvelopeData.All(e => e.EnvelopeId != _selectedEnvelope.EnvelopeId))
     {
       // Clear selection if it's no longer in the filtered list; will also clear transactions
       SelectedEnvelope = null;
@@ -138,16 +119,13 @@ public partial class EnvelopePage : ComponentBase
 
   public string? SelectedCategoryId
   {
-    get => State.SelectedCategoryId;
-    set => State.SelectedCategoryId = value;
+    get => state.SelectedCategoryId;
+    set => state.SelectedCategoryId = value;
   }
 
   public List<Cat> GetCategoriesForSelect()
   {
-    // if (!UserOptions.IsAdminUser())
-//return [.. State.Cats.Where(a => a.CatType != CatTypes.System).OrderBy(a => a.SortOrder)];
-
-    return State.Cats;
+    return dataService.GetCategoriesForSelect();
   }
 
   private async Task CatChanged(string? value)
@@ -156,7 +134,7 @@ public partial class EnvelopePage : ComponentBase
     SelectedCategoryId = selected;
     UserOptions.Options.SelectedCategoryType = selected;
     ApplyCategorySelection();
-    await State.SaveAsync();
+    await dataService.SaveStateAsync();
   }
 
 
@@ -165,46 +143,20 @@ public partial class EnvelopePage : ComponentBase
   {
     if (args?.Item is null) return;
 
-    try
+    var result = await transactionService.ShowTransactionDetailsAsync(args.Item.TransactionId);
+    
+    if (result?.WasEdited == true)
     {
-      var detail = await Api.GetOneTransactionDetailAsync(args.Item.TransactionId);
+      // Refresh envelope data after edit
+      dataService.UpdateEnvelopeBalances(result.UpdatedEnvelopes);
+      ApplyCategorySelection();
+      await dataService.RefreshAsync();
+      await InvokeAsync(StateHasChanged);
 
-      if (UserOptions.IsAdminUser())
+      if (SelectedEnvelope is not null)
       {
-        // Admin users can edit transactions via EditTransactionDialog
-        var parameters = new DialogParameters { [nameof(EditTransactionDialog.ExistingTransaction)] = detail };
-        var options = new DialogOptions
-          { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
-        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", parameters, options);
-        var result = await dialog.Result;
-        if (!(result is { Canceled: true }))
-        {
-          // Refresh envelope data after potential edit
-          if (result?.Data is List<EnvelopeDto> envResult)
-          {
-            UpdateEnvelopeBalances(envResult);
-            ApplyCategorySelection();
-            await State.RefreshAsync();
-            await InvokeAsync(StateHasChanged);
-
-            if (SelectedEnvelope is not null)
-            {
-              await OnSelectedEnvelopeChangedAsync(SelectedEnvelope);
-            }
-          }
-        }
+        await OnSelectedEnvelopeChangedAsync(SelectedEnvelope);
       }
-      else
-      {
-        // Non-admin users see read-only ShowOneTransaction dialog
-        var parameters = new DialogParameters { [nameof(ShowOneTransaction.Transaction)] = detail };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        await DialogService.ShowAsync<ShowOneTransaction>("Transaction Details", parameters, options);
-      }
-    }
-    catch (Exception ex)
-    {
-      Console.Error.WriteLine($"Failed loading transaction detail: {ex.Message}");
     }
   }
 
@@ -223,66 +175,35 @@ public partial class EnvelopePage : ComponentBase
       return;
     }
 
-    try
-    {
-      var rslt = await Api.GetTransactionsByEnvelopeAsync(envelope.EnvelopeId);
-      TransactionData = [.. rslt];
-      await InvokeAsync(StateHasChanged);
-    }
-    catch (Exception ex)
-    {
-      Console.Error.WriteLine($"Failed loading transactions: {ex.Message}");
-      TransactionData = [];
-      await InvokeAsync(StateHasChanged);
-    }
+    TransactionData = await transactionService.LoadTransactionsAsync(envelope.EnvelopeId);
+    await InvokeAsync(StateHasChanged);
   }
 
   private async Task NewTransactionAsync(EnvelopeResult? envelope)
   {
     if (envelope is null)
     {
-      Logger.Log(LogLevel.Debug, $"envelope parameter is null.  Transaction cannot be added");
+      logger.Log(LogLevel.Debug, "envelope parameter is null. Transaction cannot be added");
       return;
     }
 
-    var parameters = new DialogParameters { [nameof(EditTransactionDialog.InitialEnvelopeId)] = envelope.EnvelopeId };
-    var options = new DialogOptions
-      { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
-    var dialog = await DialogService.ShowAsync<EditTransactionDialog>("New Purchase", parameters, options);
-    var result = await dialog.Result;
-    if (!(result is { Canceled: true }))
+    var result = await transactionService.ShowNewTransactionDialogAsync(envelope.EnvelopeId);
+    
+    if (result?.WasEdited == true)
     {
       try
       {
-        // If dialog returned updated envelope DTOs, we can update state directly
+        dataService.UpdateEnvelopeBalances(result.UpdatedEnvelopes);
+        ApplyCategorySelection();
+        await InvokeAsync(StateHasChanged);
 
-        if (result?.Data is List<EnvelopeDto> envResult)
-        {
-          UpdateEnvelopeBalances(envResult); // or merge if there's a method; keeping simple by refresh
-          ApplyCategorySelection();
-          await InvokeAsync(StateHasChanged);
-
-          EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelope.EnvelopeId };
-          await OnSelectedEnvelopeChangedAsync(er);
-        }
+        EnvelopeResult er = new EnvelopeResult() { EnvelopeId = envelope.EnvelopeId };
+        await OnSelectedEnvelopeChangedAsync(er);
       }
       catch (Exception ex)
       {
         Console.Error.WriteLine($"Refresh after new purchase failed: {ex.Message}");
       }
-    }
-  }
-
-  private void UpdateEnvelopeBalances(List<EnvelopeDto> envelopes)
-  {
-    foreach (var env in envelopes)
-    {
-      // Find the matching EnvelopeResult by EnvelopeId
-      var rec = State.AllEnvelopeData?.Find(e => e.EnvelopeId == env.Id);
-      rec?.Balance = env.Balance;
-
-      // You can update properties here if EnvelopeResult is mutable, or handle as needed
-      // Example: if EnvelopeResult is immutable, you may need to replace the item in the list
     }
   }
 
