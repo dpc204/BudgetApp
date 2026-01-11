@@ -3,21 +3,34 @@
 public class UserOptions
 {
   private string? _selectedCategoryType;
+  private FillAmounts _fillAmountType;
 
   public UserOptions()
   {
     _selectedCategoryType = "ALL";
   }
+  
   public string UserId { get; set; } = string.Empty;
+  
+  /// <summary>
+  /// Event raised when any property is being read (before returning value).
+  /// This allows lazy loading to be triggered automatically.
+  /// </summary>
+  public event Func<Task>? PropertyRead;
   
   public FillAmounts FillAmountType
   {
-    get => field;
+    get
+    {
+      // Trigger lazy load before reading
+      OnPropertyRead();
+      return _fillAmountType;
+    }
     set
     {
-      if (field != value)
+      if (_fillAmountType != value)
       {
-        field = value;
+        _fillAmountType = value;
         OnPropertyChanged();
       }
     }
@@ -25,7 +38,12 @@ public class UserOptions
 
   public string? SelectedCategoryType
   {
-    get => _selectedCategoryType;
+    get
+    {
+      // Trigger lazy load before reading
+      OnPropertyRead();
+      return _selectedCategoryType;
+    }
     set
     {
       if (_selectedCategoryType != value)
@@ -44,5 +62,12 @@ public class UserOptions
   private void OnPropertyChanged()
   {
     PropertyChanged?.Invoke();
+  }
+  
+  private void OnPropertyRead()
+  {
+    // Fire and forget - don't block the getter
+    // The async handler will load data in background
+    _ = PropertyRead?.Invoke();
   }
 }

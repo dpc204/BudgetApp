@@ -22,6 +22,10 @@ logger.LogInformation("Instance ID: {InstanceId}", AzureEnvironment.InstanceId ?
 // Configure configuration sources (appsettings, secrets, environment, Key Vault)
 Misc.SetupConfigurationSources(builder, assembly, logger);
 
+// Register connection string provider as a singleton
+var connectionStringProvider = ConnectionStringProvider.Create(builder, logger);
+builder.Services.AddSingleton<IConnectionStringProvider>(connectionStringProvider);
+
 // Configure culture for consistent currency formatting across environments
 ConfigureServices.ConfigureGlobalization(builder);
 
@@ -48,6 +52,7 @@ ConfigureServices.AddApplicationServices(builder);
 
 // Add authentication and authorization
 ConfigureIdentity.AddAuthentication(builder);
+
 ConfigureIdentity.AddAuthorization(builder);
 
 // Add database contexts

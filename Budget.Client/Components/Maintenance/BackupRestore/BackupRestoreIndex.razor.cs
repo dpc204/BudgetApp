@@ -35,7 +35,7 @@ public partial class BackupRestoreIndex : IDisposable
     try
     {
       Logger.LogInformation("Loading backup sets...");
-      _backupSets = (await MaintApiClient.GetBackupSetsAsync()).ToList();
+      _backupSets = [.. (await MaintApiClient.GetBackupSetsAsync())];
       Logger.LogInformation("Loaded {Count} backup sets", _backupSets.Count);
     }
     catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -60,7 +60,7 @@ public partial class BackupRestoreIndex : IDisposable
     try
     {
       Logger.LogInformation("Loading backup set details for: {PartitionKey}", backupSet.PartitionKey);
-      _backupTables = (await MaintApiClient.GetBackupSetDetailsAsync(backupSet.PartitionKey)).ToList();
+      _backupTables = [.. (await MaintApiClient.GetBackupSetDetailsAsync(backupSet.PartitionKey))];
       Logger.LogInformation("Loaded {Count} tables", _backupTables.Count);
     }
     catch (Exception ex)

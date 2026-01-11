@@ -41,6 +41,32 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   public async Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
     => await GetListAsync<BankAccountDto>($"accounts/maint/getall", cancellationToken);
 
+  public async Task<int> ImportTransactionsAsync(List<TransactionImportDto> transactions, CancellationToken cancellationToken = default)
+  {
+    var payload = new { Transactions = transactions };
+    using var resp = await http.PostAsJsonAsync("/Transaction/Import", payload, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<ImportResult>(cancellationToken);
+    return result?.Count ?? 0;
+  }
+
+  public async Task<List<TransactionImportDto>> GetTransactionImportsAsync(CancellationToken cancellationToken = default)
+    => await GetListAsync<TransactionImportDto>("/Transaction/Import", cancellationToken);
+
+  public async Task<int> ClearTransactionImportsAsync(CancellationToken cancellationToken = default)
+  {
+    using var resp = await http.DeleteAsync("/Transaction/Import", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<ImportResult>(cancellationToken);
+    return result?.Count ?? 0;
+  }
+
+  public async Task<bool> UpdateTransactionImportAsync(int id, bool duplicate, CancellationToken cancellationToken = default)
+  {
+    var payload = new { Duplicate = duplicate };
+    using var resp = await http.PutAsJsonAsync($"/Transaction/Import/{id}", payload, cancellationToken);
+    return resp.IsSuccessStatusCode;
+  }
 
   public async Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default)
   {
@@ -197,4 +223,5 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
   private sealed record GetUserOptionsResponse(UserOptions? Options);
   private sealed record SaveUserOptionsCommand(string UserId, UserOptions Options);
+  private sealed record ImportResult(int Count);
 }

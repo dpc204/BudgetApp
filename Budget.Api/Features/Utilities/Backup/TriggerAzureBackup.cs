@@ -106,7 +106,7 @@ public static class TriggerAzureBackup
       
       .WithName("TriggerAzureBackup")
       .WithTags("Maintenance")
-      .RequireAuthorization();
+      .RequireAuthorization("Admin");
     }
   }
 }

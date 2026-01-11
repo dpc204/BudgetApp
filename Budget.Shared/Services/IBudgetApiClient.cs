@@ -16,6 +16,12 @@ public interface IBudgetApiClient
   Task<EnvelopeDto> GetEnvelopeByIdAsync(int envelopeId, CancellationToken cancellationToken = default);
   Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default);
  
+  // Transaction Import
+  Task<int> ImportTransactionsAsync(List<TransactionImportDto> transactions, CancellationToken cancellationToken = default);
+  Task<List<TransactionImportDto>> GetTransactionImportsAsync(CancellationToken cancellationToken = default);
+  Task<int> ClearTransactionImportsAsync(CancellationToken cancellationToken = default);
+  Task<bool> UpdateTransactionImportAsync(int id, bool duplicate, CancellationToken cancellationToken = default);
+
   // Maintenance
   Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default);
 

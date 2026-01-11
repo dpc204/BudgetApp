@@ -90,7 +90,7 @@ public static class DownloadBackup
       
       .WithName("DownloadBackup")
       .WithTags("Maintenance")
-      .RequireAuthorization();
+      .RequireAuthorization("Admin");
     }
   }
 }

@@ -1,4 +1,4 @@
-using Scalar.AspNetCore;
+﻿using Scalar.AspNetCore;
 using Budget.Api;
 using Budget.Api.Services;
 using ServiceDefaults;
@@ -52,7 +52,7 @@ Misc.SetupConfigurationSources(builder, assembly, logger);
 // Log all configuration settings with their provider sources
 Misc.LogAllConfigurationSettings(builder, logger);
 
-// Add FantumMediator
+// Add MediatR
 builder.Services.AddFantumMediator();
 
 // Register HttpContextAccessor and CurrentFamilyService for multi-tenancy
@@ -65,18 +65,24 @@ var isTest = AppDomain.CurrentDomain.GetAssemblies()
                                    || a.FullName.StartsWith("nunit")
                                    || a.FullName.StartsWith("Microsoft.VisualStudio.TestPlatform")));
 
+// Register connection string provider as a singleton
+IConnectionStringProvider connectionStringProvider;
+if (isTest)
+{
+  connectionStringProvider = new ConnectionStringProvider("TestConnection", "TestConnection", useAzureDatabase: false);
+}
+else
+{
+  connectionStringProvider = ConnectionStringProvider.Create(builder, logger);
+}
+builder.Services.AddSingleton<IConnectionStringProvider>(connectionStringProvider);
 
-
-// Get connection strings (not required for tests)
-var budgetConnectionString = isTest ? "TestConnection" : Misc.GetConnectionString(builder, Misc.ConnectionStringType.Budget, logger);
-var identityConnectionString = isTest ? "TestConnection" : Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
-
-if (string.IsNullOrWhiteSpace(budgetConnectionString))
-  throw new InvalidOperationException("Missing Budget DB connection string.");
-if (string.IsNullOrWhiteSpace(identityConnectionString))
-  throw new InvalidOperationException("Missing Identity DB connection string.");
+// Get connection strings from the provider
+var budgetConnectionString = connectionStringProvider.BudgetConnectionString;
+var identityConnectionString = connectionStringProvider.IdentityConnectionString;
 
 var isDev = builder.Environment.IsDevelopment();
+
 
 // Configure BudgetContext
 builder.Services.AddDbContext<BudgetContext>(options =>
@@ -161,7 +167,8 @@ authBuilder.AddJwtBearer(LocalScheme, options =>
     ValidIssuer = jwtOpt.Issuer,
     ValidAudience = jwtOpt.Audience,
     IssuerSigningKey = key,
-    ClockSkew = TimeSpan.FromMinutes(1)
+    ClockSkew = TimeSpan.FromMinutes(1),
+    RoleClaimType = "roles" // Map roles claim for local JWT too
   };
 });
 
@@ -177,6 +184,29 @@ if (isEntraConfigured)
     
     // Map Azure AD "roles" claims to standard ClaimTypes.Role
     options.TokenValidationParameters.RoleClaimType = "roles";
+    
+    logger.LogWarning("✅ Configured Entra JWT with RoleClaimType = 'roles'");
+    
+    // Add event handler to log claims after validation
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+      OnTokenValidated = context =>
+      {
+        var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}").ToList();
+        logger.LogWarning("🔍 Token validated for {Scheme}. Claims: {Claims}", 
+          EntraScheme, claims != null ? string.Join(", ", claims) : "NONE");
+        
+        var roleClaims = context.Principal?.Claims
+          .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "roles")
+          .Select(c => c.Value)
+          .ToList();
+        
+        logger.LogWarning("🔍 Role claims after mapping: {Roles}", 
+          roleClaims != null && roleClaims.Any() ? string.Join(", ", roleClaims) : "NONE");
+        
+        return Task.CompletedTask;
+      }
+    };
   }, 
   options =>
   {
@@ -203,6 +233,8 @@ authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
     
     if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
     {
+      logger.LogWarning("🔍 SmartJwt: No Bearer token found, defaulting to {Scheme}", 
+        isEntraConfigured ? EntraScheme : LocalScheme);
       // Return default scheme instead of null - PolicySchemeHandler needs a valid scheme
       return isEntraConfigured ? EntraScheme : LocalScheme;
     }
@@ -218,18 +250,23 @@ authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
         var jwtToken = handler.ReadJwtToken(token);
         var issuer = jwtToken.Issuer;
         
+        logger.LogWarning("🔍 SmartJwt: Token issuer: {Issuer}", issuer);
+        
         // If issuer is from Microsoft (Entra ID), use EntraScheme
         if (isEntraConfigured && (issuer.Contains("login.microsoftonline.com") || issuer.Contains("sts.windows.net")))
         {
+          logger.LogWarning("🔍 SmartJwt: Routing to {Scheme}", EntraScheme);
           return EntraScheme;
         }
       }
     }
-    catch
+    catch (Exception ex)
     {
+      logger.LogError(ex, "🔍 SmartJwt: Error reading token");
       // If we can't read the token, try LocalScheme first
     }
     
+    logger.LogWarning("🔍 SmartJwt: Routing to {Scheme}", LocalScheme);
     // Default to LocalScheme for custom tokens
     return LocalScheme;
   };
@@ -252,12 +289,27 @@ builder.Services.AddAuthorization(options =>
   // Admin-only policy
   options.AddPolicy("AdminOnly", policy => policy
     .RequireRole("Admin")
-    .AddAuthenticationSchemes(DynamicScheme));
+    .AddAuthenticationSchemes(DynamicScheme, EntraScheme, LocalScheme));
 
   // Admin policy (alias for AdminOnly - some endpoints use "Admin" instead)
+  // Use RequireAssertion to check both possible claim types
   options.AddPolicy("Admin", policy => policy
-    .RequireRole("Admin")
-    .AddAuthenticationSchemes(DynamicScheme));
+    .RequireAssertion(context =>
+    {
+      var isAdmin = context.User.IsInRole("Admin") ||
+                    context.User.HasClaim("roles", "Admin") ||
+                    context.User.HasClaim(System.Security.Claims.ClaimTypes.Role, "Admin");
+      
+      if (!isAdmin)
+      {
+        logger.LogWarning("❌ Admin authorization failed for user {Name}. Claims: {Claims}",
+          context.User.Identity?.Name ?? "Unknown",
+          string.Join(", ", context.User.Claims.Select(c => $"{c.Type}={c.Value}")));
+      }
+      
+      return isAdmin;
+    })
+    .AddAuthenticationSchemes(DynamicScheme, EntraScheme, LocalScheme));
 
   // PowerUser or above policy
   options.AddPolicy("PowerUserOrAbove", policy => policy
@@ -307,7 +359,6 @@ if (isRunningOnAzure && !string.IsNullOrWhiteSpace(storageBlobEndpoint))
   {
     ExcludeEnvironmentCredential = false,
     ExcludeManagedIdentityCredential = false,
-    ExcludeSharedTokenCacheCredential = true,
     ExcludeVisualStudioCredential = true,
     ExcludeVisualStudioCodeCredential = true,
     ExcludeAzureCliCredential = true,
@@ -404,9 +455,9 @@ if (app.Environment.IsDevelopment())
         .Select(c => c.Value)
         .ToList();
     
-    var allClaims = user.Claims.Select(c => new { 
-        Type = c.Type, 
-        Value = c.Value,
+    var allClaims = user.Claims.Select(c => new {
+      Type = c.Type,
+      Value = c.Value,
         TypeFriendly = c.Type.Split('/').Last()
     }).ToList();
     

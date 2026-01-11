@@ -29,21 +29,25 @@ public sealed partial class AuthStateSync : ComponentBase
 
     if (isAuth)
     {
-      // Only set once per load
+      // Only set user info once per load
+      // Options will be loaded lazily when first accessed via EnsureOptionsLoadedAsync()
       if (!UserAndOptions.HasInfo)
       { 
         var dto = MapToDto(user!);
         UserAndOptions.SetUserInfo(dto);
         
-        // Load user options from the API
-        if (!string.IsNullOrEmpty(dto.Id))
-        {
-          var options = await ApiClient.GetUserOptionsAsync(dto.Id);
-            UserAndOptions.Options = options ?? new();
-          
-        }
+        // Don't load options here - too early in auth pipeline
+        // Components that need options should call: await UserAndOptions.EnsureOptionsLoadedAsync()
         
-        await EnvelopeState.RefreshAsync();
+        //try
+        //{
+        //  await EnvelopeState.RefreshAsync();
+        //}
+        //catch (Exception ex)
+        //{
+        //  // Log but don't fail
+        //  Console.WriteLine($"Failed to refresh envelope state: {ex.Message}");
+        //}
       }
     }
     else

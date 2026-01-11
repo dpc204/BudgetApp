@@ -1,4 +1,5 @@
 using Budget.Web.Components.Account;
+using Budget.Web.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Budget.Web.Startup;
@@ -62,6 +63,11 @@ public static class ConfigureMiddleware
     app.UseStatusCodePagesWithReExecute("/not-found");
     app.UseHttpsRedirection();
     app.UseAuthentication();
+    
+    // Validate token cache after authentication but before authorization
+    // This prevents 401 errors when app restarts but browser cookie remains valid
+    app.UseMiddleware<TokenCacheValidationMiddleware>();
+    
     app.UseAuthorization();
     app.UseAntiforgery();
   }

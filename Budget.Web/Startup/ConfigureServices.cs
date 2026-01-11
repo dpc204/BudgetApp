@@ -171,16 +171,18 @@ public static class ConfigureServices
     
     var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
     
-    var sqlConnection = builder.Configuration["LocalBudgetConnection"] ?? builder.Configuration["BudgetConnection"];
-    
-
-
+    // Get connection string from the registered provider
+    var serviceProvider = builder.Services.BuildServiceProvider();
+    var connectionStringProvider = serviceProvider.GetService<IConnectionStringProvider>();
+    var sqlConnection = connectionStringProvider?.BudgetConnectionString 
+      ?? builder.Configuration["LocalBudgetConnection"] 
+      ?? builder.Configuration["BudgetConnection"];
 
     if (!string.IsNullOrEmpty(sqlConnection))
     {
       logger.LogInformation("Configuring SQL Server distributed cache for token persistence");
       logger.LogInformation("Connection string source: {Source}", 
-        builder.Configuration.GetConnectionString("BudgetConnection") != null ? "BudgetConnection" : "LocalBudgetConnection");
+        connectionStringProvider != null ? "ConnectionStringProvider" : "Configuration");
       logger.LogInformation("Connection string (first 50 chars): {ConnString}", sqlConnection.Substring(0, Math.Min(50, sqlConnection.Length)));
       
       builder.Services.AddDistributedSqlServerCache(options =>

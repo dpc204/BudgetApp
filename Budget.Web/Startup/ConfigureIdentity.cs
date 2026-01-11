@@ -1,4 +1,5 @@
 using Budget.Web.Components.Account;
+using Microsoft.Identity.Client;
 
 namespace Budget.Web.Startup;
 
@@ -14,7 +15,7 @@ public static class ConfigureIdentity
   {
     // DIAGNOSTIC: Log all AzureAd configuration values to verify ClientSecret is loaded
     var azureAdSection = builder.Configuration.GetSection("AzureAd");
-    var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole().SetMinimumLevel(LogLevel.Information));
+    var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole().SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information));
     var logger = loggerFactory.CreateLogger("ConfigureIdentity");
     
     logger.LogInformation("=== AzureAd Configuration at Authentication Setup ===");
@@ -54,64 +55,16 @@ public static class ConfigureIdentity
     var apiClientId = azureAdSection["ClientId"];
     var apiScope = !string.IsNullOrEmpty(apiClientId) ? $"api://{apiClientId}/access_as_user" : "";
     
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-      .AddMicrosoftIdentityWebApp(options =>
-      {
-        azureAdSection.Bind(options);
-        
-        // Request API scope during sign-in so tokens are cached
-        if (!string.IsNullOrEmpty(apiScope))
-        {
-          options.Scope.Clear();
-          options.Scope.Add("openid");
-          options.Scope.Add("profile");
-          options.Scope.Add("offline_access"); // Enables refresh tokens
-          options.Scope.Add(apiScope);
-          logger.LogInformation("Requesting API scope during sign-in: {ApiScope}", apiScope);
-        }
-        
-        // Force token acquisition after successful authentication
-        options.Events.OnTokenValidated = async context =>
-        {
-          if (string.IsNullOrEmpty(apiScope))
-            return;
-            
-          logger.LogInformation("Token validated - attempting to acquire API token for scope: {ApiScope}", apiScope);
-          
-          try
-          {
-            var tokenAcquisition = context.HttpContext.RequestServices.GetRequiredService<ITokenAcquisition>();
-            
-            // Proactively acquire and cache the API token
-            var token = await tokenAcquisition.GetAccessTokenForUserAsync(
-              new[] { apiScope },
-              authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
-            
-            if (!string.IsNullOrEmpty(token))
-            {
-              logger.LogInformation("\u2713 Successfully acquired and cached API token during sign-in (length: {Length})", token.Length);
-            }
-            else
-            {
-              logger.LogWarning("\u2717 Failed to acquire API token during sign-in - token was null");
-            }
-          }
-          catch (Exception ex)
-          {
-            logger.LogError(ex, "\u2717 Error acquiring API token during sign-in: {Message}", ex.Message);
-            // Don't fail the sign-in, but log the issue
-          }
-        };
-      })
-      .EnableTokenAcquisitionToCallDownstreamApi(options =>
-      {
-        // Configure default scopes for token acquisition
-        if (!string.IsNullOrEmpty(apiScope))
-        {
-          logger.LogInformation("Configuring default scope for token acquisition: {ApiScope}", apiScope);
-        }
-      })
+    builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+      .AddMicrosoftIdentityWebApp(azureAdSection)
+      .EnableTokenAcquisitionToCallDownstreamApi(
+        new[] { apiScope } // Automatically acquires and caches API token during sign-in
+      )
       .AddDistributedTokenCaches(); // Uses SQL Server distributed cache configured in ConfigureServices
+    
+    logger.LogInformation("? Configured authentication with automatic token acquisition for scope: {ApiScope}", apiScope);
+    logger.LogInformation("Default authentication scheme: {Scheme}", OpenIdConnectDefaults.AuthenticationScheme);
+    logger.LogInformation("Cookie authentication scheme: {CookieScheme}", CookieAuthenticationDefaults.AuthenticationScheme);
     
     logger.LogInformation("Token caching configured with distributed cache");
     
@@ -127,18 +80,30 @@ public static class ConfigureIdentity
     logger.LogInformation("Microsoft Entra ID authentication with token acquisition configured successfully");
     loggerFactory.Dispose();
 
-    // Configure cookie authentication options for Blazor Server
-    builder.Services.ConfigureApplicationCookie(options =>
+    // Configure cookie authentication options for the scheme used by Microsoft.Identity.Web
+    // Microsoft.Identity.Web uses CookieAuthenticationDefaults.AuthenticationScheme for cookies
+    builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
       options.Cookie.HttpOnly = true;
       options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
       options.Cookie.SameSite = SameSiteMode.Lax;
-      options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie expires after 7 days
+      options.ExpireTimeSpan = TimeSpan.FromHours(8); // Reasonable session length
       options.SlidingExpiration = true; // Extend expiration on each request
       options.Cookie.Name = "Budget.Auth"; // Custom cookie name
       options.LoginPath = "/MicrosoftIdentity/Account/SignIn"; // Redirect here if not authenticated
       options.LogoutPath = "/MicrosoftIdentity/Account/SignOut";
       options.AccessDeniedPath = "/Account/AccessDenied";
+      
+      // NOTE: OnValidatePrincipal was causing infinite redirect loops because:
+      // 1. Token acquisition requires account info in the principal
+      // 2. The principal from the cookie doesn't have enough info for MSAL to find the cached token
+      // 3. This causes "user_null" error every time, rejecting the principal
+      // 4. Which causes a redirect loop
+      //
+      // Solution: Let the token expire naturally, and handle refresh in ForwardAuthCookiesHandler
+      // Microsoft.Identity.Web automatically handles token refresh during API calls
+      
+      logger.LogInformation("Cookie authentication options configured (no aggressive validation)");
     });
 
     // Add controllers with views for Microsoft Identity UI

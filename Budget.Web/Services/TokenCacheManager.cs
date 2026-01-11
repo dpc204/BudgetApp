@@ -1,14 +1,14 @@
-namespace Budget.Web.Services;
+﻿namespace Budget.Web.Services;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Distributed;
+using Budget.Shared.Services;
 
 /// <summary>
 /// Manages token cache operations including detection and clearing of stale tokens
 /// </summary>
 public sealed class TokenCacheManager(
-  IDistributedCache cache,
-  IConfiguration configuration,
+  IConnectionStringProvider connectionStringProvider,
   ILogger<TokenCacheManager> logger)
 {
   private static readonly SemaphoreSlim _clearLock = new(1, 1);
@@ -75,8 +75,8 @@ public sealed class TokenCacheManager(
   {
     try
     {
-      // Try SQL Server cache first
-      var sqlConnection = configuration["LocalBudgetConnection"] ?? configuration["BudgetConnection"];
+      // Get connection string from the provider
+      var sqlConnection = connectionStringProvider.BudgetConnectionString;
       
       if (!string.IsNullOrEmpty(sqlConnection))
       {
@@ -84,9 +84,9 @@ public sealed class TokenCacheManager(
         return await ClearSqlServerCacheAsync(sqlConnection, cancellationToken);
       }
 
-      // Fallback: try to clear in-memory cache (limited effectiveness)
-      logger.LogWarning("No SQL connection string found - attempting in-memory cache clear");
-      return await ClearInMemoryCacheAsync(cancellationToken);
+      // If no SQL connection available, log and return
+      logger.LogWarning("No SQL connection string available - cannot clear token cache");
+      return false;
     }
     catch (Exception ex)
     {
@@ -133,25 +133,6 @@ public sealed class TokenCacheManager(
   }
 
   /// <summary>
-  /// Attempts to clear in-memory distributed cache (limited effectiveness)
-  /// </summary>
-  private async Task<bool> ClearInMemoryCacheAsync(CancellationToken cancellationToken)
-  {
-    try
-    {
-      // In-memory cache doesn't support bulk clear
-      // This is a best-effort attempt
-      logger.LogWarning("In-memory cache cannot be completely cleared - user must sign out/in manually");
-      return false;
-    }
-    catch (Exception ex)
-    {
-      logger.LogError(ex, "Failed to clear in-memory cache: {Message}", ex.Message);
-      return false;
-    }
-  }
-
-  /// <summary>
   /// Checks if the token cache should be cleared based on error patterns
   /// </summary>
   public bool ShouldClearCache(string errorCode, string reasonPhrase)
@@ -166,4 +147,6 @@ public sealed class TokenCacheManager(
            reasonPhrase?.Contains("stale", StringComparison.OrdinalIgnoreCase) == true
     };
   }
+
+ 
 }

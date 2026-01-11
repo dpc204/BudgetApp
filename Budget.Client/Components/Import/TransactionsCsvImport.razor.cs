@@ -12,7 +12,7 @@ public partial class TransactionsCsvImport : ComponentBase
 
   protected IBrowserFile? SelectedFile { get; set; }
   protected List<string> Errors { get; } = [];
-  protected List<TransactionDto> Preview { get; } = [];
+  protected List<TransactionImportDto> Preview { get; } = [];
 
   protected List<BankAccountDto> Accounts { get; } = [];
   protected int SelectedAccountId { get; set; }
@@ -24,6 +24,9 @@ public partial class TransactionsCsvImport : ComponentBase
     Accounts.Clear();
     Accounts.AddRange(accounts);
     SelectedAccountId = Accounts.FirstOrDefault()?.Id ?? 0;
+    
+    // Load any existing staged imports when page loads
+    await LoadPreviewAsync();
   }
 
   protected async Task OnInputFileChange(InputFileChangeEventArgs e)
@@ -71,6 +74,8 @@ public partial class TransactionsCsvImport : ComponentBase
         return;
       }
 
+      var transactionsToImport = new List<TransactionImportDto>();
+
       for (int i = 1; i < lines.Count; i++)
       {
         var row = ParseCsvLine(lines[i]);
@@ -79,8 +84,8 @@ public partial class TransactionsCsvImport : ComponentBase
         try
         {
           Debug.WriteLine($"Line {i}");
-          var dto = MapRowToTransactionDto(row, map);
-          Preview.Add(dto);
+          var dto = MapRowToTransactionImportDto(row, map);
+          transactionsToImport.Add(dto);
         }
         catch (Exception ex)
         {
@@ -88,12 +93,31 @@ public partial class TransactionsCsvImport : ComponentBase
         }
       }
 
-      Status = $"Parsed {Preview.Count} rows.";
+      // Import to database in bulk
+      if (transactionsToImport.Count > 0)
+      {
+        var count = await Api.ImportTransactionsAsync(transactionsToImport);
+        Status = $"Imported {count} rows to staging.";
+        
+        // Reload preview from database
+        await LoadPreviewAsync();
+      }
+      else
+      {
+        Status = "No valid rows to import.";
+      }
     }
     catch (Exception ex)
     {
       Errors.Add(ex.Message);
     }
+  }
+
+  private async Task LoadPreviewAsync()
+  {
+    Preview.Clear();
+    var imports = await Api.GetTransactionImportsAsync();
+    Preview.AddRange(imports);
   }
 
   protected async Task ImportAsync()
@@ -103,21 +127,27 @@ public partial class TransactionsCsvImport : ComponentBase
       return;
     }
 
+    // Filter out duplicates
+    var nonDuplicates = Preview.Where(p => !p.Duplicate).ToList();
+    
+    if (nonDuplicates.Count == 0)
+    {
+      Snackbar.Add("No non-duplicate transactions to import", Severity.Warning);
+      return;
+    }
+
     Busy = true;
     Value = 0;
     await InvokeAsync(StateHasChanged);
 
     try
     {
-      //var allEnvelopes = await Api.GetEnvelopesAsync();
-      //var envelopeByName = allEnvelopes.ToDictionary(e => e.Name, e => e.Id, StringComparer.OrdinalIgnoreCase);
-
       var unassigned = await BudgetMonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
 
-      int totalCount = Preview.Count;
+      int totalCount = nonDuplicates.Count;
       int currentIndex = 0;
 
-      foreach (var rec in Preview)
+      foreach (var rec in nonDuplicates)
       {
         var trans = new OneTransactionDetail
         {
@@ -150,7 +180,10 @@ public partial class TransactionsCsvImport : ComponentBase
         await InvokeAsync(StateHasChanged);
       }
 
-      Snackbar.Add($"Imported {Preview.Count} items across  transactions", Severity.Success);
+      // Clear the staging table after successful import
+      await Api.ClearTransactionImportsAsync();
+
+      Snackbar.Add($"Imported {nonDuplicates.Count} items across  transactions", Severity.Success);
       Status = "Import complete.";
       Preview.Clear();
       SelectedFile = null;
@@ -165,6 +198,20 @@ public partial class TransactionsCsvImport : ComponentBase
       Busy = false;
       Value = 0;
       await InvokeAsync(StateHasChanged);
+    }
+  }
+
+  protected async Task OnDuplicateToggled(TransactionImportDto import)
+  {
+    // Save the change immediately
+    var success = await Api.UpdateTransactionImportAsync(import.Id, import.Duplicate);
+    if (success)
+    {
+      await InvokeAsync(StateHasChanged);
+    }
+    else
+    {
+      Errors.Add($"Failed to update duplicate flag for transaction {import.Id}");
     }
   }
 
@@ -239,6 +286,60 @@ public partial class TransactionsCsvImport : ComponentBase
       _ = int.TryParse(row[idxUserId], out userId);
 
     return new TransactionDto
+    {
+      Vendor = vendor,
+      Description = desc,
+      Amount = amount,
+      Date = date,
+      EnvelopeId = envelopeId,
+      EnvelopeName = envelopeName,
+      UserId = userId
+    };
+  }
+
+  private static TransactionImportDto MapRowToTransactionImportDto(List<string> row, Dictionary<string, int> map)
+  {
+    DateTime date = DateTime.Today;
+    string vendor = string.Empty;
+    string desc = string.Empty;
+    decimal amount = 0m;
+    string envelopeName = string.Empty;
+    int envelopeId = 0;
+    int userId = 0;
+
+    if (map.TryGetValue("date", out var idxDate) && idxDate < row.Count)
+    {
+      var txt = row[idxDate];
+      if (!DateTime.TryParse(txt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out date))
+      {
+        // try current culture too
+        date = DateTime.Parse(txt, CultureInfo.CurrentCulture);
+      }
+    }
+
+    if (map.TryGetValue("vendor", out var idxVendor) && idxVendor < row.Count)
+      vendor = row[idxVendor];
+
+    if (map.TryGetValue("description", out var idxDesc) && idxDesc < row.Count)
+      desc = row[idxDesc];
+
+    if (map.TryGetValue("amount", out var idxAmt) && idxAmt < row.Count)
+    {
+      var raw = row[idxAmt].Replace("$", string.Empty).Replace(",", string.Empty);
+      amount = decimal.Parse(raw, NumberStyles.Number | NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+        CultureInfo.InvariantCulture);
+    }
+
+    if (map.TryGetValue("envelope", out var idxEnv) && idxEnv < row.Count)
+      envelopeName = row[idxEnv];
+
+    if (map.TryGetValue("envelopeid", out var idxEnvId) && idxEnvId < row.Count)
+      _ = int.TryParse(row[idxEnvId], out envelopeId);
+
+    if (map.TryGetValue("userid", out var idxUserId) && idxUserId < row.Count)
+      _ = int.TryParse(row[idxUserId], out userId);
+
+    return new TransactionImportDto
     {
       Vendor = vendor,
       Description = desc,
