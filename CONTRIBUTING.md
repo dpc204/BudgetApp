@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-Welcome! This document outlines important conventions and architectural patterns used in this project.  
+Welcome, This document outlines important conventions and architectural patterns used in this project.  
 Please follow these guidelines when contributing to ensure consistency and maintainability.
 
 ---
