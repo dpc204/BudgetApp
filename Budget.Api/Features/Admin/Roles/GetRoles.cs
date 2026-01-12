@@ -27,19 +27,14 @@ public static class GetRoles
   {
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
-      var roles = await db.Roles
-        .Select(r => new RoleDto(
-          r.Id,
-          r.Name,
-          r.Description,
-          r.CreatedAt,
-          r.ModifiedAt,
-          r.UserRoles.Count
-        ))
-        .OrderBy(r => r.Name)
+      var roles = await db.Roles.Include(a=> a.UserRoles)
         .ToListAsync(cancellationToken);
+      
+      var rolesDTO = roles.Adapt<List<RoleDto>>()
+        .Select(r => r with { UserCount = roles.First(a => a.Id == r.Id).UserRoles.Count })
+        .ToList();
 
-      return new Response(roles);
+      return new Response(rolesDTO);
     }
   }
 

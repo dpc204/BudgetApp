@@ -2,7 +2,7 @@ using Budget.DB;
 
 namespace Budget.Api.Features.Accounts.AccountMaint;
 
-public static class GetAll
+public static class GetAllAccounts
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
   public sealed record Response(int Id, string Name, decimal Balance, BankAccount.AccountTypes AccountType);

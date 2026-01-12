@@ -1,4 +1,5 @@
 using Budget.DB;
+using Mapster;
 
 namespace Budget.Api.Features.Admin.UserRoles;
 
@@ -25,19 +26,32 @@ public static class GetUserRoles
   {
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
-      var roles = await db.UserRoles
-        .Where(ur => ur.UserId == request.UserId)
-        .Select(ur => new RoleDto(
-          ur.RoleId,
-          ur.Role.Name,
-          ur.AssignedAt,
-          ur.AssignedByUserId,
-          ur.AssignedBy != null ? $"{ur.AssignedBy.FirstName} {ur.AssignedBy.LastName}" : null
-        ))
-        .OrderBy(r => r.RoleName)
-        .ToListAsync(cancellationToken);
+      //var roles = await db.UserRoles
+      //  .Where(ur => ur.UserId == request.UserId)
+      //  .Select(ur => new RoleDto(
+      //    ur.RoleId,
+      //    ur.Role.Name,
+      //    ur.AssignedAt,
+      //    ur.AssignedByUserId,
+      //    ur.AssignedBy != null ? $"{ur.AssignedBy.FirstName} {ur.AssignedBy.LastName}" : null
+      //  ))
+      //  .OrderBy(r => r.RoleName)
+      //  .ToListAsync(cancellationToken);
 
-      return new Response(request.UserId, roles);
+      var roles = await db.UserRoles.Include(a => a.AssignedBy)
+        .Where(ur => ur.UserId == request.UserId).Select(u => u).ToListAsync(cancellationToken);
+
+
+      var config = new TypeAdapterConfig();
+
+      config.NewConfig<UserRole, RoleDto>()
+        .Map(dest => dest.AssignedByName,
+          src => "Notassigned");
+
+
+      var rolesDto = roles.Adapt<List<RoleDto>>(config);
+
+      return new Response(request.UserId, rolesDto);
     }
   }
 
@@ -49,14 +63,14 @@ public static class GetUserRoles
     public void AddRoutes(IEndpointRouteBuilder app)
     {
       app.MapGet("/api/admin/users/{userId:int}/roles", async (
-        [FromRoute] int userId,
-        [FromServices] ISender sender) =>
-      {
-        var result = await sender.Send(new Query(userId));
-        return Results.Ok(result);
-      })
-      .RequireAuthorization("Admin")
-      .WithTags("Admin");
+          [FromRoute] int userId,
+          [FromServices] ISender sender) =>
+        {
+          var result = await sender.Send(new Query(userId));
+          return Results.Ok(result);
+        })
+        .RequireAuthorization("Admin")
+        .WithTags("Admin");
     }
   }
 }

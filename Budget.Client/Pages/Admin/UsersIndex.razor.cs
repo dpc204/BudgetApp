@@ -80,7 +80,8 @@ public partial class UsersIndex
     {
       CloseButton = true,
       MaxWidth = MaxWidth.Medium,
-      FullWidth = true
+      FullWidth = true,
+      BackdropClick = false
     };
 
     var dialog = await DialogService.ShowAsync<UserRoleDialog>("Manage User Roles", parameters, options);
