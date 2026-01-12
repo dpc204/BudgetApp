@@ -4,7 +4,7 @@
 namespace Budget.Shared.Services;
 
 // Client-side version using API client + localStorage (deferred until after first interactive render)
-public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<EnvelopeState> logger)
+public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<EnvelopeState> logger)
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
   private const string StorageKey = "EnvelopeState_v1";
@@ -19,11 +19,11 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
 
 
   public bool InOnInitializedAsync { get; set; }
-  public List<EnvelopeResult>? AllEnvelopeData { get; private set; }
-  public List<Cat> Cats { get; private set; } = [];
-  public string? SelectedCategoryId { get; set; } = "0";
+  public virtual List<EnvelopeResult>? AllEnvelopeData { get; set; }
+  public virtual List<Cat> Cats { get; set; } = [];
+  public virtual string? SelectedCategoryId { get; set; } = "0";
 
-  public bool IsLoaded => AllEnvelopeData != null;
+  public virtual bool IsLoaded => AllEnvelopeData != null;
   private bool _cacheAttempted; // ensures we only try localStorage once after interactive render
 
   // Call as early as possible (OnInitializedAsync) � performs ONLY server/API work (no JS)
@@ -35,7 +35,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
   }
 
   // Invoke from a component's OnAfterRenderAsync(firstRender) to hydrate from localStorage once JS is available.
-  public async Task TryLoadFromCacheAsync()
+  public virtual async Task TryLoadFromCacheAsync()
   {
     if (_cacheAttempted)
       return;
@@ -67,7 +67,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
     }
   }
 
-  public async Task RefreshAsync()
+  public virtual async Task RefreshAsync()
   {
     try
     {
@@ -106,7 +106,7 @@ public sealed class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<E
  
   }
 
-  public async Task SaveAsync()
+  public virtual async Task SaveAsync()
   {
     // Only persist to localStorage after we've attempted cache load (i.e., interactive render occurred)
     //if (!_cacheAttempted)

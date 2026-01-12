@@ -208,6 +208,10 @@ public static class ConfigureServices
     builder.Services.AddScoped<IFundAllocationService, FundAllocationService>();
     builder.Services.AddScoped<IFundDataService, FundDataService>();
     
+    // Register Envelope page services
+    builder.Services.AddScoped<IEnvelopeDataService, EnvelopeDataService>();
+    builder.Services.AddScoped<IEnvelopeTransactionService, EnvelopeTransactionService>();
+    
     // Do not register IBudgetMonthlyApiClient again here - configured by AddHttpClient
   }
 
