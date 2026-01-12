@@ -15,6 +15,7 @@ namespace Budget.DB
     // Back-reference collection
     public List<Transaction> Transactions { get; set; } = [];
     public List<Favorite> Favorites { get; set; } = [];
+    public List<UserRole> UserRoles { get; set; } = [];
 
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {

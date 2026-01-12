@@ -1,4 +1,6 @@
-﻿namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
+﻿using Budget.DB;
+
+namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
 
 
 

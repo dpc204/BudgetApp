@@ -17,6 +17,8 @@ namespace Budget.DB
     public DbSet<BudgetMonth> BudgetMonths { get; set; }
     public DbSet<SavedUserOptions> SavedUserOptions { get; set; }
     public DbSet<TransactionImport> TransactionImports { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -39,6 +41,8 @@ namespace Budget.DB
       modelBuilder.ApplyConfiguration(new BudgetMonth.BudgetMonthConfiguration());
       modelBuilder.ApplyConfiguration(new SavedUserOptions.SavedUserOptionsConfiguration());
       modelBuilder.ApplyConfiguration(new TransactionImport.TransactionImportConfiguration());
+      modelBuilder.ApplyConfiguration(new Role.RoleConfiguration());
+      modelBuilder.ApplyConfiguration(new UserRole.UserRoleConfiguration());
 
       // Apply global query filters for multi-tenancy by FamilyId
       // Only filter when ICurrentFamilyService is available (not in migrations or seeding)

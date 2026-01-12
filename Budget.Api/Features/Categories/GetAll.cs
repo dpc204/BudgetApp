@@ -1,4 +1,7 @@
-﻿namespace Budget.Api.Features.Categories;
+﻿using Budget.DB;
+using Budget.Shared.Enums;
+
+namespace Budget.Api.Features.Categories;
 
 public static class GetByEnvelopeId
 {

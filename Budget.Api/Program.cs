@@ -1,6 +1,10 @@
 ﻿using Scalar.AspNetCore;
 using Budget.Api;
+using Budget.Api.Features.Authentication;
 using Budget.Api.Services;
+using Budget.DB;
+using Budget.Shared;
+using Budget.Shared.Services;
 using ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -185,7 +189,18 @@ if (isEntraConfigured)
     // Map Azure AD "roles" claims to standard ClaimTypes.Role
     options.TokenValidationParameters.RoleClaimType = "roles";
     
-    logger.LogWarning("✅ Configured Entra JWT with RoleClaimType = 'roles'");
+    // Fix issuer validation to accept both v1 and v2 Entra ID tokens
+    // Entra ID uses different issuers:
+    // v1: https://sts.windows.net/{tenantId}/
+    // v2: https://login.microsoftonline.com/{tenantId}/v2.0
+    var tenantId = azureAdSection["TenantId"];
+    options.TokenValidationParameters.ValidIssuers = new[]
+    {
+      $"https://sts.windows.net/{tenantId}/",
+      $"https://login.microsoftonline.com/{tenantId}/v2.0"
+    };
+    
+    logger.LogWarning("✅ Configured Entra JWT with RoleClaimType = 'roles' and valid issuers for tenant {TenantId}", tenantId);
     
     // Add event handler to log claims after validation
     options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents

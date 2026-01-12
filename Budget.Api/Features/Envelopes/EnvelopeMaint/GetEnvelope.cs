@@ -1,4 +1,7 @@
-﻿namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
+﻿using Budget.DB;
+using Budget.Shared.Enums;
+
+namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
 
 public static class GetAll
 {

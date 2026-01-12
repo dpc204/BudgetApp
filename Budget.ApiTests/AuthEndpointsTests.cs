@@ -1,12 +1,3 @@
-using System;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using Budget.Api.Features.Authentication;
-using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-
 namespace Budget.ApiTests;
 
 public class AuthEndpointsTests : IntegrationTestBase

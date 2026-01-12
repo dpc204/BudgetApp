@@ -1,9 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using Budget.DB;
-using Microsoft.EntityFrameworkCore;
-using Xunit;
-
 namespace Budget.ApiTests;
 
 /// <summary>

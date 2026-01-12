@@ -1,4 +1,7 @@
-﻿namespace Budget.Api.Features.Transactions;
+﻿using Budget.DB;
+using Budget.Shared.Models;
+
+namespace Budget.Api.Features.Transactions;
 
 public static class AddNewTransaction
 {

@@ -1,0 +1,183 @@
+<MudDialog>
+  <DialogContent>
+    <MudText Typo="Typo.h6" Class="mb-4">
+      Manage Roles for @UserName (@UserEmail)
+    </MudText>
+
+    @if (IsLoading)
+    {
+      <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+    }
+    else if (ErrorMessage != null)
+    {
+      <MudAlert Severity="Severity.Error" Class="mb-4">@ErrorMessage</MudAlert>
+    }
+    else
+    {
+      <MudText Typo="Typo.subtitle2" Class="mb-2">Available Roles:</MudText>
+      
+      @foreach (var role in AllRoles)
+      {
+        var isAssigned = AssignedRoleIds.Contains(role.Id);
+        <MudChip T="string" Color="@GetRoleColor(role.Name)"
+                 Variant="@(isAssigned ? Variant.Filled : Variant.Outlined)"
+                 OnClick="() => ToggleRole(role)"
+                 Class="mb-2 mr-2">
+          @role.Name
+          @if (isAssigned)
+          {
+            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="ml-2" />
+          }
+        </MudChip>
+      }
+
+      @if (AssignedRoles.Any())
+      {
+        <MudDivider Class="my-4" />
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Current Role Assignments:</MudText>
+        
+        <MudList T="UserRoleDto" Dense="true">
+          @foreach (var assignment in AssignedRoles)
+          {
+            <MudListItem T="UserRoleDto">
+              <div class="d-flex justify-space-between align-center">
+                <div>
+                  <MudText Typo="Typo.body2">
+                    <strong>@assignment.RoleName</strong>
+                  </MudText>
+                  <MudText Typo="Typo.caption">
+                    Assigned: @assignment.AssignedAt.ToLocalTime().ToString("g")
+                    @if (!string.IsNullOrEmpty(assignment.AssignedByName))
+                    {
+                      <text> by @assignment.AssignedByName</text>
+                    }
+                  </MudText>
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Size="Size.Small"
+                               Color="Color.Error"
+                               OnClick="() => RemoveRole(assignment)"
+                               Disabled="IsSaving" />
+              </div>
+            </MudListItem>
+          }
+        </MudList>
+      }
+    }
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Close">Close</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] private MudBlazor.IMudDialogInstance MudDialog { get; set; } = default!;
+[Inject] private IBudgetMaintApiClient MaintApi { get; set; } = null!;
+[Inject] private ISnackbar Snackbar { get; set; } = null!;
+
+[Parameter] public int UserId { get; set; }
+[Parameter] public string UserName { get; set; } = string.Empty;
+  [Parameter] public string UserEmail { get; set; } = string.Empty;
+
+  private List<RoleDto> AllRoles { get; set; } = [];
+  private List<UserRoleDto> AssignedRoles { get; set; } = [];
+  private HashSet<int> AssignedRoleIds { get; set; } = [];
+  private bool IsLoading { get; set; }
+  private bool IsSaving { get; set; }
+  private string? ErrorMessage { get; set; }
+
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadData();
+  }
+
+  private async Task LoadData()
+  {
+    IsLoading = true;
+    ErrorMessage = null;
+
+    try
+    {
+      var rolesTask = MaintApi.GetRolesAsync();
+      var userRolesTask = MaintApi.GetUserRolesAsync(UserId);
+
+      await Task.WhenAll(rolesTask, userRolesTask);
+
+      AllRoles = rolesTask.Result.Select(r => new RoleDto(r.Id, r.Name)).ToList();
+      AssignedRoles = userRolesTask.Result.ToList();
+      AssignedRoleIds = AssignedRoles.Select(r => r.RoleId).ToHashSet();
+    }
+    catch (Exception ex)
+    {
+      ErrorMessage = $"Failed to load data: {ex.Message}";
+    }
+    finally
+    {
+      IsLoading = false;
+    }
+  }
+
+  private async Task ToggleRole(RoleDto role)
+  {
+    if (AssignedRoleIds.Contains(role.Id))
+    {
+      var assignment = AssignedRoles.First(r => r.RoleId == role.Id);
+      await RemoveRole(assignment);
+    }
+    else
+    {
+      await AssignRole(role);
+    }
+  }
+
+  private async Task AssignRole(RoleDto role)
+  {
+    IsSaving = true;
+    try
+    {
+      await MaintApi.AssignRoleAsync(UserId, role.Id);
+      await LoadData();
+      Snackbar.Add($"Role '{role.Name}' assigned", Severity.Success);
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      IsSaving = false;
+    }
+  }
+
+  private async Task RemoveRole(UserRoleDto assignment)
+  {
+    IsSaving = true;
+    try
+    {
+      await MaintApi.RemoveRoleAsync(UserId, assignment.RoleId);
+      await LoadData();
+      Snackbar.Add($"Role '{assignment.RoleName}' removed", Severity.Success);
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      IsSaving = false;
+    }
+  }
+
+  private void Close() => MudDialog.Close(DialogResult.Ok(true));
+
+  private Color GetRoleColor(string roleName) => roleName switch
+  {
+    "Admin" => Color.Error,
+    "PowerUser" => Color.Warning,
+    "User" => Color.Info,
+    _ => Color.Default
+  };
+
+  private record RoleDto(int Id, string Name);
+}
+

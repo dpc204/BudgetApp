@@ -1,0 +1,98 @@
+<MudDialog>
+  <DialogContent>
+    <MudForm @ref="_form" @bind-IsValid="@_isValid">
+      <MudTextField @bind-Value="Email"
+                    Label="Email"
+                    Required="true"
+                    RequiredError="Email is required"
+                    Validation="@(new EmailAddressAttribute())"
+                    Immediate="true" />
+
+      <MudTextField @bind-Value="FirstName"
+                    Label="First Name"
+                    Required="true"
+                    RequiredError="First name is required"
+                    MaxLength="50"
+                    Immediate="true"
+                    Class="mt-3" />
+
+      <MudTextField @bind-Value="LastName"
+                    Label="Last Name"
+                    Required="true"
+                    RequiredError="Last name is required"
+                    MaxLength="50"
+                    Immediate="true"
+                    Class="mt-3" />
+
+      <MudNumericField @bind-Value="FamilyId"
+                       Label="Family ID"
+                       Required="true"
+                       Min="1"
+                       Immediate="true"
+                       Class="mt-3" />
+    </MudForm>
+
+    @if (ErrorMessage != null)
+    {
+      <MudAlert Severity="Severity.Error" Class="mt-3">@ErrorMessage</MudAlert>
+    }
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary"
+               Variant="Variant.Filled"
+               OnClick="Submit"
+               Disabled="@(!_isValid || IsSaving)">
+      @if (IsSaving)
+      {
+        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+      }
+      else
+      {
+        <text>Update</text>
+      }
+    </MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] private MudBlazor.IMudDialogInstance MudDialog { get; set; } = default!;
+[Inject] private IBudgetMaintApiClient MaintApi { get; set; } = null!;
+
+[Parameter] public int UserId { get; set; }
+[Parameter] public string Email { get; set; } = string.Empty;
+[Parameter] public string FirstName { get; set; } = string.Empty;
+[Parameter] public string LastName { get; set; } = string.Empty;
+[Parameter] public int FamilyId { get; set; }
+
+  private MudForm _form = null!;
+  private bool _isValid;
+  private bool IsSaving { get; set; }
+  private string? ErrorMessage { get; set; }
+
+  private async Task Submit()
+  {
+    await _form.Validate();
+    if (!_isValid)
+      return;
+
+    IsSaving = true;
+    ErrorMessage = null;
+
+    try
+    {
+      await MaintApi.UpdateUserAsync(UserId, new UpdateUserRequest(UserId, Email, FirstName, LastName, FamilyId));
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (Exception ex)
+    {
+      ErrorMessage = $"Error: {ex.Message}";
+    }
+    finally
+    {
+      IsSaving = false;
+    }
+  }
+
+  private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+}

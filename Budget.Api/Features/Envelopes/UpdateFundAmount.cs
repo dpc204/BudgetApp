@@ -1,3 +1,5 @@
+using Budget.DB;
+
 namespace Budget.Api.Features.Envelopes;
 
 /// <summary>

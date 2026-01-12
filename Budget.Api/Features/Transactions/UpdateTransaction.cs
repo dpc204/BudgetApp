@@ -1,3 +1,5 @@
+using Budget.DB;
+using Budget.Shared.Models;
 using FluentResults;
 
 namespace Budget.Api.Features.Transactions;

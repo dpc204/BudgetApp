@@ -1,11 +1,5 @@
 using Budget.Api.Features.UserOptions;
-using Budget.DB;
 using Budget.Shared.Enums;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace Budget.ApiTests;
 

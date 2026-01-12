@@ -1,14 +1,3 @@
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using Budget.Api.Features.Accounts.AccountMaint;
-using Budget.DB;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using GetAll = Budget.Api.Features.Accounts.AccountMaint.GetAll;
-
 namespace Budget.ApiTests;
 
 /// <summary>

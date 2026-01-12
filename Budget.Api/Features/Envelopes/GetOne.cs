@@ -1,4 +1,7 @@
-﻿namespace Budget.Api.Features.Envelopes;
+﻿using Budget.DB;
+using Budget.Shared.Models;
+
+namespace Budget.Api.Features.Envelopes;
 
 public static class GetOne
 {

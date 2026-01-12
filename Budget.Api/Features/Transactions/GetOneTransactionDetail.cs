@@ -1,5 +1,8 @@
 ﻿//using Budget.Shared.Services;
 
+using Budget.DB;
+using Budget.Shared.Models;
+
 namespace Budget.Api.Features.Transactions;
 
 public static class GetOneTransactionDetail

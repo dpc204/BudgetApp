@@ -1,13 +1,4 @@
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using Budget.Api.Features.Categories.CategoryMaint;
-using Budget.DB;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using CategoryGetAll = Budget.Api.Features.Categories.GetByEnvelopeId;
 
 namespace Budget.ApiTests;
 
@@ -39,7 +30,7 @@ public class CategoryEndpointsTests : IntegrationTestBase
 
     // Assert
     response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
+    var result = await response.Content.ReadFromJsonAsync<List<EnvelopeGetAll.Response>>();
 
     result.Should().NotBeNull();
     result.Should().HaveCount(c => c >= 2);

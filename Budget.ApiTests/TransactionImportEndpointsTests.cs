@@ -1,16 +1,3 @@
-using System;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using Budget.Api.Features.Transactions;
-using Budget.Shared.Models;
-using Budget.DB;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Xunit;
-
 namespace Budget.ApiTests;
 
 /// <summary>

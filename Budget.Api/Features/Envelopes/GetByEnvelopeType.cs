@@ -1,4 +1,6 @@
-﻿using Budget.Shared.Enums;
+﻿using Budget.DB;
+using Budget.Shared.Enums;
+using Budget.Shared.Models;
 using Mapster;
 
 namespace Budget.Api.Features.Envelopes;

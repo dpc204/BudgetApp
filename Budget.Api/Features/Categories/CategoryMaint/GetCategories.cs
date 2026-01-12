@@ -1,3 +1,5 @@
+using Budget.DB;
+
 namespace Budget.Api.Features.Categories.CategoryMaint;
 
 public static class GetAll

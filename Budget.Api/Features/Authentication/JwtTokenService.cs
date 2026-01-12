@@ -1,3 +1,4 @@
+using Budget.Shared;
 using Microsoft.Extensions.Options;
 
 namespace Budget.Api.Features.Authentication;

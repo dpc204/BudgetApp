@@ -1,4 +1,6 @@
-﻿namespace Budget.Api.Features.Transactions;
+﻿using Budget.DB;
+
+namespace Budget.Api.Features.Transactions;
 
 public static class GetUnassigned
 {

@@ -1,3 +1,4 @@
+using Budget.DB;
 using Microsoft.EntityFrameworkCore;
 
 namespace Budget.Web.Startup;
@@ -12,18 +13,28 @@ public static class ConfigureDatabase
   /// </summary>
   public static void AddDatabaseContexts(WebApplicationBuilder builder, ILogger logger)
   {
-    //var budgetConnectionString = Misc.GetConnectionString(builder.Configuration, Misc.ConnectionStringType.Budget);
+    var budgetConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Budget, logger);
 
-    //builder.Services.AddDbContext<BudgetContext>((sp, options) =>
-    //{
-    //  var env = sp.GetRequiredService<IHostEnvironment>();
-    //  options.UseSqlServer(budgetConnectionString);
-    //  if (env.IsDevelopment())
-    //  {
-    //    options.EnableDetailedErrors();
-    //    options.EnableSensitiveDataLogging();
-    //  }
-    //});
+    // Register CurrentFamilyService for multi-tenancy support
+    builder.Services.AddScoped<ICurrentFamilyService, Budget.Web.Services.CurrentFamilyService>();
+
+    // Register BudgetContext with CurrentFamilyService for multi-tenancy filtering
+    builder.Services.AddDbContext<BudgetContext>((sp, options) =>
+    {
+      var env = sp.GetRequiredService<IHostEnvironment>();
+      options.UseSqlServer(budgetConnectionString,
+        o => o.MigrationsHistoryTable("__EFMigrationsHistory", "budget")
+              .EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null));
+      
+      if (env.IsDevelopment())
+      {
+        options.EnableDetailedErrors();
+        options.EnableSensitiveDataLogging();
+      }
+    });
 
     // TEMPORARY: During Phase 2 Entra ID migration, Identity database is optional
     // The database will be fully removed in Phase 4 after user migration is complete
