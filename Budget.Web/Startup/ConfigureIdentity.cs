@@ -175,8 +175,9 @@ public static class ConfigureIdentity
     builder.Services.AddAuthorizationBuilder()
       .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
       .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
+      .AddPolicy("PowerUser", policy => policy.RequireRole("PowerUser"))
       .AddPolicy("PowerUserOrAbove", policy => policy.RequireRole("Admin", "PowerUser"))
-      .AddPolicy("AuthenticatedUser", policy => policy.RequireRole("Admin", "PowerUser", "User"));
+      .AddPolicy("User", policy => policy.RequireRole("User"));
   }
 
   /// <summary>
