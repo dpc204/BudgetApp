@@ -12,7 +12,7 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests to verify multi-tenancy isolation by FamilyId using query filters
 /// </summary>
-public class MultiTenancyIsolationTests
+public class MultiTenancyIsolationTests : IntegrationTestBase
 {
   // Use a more unique database name to prevent collisions across parallel test runs
   // Also ensure each test gets a completely isolated database by using NewGuid for every call
@@ -26,14 +26,12 @@ public class MultiTenancyIsolationTests
   [Fact]
   public async Task Envelopes_Should_Be_Isolated_By_FamilyId()
   {
-    // Arrange: Create context with FamilyId = 10 (avoid conflicts with seed data)
-    var familyService = new TestCurrentFamilyService { FamilyId = 10 };
-    await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
-    
+   // await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
+   
+   await using var context = GetTestDBContext(10);
     // Create two families with IDs that don't conflict with seed data
-    var family1 = new Family { Id = 10, Name = "Family 10" };
     var family2 = new Family { Id = 20, Name = "Family 20" };
-    context.Families.AddRange(family1, family2);
+    context.Families.AddRange(family2);
     
     
     // Create categories for both families

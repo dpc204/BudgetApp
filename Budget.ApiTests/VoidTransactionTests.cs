@@ -6,25 +6,9 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for the VoidTransaction API endpoint
 /// </summary>
-public class VoidTransactionTests 
+public class VoidTransactionTests : IntegrationTestBase
 {
-  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
-    => new DbContextOptionsBuilder<BudgetContext>()
-      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
-      .Options;
-
-
-  private static BudgetContext GetTestDBContext()
-  {
-    return new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService());
-  }
-
-  private class TestCurrentFamilyService : ICurrentFamilyService
-  {
-    public int FamilyId { get; set; } = 1;
-    public int GetCurrentFamilyId() => FamilyId;
-  }
-
+ 
 
   /// <summary>
   /// Test that voiding a transaction adds the amount back to the BankAccount balance
@@ -112,7 +96,6 @@ public class VoidTransactionTests
     // Arrange
     var db = GetTestDBContext();
 
-
     // Create test data
     var account = TestHelpers.CreateTestAccount(id: 101, balance: 2000m);
     db.BankAccounts.Add(account);
@@ -151,15 +134,14 @@ public class VoidTransactionTests
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
    var handler = new VoidTransaction.Handler(db);
-   var response = handler.Handle(command, CancellationToken.None);
+   var response =await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.Result.IsSuccess.Should().Be(true);
-    
+    response.Value.Should().NotBeNull();
     // Clear change tracker to force reload from database
     db.ChangeTracker.Clear();
 
-    var result = response.Result.Value;
+    var result = response.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(1);
     result![0].Balance.Should().Be(initialEnvelopeBalance + 75m);
