@@ -48,7 +48,7 @@ public class UserRoleEndpointsTests
       new UserRole { UserId = 1, RoleId = 2, AssignedAt = assignedAt2, AssignedByUserId = 2 }
     );
     await context.SaveChangesAsync();
-
+    
     var handler = new GetUserRoles.Handler(context);
 
     // Act

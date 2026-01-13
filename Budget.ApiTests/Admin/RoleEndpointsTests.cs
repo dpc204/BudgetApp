@@ -186,12 +186,14 @@ public class RoleEndpointsTests
     var result = await handler.Handle(new DeleteRole.Command(1), CancellationToken.None);
 
     // Assert
-    result.Should().BeTrue();
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.ErrorMessage.Should().BeNull();
     (await context.Roles.FindAsync(1)).Should().BeNull();
   }
 
   [Fact]
-  public async Task DeleteRole_WithAssignedUsers_ThrowsException()
+  public async Task DeleteRole_WithAssignedUsers_ReturnsErrorResponse()
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
@@ -209,17 +211,19 @@ public class RoleEndpointsTests
     var handler = new DeleteRole.Handler(context);
 
     // Act
-    var act = async () => await handler.Handle(new DeleteRole.Command(1), CancellationToken.None);
+    var result = await handler.Handle(new DeleteRole.Command(1), CancellationToken.None);
 
     // Assert
-    await act.Should().ThrowAsync<InvalidOperationException>()
-      .WithMessage("*Cannot delete role*");
+    result.Should().NotBeNull();
+    result.Success.Should().BeFalse();
+    result.ErrorMessage.Should().Contain("Cannot delete role");
+    result.ErrorMessage.Should().Contain("TestRole");
     
     (await context.Roles.FindAsync(1)).Should().NotBeNull();
   }
 
   [Fact]
-  public async Task DeleteRole_WithInvalidId_ReturnsFalse()
+  public async Task DeleteRole_WithInvalidId_ReturnsNotFoundError()
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
@@ -229,6 +233,8 @@ public class RoleEndpointsTests
     var result = await handler.Handle(new DeleteRole.Command(999), CancellationToken.None);
 
     // Assert
-    result.Should().BeFalse();
+    result.Should().NotBeNull();
+    result.Success.Should().BeFalse();
+    result.ErrorMessage.Should().Be("Role not found");
   }
 }

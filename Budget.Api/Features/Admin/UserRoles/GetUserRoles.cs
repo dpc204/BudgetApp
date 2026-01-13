@@ -46,12 +46,21 @@ public static class GetUserRoles
 
       config.NewConfig<UserRole, RoleDto>()
         .Map(dest => dest.AssignedByName,
-          src => "Notassigned");
+          src => GetName(src.AssignedBy));
 
 
       var rolesDto = roles.Adapt<List<RoleDto>>(config);
 
       return new Response(request.UserId, rolesDto);
+    }
+
+    private string GetName(User? srcAssignedBy)
+    {
+
+      if (srcAssignedBy == null)
+        return "AssignedBy is null";
+      
+      return srcAssignedBy.FirstName + " " + srcAssignedBy.LastName;
     }
   }
 

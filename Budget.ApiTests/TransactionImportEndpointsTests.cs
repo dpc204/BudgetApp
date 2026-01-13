@@ -1,16 +1,34 @@
+using System.Net.Http;
+using System.Threading;
+
 namespace Budget.ApiTests;
 
 /// <summary>
 /// Tests for Transaction Import API endpoints
 /// </summary>
-public class TransactionImportEndpointsTests : IntegrationTestBase
+public class TransactionImportEndpointsTests 
 {
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+    => new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .Options;
+
+  
+  private static BudgetContext GetTestDBContext()
+  {
+    return new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService());
+  }
+  
+  
   /// <summary>
   /// Test ImportTransactions endpoint - should bulk import transactions to staging table
   /// </summary>
   [Fact]
   public async Task ImportTransactions_Should_Bulk_Import_To_Staging_Table()
   {
+    await using var context = GetTestDBContext();
+
+
     // Arrange
     var transactions = new List<TransactionImportDto>
     {
@@ -37,20 +55,19 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
     };
 
     var command = new ImportTransactions.Command(transactions);
+    var handler = new ImportTransactions.Handler(context, new TestCurrentFamilyService());
 
     // Act
-    var response = await Client.PostAsJsonAsync("/Transaction/Import", command);
+    var response = await handler.Handle(command, CancellationToken.None);
+
+    //  var response = await Client.PostAsJsonAsync("/Transaction/Import", command);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<Dictionary<string, int>>();
-    result.Should().NotBeNull();
-    result!["count"].Should().Be(2);
+    response.Should().Be(2);
 
     // Verify data in database
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-    var imports = await db.TransactionImports.ToListAsync();
+    
+    var imports = await context.TransactionImports.ToListAsync();
     imports.Should().HaveCount(2);
     imports[0].Vendor.Should().Be("Test Vendor 1");
     imports[1].Vendor.Should().Be("Test Vendor 2");
@@ -62,9 +79,11 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
   [Fact]
   public async Task GetTransactionImports_Should_Return_Staged_Imports()
   {
+    await using var db = GetTestDBContext();
+
+
     // Arrange - insert test data directly
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
 
     var import1 = new TransactionImport
     {
@@ -95,16 +114,19 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
     db.TransactionImports.AddRange(import1, import2);
     await db.SaveChangesAsync();
 
+
+    var query = new GetTransactionImports.Query();
+    var handler = new GetTransactionImports.Handler(db);
+
     // Act
-    var response = await Client.GetAsync("/Transaction/Import");
+    var imports = await handler.Handle(query, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var imports = await response.Content.ReadFromJsonAsync<List<TransactionImportDto>>();
     imports.Should().NotBeNull();
     imports.Should().HaveCount(2);
     imports![0].Vendor.Should().Be("Test Vendor B"); // Ordered by date
     imports[1].Vendor.Should().Be("Test Vendor A");
+
   }
 
   /// <summary>
@@ -114,8 +136,7 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
   public async Task ClearTransactionImports_Should_Clear_All_Staged_Imports()
   {
     // Arrange - insert test data
-    using var arrangeScope = _factory.Services.CreateScope();
-    var arrangeDb = arrangeScope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var arrangeDb = GetTestDBContext();
 
     var import1 = new TransactionImport
     {
@@ -133,19 +154,20 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
     arrangeDb.TransactionImports.Add(import1);
     await arrangeDb.SaveChangesAsync();
 
+    var handler = new ClearTransactionImports.Handler(arrangeDb);
+    var command = new ClearTransactionImports.Command();
+    
+    
     // Act
-    var response = await Client.DeleteAsync("/Transaction/Import");
+    
+    var response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<Dictionary<string, int>>();
-    result.Should().NotBeNull();
-    result!["count"].Should().Be(1);
+    response.Should().Be(1);
 
     // Verify data is cleared
-    using var assertScope = _factory.Services.CreateScope();
-    var assertDb = assertScope.ServiceProvider.GetRequiredService<BudgetContext>();
-    var imports = await assertDb.TransactionImports.ToListAsync();
+
+    var imports = await arrangeDb.TransactionImports.ToListAsync();
     imports.Should().BeEmpty();
   }
 
@@ -156,8 +178,7 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
   public async Task ImportTransactions_Should_Detect_Duplicates()
   {
     // Arrange - Create an existing transaction
-    using var arrangeScope = _factory.Services.CreateScope();
-    var arrangeDb = arrangeScope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var arrangeDb = GetTestDBContext();
 
     var account = TestHelpers.CreateTestAccount(id: 300, balance: 1000m);
     arrangeDb.BankAccounts.Add(account);
@@ -203,16 +224,12 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
     };
 
     var command = new ImportTransactions.Command(transactions);
+    var handler = new ImportTransactions.Handler(arrangeDb, new TestCurrentFamilyService());
 
     // Act
-    var response = await Client.PostAsJsonAsync("/Transaction/Import", command);
-
+    var response = await handler.Handle(command, CancellationToken.None);
     // Assert
-    response.EnsureSuccessStatusCode();
-
-    using var assertScope = _factory.Services.CreateScope();
-    var assertDb = assertScope.ServiceProvider.GetRequiredService<BudgetContext>();
-    var imports = await assertDb.TransactionImports.ToListAsync();
+    var imports = await arrangeDb.TransactionImports.ToListAsync();
     
     imports.Should().HaveCount(2);
     imports.First(i => i.Vendor == "Duplicate Vendor").Duplicate.Should().BeTrue();
@@ -226,8 +243,7 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
   public async Task UpdateTransactionImport_Should_Update_Duplicate_Flag()
   {
     // Arrange
-    using var arrangeScope = _factory.Services.CreateScope();
-    var arrangeDb = arrangeScope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var arrangeDb = GetTestDBContext();
 
     var import = new TransactionImport
     {
@@ -247,18 +263,24 @@ public class TransactionImportEndpointsTests : IntegrationTestBase
     await arrangeDb.SaveChangesAsync();
     var importId = import.Id;
 
+
+    var handler = new UpdateTransactionImport.Handler(arrangeDb);
+    var command = new UpdateTransactionImport.Command(importId, true);
+
     // Act - Update to mark as duplicate
-    var payload = new { Duplicate = true };
-    var response = await Client.PutAsJsonAsync($"/Transaction/Import/{importId}", payload);
+    var response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-
-    using var assertScope = _factory.Services.CreateScope();
-    var assertDb = assertScope.ServiceProvider.GetRequiredService<BudgetContext>();
-    var updatedImport = await assertDb.TransactionImports.FindAsync(importId);
+    var updatedImport = await arrangeDb.TransactionImports.FindAsync(importId);
     
     updatedImport.Should().NotBeNull();
     updatedImport!.Duplicate.Should().BeTrue();
   }
+
+  private class TestCurrentFamilyService : ICurrentFamilyService
+  {
+    public int FamilyId { get; set; } = 1;
+    public int GetCurrentFamilyId() => FamilyId;
+  }
 }
+

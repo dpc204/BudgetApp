@@ -7,14 +7,16 @@ namespace Budget.Api.Features.Admin.Roles;
 /// </summary>
 public static class DeleteRole
 {
-  public sealed record Command(int Id) : IRequest<bool>;
+  public sealed record Command(int Id) : IRequest<Response>;
+
+  public sealed record Response(bool Success, string? ErrorMessage = null);
 
   /// <summary>
   /// Handles deleting a role
   /// </summary>
-  public class Handler(BudgetContext db) : IRequestHandler<Command, bool>
+  public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {
-    public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
+    public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       var role = await db.Roles
         .Include(r => r.UserRoles)
@@ -22,19 +24,19 @@ public static class DeleteRole
 
       if (role == null)
       {
-        return false;
+        return new Response(false, "Role not found");
       }
 
       // Don't allow deletion if users are assigned to this role
       if (role.UserRoles.Count > 0)
       {
-        throw new InvalidOperationException($"Cannot delete role '{role.Name}' because it has {role.UserRoles.Count} user(s) assigned to it.");
+        return new Response(false, $"Cannot delete role '{role.Name}' because it has {role.UserRoles.Count} user(s) assigned to it.");
       }
 
       db.Roles.Remove(role);
       await db.SaveChangesAsync(cancellationToken);
 
-      return true;
+      return new Response(true);
     }
   }
 
@@ -47,15 +49,16 @@ public static class DeleteRole
     {
       app.MapDelete("/api/admin/roles/{id:int}", async ([FromRoute] int id, [FromServices] ISender sender) =>
       {
-        try
+        var result = await sender.Send(new Command(id));
+        
+        if (!result.Success)
         {
-          var result = await sender.Send(new Command(id));
-          return result ? Results.NoContent() : Results.NotFound();
+          return result.ErrorMessage == "Role not found" 
+            ? Results.NotFound(new { error = result.ErrorMessage })
+            : Results.BadRequest(new { error = result.ErrorMessage });
         }
-        catch (InvalidOperationException ex)
-        {
-          return Results.BadRequest(new { error = ex.Message });
-        }
+
+        return Results.NoContent();
       })
       .RequireAuthorization("Admin")
       .WithTags("Admin");

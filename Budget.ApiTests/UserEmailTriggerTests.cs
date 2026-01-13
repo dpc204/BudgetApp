@@ -56,6 +56,7 @@ public class UserEmailTriggerTests : IDisposable
   [Fact]
   public async Task Insert_User_WithLowercaseEmail_ConvertsToUppercase()
   {
+    
     // Arrange
     var user = new User
     {

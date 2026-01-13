@@ -27,19 +27,20 @@ public static class GetUsers
   {
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
-      // Load users with their UserRoles and the associated Roles
-      var users = await db.Users
+      // Use EF Core Select projection instead of Mapster to avoid global state issues
+      var userDtos = await db.Users
         .Include(u => u.UserRoles)
           .ThenInclude(ur => ur.Role)
         .OrderBy(u => u.Email)
+        .Select(u => new UserDto(
+          u.Id,
+          u.Email,
+          u.FirstName,
+          u.LastName,
+          u.FamilyId,
+          u.UserRoles.Select(ur => ur.Role.Name).ToList()
+        ))
         .ToListAsync(cancellationToken);
-
-      // Create custom config for this mapping
-      var config = new TypeAdapterConfig();
-      config.ForType<User, UserDto>()
-        .Map(dest => dest.Roles, src => src.UserRoles.Select(ur => ur.Role.Name).ToList());
-
-      var userDtos = users.Adapt<List<UserDto>>(config);
 
       return new Response(userDtos);
     }
