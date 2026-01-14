@@ -55,4 +55,9 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <HotReloadAutoRestart>true</HotReloadAutoRestart>
+  </PropertyGroup>
+
+
 </Project>

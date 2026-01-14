@@ -1,3 +1,4 @@
+
 namespace Budget.Client.Components.Import;
 
 public partial class TransactionsCsvImport : ComponentBase
@@ -201,6 +202,12 @@ public partial class TransactionsCsvImport : ComponentBase
     }
   }
 
+  private int _selectedCount;
+
+  private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
+  {
+    _selectedCount = items.Count;
+  }
   protected async Task OnDuplicateToggled(TransactionImportDto import)
   {
     // Save the change immediately

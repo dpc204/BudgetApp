@@ -1,5 +1,6 @@
 @page "/import"
 <MudStack Spacing="2">
+
   <MudText Typo="Typo.h6">Import Transactions (CSV)</MudText>
 
   <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
@@ -24,11 +25,7 @@
 
   @if (Busy)
   {
-    <MudProgressCircular Color="Color.Primary" Value="@Value" Size="Size.Large">
-      <ChildContent>
-        @Value %
-      </ChildContent>
-    </MudProgressCircular>
+    <MudProgressLinear Color="Color.Primary" Value="@Value" Size="Size.Large" />
   }
 
   @if (Errors.Count > 0)
@@ -45,55 +42,71 @@
 
   @if (Preview.Count > 0)
   {
-    <MudDataGrid T="TransactionImportDto" 
-                 Items="@Preview" 
+    <MudDataGrid T="TransactionImportDto"
+                 Items="@Preview"
                  Filterable="true"
                  FilterMode="DataGridFilterMode.ColumnFilterRow"
                  SortMode="SortMode.Multiple"
-                 Dense="true" 
-                 Hover="true" 
-                 Bordered="true" 
+                 Dense="true"
+                 Hover="true"
+                 Bordered="true"
+                 SelectedItemsChanged="OnSelectedItemsChanged"
+                 Sortable="true"
+                 MultiSelection="true"
                  FixedHeader="true"
                  Height="600px">
+      <ToolBarContent >
+        <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
+        <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
+        <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
+        <MudSpacer/>
+        <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || _selectedCount == 0" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
+      </ToolbarContent>
       <Columns>
-        <PropertyColumn Property="x => x.Date" 
-                       Title="Date" 
-                       Format="d"
-                       Filterable="true" 
-                       Sortable="true" />
-        
-        <PropertyColumn Property="x => x.Vendor" 
-                       Title="Vendor" 
-                       Filterable="true" 
-                       Sortable="true" />
-        
-        <PropertyColumn Property="x => x.Description" 
-                       Title="Description" 
-                       Filterable="true" 
-                       Sortable="true" />
-        
-        <PropertyColumn Property="x => x.Amount" 
-                       Title="Amount"
-                       Format="C"
-                       Filterable="true" 
-                       Sortable="true"
-                       CellClass="text-end"
-                       HeaderStyle="text-align: right;" />
-        
-        <PropertyColumn Property="x => x.EnvelopeName" 
-                       Title="Envelope" 
-                       Filterable="true" 
-                       Sortable="true" />
-        
-        <TemplateColumn Title="Duplicate" 
-                       Filterable="false" 
-                       Sortable="true"
-                       SortBy="@(x => x.Duplicate)">
+        <SelectColumn T="TransactionImportDto"/>
+
+        <PropertyColumn Property="x => x.Date"
+                        Title="Date"
+                        Format="d"
+                        Filterable="true"
+                        Sortable="true"/>
+
+        <PropertyColumn Property="x => x.Vendor"
+                        Title="Vendor"
+                        Filterable="true"
+                        Sortable="true"/>
+
+        <PropertyColumn Property="x => x.Description"
+                        Title="Description"
+                        Filterable="true"
+                        Sortable="true"/>
+
+        <PropertyColumn Property="x => x.Amount"
+                        Title="Amount"
+                        Format="C"
+                        Filterable="true"
+                        Sortable="true"
+                        CellClass="text-end"
+                        HeaderStyle="text-align: right;"/>
+
+        <PropertyColumn Property="x => x.EnvelopeName"
+                        Title="Envelope"
+                        Filterable="true"
+                        Sortable="true"/>
+
+        <TemplateColumn Title="Duplicate"
+                        Filterable="false"
+                        Sortable="true"
+                        SortBy="@(x => x.Duplicate)">
           <CellTemplate>
-            <MudCheckBox Value="@context.Item.Duplicate" 
-                        Color="Color.Warning" 
-                        ValueChanged="@(async (bool value) => { context.Item.Duplicate = value; await OnDuplicateToggled(context.Item); })"
-                        Disabled="Busy" />
+            <MudCheckBox Value="@context.Item.Duplicate"
+                         Color="Color.Warning"
+                         ValueChanged="@(async (bool value) =>
+                                       {
+                                         context.Item.Duplicate = value;
+                                         await OnDuplicateToggled(context.Item);
+                                       })"
+                         Disabled="Busy"/>
           </CellTemplate>
         </TemplateColumn>
       </Columns>
