@@ -270,23 +270,30 @@ public partial class TransactionsCsvImport : ComponentBase
     Busy = true;
     try
     {
-      var tasks = _selectedItems.Select(item => 
-        Api.UpdateTransactionImportAsync(item.Id, false));
-      
-      var results = await Task.WhenAll(tasks);
-      
-      if (results.All(r => r))
+      var updateTasks = _selectedItems.Select(async item => 
       {
-        foreach (var item in _selectedItems)
-        {
-          item.Duplicate = false;
-        }
-        Snackbar.Add($"Cleared duplicate flag for {_selectedItems.Count} transactions", Severity.Success);
+        var success = await Api.UpdateTransactionImportAsync(item.Id, false);
+        return (item, success);
+      }).ToList();
+      
+      var results = await Task.WhenAll(updateTasks);
+      
+      var successfulItems = results.Where(r => r.success).Select(r => r.item).ToList();
+      var failedCount = results.Count(r => !r.success);
+      
+      foreach (var item in successfulItems)
+      {
+        item.Duplicate = false;
+      }
+      
+      if (failedCount == 0)
+      {
+        Snackbar.Add($"Cleared duplicate flag for {successfulItems.Count} transactions", Severity.Success);
       }
       else
       {
-        Errors.Add("Some transactions failed to update");
-        Snackbar.Add("Some transactions failed to update", Severity.Warning);
+        Snackbar.Add($"Cleared duplicate flag for {successfulItems.Count} transactions, {failedCount} failed", Severity.Warning);
+        Errors.Add($"{failedCount} transactions failed to update");
       }
     }
     catch (Exception ex)
@@ -311,23 +318,30 @@ public partial class TransactionsCsvImport : ComponentBase
     Busy = true;
     try
     {
-      var tasks = _selectedItems.Select(item => 
-        Api.UpdateTransactionImportAsync(item.Id, true));
-      
-      var results = await Task.WhenAll(tasks);
-      
-      if (results.All(r => r))
+      var updateTasks = _selectedItems.Select(async item => 
       {
-        foreach (var item in _selectedItems)
-        {
-          item.Duplicate = true;
-        }
-        Snackbar.Add($"Set duplicate flag for {_selectedItems.Count} transactions", Severity.Success);
+        var success = await Api.UpdateTransactionImportAsync(item.Id, true);
+        return (item, success);
+      }).ToList();
+      
+      var results = await Task.WhenAll(updateTasks);
+      
+      var successfulItems = results.Where(r => r.success).Select(r => r.item).ToList();
+      var failedCount = results.Count(r => !r.success);
+      
+      foreach (var item in successfulItems)
+      {
+        item.Duplicate = true;
+      }
+      
+      if (failedCount == 0)
+      {
+        Snackbar.Add($"Set duplicate flag for {successfulItems.Count} transactions", Severity.Success);
       }
       else
       {
-        Errors.Add("Some transactions failed to update");
-        Snackbar.Add("Some transactions failed to update", Severity.Warning);
+        Snackbar.Add($"Set duplicate flag for {successfulItems.Count} transactions, {failedCount} failed", Severity.Warning);
+        Errors.Add($"{failedCount} transactions failed to update");
       }
     }
     catch (Exception ex)
