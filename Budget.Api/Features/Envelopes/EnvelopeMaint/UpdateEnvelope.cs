@@ -1,3 +1,4 @@
+using Budget.Shared.Models;
 using Mapster;
 
 namespace Budget.Api.Features.Envelopes.EnvelopeMaint;

@@ -1,3 +1,5 @@
+using Budget.Shared.Services;
+
 namespace Budget.Api.Features.Categories.CategoryMaint;
 
 /// <summary>

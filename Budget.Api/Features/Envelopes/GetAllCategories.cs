@@ -1,7 +1,7 @@
 ﻿namespace Budget.Api.Features.Envelopes;
 
 
-public static class GetAll
+public static class GetAllCategories
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
   public sealed record Response(int Id, string Name, decimal Balance, decimal? Budget, string CategoryId, int SortOrder);

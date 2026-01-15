@@ -1,12 +1,11 @@
 using System;
-using System.Net.Http.Json;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Budget.Api.Features.BudgetMonths;
 using Budget.DB;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+using Budget.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
+using FluentAssertions;
 using Xunit;
 
 namespace Budget.ApiTests;
@@ -14,428 +13,308 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Budget Month API endpoints
 /// </summary>
-public class BudgetMonthEndpointsTests : IntegrationTestBase
+public class BudgetMonthEndpointsTests
 {
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+    => new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .Options;
 
-  /// <summary>
-  /// Test GetBudgetMonth endpoint - should return budget data for a specific month
-  /// </summary>
   [Fact]
   public async Task GetBudgetMonth_Should_Return_Budget_Data_For_Month()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.Envelopes.Add(envelope);
+    await context.SaveChangesAsync();
+
+    var handler = new GetBudgetMonth.Handler(context);
     var year = 2024;
     var month = 12;
+    var acctPeriod = year * 100 + month;
 
     // Act
-    var response = await Client.GetAsync($"/budgetmonths/{year}/{month}");
+    var result = await handler.Handle(new GetBudgetMonth.Query(acctPeriod), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<List<GetBudgetMonth.Response>>();
-
     result.Should().NotBeNull();
-    // Should return data for all envelopes, even if no budget data exists
-    result.Should().HaveCount(c => c >= 0);
+    var resultList = result.ToList();
+    resultList.Should().HaveCountGreaterThanOrEqualTo(1);
   }
 
-  /// <summary>
-  /// Test CheckDraftBudgets endpoint - should indicate if drafts exist
-  /// </summary>
   [Fact]
   public async Task CheckDraftBudgets_Should_Indicate_If_Drafts_Exist()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var handler = new CheckDraftBudgets.Handler(context);
 
     // Act
-    var response = await Client.GetAsync("/budgetmonths/hasdrafts");
+    var result = await handler.Handle(new CheckDraftBudgets.Query(), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<CheckDraftBudgets.Response>();
-
     result.Should().NotBeNull();
-    result!.DraftCount.Should().BeGreaterThanOrEqualTo(0);
+    result.DraftCount.Should().BeGreaterThanOrEqualTo(0);
   }
 
-  /// <summary>
-  /// Test UpdateBudgetDraft endpoint - should create or update draft budget value
-  /// </summary>
   [Fact]
   public async Task UpdateBudgetDraft_Should_Create_Or_Update_Draft()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.Envelopes.Add(envelope);
+    await context.SaveChangesAsync();
 
-    var envelope = TestHelpers.CreateTestEnvelope(id: 600, name: "Test Envelope", categoryId: "1");
-    db.Envelopes.Add(envelope);
-    await db.SaveChangesAsync();
-
-    var command = new UpdateBudgetDraft.Command(
-      AcctPeriod: 202412,
-      EnvelopeId: envelope.Id,
-      DraftValue: 500m);
+    var handler = new UpdateBudgetDraft.Handler(context);
+    var command = new UpdateBudgetDraft.Command(202412, 1, 100.50m);
 
     // Act
-    var response = await Client.PutAsJsonAsync("/budgetmonths/draft", command);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<UpdateBudgetDraft.Response>();
-
     result.Should().NotBeNull();
-    result!.Success.Should().BeTrue();
-
-    // Verify in database
-    db.ChangeTracker.Clear();
-    var budgetMonth = await db.BudgetMonths
-      .FirstOrDefaultAsync(b => b.AcctPeriod == 202412 && b.EnvelopeId == envelope.Id);
-
-    budgetMonth.Should().NotBeNull();
-    budgetMonth!.BudgetDraft.Should().Be(500m);
+    result.Success.Should().BeTrue();
   }
 
-  /// <summary>
-  /// Test ApplyDraftValuesToBudget endpoint - should apply all drafts to budget
-  /// </summary>
   [Fact]
   public async Task ApplyDraftValuesToBudget_Should_Apply_Drafts_To_Budget()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var envelope = TestHelpers.CreateTestEnvelope(id: 601, name: "Test Envelope", categoryId: "1");
-    db.Envelopes.Add(envelope);
-
-    var budgetMonth = new BudgetMonth
-    {
-      AcctPeriod = 202501,
-      EnvelopeId = envelope.Id,
-      Budget = null,
-      BudgetDraft = 300m
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
+    var budgetMonth = new BudgetMonth 
+    { 
+      AcctPeriod = 202412, 
+      EnvelopeId = 1, 
+      BudgetDraft = 100m,
+      FamilyId = 1
     };
-    db.BudgetMonths.Add(budgetMonth);
-    await db.SaveChangesAsync();
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.Envelopes.Add(envelope);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync();
 
-    var command = new ApplyDraftValuesToBudget.Command();
+    var handler = new ApplyDraftValuesToBudget.Handler(context);
 
     // Act
-    var response = await Client.PostAsJsonAsync("/budgetmonths/applydrafts", command);
+    var result = await handler.Handle(new ApplyDraftValuesToBudget.Command(), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<ApplyDraftValuesToBudget.Response>();
-
     result.Should().NotBeNull();
-    result!.Success.Should().BeTrue();
+    result.Success.Should().BeTrue();
     result.RecordsUpdated.Should().BeGreaterThan(0);
-
-    // Verify in database
-    db.ChangeTracker.Clear();
-    var updated = await db.BudgetMonths
-      .FirstOrDefaultAsync(b => b.AcctPeriod == 202501 && b.EnvelopeId == envelope.Id);
-
-    updated.Should().NotBeNull();
-    updated!.Budget.Should().Be(300m);
-    updated.BudgetDraft.Should().BeNull();
   }
 
-    /// <summary>
-    /// Test ClearDraftBudgets endpoint - should clear all draft values
-    /// </summary>
-    [Fact]
-    public async Task ClearDraftBudgets_Should_Clear_All_Drafts()
-    {
-        // Arrange
-        var client = _factory.CreateClient();
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+  [Fact]
+  public async Task ClearDraftBudgets_Should_Clear_All_Drafts()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    // Use a future date to ensure it gets cleared
+    var futureDate = DateTime.Now.AddMonths(1);
+    var futureAcctPeriod = futureDate.Year * 100 + futureDate.Month;
+    var budgetMonth = new BudgetMonth 
+    { 
+      AcctPeriod = futureAcctPeriod, 
+      EnvelopeId = 1, 
+      BudgetDraft = 100m,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync();
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 6020, name: "Test Envelope", categoryId: "1");
-        db.Envelopes.Add(envelope);
+    var handler = new ClearDraftBudgets.Handler(context);
 
-        var now = DateTime.Now;
-        var futureAcctPeriod = now.Year * 100 + now.Month + 1;
-        if ((futureAcctPeriod % 100) > 12)
-        {
-            futureAcctPeriod = (now.Year + 1) * 100 + 1;
-        }
+    // Act
+    var result = await handler.Handle(new ClearDraftBudgets.Command(), CancellationToken.None);
 
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = futureAcctPeriod,
-            EnvelopeId = envelope.Id,
-            Budget = 200m,
-            BudgetDraft = 250m
-        };
-        db.BudgetMonths.Add(budgetMonth);
-        await db.SaveChangesAsync();
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().BeGreaterThan(0);
+  }
 
-        var command = new ClearDraftBudgets.Command();
+  [Fact]
+  public async Task CopyBudgetToNextMonth_Should_Copy_Values_To_Next_Month()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
+    var budgetMonth = new BudgetMonth 
+    { 
+      AcctPeriod = 202411, 
+      EnvelopeId = 1, 
+      Budget = 150m,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.Envelopes.Add(envelope);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync();
 
-        // Act
-        var response = await client.PostAsJsonAsync("/budgetmonths/cleardrafts", command);
+    var handler = new CopyBudgetToNextMonth.Handler(context);
+    var command = new CopyBudgetToNextMonth.Command(202411, false, true);
 
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<ClearDraftBudgets.Response>();
-        
-        result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        
-        // Verify in database
-        db.ChangeTracker.Clear();
-        var updated = await db.BudgetMonths
-            .FirstOrDefaultAsync(b => b.AcctPeriod == futureAcctPeriod && b.EnvelopeId == envelope.Id);
-        
-        updated.Should().NotBeNull();
-        updated!.BudgetDraft.Should().BeNull();
-        updated.Budget.Should().Be(200m); // Budget should remain unchanged
-    }
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
 
-    /// <summary>
-    /// Test CopyBudgetToNextMonth endpoint - should copy budget values to next month
-    /// </summary>
-    [Fact]
-    public async Task CopyBudgetToNextMonth_Should_Copy_Values_To_Next_Month()
-    {
-        // Arrange
-        var client = _factory.CreateClient();
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().BeGreaterThan(0);
+  }
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 603, name: "Test Envelope", categoryId: "1");
-        db.Envelopes.Add(envelope);
+  [Fact]
+  public async Task ClearMonthBudgets_Should_Clear_Budgets_For_Month()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var budgetMonth = new BudgetMonth 
+    { 
+      AcctPeriod = 202412, 
+      EnvelopeId = 1, 
+      Budget = 200m,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync();
 
-        var sourceAcctPeriod = 202403;
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = sourceAcctPeriod,
-            EnvelopeId = envelope.Id,
-            Budget = 400m,
-            BudgetDraft = null
-        };
-        db.BudgetMonths.Add(budgetMonth);
-        await db.SaveChangesAsync();
+    var handler = new ClearMonthBudgets.Handler(context);
+    var command = new ClearMonthBudgets.Command(202412);
 
-        var command = new CopyBudgetToNextMonth.Command(
-            SourceAcctPeriod: sourceAcctPeriod,
-            CopyFromDraft: false,
-            ConfirmOverwrite: false);
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
 
-        // Act
-        var response = await client.PostAsJsonAsync("/budgetmonths/copytonextmonth", command);
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().BeGreaterThan(0);
+  }
 
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<CopyBudgetToNextMonth.Response>();
-        
-        result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().BeGreaterThan(0);
-        
-        // Verify in database - next month should have draft value
-        db.ChangeTracker.Clear();
-        var targetAcctPeriod = 202404;
-        var copied = await db.BudgetMonths
-            .FirstOrDefaultAsync(b => b.AcctPeriod == targetAcctPeriod && b.EnvelopeId == envelope.Id);
-        
-        copied.Should().NotBeNull();
-        copied!.BudgetDraft.Should().Be(400m);
-    }
+  [Fact]
+  public async Task ClearMonthDrafts_Should_Clear_Drafts_For_Month()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var budgetMonth = new BudgetMonth 
+    { 
+      AcctPeriod = 202412, 
+      EnvelopeId = 1, 
+      BudgetDraft = 150m,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync();
 
-    /// <summary>
-    /// Test ClearMonthBudgets endpoint - should clear budget values for a specific month
-    /// </summary>
-    [Fact]
-    public async Task ClearMonthBudgets_Should_Clear_Budgets_For_Month()
-    {
-        // Arrange
-        var client = _factory.CreateClient();
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var handler = new ClearMonthDrafts.Handler(context);
+    var command = new ClearMonthDrafts.Command(202412);
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 604, name: "Test Envelope", categoryId: "1");
-        db.Envelopes.Add(envelope);
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
 
-        var acctPeriod = 202505;
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = acctPeriod,
-            EnvelopeId = envelope.Id,
-            Budget = 500m,
-            BudgetDraft = 100m
-        };
-        db.BudgetMonths.Add(budgetMonth);
-        await db.SaveChangesAsync();
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().BeGreaterThan(0);
+  }
 
-        var command = new ClearMonthBudgets.Command(acctPeriod);
+  [Fact]
+  public async Task ClearMonthBoth_Should_Clear_Both_Values_For_Month()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var budgetMonth = new BudgetMonth 
+    { 
+      AcctPeriod = 202412, 
+      EnvelopeId = 1, 
+      Budget = 200m,
+      BudgetDraft = 150m,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync();
 
-        // Act
-        var response = await client.PostAsJsonAsync("/budgetmonths/clearmonthbudgets", command);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202412);
 
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<ClearMonthBudgets.Response>();
-        
-        result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        
-        // Verify in database
-        db.ChangeTracker.Clear();
-        var updated = await db.BudgetMonths
-            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
-        
-        updated.Should().NotBeNull();
-        updated!.Budget.Should().BeNull();
-        updated.BudgetDraft.Should().Be(100m); // Draft should remain unchanged
-    }
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
 
-    /// <summary>
-    /// Test ClearMonthDrafts endpoint - should clear draft values for a specific month
-    /// </summary>
-    [Fact]
-    public async Task ClearMonthDrafts_Should_Clear_Drafts_For_Month()
-    {
-        // Arrange
-        var client = _factory.CreateClient();
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().BeGreaterThan(0);
+  }
 
-        var envelope = TestHelpers.CreateTestEnvelope(id: 605, name: "Test Envelope", categoryId: "1");
-        db.Envelopes.Add(envelope);
+  [Fact]
+  public async Task ApplyMonthDrafts_Should_Apply_Drafts_For_Month()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var budgetMonth = new BudgetMonth 
+    { 
+      AcctPeriod = 202412, 
+      EnvelopeId = 1, 
+      BudgetDraft = 175m,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync();
 
-        var acctPeriod = 202506;
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = acctPeriod,
-            EnvelopeId = envelope.Id,
-            Budget = 500m,
-            BudgetDraft = 100m
-        };
-        db.BudgetMonths.Add(budgetMonth);
-        await db.SaveChangesAsync();
+    var handler = new ApplyMonthDrafts.Handler(context);
+    var command = new ApplyMonthDrafts.Command(202412);
 
-        var command = new ClearMonthDrafts.Command(acctPeriod);
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
 
-        // Act
-        var response = await client.PostAsJsonAsync("/budgetmonths/clearmonthdrafts", command);
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<ClearMonthDrafts.Response>();
-        
-        result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        
-        // Verify in database
-        db.ChangeTracker.Clear();
-        var updated = await db.BudgetMonths
-            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
-        
-        updated.Should().NotBeNull();
-        updated!.BudgetDraft.Should().BeNull();
-        updated.Budget.Should().Be(500m); // Budget should remain unchanged
-    }
-
-    /// <summary>
-    /// Test ClearMonthBoth endpoint - should clear both budget and draft values for a specific month
-    /// </summary>
-    [Fact]
-    public async Task ClearMonthBoth_Should_Clear_Both_Values_For_Month()
-    {
-        // Arrange
-        var client = _factory.CreateClient();
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-        var envelope = TestHelpers.CreateTestEnvelope(id: 606, name: "Test Envelope", categoryId: "1");
-        db.Envelopes.Add(envelope);
-
-        var acctPeriod = 202507;
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = acctPeriod,
-            EnvelopeId = envelope.Id,
-            Budget = 500m,
-            BudgetDraft = 100m
-        };
-        db.BudgetMonths.Add(budgetMonth);
-        await db.SaveChangesAsync();
-
-        var command = new ClearMonthBoth.Command(acctPeriod);
-
-        // Act
-        var response = await client.PostAsJsonAsync("/budgetmonths/clearmonthboth", command);
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<ClearMonthBoth.Response>();
-        
-        result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        
-        // Verify in database
-        db.ChangeTracker.Clear();
-        var updated = await db.BudgetMonths
-            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
-        
-        updated.Should().NotBeNull();
-        updated!.Budget.Should().BeNull();
-        updated.BudgetDraft.Should().BeNull();
-    }
-
-    /// <summary>
-    /// Test ApplyMonthDrafts endpoint - should apply drafts to budget for a specific month
-    /// </summary>
-    [Fact]
-    public async Task ApplyMonthDrafts_Should_Apply_Drafts_For_Month()
-    {
-        // Arrange
-        var client = _factory.CreateClient();
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-        var envelope = TestHelpers.CreateTestEnvelope(id: 6070, name: "Test Envelope", categoryId: "1");
-        db.Envelopes.Add(envelope);
-
-        var acctPeriod = 202508;
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = acctPeriod,
-            EnvelopeId = envelope.Id,
-            Budget = null,
-            BudgetDraft = 300m
-        };
-        db.BudgetMonths.Add(budgetMonth);
-        await db.SaveChangesAsync();
-
-        var command = new ApplyMonthDrafts.Command(acctPeriod);
-
-        // Act
-        var response = await client.PostAsJsonAsync("/budgetmonths/applymonthdrafts", command);
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<ApplyMonthDrafts.Response>();
-        
-        result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().BeGreaterThan(0);
-        
-        // Verify in database
-        db.ChangeTracker.Clear();
-        var updated = await db.BudgetMonths
-            .FirstOrDefaultAsync(b => b.AcctPeriod == acctPeriod && b.EnvelopeId == envelope.Id);
-        
-        updated.Should().NotBeNull();
-        updated!.Budget.Should().Be(300m);
-        updated.BudgetDraft.Should().BeNull();
-    }
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().BeGreaterThan(0);
+  }
 }

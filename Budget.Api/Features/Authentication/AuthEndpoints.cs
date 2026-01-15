@@ -1,3 +1,5 @@
+using Budget.Shared;
+
 namespace Budget.Api.Features.Authentication;
 
 public sealed class AuthEndpoints : ICarterModule

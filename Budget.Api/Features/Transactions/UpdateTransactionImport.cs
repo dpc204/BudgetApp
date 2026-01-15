@@ -1,4 +1,3 @@
-using Budget.DB;
 using Carter;
 using Fantum.Mediator;
 using Microsoft.AspNetCore.Mvc;

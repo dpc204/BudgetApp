@@ -12,4 +12,12 @@ public class TransactionImportDto
   public int UserId { get; set; }
   public DateTime ImportedAt { get; set; }
   public bool Duplicate { get; set; } = false;
+
+  public override bool Equals(object? obj) =>
+    obj is TransactionImportDto tran && Id == tran.Id;
+
+  public override int GetHashCode()
+  {
+    return HashCode.Combine(Id);
+  }
 }

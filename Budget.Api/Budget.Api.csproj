@@ -49,4 +49,9 @@
     <Folder Include="Hosting\" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <HotReloadAutoRestart>true</HotReloadAutoRestart>
+  </PropertyGroup>
+
+
 </Project>

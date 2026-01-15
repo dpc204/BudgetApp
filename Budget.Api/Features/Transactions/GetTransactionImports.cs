@@ -1,4 +1,4 @@
-using Budget.DB;
+using Budget.Shared.Models;
 using Carter;
 using Fantum.Mediator;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +15,7 @@ public static class GetTransactionImports
 
   public sealed record Response(List<TransactionImportDto> Imports);
 
-  /// <summary>
+  /// <summary> 
   /// Handles retrieval of staged transaction imports
   /// </summary>
   public class Handler(BudgetContext db) : IRequestHandler<Query, List<TransactionImportDto>>

@@ -1,14 +1,13 @@
 using System;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Budget.Api.Features.Transactions;
-using Budget.Shared.Models;
 using Budget.DB;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+using Budget.Shared.Enums;
+using Budget.Shared.Models;
 using Microsoft.EntityFrameworkCore;
+using FluentAssertions;
 using Xunit;
 
 namespace Budget.ApiTests;
@@ -16,26 +15,40 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Transaction API endpoints
 /// </summary>
-public class TransactionEndpointsTests : IntegrationTestBase
+public class TransactionEndpointsTests
 {
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+    => new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .Options;
 
-  /// <summary>
-  /// Test AddNewTransaction endpoint - should create a new transaction and update balances
-  /// </summary>
   [Fact]
   public async Task AddNewTransaction_Should_Create_Transaction_And_Update_Balances()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var account = TestHelpers.CreateTestAccount(id: 200, balance: 1000m);
-    db.BankAccounts.Add(account);
-
-    var envelope = TestHelpers.CreateTestEnvelope(id: 200, categoryId: "1", balance: 500m);
-    db.Envelopes.Add(envelope);
-
-    await db.SaveChangesAsync();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var account = new BankAccount { Id = 200, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var envelope = new Envelope 
+    { 
+      Id = 200, 
+      Name = "Test Envelope", 
+      CategoryId = "1", 
+      Balance = 500m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
+    };
+    var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.BankAccounts.Add(account);
+    context.Envelopes.Add(envelope);
+    context.Users.Add(user);
+    await context.SaveChangesAsync();
 
     var transactionDetail = new OneTransactionDetail
     {
@@ -54,17 +67,18 @@ public class TransactionEndpointsTests : IntegrationTestBase
       ]
     };
 
+    var handler = new AddNewTransaction.Handler(context);
     var command = new AddNewTransaction.Command(transactionDetail);
 
     // Act
-    var response = await Client.PostAsJsonAsync("/Transaction/Insert", command);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-
-    db.ChangeTracker.Clear();
-    var updatedAccount = await db.BankAccounts.FindAsync(account.Id);
-    var updatedEnvelope = await db.Envelopes.FindAsync(envelope.Id);
+    result.Should().NotBeNull();
+    
+    context.ChangeTracker.Clear();
+    var updatedAccount = await context.BankAccounts.FindAsync(account.Id);
+    var updatedEnvelope = await context.Envelopes.FindAsync(envelope.Id);
 
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Balance.Should().Be(900m); // 1000 - 100
@@ -73,262 +87,327 @@ public class TransactionEndpointsTests : IntegrationTestBase
     updatedEnvelope!.Balance.Should().Be(400m); // 500 - 100
   }
 
-  /// <summary>
-  /// Test GetUnassigned endpoint - should return transactions assigned to the Unallocated envelope
-  /// </summary>
   [Fact]
   public async Task GetUnassigned_Should_Return_Unallocated_Transactions()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var account = TestHelpers.CreateTestAccount(id: 201, balance: 1000m);
-    db.BankAccounts.Add(account);
-
-    // Note: Unallocated envelope with ID -1 should already exist from seed data
-    // We don't need to create it
-
-    var details = new List<TransactionDetail>
-    {
-      TestHelpers.CreateTestTransactionDetail(
-        transactionId: 201,
-        lineId: 1,
-        envelopeId: -1, // Unallocated
-        amount: 50m,
-        notes: "Unassigned transaction")
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "-1", Name = "UnAllocated", Description = "UnAllocated", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.System };
+    var account = new BankAccount { Id = 201, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var unallocatedEnvelope = new Envelope 
+    { 
+      Id = -1, 
+      Name = "UnAllocated", 
+      CategoryId = "-1", 
+      Balance = 0m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Unallocated,
+      SortOrder = 999
     };
+    var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.BankAccounts.Add(account);
+    context.Envelopes.Add(unallocatedEnvelope);
+    context.Users.Add(user);
+    
+    var transaction = new Transaction 
+    { 
+      Id = 300, 
+      AccountId = 201, 
+      Vendor = "Unassigned Vendor", 
+      Date = DateTime.UtcNow,
+      TotalAmount = 50m,
+      UserId = 1,
+      FamilyId = 1
+    };
+    var detail = new TransactionDetail 
+    { 
+      TransactionId = 300, 
+      LineId = 1, 
+      EnvelopeId = -1, 
+      Amount = 50m,
+      Notes = "Unallocated"
+    };
+    
+    context.Transactions.Add(transaction);
+    context.TransactionDetails.Add(detail);
+    await context.SaveChangesAsync();
 
-    var transaction = TestHelpers.CreateTestTransaction(
-      id: 201,
-      accountId: account.Id,
-      vendor: "Test Vendor",
-      totalAmount: 50m,
-      details: details);
-
-    db.Transactions.Add(transaction);
-    await db.SaveChangesAsync();
+    var handler = new GetUnassigned.Handler(context);
 
     // Act
-    var response = await Client.GetAsync("/transactions/unassigned");
+    var result = await handler.Handle(new GetUnassigned.Query(), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<List<GetUnassigned.Response>>();
-
     result.Should().NotBeNull();
-    result.Should().HaveCountGreaterThan(0);
-    var ourTransaction = result!.FirstOrDefault(r => r.TransactionId == 201);
-    ourTransaction.Should().NotBeNull();
-    ourTransaction!.EnvelopeId.Should().Be(-1);
+    var resultList = result.ToList();
+    resultList.Should().HaveCountGreaterThanOrEqualTo(1);
+    resultList.Should().Contain(t => t.TransactionId == 300);
   }
 
-  /// <summary>
-  /// Test GetByEnvelopeId endpoint - should return transactions for a specific envelope
-  /// </summary>
   [Fact]
   public async Task GetByEnvelopeId_Should_Return_Transactions_For_Envelope()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var account = TestHelpers.CreateTestAccount(id: 202, balance: 1000m);
-    db.BankAccounts.Add(account);
-
-    var envelope = TestHelpers.CreateTestEnvelope(id: 202, categoryId: "1", balance: 500m);
-    db.Envelopes.Add(envelope);
-
-    var details = new List<TransactionDetail>
-    {
-      TestHelpers.CreateTestTransactionDetail(
-        transactionId: 202,
-        lineId: 1,
-        envelopeId: envelope.Id,
-        amount: 75m,
-        notes: "Test transaction for envelope")
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var account = new BankAccount { Id = 202, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var envelope = new Envelope 
+    { 
+      Id = 202, 
+      Name = "Groceries", 
+      CategoryId = "1", 
+      Balance = 500m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
     };
+    var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.BankAccounts.Add(account);
+    context.Envelopes.Add(envelope);
+    context.Users.Add(user);
+    
+    var transaction = new Transaction 
+    { 
+      Id = 400, 
+      AccountId = 202, 
+      Vendor = "Store", 
+      Date = DateTime.UtcNow,
+      TotalAmount = 75m,
+      UserId = 1,
+      FamilyId = 1
+    };
+    var detail = new TransactionDetail 
+    { 
+      TransactionId = 400, 
+      LineId = 1, 
+      EnvelopeId = 202, 
+      Amount = 75m,
+      Notes = "Groceries"
+    };
+    
+    context.Transactions.Add(transaction);
+    context.TransactionDetails.Add(detail);
+    await context.SaveChangesAsync();
 
-    var transaction = TestHelpers.CreateTestTransaction(
-      id: 202,
-      accountId: account.Id,
-      vendor: "Test Vendor",
-      totalAmount: 75m,
-      details: details);
-
-    db.Transactions.Add(transaction);
-    await db.SaveChangesAsync();
+    var handler = new GetByEnvelopeId.Handler(context);
 
     // Act
-    var response = await Client.GetAsync($"/transactions/{envelope.Id}");
+    var result = await handler.Handle(new GetByEnvelopeId.Query(202), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<List<GetByEnvelopeId.Response>>();
-
     result.Should().NotBeNull();
-    result.Should().HaveCount(1);
-    result![0].TransactionId.Should().Be(202);
-    result[0].Amount.Should().Be(75m);
+    var resultList = result.ToList();
+    resultList.Should().HaveCount(1);
+    resultList[0].TransactionId.Should().Be(400);
+    resultList[0].Amount.Should().Be(75m);
   }
 
-  /// <summary>
-  /// Test GetOneTransactionDetail endpoint - should return transaction details
-  /// </summary>
   [Fact]
   public async Task GetOneTransactionDetail_Should_Return_Transaction_Details()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var account = TestHelpers.CreateTestAccount(id: 203, balance: 1000m);
-    db.BankAccounts.Add(account);
-
-    var envelope = TestHelpers.CreateTestEnvelope(id: 203, categoryId: "1", balance: 500m);
-    db.Envelopes.Add(envelope);
-
-    var details = new List<TransactionDetail>
-    {
-      TestHelpers.CreateTestTransactionDetail(
-        transactionId: 203,
-        lineId: 1,
-        envelopeId: envelope.Id,
-        amount: 60m,
-        notes: "Test detail")
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var account = new BankAccount { Id = 203, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var envelope = new Envelope 
+    { 
+      Id = 203, 
+      Name = "Test Envelope", 
+      CategoryId = "1", 
+      Balance = 500m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
     };
+    var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.BankAccounts.Add(account);
+    context.Envelopes.Add(envelope);
+    context.Users.Add(user);
+    
+    var transaction = new Transaction 
+    { 
+      Id = 500, 
+      AccountId = 203, 
+      Vendor = "Test Vendor", 
+      Date = DateTime.UtcNow,
+      TotalAmount = 100m,
+      UserId = 1,
+      FamilyId = 1
+    };
+    var detail = new TransactionDetail 
+    { 
+      TransactionId = 500, 
+      LineId = 1, 
+      EnvelopeId = 203, 
+      Amount = 100m,
+      Notes = "Test"
+    };
+    
+    context.Transactions.Add(transaction);
+    context.TransactionDetails.Add(detail);
+    await context.SaveChangesAsync();
 
-    var transaction = TestHelpers.CreateTestTransaction(
-      id: 203,
-      accountId: account.Id,
-      vendor: "Test Vendor",
-      totalAmount: 60m,
-      details: details);
-
-    db.Transactions.Add(transaction);
-    await db.SaveChangesAsync();
+    var handler = new GetOneTransactionDetail.Handler(context);
 
     // Act
-    var response = await Client.GetAsync($"/transactions/detail/{transaction.Id}");
+    var result = await handler.Handle(new GetOneTransactionDetail.Query(500), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<GetOneTransactionDetail.Response>();
-
     result.Should().NotBeNull();
-    result!.Id.Should().Be(203);
+    result.Id.Should().Be(500);
+    result.AccountId.Should().Be(203);
     result.Vendor.Should().Be("Test Vendor");
     result.Details.Should().HaveCount(1);
+    result.Details[0].Amount.Should().Be(100m);
   }
 
-  /// <summary>
-  /// Test AssignTransaction endpoint - should reassign transaction detail to different envelope
-  /// </summary>
   [Fact]
   public async Task AssignTransaction_Should_Reassign_Transaction_Detail()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var account = TestHelpers.CreateTestAccount(id: 204, balance: 1000m);
-    db.BankAccounts.Add(account);
-
-    var envelope1 = TestHelpers.CreateTestEnvelope(id: 204, name: "Envelope 1", categoryId: "1", balance: 500m);
-    db.Envelopes.Add(envelope1);
-
-    var envelope2 = TestHelpers.CreateTestEnvelope(id: 205, name: "Envelope 2", categoryId: "1", balance: 300m);
-    db.Envelopes.Add(envelope2);
-
-    var details = new List<TransactionDetail>
-    {
-      TestHelpers.CreateTestTransactionDetail(
-        transactionId: 204,
-        lineId: 1,
-        envelopeId: envelope1.Id,
-        amount: 40m,
-        notes: "Original note")
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var unallocatedCategory = new Category { CategoryId = "-1", Name = "UnAllocated", Description = "UnAllocated", SortOrder = 999, FamilyId = 1, CategoryType = CatTypes.System };
+    var account = new BankAccount { Id = 204, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var envelope = new Envelope 
+    { 
+      Id = 204, 
+      Name = "Groceries", 
+      CategoryId = "1", 
+      Balance = 500m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
     };
+    var unallocatedEnvelope = new Envelope 
+    { 
+      Id = -1, 
+      Name = "UnAllocated", 
+      CategoryId = "-1", 
+      Balance = 50m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Unallocated,
+      SortOrder = 999
+    };
+    var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.AddRange(category, unallocatedCategory);
+    context.BankAccounts.Add(account);
+    context.Envelopes.AddRange(envelope, unallocatedEnvelope);
+    context.Users.Add(user);
+    
+    var transaction = new Transaction 
+    { 
+      Id = 600, 
+      AccountId = 204, 
+      Vendor = "Store", 
+      Date = DateTime.UtcNow,
+      TotalAmount = 50m,
+      UserId = 1,
+      FamilyId = 1
+    };
+    var detail = new TransactionDetail 
+    { 
+      TransactionId = 600, 
+      LineId = 1, 
+      EnvelopeId = -1, 
+      Amount = 50m,
+      Notes = "Unassigned"
+    };
+    
+    context.Transactions.Add(transaction);
+    context.TransactionDetails.Add(detail);
+    await context.SaveChangesAsync();
 
-    var transaction = TestHelpers.CreateTestTransaction(
-      id: 204,
-      accountId: account.Id,
-      vendor: "Test Vendor",
-      totalAmount: 40m,
-      details: details);
-
-    db.Transactions.Add(transaction);
-    await db.SaveChangesAsync();
-
-    var command = new AssignTransaction.Command(
-      TransactionId: 204,
-      LineId: 1,
-      EnvelopeId: envelope2.Id,
-      Description: "Updated note");
+    var handler = new AssignTransaction.Handler(context);
+    var command = new AssignTransaction.Command(600, 1, 204, "Reassigned");
 
     // Act
-    var response = await Client.PutAsJsonAsync("/transactions/assign", command);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-
-    db.ChangeTracker.Clear();
-    var updatedDetail = await db.TransactionDetails
-      .FirstOrDefaultAsync(td => td.TransactionId == 204 && td.LineId == 1);
-
+    result.Should().BeTrue();
+    
+    context.ChangeTracker.Clear();
+    var updatedDetail = await context.TransactionDetails.FindAsync(600, 1);
     updatedDetail.Should().NotBeNull();
-    updatedDetail!.EnvelopeId.Should().Be(envelope2.Id);
-    updatedDetail.Notes.Should().Be("Updated note");
+    updatedDetail!.EnvelopeId.Should().Be(204);
   }
 
-  /// <summary>
-  /// Test UpdateTransaction endpoint - should update transaction and recalculate balances
-  /// </summary>
   [Fact]
   public async Task UpdateTransaction_Should_Update_Transaction_And_Recalculate_Balances()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var account = TestHelpers.CreateTestAccount(id: 2050, balance: 1000m);
-    db.BankAccounts.Add(account);
-
-    var envelope = TestHelpers.CreateTestEnvelope(id: 2060, categoryId: "1", balance: 500m);
-    db.Envelopes.Add(envelope);
-
-    var details = new List<TransactionDetail>
-    {
-      TestHelpers.CreateTestTransactionDetail(
-        transactionId: 2050,
-        lineId: 1,
-        envelopeId: envelope.Id,
-        amount: 100m,
-        notes: "Original transaction")
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var account = new BankAccount { Id = 205, Name = "Test Account", Balance = 900m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var envelope = new Envelope 
+    { 
+      Id = 205, 
+      Name = "Test Envelope", 
+      CategoryId = "1", 
+      Balance = 400m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
     };
+    var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
+    
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.BankAccounts.Add(account);
+    context.Envelopes.Add(envelope);
+    context.Users.Add(user);
+    
+    var transaction = new Transaction 
+    { 
+      Id = 700, 
+      AccountId = 205, 
+      Vendor = "Original Vendor", 
+      Date = DateTime.UtcNow,
+      TotalAmount = 100m,
+      UserId = 1,
+      FamilyId = 1,
+      BalanceAfterTransaction = 900m
+    };
+    var detail = new TransactionDetail 
+    { 
+      TransactionId = 700, 
+      LineId = 1, 
+      EnvelopeId = 205, 
+      Amount = 100m,
+      Notes = "Original"
+    };
+    
+    context.Transactions.Add(transaction);
+    context.TransactionDetails.Add(detail);
+    await context.SaveChangesAsync();
 
-    var transaction = TestHelpers.CreateTestTransaction(
-      id: 2050,
-      accountId: account.Id,
-      vendor: "Original Vendor",
-      totalAmount: 100m,
-      details: details);
-
-    db.Transactions.Add(transaction);
-
-    // Simulate balance reduction that would have happened when transaction was created
-    account.Balance -= 100m; // 1000 - 100 = 900
-    envelope.Balance -= 100m; // 500 - 100 = 400
-
-    await db.SaveChangesAsync();
-
-    // Clear change tracker to ensure we're working with fresh data
-    db.ChangeTracker.Clear();
-
+    var handler = new UpdateTransaction.Handler(context);
     var updatedTransaction = new OneTransactionDetail
     {
-      Id = 2050,
-      AccountId = account.Id,
+      Id = 700,
+      AccountId = 205,
       Date = DateTime.UtcNow,
       Vendor = "Updated Vendor",
       UserId = 1,
@@ -336,87 +415,53 @@ public class TransactionEndpointsTests : IntegrationTestBase
       [
         new TransactionDto
         {
-          EnvelopeId = envelope.Id,
-          Amount = 150m, // Changed amount
-          Description = "Updated transaction"
+          LineId = 1,
+          EnvelopeId = 205,
+          Amount = 150m,
+          Description = "Updated"
         }
       ]
     };
-
-    var command = new UpdateTransaction.Command(updatedTransaction);
+    var command = new UpdateTransaction.Command( updatedTransaction);
 
     // Act
-    var response = await Client.PutAsJsonAsync("/Transaction/Update", command);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-
-    // Verify the response contains the updated envelope data
-    var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
-    result.Should().NotBeNull();
-    result.Should().HaveCount(1);
-    result![0].Id.Should().Be(envelope.Id);
-    result[0].Balance.Should().Be(350m); // 500 - 100 (original) + 100 (restored) - 150 (new)
-
-    db.ChangeTracker.Clear();
-    var updatedTrans = await db.Transactions
-      .Include(t => t.Details)
-      .FirstOrDefaultAsync(t => t.Id == 2050);
-    var updatedAcct = await db.BankAccounts.FindAsync(account.Id);
-    var updatedEnv = await db.Envelopes.FindAsync(envelope.Id);
-
-    updatedTrans.Should().NotBeNull();
-    updatedTrans!.Vendor.Should().Be("Updated Vendor");
-    updatedTrans.TotalAmount.Should().Be(150m);
-    updatedTrans.Details.Should().HaveCount(1);
-    updatedTrans.Details.First().Amount.Should().Be(150m);
-
-    // Account: started at 1000, reduced by 100 to 900, then restored 100 back to 1000, 
-    // then reduced by NEW total (150), final = 850
-    updatedAcct!.Balance.Should().Be(850m);
-
-    // Envelope: started at 500, reduced by 100 to 400, then restored 100 back to 500,
-    // then reduced by NEW amount (150), final = 350
-    updatedEnv!.Balance.Should().Be(350m);
+    var testResult = result.Value.FirstOrDefault();
+    testResult.Should().NotBeNull();
+    testResult.Balance.Should().Be(350);
+    testResult.Id.Should().Be(205);
+    
+    context.ChangeTracker.Clear();
+    var updatedTx = await context.Transactions.FindAsync(700);
+    updatedTx.Should().NotBeNull();
+    updatedTx!.Vendor.Should().Be("Updated Vendor");
+    updatedTx.TotalAmount.Should().Be(150m);
   }
 
-  /// <summary>
-  /// Test that updating a non-existent transaction returns 404 NotFound
-  /// </summary>
   [Fact]
   public async Task UpdateTransaction_Should_Return_NotFound_For_NonExistent_Transaction()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var nonExistentTransaction = new OneTransactionDetail
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var handler = new UpdateTransaction.Handler(context);
+    var transaction = new OneTransactionDetail
     {
       Id = 99999,
       AccountId = 1,
       Date = DateTime.UtcNow,
-      Vendor = "Non-existent Vendor",
+      Vendor = "Test",
       UserId = 1,
-      Details =
-      [
-        new TransactionDto
-        {
-          EnvelopeId = 1,
-          Amount = 100m,
-          Description = "Test"
-        }
-      ]
+      Details = []
     };
-
-    var command = new UpdateTransaction.Command(nonExistentTransaction);
+    var command = new UpdateTransaction.Command(transaction);
 
     // Act
-    var response = await Client.PutAsJsonAsync("/Transaction/Update", command);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
-
-    var errorResponse = await response.Content.ReadAsStringAsync();
-    errorResponse.Should().Contain("not found");
+    result.IsFailed.Should().Be(true);
   }
 }

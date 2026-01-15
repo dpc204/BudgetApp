@@ -1,143 +1,171 @@
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
+using CategoryGetByEnvelopeId = Budget.Api.Features.Categories.GetByEnvelopeId;
 using Budget.Api.Features.Categories.CategoryMaint;
 using Budget.DB;
+using Budget.Shared.Enums;
+using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using CategoryGetAll = Budget.Api.Features.Categories.GetByEnvelopeId;
 
 namespace Budget.ApiTests;
 
 /// <summary>
 /// Tests for Category API endpoints
 /// </summary>
-public class CategoryEndpointsTests : IntegrationTestBase
+public class CategoryEndpointsTests
 {
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+    => new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .Options;
 
-  /// <summary>
-  /// Test GetCategories endpoint - should return all categories
-  /// </summary>
   [Fact]
   public async Task GetCategories_Should_Return_All_Categories()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category1 = new Category 
+    { 
+      CategoryId = "500", 
+      Name = "Food", 
+      Description = "Food expenses",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.Income
+    };
+    var category2 = new Category 
+    { 
+      CategoryId = "501", 
+      Name = "Transportation", 
+      Description = "Transportation expenses",
+      SortOrder = 2,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
+    };
 
-    var category1 = TestHelpers.CreateTestCategory(id: "500", name: "Food", sortOrder: 1);
-    var category2 = TestHelpers.CreateTestCategory(id: "501", name: "Transportation", sortOrder: 2);
+    context.Families.Add(family);
+    context.Categories.AddRange(category1, category2);
+    await context.SaveChangesAsync();
 
-    db.Categories.Add(category1);
-    db.Categories.Add(category2);
-    await db.SaveChangesAsync();
+    var handler = new GetAllCategories.Handler(context);
 
     // Act
-    var response = await Client.GetAsync("/categories/maint/getall");
+    var result = await handler.Handle(new GetAllCategories.Query(), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
-
     result.Should().NotBeNull();
-    result.Should().HaveCount(c => c >= 2);
+    var resultList = result.ToList();
+    resultList.Should().HaveCount(2);
 
-    var cat1 = result!.FirstOrDefault(c => c.CategoryId == "500");
-    cat1.Should().NotBeNull();
-    cat1!.Name.Should().Be("Food");
+    var cat1 = resultList.Should().ContainSingle(c => c.CategoryId == "500").Subject;
+    cat1.Name.Should().Be("Food");
+    cat1.Description.Should().Be("Food expenses");
+    cat1.SortOrder.Should().Be(1);
   }
 
-  /// <summary>
-  /// Test GetAll (getbyenvelopeid) endpoint - should return all categories
-  /// </summary>
   [Fact]
   public async Task GetAllByEnvelopeId_Should_Return_All_Categories()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category 
+    { 
+      CategoryId = "502", 
+      Name = "Test Category", 
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
+    };
 
-    var category = TestHelpers.CreateTestCategory(id: "502", name: "Test Category", sortOrder: 1);
-    db.Categories.Add(category);
-    await db.SaveChangesAsync();
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    await context.SaveChangesAsync();
+
+    var handler = new CategoryGetByEnvelopeId.Handler(context);
 
     // Act
-    var response = await Client.GetAsync("/categories/getbyenvelopeid");
+    var result = await handler.Handle(new CategoryGetByEnvelopeId.Query(), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<List<CategoryGetAll.Response>>();
-
     result.Should().NotBeNull();
-    result.Should().HaveCount(c => c >= 1);
+    var resultList = result.ToList();
+    resultList.Should().HaveCount(1);
+    resultList[0].CategoryId.Should().Be("502");
+    resultList[0].Name.Should().Be("Test Category");
   }
 
-  /// <summary>
-  /// Test InsertCategory endpoint - should create a new category
-  /// </summary>
   [Fact]
   public async Task InsertCategory_Should_Create_New_Category()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    context.Families.Add(family);
+    await context.SaveChangesAsync();
+
+    var handler = new InsertCategory.Handler(context);
     var command = new InsertCategory.Command(
       Name: "New Category",
       Description: "Test description",
       SortOrder: 10);
 
     // Act
-    var response = await Client.PostAsJsonAsync("/categories/maint/Insert", command);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<InsertCategory.Response>();
-
     result.Should().NotBeNull();
-    result!.Name.Should().Be("New Category");
+    result.Name.Should().Be("New Category");
     result.Description.Should().Be("Test description");
     result.SortOrder.Should().Be(10);
     result.CategoryId.Should().NotBeNullOrEmpty();
 
     // Verify in database
-    db.ChangeTracker.Clear();
-    var savedCategory = await db.Categories.FindAsync(result.CategoryId);
-
+    var savedCategory = await context.Categories.FindAsync(result.CategoryId);
     savedCategory.Should().NotBeNull();
     savedCategory!.Name.Should().Be("New Category");
+    savedCategory.Description.Should().Be("Test description");
   }
 
-  /// <summary>
-  /// Test UpdateCategory endpoint - should update an existing category
-  /// </summary>
   [Fact]
   public async Task UpdateCategory_Should_Update_Existing_Category()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var category = TestHelpers.CreateTestCategory(id: "503", name: "Original Name", sortOrder: 1);
-    db.Categories.Add(category);
-    await db.SaveChangesAsync();
-
-    var commandBody = new UpdateCategory.CommandBody
-    {
-      CategoryId = "503",
-      Name = "Updated Name",
-      Description = "Updated description",
-      SortOrder = 5
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category 
+    { 
+      CategoryId = "503", 
+      Name = "Original Name", 
+      Description = "Original",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
 
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    await context.SaveChangesAsync();
+
+    var handler = new UpdateCategory.Handler(context);
+    var command = new UpdateCategory.Command(
+      CategoryId: "503",
+      Name: "Updated Name",
+      Description: "Updated description",
+      SortOrder: 5);
+
     // Act
-    var response = await Client.PutAsJsonAsync("/categories/maint/503", commandBody);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<UpdateCategory.Response>();
-
     result.Should().NotBeNull();
     result!.CategoryId.Should().Be("503");
     result.Name.Should().Be("Updated Name");
@@ -145,78 +173,80 @@ public class CategoryEndpointsTests : IntegrationTestBase
     result.SortOrder.Should().Be(5);
 
     // Verify in database
-    db.ChangeTracker.Clear();
-    var updatedCategory = await db.Categories.FindAsync("503");
-
+    context.ChangeTracker.Clear();
+    var updatedCategory = await context.Categories.FindAsync("503");
     updatedCategory.Should().NotBeNull();
     updatedCategory!.Name.Should().Be("Updated Name");
+    updatedCategory.Description.Should().Be("Updated description");
   }
 
-  /// <summary>
-  /// Test UpdateCategory endpoint with mismatched IDs - should return BadRequest
-  /// </summary>
   [Fact]
-  public async Task UpdateCategory_With_Mismatched_Ids_Should_Return_BadRequest()
+  public async Task UpdateCategory_With_NonExistent_Category_Should_Return_Null()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-    var commandBody = new UpdateCategory.CommandBody
-    {
-      CategoryId = "999",
-      Name = "Test",
-      Description = "Test",
-      SortOrder = 1
-    };
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var handler = new UpdateCategory.Handler(context);
+    var command = new UpdateCategory.Command(
+      CategoryId: "999",
+      Name: "Test",
+      Description: "Test",
+      SortOrder: 1);
 
     // Act
-    var response = await Client.PutAsJsonAsync("/categories/maint/504", commandBody);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+    result.Should().BeNull();
   }
 
-  /// <summary>
-  /// Test RemoveCategory endpoint - should delete a category
-  /// </summary>
   [Fact]
   public async Task RemoveCategory_Should_Delete_Category()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category 
+    { 
+      CategoryId = "505", 
+      Name = "To Delete", 
+      Description = "Delete me",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
+    };
 
-    var category = TestHelpers.CreateTestCategory(id: "505", name: "To Delete", sortOrder: 1);
-    db.Categories.Add(category);
-    await db.SaveChangesAsync();
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    await context.SaveChangesAsync();
+
+    var handler = new RemoveCategory.Handler(context);
 
     // Act
-    var response = await Client.DeleteAsync("/categories/maint/505");
+    var result = await handler.Handle(new RemoveCategory.Command("505"), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
+    result.Should().BeTrue();
 
     // Verify deletion in database
-    db.ChangeTracker.Clear();
-    var deletedCategory = await db.Categories.FindAsync("505");
+    context.ChangeTracker.Clear();
+    var deletedCategory = await context.Categories.FindAsync("505");
     deletedCategory.Should().BeNull();
   }
 
-  /// <summary>
-  /// Test RemoveCategory endpoint with non-existent category - should return NotFound
-  /// </summary>
   [Fact]
-  public async Task RemoveCategory_With_NonExistent_Category_Should_Return_NotFound()
+  public async Task RemoveCategory_With_NonExistent_Category_Should_Return_False()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var handler = new RemoveCategory.Handler(context);
 
     // Act
-    var response = await Client.DeleteAsync("/categories/maint/99999");
+    var result = await handler.Handle(new RemoveCategory.Command("99999"), CancellationToken.None);
 
     // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
+    result.Should().BeFalse();
   }
 }

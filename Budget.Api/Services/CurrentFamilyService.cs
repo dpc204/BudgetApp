@@ -1,4 +1,3 @@
-using Budget.DB;
 using System.Security.Claims;
 
 namespace Budget.Api.Services;

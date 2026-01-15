@@ -204,6 +204,9 @@ public static class ConfigureServices
     builder.Services.AddSingleton<ThemeService>();
     builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
     
+    // Register role management service
+    builder.Services.AddScoped<IRoleService, RoleService>();
+    
     // Register Fund page services
     builder.Services.AddScoped<IFundAllocationService, FundAllocationService>();
     builder.Services.AddScoped<IFundDataService, FundDataService>();

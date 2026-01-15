@@ -1,0 +1,87 @@
+@page "/admin/roles"
+@attribute [Authorize(Policy = "AdminOnly")]
+
+<PageTitle>Role Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+  <MudText Typo="Typo.h4" Class="mb-4">
+    <MudIcon Icon="@Icons.Material.Filled.Shield" Class="mr-2" />
+    Role Management
+  </MudText>
+
+  @if (IsLoading)
+  {
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+  }
+  else if (ErrorMessage != null)
+  {
+    <MudAlert Severity="Severity.Error" Class="mb-4">@ErrorMessage</MudAlert>
+  }
+  else
+  {
+    <MudCard>
+      <MudCardContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenCreateDialog"
+                   Class="mb-4">
+          Create Role
+        </MudButton>
+
+        <MudTable Items="@RolesList"
+                  Hover="true"
+                  Striped="true"
+                  Dense="true"
+                  Loading="@IsLoading">
+          <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Users</MudTh>
+            <MudTh>Created</MudTh>
+            <MudTh>Modified</MudTh>
+            <MudTh>Actions</MudTh>
+          </HeaderContent>
+          <RowTemplate>
+            <MudTd DataLabel="Name">
+              <MudChip T="string" Size="Size.Small" Color="GetRoleColor(context.Name)">
+                @context.Name
+              </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Users">
+              <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">
+                @context.UserCount
+              </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Created">@context.CreatedAt.ToLocalTime().ToString("g")</MudTd>
+            <MudTd DataLabel="Modified">
+              @(context.ModifiedAt?.ToLocalTime().ToString("g") ?? "-")
+            </MudTd>
+            <MudTd DataLabel="Actions">
+              <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                             Size="Size.Small"
+                             Color="Color.Primary"
+                             OnClick="() => OpenEditDialog(context)" />
+              <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                             Size="Size.Small"
+                             Color="Color.Error"
+                             OnClick="() => DeleteRole(context)"
+                             Disabled="@(context.UserCount > 0)" />
+            </MudTd>
+          </RowTemplate>
+        </MudTable>
+      </MudCardContent>
+    </MudCard>
+  }
+</MudContainer>
+
+@code {
+  private Color GetRoleColor(string roleName) => roleName switch
+  {
+    "Admin" => Color.Error,
+    "PowerUser" => Color.Warning,
+    "User" => Color.Info,
+    _ => Color.Default
+  };
+}

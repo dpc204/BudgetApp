@@ -6,7 +6,7 @@
       <MudNavLink Href="assign" Icon="@Icons.Material.Filled.Folder">Assign</MudNavLink>
       <MudNavLink Href="budget" Icon="@Icons.Material.Filled.AccountBalance">Budget</MudNavLink>
       <MudNavLink Href="fund" Icon="@Icons.Material.Filled.AttachMoney">Fund</MudNavLink>
-      <AuthorizeView Policy="PowerUserOrAbove" Context="adminContext">
+      <AuthorizeView Policy="AdminOnly" Context="adminContext">
         <Authorized>
           <MudNavGroup Title="Settings" Expanded="false">
             <MudNavLink Href="import" Icon="@Icons.Material.Filled.ImportExport">Import</MudNavLink>
@@ -16,8 +16,10 @@
       </AuthorizeView>
       <AuthorizeView Policy="AdminOnly" Context="adminContext">
         <Authorized>
-          <MudNavLink Href="Admin/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
-          <MudNavLink Href="Admin/Roles" Icon="@Icons.Material.Filled.Shield">Roles</MudNavLink>
+          <MudNavGroup Title="Admin" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="false">
+            <MudNavLink Href="admin/users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+            <MudNavLink Href="admin/roles" Icon="@Icons.Material.Filled.Shield">Roles</MudNavLink>
+          </MudNavGroup>
         </Authorized>
       </AuthorizeView>
       

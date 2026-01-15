@@ -47,6 +47,9 @@ ConfigureServices.AddHttpClients(builder);
 // Add UI libraries (MudBlazor, Syncfusion)
 ConfigureServices.AddUILibraries(builder);
 
+// Add database contexts (must be before services that depend on them)
+ConfigureDatabase.AddDatabaseContexts(builder, logger);
+
 // Add application services
 ConfigureServices.AddApplicationServices(builder);
 
@@ -54,9 +57,6 @@ ConfigureServices.AddApplicationServices(builder);
 ConfigureIdentity.AddAuthentication(builder);
 
 ConfigureIdentity.AddAuthorization(builder);
-
-// Add database contexts
-ConfigureDatabase.AddDatabaseContexts(builder, logger);
 
 // Add Identity services
 ConfigureIdentity.AddIdentityCore(builder);

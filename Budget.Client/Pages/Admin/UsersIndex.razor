@@ -1,0 +1,110 @@
+@page "/admin/users"
+@attribute [Authorize(Policy = "AdminOnly")]
+
+<PageTitle>User Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+  <MudText Typo="Typo.h4" Class="mb-4">
+    <MudIcon Icon="@Icons.Material.Filled.People" Class="mr-2" />
+    User Management
+  </MudText>
+
+  @if (IsLoading)
+  {
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+  }
+  else if (ErrorMessage != null)
+  {
+    <MudAlert Severity="Severity.Error" Class="mb-4">@ErrorMessage</MudAlert>
+  }
+  else
+  {
+    <MudCard>
+      <MudCardContent>
+        <MudTable Items="@Users"
+                  Hover="true"
+                  Striped="true"
+                  Dense="true"
+                  Loading="@IsLoading"
+                  Filter="new Func<UserDto, bool>(FilterFunc)">
+          <ToolBarContent>
+            <MudTextField @bind-Value="_searchString"
+                          Placeholder="Search users..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0"
+                          Immediate="true" />
+          </ToolBarContent>
+          <HeaderContent>
+            <MudTh>Email</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Family ID</MudTh>
+            <MudTh>Roles</MudTh>
+            <MudTh>Actions</MudTh>
+          </HeaderContent>
+          <RowTemplate>
+            <MudTd DataLabel="Email">@context.Email</MudTd>
+            <MudTd DataLabel="Name">@context.FirstName @context.LastName</MudTd>
+            <MudTd DataLabel="Family ID">
+              <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">
+                @context.FamilyId
+              </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Roles">
+              @if (context.Roles.Any())
+              {
+                @foreach (var role in context.Roles)
+                {
+                  <MudChip T="string" Size="Size.Small" Color="GetRoleColor(role)" Class="mr-1">
+                    @role
+                  </MudChip>
+                }
+              }
+              else
+              {
+                <MudText Typo="Typo.body2" Color="Color.Default">No roles</MudText>
+              }
+            </MudTd>
+            <MudTd DataLabel="Actions">
+              <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                             Size="Size.Small"
+                             Color="Color.Primary"
+                             OnClick="() => OpenEditDialog(context)"
+                             Title="Edit User" />
+              <MudIconButton Icon="@Icons.Material.Filled.Security"
+                             Size="Size.Small"
+                             Color="Color.Secondary"
+                             OnClick="() => OpenRoleAssignmentDialog(context)"
+                             Title="Manage Roles" />
+            </MudTd>
+          </RowTemplate>
+        </MudTable>
+      </MudCardContent>
+    </MudCard>
+  }
+</MudContainer>
+
+@code {
+  private string _searchString = string.Empty;
+
+  private bool FilterFunc(UserDto user)
+  {
+    if (string.IsNullOrWhiteSpace(_searchString))
+      return true;
+
+    var search = _searchString.ToLowerInvariant();
+    return user.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+           user.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+           user.LastName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+           user.Roles.Any(r => r.Contains(search, StringComparison.OrdinalIgnoreCase));
+  }
+
+  private Color GetRoleColor(string roleName) => roleName switch
+  {
+    "Admin" => Color.Error,
+    "PowerUser" => Color.Warning,
+    "User" => Color.Info,
+    _ => Color.Default
+  };
+}

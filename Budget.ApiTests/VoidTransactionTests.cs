@@ -1,14 +1,4 @@
-using System;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using Budget.Api.Features.Transactions;
-using Budget.Shared.Models;
-using Budget.DB;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using FluentResults.Extensions.FluentAssertions;
 
 namespace Budget.ApiTests;
 
@@ -17,6 +7,7 @@ namespace Budget.ApiTests;
 /// </summary>
 public class VoidTransactionTests : IntegrationTestBase
 {
+ 
 
   /// <summary>
   /// Test that voiding a transaction adds the amount back to the BankAccount balance
@@ -25,8 +16,7 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Reverse_BankAccount_Balance()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var db = GetTestDBContext();
 
     // Create test data
     var account = TestHelpers.CreateTestAccount(id: 100, balance: 1000m);
@@ -66,13 +56,16 @@ public class VoidTransactionTests : IntegrationTestBase
 
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
-    var response = await Client.PostAsJsonAsync("/Transaction/Void", command);
+
+    var handler = new VoidTransaction.Handler(db);
+
+    var response = handler.Handle(command, CancellationToken.None);
+
 
     // Assert
-    response.EnsureSuccessStatusCode();
 
     // Verify the response contains the updated envelope data
-    var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
+    var result = response.Result.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(1);
     result![0].Id.Should().Be(envelope.Id);
@@ -100,8 +93,7 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Reverse_Envelope_Balance()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var db = GetTestDBContext();
 
     // Create test data
     var account = TestHelpers.CreateTestAccount(id: 101, balance: 2000m);
@@ -140,15 +132,15 @@ public class VoidTransactionTests : IntegrationTestBase
 
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
-    var response = await Client.PostAsJsonAsync("/Transaction/Void", command);
+   var handler = new VoidTransaction.Handler(db);
+   var response =await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-
+    response.Value.Should().NotBeNull();
     // Clear change tracker to force reload from database
     db.ChangeTracker.Clear();
 
-    var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
+    var result = response.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(1);
     result![0].Balance.Should().Be(initialEnvelopeBalance + 75m);
@@ -162,8 +154,7 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Reverse_Multiple_Envelope_Balances()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var db = GetTestDBContext();
 
     // Create test data
     var account = TestHelpers.CreateTestAccount(id: 102, balance: 3000m);
@@ -210,15 +201,16 @@ public class VoidTransactionTests : IntegrationTestBase
 
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
-    var response = await Client.PostAsJsonAsync("/Transaction/Void", command);
+    var handler = new VoidTransaction.Handler(db);
+    var response = await handler.Handle(command, CancellationToken.None);
+
 
     // Assert
-    response.EnsureSuccessStatusCode();
 
     // Clear change tracker to force reload from database
     db.ChangeTracker.Clear();
 
-    var result = await response.Content.ReadFromJsonAsync<List<EnvelopeDto>>();
+    var result = response.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(2);
 
@@ -244,8 +236,8 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Return_Conflict_When_Already_Voided()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var db = GetTestDBContext();
+
 
     // Create test data with an already voided transaction
     var account = TestHelpers.CreateTestAccount(id: 103, balance: 1500m);
@@ -280,13 +272,13 @@ public class VoidTransactionTests : IntegrationTestBase
 
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
-    var response = await Client.PostAsJsonAsync("/Transaction/Void", command);
+    var handler = new VoidTransaction.Handler(db);
+    var response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.Conflict);
-
-    var errorResponse = await response.Content.ReadAsStringAsync();
-    errorResponse.Should().Contain("already voided");
+    response.IsSuccess.Should().BeFalse();
+    response.Reasons.Should().ContainSingle()
+      .Which.Message.Should().Contain("already voided");
 
     // Clear change tracker
     db.ChangeTracker.Clear();
@@ -306,17 +298,18 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Return_NotFound_For_NonExistent_Transaction()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var db = GetTestDBContext();
 
     // Act
     var command = new VoidTransaction.Command(99999);
-    var response = await Client.PostAsJsonAsync("/Transaction/Void", command);
+    var handler = new VoidTransaction.Handler(db);
+    var response = await handler.Handle(command, CancellationToken.None);
+
 
     // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
-
-    var errorResponse = await response.Content.ReadAsStringAsync();
-    errorResponse.Should().Contain("not found");
+    response.IsSuccess.Should().BeFalse();
+    response.IsSuccess.Should().BeFalse();
+    response.Reasons.Should().ContainSingle()
+      .Which.Message.Should().Contain("not found");
   }
 }

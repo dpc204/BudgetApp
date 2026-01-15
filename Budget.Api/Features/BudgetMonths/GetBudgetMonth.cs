@@ -1,3 +1,5 @@
+using Budget.Shared.Enums;
+
 namespace Budget.Api.Features.BudgetMonths;
 
 /// <summary>

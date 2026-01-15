@@ -1,9 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using Budget.DB;
-using Microsoft.EntityFrameworkCore;
-using Xunit;
-
 namespace Budget.ApiTests;
 
 /// <summary>
@@ -62,6 +56,7 @@ public class UserEmailTriggerTests : IDisposable
   [Fact]
   public async Task Insert_User_WithLowercaseEmail_ConvertsToUppercase()
   {
+    
     // Arrange
     var user = new User
     {

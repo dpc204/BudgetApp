@@ -158,6 +158,7 @@ MudBlazor (target v8.13.0 or higher if installed):
   - Use `Breakpoint` props and responsive components; make drawers responsive for small screens.
 - Testing:
   - Use bUnit with MudBlazor rendering helpers for interaction tests.
+  - Use fluent assertions on all tests
 
 Reference links:
 - Providers: https://mudblazor.com/components/providers

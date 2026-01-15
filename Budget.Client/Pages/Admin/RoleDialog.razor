@@ -1,0 +1,94 @@
+<MudDialog>
+  <DialogContent>
+    <MudForm @ref="_form" @bind-IsValid="@_isValid">
+      <MudTextField @bind-Value="RoleName"
+                    Label="Role Name"
+                    Required="true"
+                    RequiredError="Role name is required"
+                    MaxLength="50"
+                    Counter="50"
+                    Immediate="true" />
+
+      <MudTextField @bind-Value="RoleDescription"
+                    Label="Description"
+                    Required="true"
+                    RequiredError="Description is required"
+                    MaxLength="200"
+                    Counter="200"
+                    Lines="3"
+                    Immediate="true"
+                    Class="mt-3" />
+    </MudForm>
+
+    @if (ErrorMessage != null)
+    {
+      <MudAlert Severity="Severity.Error" Class="mt-3">@ErrorMessage</MudAlert>
+    }
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary"
+               Variant="Variant.Filled"
+               OnClick="Submit"
+               Disabled="@(!_isValid || IsSaving)">
+      @if (IsSaving)
+      {
+        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+      }
+      else
+      {
+        @(IsEditMode ? "Update" : "Create")
+      }
+    </MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] private MudBlazor.IMudDialogInstance MudDialog { get; set; } = default!;
+  [Inject] private IBudgetMaintApiClient MaintApi { get; set; } = null!;
+
+[Parameter] public bool IsEditMode { get; set; }
+[Parameter] public int RoleId { get; set; }
+[Parameter] public string RoleName { get; set; } = string.Empty;
+  [Parameter] public string RoleDescription { get; set; } = string.Empty;
+
+  private MudForm _form = null!;
+  private bool _isValid;
+  private bool IsSaving { get; set; }
+  private string? ErrorMessage { get; set; }
+
+  private async Task Submit()
+  {
+    await _form.Validate();
+    if (!_isValid)
+      return;
+
+    IsSaving = true;
+    ErrorMessage = null;
+
+    try
+    {
+      if (IsEditMode)
+      {
+        await MaintApi.UpdateRoleAsync(RoleId, new UpdateRoleRequest(RoleId, RoleName, RoleDescription));
+      }
+      else
+      {
+        await MaintApi.CreateRoleAsync(new CreateRoleRequest(RoleName, RoleDescription));
+      }
+
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (Exception ex)
+    {
+      ErrorMessage = $"Error: {ex.Message}";
+    }
+    finally
+    {
+      IsSaving = false;
+    }
+  }
+
+  private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+}
+

@@ -1,4 +1,8 @@
+using Budget.Web.Authorization;
 using Budget.Web.Components.Account;
+using Budget.Web.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Client;
 
 namespace Budget.Web.Startup;
@@ -168,16 +172,28 @@ public static class ConfigureIdentity
   }
 
   /// <summary>
-  /// Adds authorization policies for role-based access control
+  /// Adds authorization policies for role-based access control using database roles
   /// </summary>
   public static void AddAuthorization(WebApplicationBuilder builder)
   {
+    // Register claims transformation to load database roles after Entra ID authentication
+    builder.Services.AddScoped<IClaimsTransformation, DatabaseClaimsTransformation>();
+    
+    // Register authorization handler for database roles
+    builder.Services.AddSingleton<IAuthorizationHandler, DatabaseRoleHandler>();
+    
+    // Configure authorization policies using database roles
     builder.Services.AddAuthorizationBuilder()
-      .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
-      .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
-      .AddPolicy("PowerUser", policy => policy.RequireRole("PowerUser"))
-      .AddPolicy("PowerUserOrAbove", policy => policy.RequireRole("Admin", "PowerUser"))
-      .AddPolicy("User", policy => policy.RequireRole("User"));
+      .AddPolicy("Admin", policy =>
+        policy.Requirements.Add(new DatabaseRoleRequirement("Admin")))
+      .AddPolicy("AdminOnly", policy =>
+        policy.Requirements.Add(new DatabaseRoleRequirement("Admin")))
+      .AddPolicy("PowerUser", policy =>
+        policy.Requirements.Add(new DatabaseRoleRequirement("PowerUser")))
+      .AddPolicy("PowerUserOrAbove", policy =>
+        policy.Requirements.Add(new DatabaseRoleRequirement("Admin", "PowerUser")))
+      .AddPolicy("User", policy =>
+        policy.Requirements.Add(new DatabaseRoleRequirement("User")));
   }
 
   /// <summary>

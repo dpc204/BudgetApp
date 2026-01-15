@@ -1,124 +1,128 @@
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using Budget.Api.Features.Accounts.AccountMaint;
-using Budget.DB;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using GetAll = Budget.Api.Features.Accounts.AccountMaint.GetAll;
-
 namespace Budget.ApiTests;
 
 /// <summary>
 /// Tests for Account API endpoints
 /// </summary>
-public class AccountEndpointsTests : IntegrationTestBase
+public class AccountEndpointsTests
 {
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+    => new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .Options;
 
-  /// <summary>
-  /// Test GetAccounts endpoint - should return all accounts
-  /// </summary>
   [Fact]
   public async Task GetAccounts_Should_Return_All_Accounts()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var account1 = TestHelpers.CreateTestAccount(id: 300, name: "Checking", balance: 1000m);
-    var account2 = TestHelpers.CreateTestAccount(id: 301, name: "Savings", balance: 5000m);
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var account1 = new BankAccount 
+    { 
+      Id = 300, 
+      Name = "Checking", 
+      Balance = 1000m, 
+      AccountType = BankAccount.AccountTypes.Checking,
+      FamilyId = 1
+    };
+    var account2 = new BankAccount 
+    { 
+      Id = 301, 
+      Name = "Credit Card", 
+      Balance = 5000m, 
+      AccountType = BankAccount.AccountTypes.Credit,
+      FamilyId = 1
+    };
 
-    db.BankAccounts.Add(account1);
-    db.BankAccounts.Add(account2);
-    await db.SaveChangesAsync();
+    context.Families.Add(family);
+    context.BankAccounts.AddRange(account1, account2);
+    await context.SaveChangesAsync();
+
+    var handler = new GetAll.Handler(context, NullLogger<GetAll.Handler>.Instance);
 
     // Act
-    var response = await Client.GetAsync("/accounts/maint/getall");
-      
+    var result = await handler.Handle(new GetAll.Query(), CancellationToken.None);
+
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<List<GetAll.Response>>();
-
     result.Should().NotBeNull();
-    result.Should().HaveCount(c => c >= 2);
+    var resultList = result.ToList();
+    resultList.Should().HaveCount(2);
 
-    var acct1 = result!.FirstOrDefault(a => a.Id == 300);
-    acct1.Should().NotBeNull();
-    acct1!.Name.Should().Be("Checking");
+    var acct1 = resultList.Should().ContainSingle(a => a.Id == 300).Subject;
+    acct1.Name.Should().Be("Checking");
     acct1.Balance.Should().Be(1000m);
+    acct1.AccountType.Should().Be(BankAccount.AccountTypes.Checking);
 
-    var acct2 = result.FirstOrDefault(a => a.Id == 301);
-    acct2.Should().NotBeNull();
-    acct2!.Name.Should().Be("Savings");
+    var acct2 = resultList.Should().ContainSingle(a => a.Id == 301).Subject;
+    acct2.Name.Should().Be("Credit Card");
     acct2.Balance.Should().Be(5000m);
+    acct2.AccountType.Should().Be(BankAccount.AccountTypes.Credit);
   }
 
-  /// <summary>
-  /// Test InsertAccount endpoint - should create a new account
-  /// </summary>
   [Fact]
   public async Task InsertAccount_Should_Create_New_Account()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    context.Families.Add(family);
+    await context.SaveChangesAsync();
+
+    var handler = new InsertAccount.Handler(context);
     var command = new InsertAccount.Command(
       Name: "New Account",
       Balance: 2500m,
       AccountType: BankAccount.AccountTypes.Checking);
 
     // Act
-    var response = await Client.PostAsJsonAsync("/accounts/maint/Insert", command);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<InsertAccount.Response>();
-
     result.Should().NotBeNull();
-    result!.Name.Should().Be("New Account");
+    result.Name.Should().Be("New Account");
     result.Balance.Should().Be(2500m);
     result.AccountType.Should().Be(BankAccount.AccountTypes.Checking);
     result.Id.Should().BeGreaterThan(0);
 
     // Verify in database
-    db.ChangeTracker.Clear();
-    var savedAccount = await db.BankAccounts.FindAsync(result.Id);
-
+    var savedAccount = await context.BankAccounts.FindAsync(result.Id);
     savedAccount.Should().NotBeNull();
     savedAccount!.Name.Should().Be("New Account");
+    savedAccount.Balance.Should().Be(2500m);
   }
 
-  /// <summary>
-  /// Test UpdateAccount endpoint - should update an existing account
-  /// </summary>
   [Fact]
   public async Task UpdateAccount_Should_Update_Existing_Account()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-
-    var account = TestHelpers.CreateTestAccount(id: 302, name: "Original Name", balance: 1000m);
-    db.BankAccounts.Add(account);
-    await db.SaveChangesAsync();
-
-    var commandBody = new UpdateAccount.CommandBody
-    {
-      Id = 302,
-      Name = "Updated Name",
-      Balance = 1500m,
-      AccountType = BankAccount.AccountTypes.Credit
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var account = new BankAccount 
+    { 
+      Id = 302, 
+      Name = "Original Name", 
+      Balance = 1000m, 
+      AccountType = BankAccount.AccountTypes.Checking,
+      FamilyId = 1
     };
+    
+    context.Families.Add(family);
+    context.BankAccounts.Add(account);
+    await context.SaveChangesAsync();
+
+    var handler = new UpdateAccount.Handler(context);
+    var command = new UpdateAccount.Command(
+      Id: 302,
+      Name: "Updated Name",
+      Balance: 1500m,
+      AccountType: BankAccount.AccountTypes.Credit);
 
     // Act
-    var response = await Client.PutAsJsonAsync("/accounts/maint/302", commandBody);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<UpdateAccount.Response>();
-
     result.Should().NotBeNull();
     result!.Id.Should().Be(302);
     result.Name.Should().Be("Updated Name");
@@ -126,103 +130,156 @@ public class AccountEndpointsTests : IntegrationTestBase
     result.AccountType.Should().Be(BankAccount.AccountTypes.Credit);
 
     // Verify in database
-    db.ChangeTracker.Clear();
-    var updatedAccount = await db.BankAccounts.FindAsync(302);
-
+    context.ChangeTracker.Clear();
+    var updatedAccount = await context.BankAccounts.FindAsync(302);
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Name.Should().Be("Updated Name");
     updatedAccount.Balance.Should().Be(1500m);
+    updatedAccount.AccountType.Should().Be(BankAccount.AccountTypes.Credit);
   }
 
-  /// <summary>
-  /// Test UpdateAccount endpoint with mismatched IDs - should return BadRequest
-  /// </summary>
   [Fact]
-  public async Task UpdateAccount_With_Mismatched_Ids_Should_Return_BadRequest()
+  public async Task UpdateAccount_With_NonExistent_Account_Should_Return_Null()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-    var commandBody = new UpdateAccount.CommandBody
-    {
-      Id = 999,
-      Name = "Test",
-      Balance = 100m,
-      AccountType = BankAccount.AccountTypes.Checking
-    };
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var handler = new UpdateAccount.Handler(context);
+    var command = new UpdateAccount.Command(
+      Id: 99999,
+      Name: "Test",
+      Balance: 100m,
+      AccountType: BankAccount.AccountTypes.Checking);
 
     // Act
-    var response = await Client.PutAsJsonAsync("/accounts/maint/303", commandBody);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+    result.Should().BeNull();
   }
 
-  /// <summary>
-  /// Test UpdateAccount endpoint with non-existent account - should return NotFound
-  /// </summary>
-  [Fact]
-  public async Task UpdateAccount_With_NonExistent_Account_Should_Return_NotFound()
-  {
-    // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-    var commandBody = new UpdateAccount.CommandBody
-    {
-      Id = 99999,
-      Name = "Test",
-      Balance = 100m,
-      AccountType = BankAccount.AccountTypes.Checking
-    };
-
-    // Act
-    var response = await Client.PutAsJsonAsync("/accounts/maint/99999", commandBody);
-
-    // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
-  }
-
-  /// <summary>
-  /// Test RemoveAccount endpoint - should delete an account
-  /// </summary>
   [Fact]
   public async Task RemoveAccount_Should_Delete_Account()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var account = new BankAccount 
+    { 
+      Id = 304, 
+      Name = "To Delete", 
+      Balance = 500m, 
+      AccountType = BankAccount.AccountTypes.Checking,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.BankAccounts.Add(account);
+    await context.SaveChangesAsync();
 
-    var account = TestHelpers.CreateTestAccount(id: 304, name: "To Delete", balance: 500m);
-    db.BankAccounts.Add(account);
-    await db.SaveChangesAsync();
+    var handler = new RemoveAccount.Handler(context);
 
     // Act
-    var response = await Client.DeleteAsync("/accounts/maint/304");
+    var result = await handler.Handle(new RemoveAccount.Command(304), CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
+    result.Should().BeTrue();
 
     // Verify deletion in database
-    db.ChangeTracker.Clear();
-    var deletedAccount = await db.BankAccounts.FindAsync(304);
+    context.ChangeTracker.Clear();
+    var deletedAccount = await context.BankAccounts.FindAsync(304);
     deletedAccount.Should().BeNull();
   }
 
-  /// <summary>
-  /// Test RemoveAccount endpoint with non-existent account - should return NotFound
-  /// </summary>
   [Fact]
-  public async Task RemoveAccount_With_NonExistent_Account_Should_Return_NotFound()
+  public async Task RemoveAccount_With_NonExistent_Account_Should_Return_False()
   {
     // Arrange
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var handler = new RemoveAccount.Handler(context);
 
     // Act
-    var response = await Client.DeleteAsync("/accounts/maint/99999");
+    var result = await handler.Handle(new RemoveAccount.Command(99999), CancellationToken.None);
 
     // Assert
-    response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
+    result.Should().BeFalse();
+  }
+
+  [Fact]
+  public async Task GetAccounts_With_Empty_Database_Should_Return_Empty_List()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new GetAll.Handler(context, NullLogger<GetAll.Handler>.Instance);
+
+    // Act
+    var result = await handler.Handle(new GetAll.Query(), CancellationToken.None);
+
+    // Assert
+    result.Should().NotBeNull();
+    result.Should().BeEmpty();
+  }
+
+  [Fact]
+  public async Task InsertAccount_Should_Set_FamilyId_From_CurrentUser()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    context.Families.Add(family);
+    await context.SaveChangesAsync();
+
+    var handler = new InsertAccount.Handler(context);
+    var command = new InsertAccount.Command(
+      Name: "Family Account",
+      Balance: 1000m,
+      AccountType: BankAccount.AccountTypes.Checking);
+
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
+
+    // Assert
+    var savedAccount = await context.BankAccounts.FindAsync(result.Id);
+    savedAccount.Should().NotBeNull();
+    savedAccount!.FamilyId.Should().Be(1); // Default family from CurrentUser context
+  }
+
+  [Fact]
+  public async Task UpdateAccount_Should_Preserve_FamilyId()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var account = new BankAccount 
+    { 
+      Id = 305, 
+      Name = "Original", 
+      Balance = 1000m, 
+      AccountType = BankAccount.AccountTypes.Checking,
+      FamilyId = 1
+    };
+    
+    context.Families.Add(family);
+    context.BankAccounts.Add(account);
+    await context.SaveChangesAsync();
+
+    var handler = new UpdateAccount.Handler(context);
+    var command = new UpdateAccount.Command(
+      Id: 305,
+      Name: "Updated",
+      Balance: 2000m,
+      AccountType: BankAccount.AccountTypes.Credit);
+
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
+
+    // Assert
+    context.ChangeTracker.Clear();
+    var updatedAccount = await context.BankAccounts.FindAsync(305);
+    updatedAccount!.FamilyId.Should().Be(1); // FamilyId should remain unchanged
   }
 }

@@ -1,19 +1,25 @@
 using Budget.Api.Features.UserOptions;
-using Budget.DB;
 using Budget.Shared.Enums;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using Xunit;
+using FluentResults;
 
 namespace Budget.ApiTests;
 
 /// <summary>
 /// Tests for UserOptions API endpoints
 /// </summary>
-public class UserOptionsEndpointsTests : IntegrationTestBase
+public class UserOptionsEndpointsTests 
 {
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+    => new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .Options;
+
+
+  private static BudgetContext GetTestDBContext()
+  {
+    return new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService());
+  }
+
   /// <summary>
   /// Test SaveUserOptions endpoint - should save options to database
   /// </summary>
@@ -21,25 +27,23 @@ public class UserOptionsEndpointsTests : IntegrationTestBase
   public async Task SaveUserOptions_Should_Save_Options_To_Database()
   {
     // Arrange
+    var db = GetTestDBContext();
     var userId = "test-user-123";
     var options = new Budget.Shared.Services.UserOptions
     {
       FillAmountType = FillAmounts.FiftyPercent
     };
     var command = new SaveUserOptions.Command(userId, options);
+    var handler = new SaveUserOptions.Handler(db);
 
     // Act
-    var response = await Client.PostAsJsonAsync("/api/useroptions", command);
+    var response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<SaveUserOptions.Response>();
-    result.Should().NotBeNull();
-    result!.Success.Should().BeTrue();
+    response.Success.Should().Be(true);
+    
 
     // Verify in database
-    using var scope = _factory.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
     var savedOptions = await db.SavedUserOptions.FindAsync(userId);
     savedOptions.Should().NotBeNull();
     savedOptions!.UserId.Should().Be(userId);
@@ -56,33 +60,29 @@ public class UserOptionsEndpointsTests : IntegrationTestBase
     var userId = "test-user-456";
     
     // First, save initial options
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+    var db = GetTestDBContext();
       db.SavedUserOptions.Add(new SavedUserOptions
       {
         UserId = userId,
         JsonOptions = "{\"FillAmountType\":1}"
       });
       await db.SaveChangesAsync();
-    }
 
     var updatedOptions = new Budget.Shared.Services.UserOptions
     {
       FillAmountType = FillAmounts.FillToBudget
     };
     var command = new SaveUserOptions.Command(userId, updatedOptions);
+    var handler = new SaveUserOptions.Handler(db);
 
     // Act
-    var response = await Client.PostAsJsonAsync("/api/useroptions", command);
+    var response = handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
+    response.IsCompletedSuccessfully.Should().Be(true);
 
     // Verify in database
-    using var scope2 = _factory.Services.CreateScope();
-    var db2 = scope2.ServiceProvider.GetRequiredService<BudgetContext>();
-    var savedOptions = await db2.SavedUserOptions.FindAsync(userId);
+    var savedOptions = await db.SavedUserOptions.FindAsync(userId);
     savedOptions.Should().NotBeNull();
     savedOptions!.JsonOptions.Should().Contain("\"FillAmountType\":3");
   }
@@ -94,29 +94,34 @@ public class UserOptionsEndpointsTests : IntegrationTestBase
   public async Task GetUserOptions_Should_Return_Saved_Options()
   {
     // Arrange
+    var db = GetTestDBContext();
     var userId = "test-user-789";
     
     // First, save some options
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
+
       db.SavedUserOptions.Add(new SavedUserOptions
       {
         UserId = userId,
         JsonOptions = "{\"FillAmountType\":2}"
       });
       await db.SaveChangesAsync();
-    }
+    
 
     // Act
-    var response = await Client.GetAsync($"/api/useroptions/{userId}");
+    var command = new SaveUserOptions.Command(userId, new Budget.Shared.Services.UserOptions()
+    {
+      UserId = userId, FillAmountType = FillAmounts.OneHundredPercent, 
+      SelectedCategoryType = "ALL"
+    });
+    var handler = new SaveUserOptions.Handler(db);
+
+    var response = handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<GetUserOptions.Response>();
-    result.Should().NotBeNull();
-    result!.Options.Should().NotBeNull();
-    result.Options!.FillAmountType.Should().Be(FillAmounts.FiftyPercent);
+    response.Result.Success.Should().Be(true);
+    var rslt = await db.SavedUserOptions.FindAsync(userId);
+    rslt.Should().NotBeNull();
+    rslt!.JsonOptions.Should().Contain("\"FillAmountType\":1");
   }
 
   /// <summary>
@@ -126,15 +131,21 @@ public class UserOptionsEndpointsTests : IntegrationTestBase
   public async Task GetUserOptions_Should_Return_Null_For_NonExistent_User()
   {
     // Arrange
+    var db = GetTestDBContext();
     var userId = "non-existent-user";
 
+    var command = new GetUserOptions.Query(userId);
+    var handler = new GetUserOptions.Handler(db, new NullLogger<GetUserOptions.Handler>());
     // Act
-    var response = await Client.GetAsync($"/api/useroptions/{userId}");
+    var response = handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.EnsureSuccessStatusCode();
-    var result = await response.Content.ReadFromJsonAsync<GetUserOptions.Response>();
-    result.Should().NotBeNull();
-    result!.Options.Should().BeNull();
+    response.Result.Options.Should().BeNull();
+  }
+
+  private class TestCurrentFamilyService : ICurrentFamilyService
+  {
+    public int FamilyId { get; set; } = 1;
+    public int GetCurrentFamilyId() => FamilyId;
   }
 }

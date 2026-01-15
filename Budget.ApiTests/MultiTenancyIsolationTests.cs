@@ -1,184 +1,236 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Budget.Api.Features.Envelopes;
-using Budget.DB;
-using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
+using Budget.Shared.Enums;
+using Xunit.Abstractions;
 
 namespace Budget.ApiTests;
 
 /// <summary>
-/// Tests to verify multi-tenancy isolation by FamilyId
+/// Tests to verify multi-tenancy isolation by FamilyId using query filters
 /// </summary>
 public class MultiTenancyIsolationTests : IntegrationTestBase
 {
-  /// <summary>
-  /// Test that envelopes from different families are isolated
-  /// </summary>
+  private readonly ITestOutputHelper _output;
+
+  public MultiTenancyIsolationTests(ITestOutputHelper output)
+  {
+    _output = output;
+  }
+
+// Use a more unique database name to prevent collisions across parallel test runs
+// Also ensure each test gets a completely isolated database by using NewGuid for every call
+private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
+    => new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"MultiTenancy_{testName}_{Guid.NewGuid()}")
+      .EnableSensitiveDataLogging()
+      .EnableServiceProviderCaching(false) // Disable caching to ensure fresh database
+      .Options;
+
   [Fact]
   public async Task Envelopes_Should_Be_Isolated_By_FamilyId()
   {
-    // Arrange: Create two families and envelopes for each
-    using (var scope = _factory.Services.CreateScope())
+    // Arrange
+    var familyService = new TestCurrentFamilyService { FamilyId = 10 };
+    await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
+    
+    // Create two families with IDs that don't conflict with seed data
+    var family1 = new Family { Id = 10, Name = "Family 10" };
+    var family2 = new Family { Id = 20, Name = "Family 20" };
+    context.Families.AddRange(family1, family2);
+    
+    
+    // Create categories for both families
+    var category1 = new Category { CategoryId = "100", Name = "Cat1", Description = "Cat1", SortOrder = 1, FamilyId = 10, CategoryType = CatTypes.User };
+    var category2 = new Category { CategoryId = "101", Name = "Cat2", Description = "Cat2", SortOrder = 1, FamilyId = 20, CategoryType = CatTypes.User };
+    context.Categories.AddRange(category1, category2);
+    
+    // Create envelopes for family 10
+    var envelope1Family1 = new Envelope 
+    { 
+      Id = 500, 
+      Name = "Envelope 1 - Family 10", 
+      CategoryId = "100", 
+      FamilyId = 10,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
+    };
+    var envelope2Family1 = new Envelope 
+    { 
+      Id = 501, 
+      Name = "Envelope 2 - Family 10", 
+      CategoryId = "100", 
+      FamilyId = 10,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 2
+    };
+    
+    // Create envelopes for family 20
+    var envelope1Family2 = new Envelope 
+    { 
+      Id = 502, 
+      Name = "Envelope 1 - Family 20", 
+      CategoryId = "101", 
+      FamilyId = 20,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
+    };
+    var envelope2Family2 = new Envelope 
+    { 
+      Id = 503, 
+      Name = "Envelope 2 - Family 20", 
+      CategoryId = "101", 
+      FamilyId = 20,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 2
+    };
+    
+    context.Envelopes.AddRange(envelope1Family1, envelope2Family1, envelope1Family2, envelope2Family2);
+    await context.SaveChangesAsync();
+    
+    // Clear change tracker to ensure fresh query
+    context.ChangeTracker.Clear();
+
+    // Act: Query all envelopes (should only get family 10 due to query filter)
+    var envelopes = await context.Envelopes.Where(e => e.Id >= 500).ToListAsync();
+
+    foreach (var env in envelopes)
     {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      
-      // Create second family
-      var family2 = new Family { Id = 2, Name = "Family 2" };
-      db.Families.Add(family2);
-      
-      // Create category for both families
-      var category1 = TestHelpers.CreateTestCategory(id: "100", name: "Cat1", familyId: 1);
-      var category2 = TestHelpers.CreateTestCategory(id: "101", name: "Cat2", familyId: 2);
-      db.Categories.Add(category1);
-      db.Categories.Add(category2);
-      
-      // Create envelopes for family 1
-      var envelope1Family1 = TestHelpers.CreateTestEnvelope(id: 500, name: "Envelope 1 - Family 1", categoryId: "100", familyId: 1);
-      var envelope2Family1 = TestHelpers.CreateTestEnvelope(id: 501, name: "Envelope 2 - Family 1", categoryId: "100", familyId: 1);
-      
-      // Create envelopes for family 2
-      var envelope1Family2 = TestHelpers.CreateTestEnvelope(id: 502, name: "Envelope 1 - Family 2", categoryId: "101", familyId: 2);
-      var envelope2Family2 = TestHelpers.CreateTestEnvelope(id: 503, name: "Envelope 2 - Family 2", categoryId: "101", familyId: 2);
-      
-      db.Envelopes.AddRange(envelope1Family1, envelope2Family1, envelope1Family2, envelope2Family2);
-      await db.SaveChangesAsync();
+      _output.WriteLine($"{env.Id}  Family: {env.FamilyId}");
     }
 
-    // Act: Query all envelopes (should only get family 1 due to query filter)
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var envelopes = await db.Envelopes.Where(e => e.Id >= 500).ToListAsync();
-      
-      // Assert: Should only see family 1 envelopes (filtering out seed data)
-      envelopes.Should().HaveCount(2, "query filter should only return Family 1 envelopes");
-      envelopes.All(e => e.FamilyId == 1).Should().BeTrue("all envelopes should belong to Family 1");
-      envelopes.Any(e => e.Id == 500 || e.Id == 501).Should().BeTrue("should contain Family 1 envelopes");
-      envelopes.Any(e => e.Id == 502 || e.Id == 503).Should().BeFalse("should NOT contain Family 2 envelopes");
-    }
+
+    // Assert: Should only see family 10 envelopes (query filter should exclude family 20)
+    envelopes.Should().HaveCount(2, "query filter should only return Family 10 envelopes");
+    envelopes.All(e => e.FamilyId == 10).Should().BeTrue("all envelopes should belong to Family 10");
+    envelopes.Any(e => e.Id == 500 || e.Id == 501).Should().BeTrue("should contain Family 10 envelopes");
+    envelopes.Any(e => e.Id == 502 || e.Id == 503).Should().BeFalse("should NOT contain Family 20 envelopes");
   }
 
-  /// <summary>
-  /// Test that transactions from different families are isolated
-  /// </summary>
   [Fact]
   public async Task Transactions_Should_Be_Isolated_By_FamilyId()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      
-      // Create second family
-      var family2 = new Family { Id = 2, Name = "Family 2" };
-      db.Families.Add(family2);
-      
-      // Create accounts for both families
-      var account1 = TestHelpers.CreateTestAccount(id: 200, name: "Account 1 - Family 1", familyId: 1);
-      var account2 = TestHelpers.CreateTestAccount(id: 201, name: "Account 2 - Family 2", familyId: 2);
-      db.BankAccounts.AddRange(account1, account2);
-      
-      // Create users for both families
-      var user1 = new User { Id = 100, FirstName = "User1", LastName = "Family1", FamilyId = 1 };
-      var user2 = new User { Id = 101, FirstName = "User2", LastName = "Family2", FamilyId = 2 };
-      db.Users.AddRange(user1, user2);
-      
-      // Create transactions for family 1
-      var tx1Family1 = TestHelpers.CreateTestTransaction(id: 600, accountId: 200, vendor: "Vendor 1", familyId: 1);
-      tx1Family1.UserId = 100;
-      
-      // Create transactions for family 2
-      var tx1Family2 = TestHelpers.CreateTestTransaction(id: 601, accountId: 201, vendor: "Vendor 2", familyId: 2);
-      tx1Family2.UserId = 101;
-      
-      db.Transactions.AddRange(tx1Family1, tx1Family2);
-      await db.SaveChangesAsync();
-    }
+    var familyService = new TestCurrentFamilyService { FamilyId = 10 };
+    await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
+    
+    // Create two families
+    var family1 = new Family { Id = 10, Name = "Family 10" };
+    var family2 = new Family { Id = 20, Name = "Family 20" };
+    context.Families.AddRange(family1, family2);
+    
+    // Create accounts for both families
+    var account1 = new BankAccount { Id = 200, Name = "Account 1 - Family 10", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 10 };
+    var account2 = new BankAccount { Id = 201, Name = "Account 2 - Family 20", Balance = 2000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 20 };
+    context.BankAccounts.AddRange(account1, account2);
+    
+    // Create users for both families
+    var user1 = new User { Id = 100, Email = "USER1@TEST.COM", FirstName = "User1", LastName = "Family10", FamilyId = 10 };
+    var user2 = new User { Id = 101, Email = "USER2@TEST.COM", FirstName = "User2", LastName = "Family20", FamilyId = 20 };
+    context.Users.AddRange(user1, user2);
+    
+    // Create transactions for family 10
+    var tx1Family1 = new Transaction 
+    { 
+      Id = 600, 
+      AccountId = 200, 
+      Vendor = "Vendor 1", 
+      FamilyId = 10,
+      Date = DateTime.Now,
+      TotalAmount = 100m,
+      UserId = 100
+    };
+    
+    // Create transactions for family 20
+    var tx1Family2 = new Transaction 
+    { 
+      Id = 601, 
+      AccountId = 201, 
+      Vendor = "Vendor 2", 
+      FamilyId = 20,
+      Date = DateTime.Now,
+      TotalAmount = 200m,
+      UserId = 101
+    };
+    
+    context.Transactions.AddRange(tx1Family1, tx1Family2);
+    await context.SaveChangesAsync();
+    
+    // Clear change tracker to ensure fresh query
+    context.ChangeTracker.Clear();
 
     // Act
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var transactions = await db.Transactions.Where(t => t.Id >= 600).ToListAsync();
-      
-      // Assert
-      transactions.Should().HaveCount(1, "query filter should only return Family 1 transactions");
-      transactions.All(t => t.FamilyId == 1).Should().BeTrue("all transactions should belong to Family 1");
-      transactions.First().Id.Should().Be(600, "should only see Family 1 transaction");
-    }
+    var transactions = await context.Transactions.Where(t => t.Id >= 600).ToListAsync();
+    
+    // Assert
+    transactions.Should().HaveCount(1, "query filter should only return Family 10 transactions");
+    transactions.All(t => t.FamilyId == 10).Should().BeTrue("all transactions should belong to Family 10");
+    transactions.First().Id.Should().Be(600, "should only see Family 10 transaction");
   }
 
-  /// <summary>
-  /// Test that bank accounts from different families are isolated
-  /// </summary>
   [Fact]
   public async Task BankAccounts_Should_Be_Isolated_By_FamilyId()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      
-      // Create second family
-      var family2 = new Family { Id = 2, Name = "Family 2" };
-      db.Families.Add(family2);
-      
-      // Create accounts
-      var account1 = TestHelpers.CreateTestAccount(id: 300, name: "Checking - Family 1", familyId: 1);
-      var account2 = TestHelpers.CreateTestAccount(id: 301, name: "Savings - Family 2", familyId: 2);
-      db.BankAccounts.AddRange(account1, account2);
-      await db.SaveChangesAsync();
-    }
+    var familyService = new TestCurrentFamilyService { FamilyId = 10 };
+    await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
+    
+    // Create two families
+    var family1 = new Family { Id = 10, Name = "Family 10" };
+    var family2 = new Family { Id = 20, Name = "Family 20" };
+    context.Families.AddRange(family1, family2);
+    
+    // Create accounts
+    var account1 = new BankAccount { Id = 300, Name = "Checking - Family 10", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 10 };
+    var account2 = new BankAccount { Id = 301, Name = "Savings - Family 20", Balance = 2000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 20 };
+    context.BankAccounts.AddRange(account1, account2);
+    await context.SaveChangesAsync();
+    
+    // Clear change tracker to ensure fresh query
+    context.ChangeTracker.Clear();
 
     // Act
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var accounts = await db.BankAccounts.Where(a => a.Id >= 300).ToListAsync();
-      
-      // Assert
-      accounts.Should().HaveCount(1, "query filter should only return Family 1 accounts");
-      accounts.All(a => a.FamilyId == 1).Should().BeTrue("all accounts should belong to Family 1");
-      accounts.First().Id.Should().Be(300, "should only see Family 1 account");
-    }
+    var accounts = await context.BankAccounts.Where(a => a.Id >= 300).ToListAsync();
+    
+    // Assert
+    accounts.Should().HaveCount(1, "query filter should only return Family 10 accounts");
+    accounts.All(a => a.FamilyId == 10).Should().BeTrue("all accounts should belong to Family 10");
+    accounts.First().Id.Should().Be(300, "should only see Family 10 account");
   }
 
-  /// <summary>
-  /// Test that categories from different families are isolated
-  /// </summary>
   [Fact]
   public async Task Categories_Should_Be_Isolated_By_FamilyId()
   {
     // Arrange
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      
-      // Create second family
-      var family2 = new Family { Id = 2, Name = "Family 2" };
-      db.Families.Add(family2);
-      
-      // Create categories
-      var cat1 = TestHelpers.CreateTestCategory(id: "400", name: "Category 1 - Family 1", familyId: 1);
-      var cat2 = TestHelpers.CreateTestCategory(id: "401", name: "Category 2 - Family 2", familyId: 2);
-      db.Categories.AddRange(cat1, cat2);
-      await db.SaveChangesAsync();
-    }
+    var familyService = new TestCurrentFamilyService { FamilyId = 10 };
+    await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
+    
+    // Create two families
+    var family1 = new Family { Id = 10, Name = "Family 10" };
+    var family2 = new Family { Id = 20, Name = "Family 20" };
+    context.Families.AddRange(family1, family2);
+    
+    // Create categories
+    var cat1 = new Category { CategoryId = "400", Name = "Category 1 - Family 10", Description = "Cat1", SortOrder = 1, FamilyId = 10, CategoryType = CatTypes.User };
+    var cat2 = new Category { CategoryId = "401", Name = "Category 2 - Family 20", Description = "Cat2", SortOrder = 1, FamilyId = 20, CategoryType = CatTypes.User };
+    context.Categories.AddRange(cat1, cat2);
+    await context.SaveChangesAsync();
+    
+    // Clear change tracker to ensure fresh query
+    context.ChangeTracker.Clear();
 
     // Act
-    using (var scope = _factory.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<BudgetContext>();
-      var categories = await db.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync();
-      
-      // Assert
-      categories.Should().HaveCount(1, "query filter should only return Family 1 categories");
-      categories.All(c => c.FamilyId == 1).Should().BeTrue("all categories should belong to Family 1");
-      categories.First().CategoryId.Should().Be("400", "should only see Family 1 category");
-    }
+    var categories = await context.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync();
+    
+    // Assert
+    categories.Should().HaveCount(1, "query filter should only return Family 10 categories");
+    categories.All(c => c.FamilyId == 10).Should().BeTrue("all categories should belong to Family 10");
+    categories.First().CategoryId.Should().Be("400", "should only see Family 10 category");
+  }
+
+  /// <summary>
+  /// Test helper class to provide current family context for multi-tenancy filtering
+  /// </summary>
+  private class TestCurrentFamilyService : ICurrentFamilyService
+  {
+    public int FamilyId { get; set; } = 1;
+    public int GetCurrentFamilyId() => FamilyId;
   }
 }

@@ -1,6 +1,6 @@
 namespace Budget.Api.Features.Categories.CategoryMaint;
 
-public static class GetAll
+public static class GetAllCategories
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
   public sealed record Response(string CategoryId, string Name, string Description, int SortOrder);
