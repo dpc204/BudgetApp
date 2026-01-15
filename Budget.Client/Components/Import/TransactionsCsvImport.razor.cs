@@ -204,7 +204,7 @@ public partial class TransactionsCsvImport : ComponentBase
   }
 
   private int _selectedCount;
-  private HashSet<TransactionImportDto> _selectedItems = [];
+  private HashSet<TransactionImportDto> _selectedItems = new();
 
   private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
   {
@@ -270,6 +270,12 @@ public partial class TransactionsCsvImport : ComponentBase
     await UpdateDuplicateFlagForSelectionAsync(true, "Set", "set");
   }
 
+  /// <summary>
+  /// Updates the duplicate flag for all selected transaction imports
+  /// </summary>
+  /// <param name="duplicateValue">The value to set for the Duplicate flag (true or false)</param>
+  /// <param name="actionPastTense">Past tense verb for success messages (e.g., "Cleared", "Set")</param>
+  /// <param name="actionVerb">Infinitive verb for error messages (e.g., "clear", "set")</param>
   private async Task UpdateDuplicateFlagForSelectionAsync(bool duplicateValue, string actionPastTense, string actionVerb)
   {
     if (_selectedItems.Count == 0)
@@ -282,14 +288,21 @@ public partial class TransactionsCsvImport : ComponentBase
     {
       var updateTasks = _selectedItems.Select(async item => 
       {
-        var success = await Api.UpdateTransactionImportAsync(item.Id, duplicateValue);
-        return (item, success);
+        try
+        {
+          var success = await Api.UpdateTransactionImportAsync(item.Id, duplicateValue);
+          return (item, success);
+        }
+        catch (Exception)
+        {
+          return (item, success: false);
+        }
       }).ToList();
       
       var results = await Task.WhenAll(updateTasks);
       
-      var successfulItems = results.Where(r => r.success).Select(r => r.item).ToList();
-      var failedCount = results.Count(r => !r.success);
+      var successfulItems = results.Where(r => r.Item2).Select(r => r.Item1).ToList();
+      var failedCount = results.Count(r => !r.Item2);
       
       foreach (var item in successfulItems)
       {
