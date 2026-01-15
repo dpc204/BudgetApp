@@ -1,6 +1,6 @@
 namespace Budget.Client.Pages;
 
-public partial class TransactionAssign : ComponentBase
+public partial class Assign : ComponentBase
 {
   [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
@@ -41,7 +41,16 @@ public partial class TransactionAssign : ComponentBase
         State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, e => new EnvelopeIdName(e.EnvelopeId, e.EnvelopeName)) ??
         [];
 
-      Transactions = await Api.GetTransactionsUnassignedAsync();
+      var result = await Api.GetTransactionsUnassignedAsync();
+      if (result.IsSuccess)
+      {
+        Transactions = result.Value;
+      }
+      else
+      {
+        _loadError = string.Join(", ", result.Errors.Select(e => e.Message));
+        Logger.LogError("Failed to load unassigned transactions: {Errors}", _loadError);
+      }
     }
     catch (Exception ex)
     {

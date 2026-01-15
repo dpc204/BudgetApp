@@ -24,10 +24,28 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return readOnlyList;
   }
 
-  public async Task<List<TransactionDto>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default)
+  public async Task<Result<List<TransactionDto>>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default)
   {
-    var readOnlyList = await GetListAsync<TransactionDto>($"transactions/unassigned", cancellationToken);
-    return readOnlyList;
+    try
+    {
+      var response = await http.GetAsync($"transactions/unassigned", cancellationToken);
+      
+      if (!response.IsSuccessStatusCode)
+      {
+        var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        logger.LogWarning("GetTransactionsUnassignedAsync failed with status {Status}: {Error}", 
+          response.StatusCode, errorContent);
+        return Result.Fail<List<TransactionDto>>($"Failed to get unassigned transactions: {response.StatusCode}");
+      }
+
+      var result = await response.Content.ReadFromJsonAsync<List<TransactionDto>>(cancellationToken: cancellationToken);
+      return Result.Ok(result ?? []);
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex, "Error getting unassigned transactions");
+      return Result.Fail<List<TransactionDto>>($"Error: {ex.Message}");
+    }
   }
 
   public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default)

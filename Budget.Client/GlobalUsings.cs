@@ -10,6 +10,7 @@ global using Budget.Client.Services;
 global using Budget.Shared.Enums;
 global using Budget.Shared.Models;
 global using Budget.Shared.Services;
+global using FluentResults;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Authorization;

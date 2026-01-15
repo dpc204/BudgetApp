@@ -94,16 +94,16 @@ public class TransactionEndpointsTests
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
     
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category { CategoryId = "-1", Name = "UnAllocated", Description = "UnAllocated", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.System };
+    var category = new Category { CategoryId = "-2", Name = "Unassigned", Description = "Unassigned", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.System };
     var account = new BankAccount { Id = 201, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
-    var unallocatedEnvelope = new Envelope 
+    var unassignedEnvelope = new Envelope 
     { 
-      Id = -1, 
-      Name = "UnAllocated", 
-      CategoryId = "-1", 
+      Id = -2, 
+      Name = "Unassigned", 
+      CategoryId = "-2", 
       Balance = 0m,
       FamilyId = 1,
-      EnvelopeType = EnvelopeTypes.Unallocated,
+      EnvelopeType = EnvelopeTypes.Unassigned,
       SortOrder = 999
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
@@ -111,7 +111,7 @@ public class TransactionEndpointsTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.BankAccounts.Add(account);
-    context.Envelopes.Add(unallocatedEnvelope);
+    context.Envelopes.Add(unassignedEnvelope);
     context.Users.Add(user);
     
     var transaction = new Transaction 
@@ -128,9 +128,9 @@ public class TransactionEndpointsTests
     { 
       TransactionId = 300, 
       LineId = 1, 
-      EnvelopeId = -1, 
+      EnvelopeId = -2, 
       Amount = 50m,
-      Notes = "Unallocated"
+      Notes = "Unassigned"
     };
     
     context.Transactions.Add(transaction);
@@ -144,7 +144,8 @@ public class TransactionEndpointsTests
 
     // Assert
     result.Should().NotBeNull();
-    var resultList = result.ToList();
+    result.IsSuccess.Should().BeTrue();
+    var resultList = result.Value.ToList();
     resultList.Should().HaveCountGreaterThanOrEqualTo(1);
     resultList.Should().Contain(t => t.TransactionId == 300);
   }

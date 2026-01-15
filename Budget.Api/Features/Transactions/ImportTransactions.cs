@@ -1,4 +1,3 @@
-using Budget.Shared.Models;
 using Carter;
 using Fantum.Mediator;
 using Microsoft.AspNetCore.Mvc;

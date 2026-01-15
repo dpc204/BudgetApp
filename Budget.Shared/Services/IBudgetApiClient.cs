@@ -6,7 +6,7 @@ public interface IBudgetApiClient
   Task<List<CategoryDto>> GetCategoriesAsync(CancellationToken cancellationToken = default);
   Task<List<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, CancellationToken cancellationToken = default);
 
-  Task<List<TransactionDto>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default);
+  Task<Result<List<TransactionDto>>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default);
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
 
   Task<List<EnvelopeDto>> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);

@@ -1,8 +1,4 @@
-﻿using Budget.Shared.Enums;
-using Budget.Shared.Models;
-using Mapster;
-
-namespace Budget.Api.Features.Envelopes;
+﻿namespace Budget.Api.Features.Envelopes;
 
 public static class GetByEnvelopeType
 {
@@ -12,17 +8,7 @@ public static class GetByEnvelopeType
   {
     public async Task<EnvelopeDto?> Handle(Query request, CancellationToken cancellationToken)
     {
-      var envelope = await db.Envelopes
-        .AsNoTracking()
-        .Include(env => env.Category)
-        .Where(a => a.EnvelopeType == request.EnvType)
-        .ProjectToType<EnvelopeDto>(TypeAdapterConfig<Envelope, EnvelopeDto>
-          .NewConfig()
-          .MaxDepth(2)
-          .Config)
-        .FirstOrDefaultAsync(cancellationToken);
-
-      return envelope;
+        return await GetEnvelopeByType.Get(db, request.EnvType, cancellationToken);
     }
   }
 

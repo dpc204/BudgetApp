@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Budget.ApiTests.Admin;
 
-public class UserEndpointsTests
+public class UserEndpointsTests : IntegrationTestBase
 {
   private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
     => new DbContextOptionsBuilder<BudgetContext>()
@@ -20,8 +20,9 @@ public class UserEndpointsTests
   public async Task GetUsers_ReturnsAllUsers_WithRoles_AcrossFamilies()
   {
     // Arrange
-    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+    await using var context = GetTestDBContext(1);
+
+
     var family1 = new Family { Id = 1, Name = "Family 1" };
     var family2 = new Family { Id = 2, Name = "Family 2" };
     var adminRole = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };

@@ -12,6 +12,7 @@ global using Budget.Api.Features.Transactions;
 global using Budget.DB;
 global using Budget.Shared.Models;
 global using FluentAssertions;
+global using FluentResults;
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Mvc.Testing;

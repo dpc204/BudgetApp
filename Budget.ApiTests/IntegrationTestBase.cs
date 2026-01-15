@@ -92,13 +92,11 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
       .Options;
 
 
-  protected static BudgetContext GetTestDBContext(int familyId = 1)
+  protected  BudgetContext GetTestDBContext(int familyId = 1)
   {
-    
     var db = new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService(familyId));
     
-    db.Families.Add(new Family { Id = familyId, Name = "Test Family" });
-    db.SaveChanges();
+    
     return db;
   }
 

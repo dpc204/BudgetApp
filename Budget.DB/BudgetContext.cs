@@ -49,8 +49,8 @@ namespace Budget.DB
       if (_currentFamilyService != null)
       {
         var familyId = _currentFamilyService.GetCurrentFamilyId();
-        
-        modelBuilder.Entity<User>().HasQueryFilter(e => e.FamilyId == familyId);
+
+        //        modelBuilder.Entity<User>().HasQueryFilter(e => e.FamilyId == familyId);  // Users are not filtered by FamilyId
         modelBuilder.Entity<BankAccount>().HasQueryFilter(e => e.FamilyId == familyId);
         modelBuilder.Entity<Category>().HasQueryFilter(e => e.FamilyId == familyId);
         modelBuilder.Entity<Envelope>().HasQueryFilter(e => e.FamilyId == familyId);

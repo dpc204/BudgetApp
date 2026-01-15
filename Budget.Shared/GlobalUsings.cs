@@ -12,6 +12,7 @@ global using Azure.Identity;
 global using Budget.Shared.Enums;
 global using Budget.Shared.Models;
 global using Budget.Shared.Services;
+global using FluentResults;
 global using Mapster;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Builder;
