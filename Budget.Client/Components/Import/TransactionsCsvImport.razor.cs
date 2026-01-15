@@ -262,53 +262,15 @@ public partial class TransactionsCsvImport : ComponentBase
 
   protected async Task ClearDuplicateFlagForSelectionAsync()
   {
-    if (_selectedItems.Count == 0)
-    {
-      return;
-    }
-
-    Busy = true;
-    try
-    {
-      var updateTasks = _selectedItems.Select(async item => 
-      {
-        var success = await Api.UpdateTransactionImportAsync(item.Id, false);
-        return (item, success);
-      }).ToList();
-      
-      var results = await Task.WhenAll(updateTasks);
-      
-      var successfulItems = results.Where(r => r.success).Select(r => r.item).ToList();
-      var failedCount = results.Count(r => !r.success);
-      
-      foreach (var item in successfulItems)
-      {
-        item.Duplicate = false;
-      }
-      
-      if (failedCount == 0)
-      {
-        Snackbar.Add($"Cleared duplicate flag for {successfulItems.Count} transactions", Severity.Success);
-      }
-      else
-      {
-        Snackbar.Add($"Cleared duplicate flag for {successfulItems.Count} transactions, {failedCount} failed", Severity.Warning);
-        Errors.Add($"{failedCount} transactions failed to update");
-      }
-    }
-    catch (Exception ex)
-    {
-      Errors.Add($"Failed to clear duplicate flags: {ex.Message}");
-      Snackbar.Add("Failed to clear duplicate flags", Severity.Error);
-    }
-    finally
-    {
-      Busy = false;
-      await InvokeAsync(StateHasChanged);
-    }
+    await UpdateDuplicateFlagForSelectionAsync(false, "Cleared", "clear");
   }
 
   protected async Task SetDuplicateFlagForSelectionAsync()
+  {
+    await UpdateDuplicateFlagForSelectionAsync(true, "Set", "set");
+  }
+
+  private async Task UpdateDuplicateFlagForSelectionAsync(bool duplicateValue, string actionPastTense, string actionVerb)
   {
     if (_selectedItems.Count == 0)
     {
@@ -320,7 +282,7 @@ public partial class TransactionsCsvImport : ComponentBase
     {
       var updateTasks = _selectedItems.Select(async item => 
       {
-        var success = await Api.UpdateTransactionImportAsync(item.Id, true);
+        var success = await Api.UpdateTransactionImportAsync(item.Id, duplicateValue);
         return (item, success);
       }).ToList();
       
@@ -331,23 +293,23 @@ public partial class TransactionsCsvImport : ComponentBase
       
       foreach (var item in successfulItems)
       {
-        item.Duplicate = true;
+        item.Duplicate = duplicateValue;
       }
       
       if (failedCount == 0)
       {
-        Snackbar.Add($"Set duplicate flag for {successfulItems.Count} transactions", Severity.Success);
+        Snackbar.Add($"{actionPastTense} duplicate flag for {successfulItems.Count} transactions", Severity.Success);
       }
       else
       {
-        Snackbar.Add($"Set duplicate flag for {successfulItems.Count} transactions, {failedCount} failed", Severity.Warning);
+        Snackbar.Add($"{actionPastTense} duplicate flag for {successfulItems.Count} transactions, {failedCount} failed", Severity.Warning);
         Errors.Add($"{failedCount} transactions failed to update");
       }
     }
     catch (Exception ex)
     {
-      Errors.Add($"Failed to set duplicate flags: {ex.Message}");
-      Snackbar.Add("Failed to set duplicate flags", Severity.Error);
+      Errors.Add($"Failed to {actionVerb} duplicate flags: {ex.Message}");
+      Snackbar.Add($"Failed to {actionVerb} duplicate flags", Severity.Error);
     }
     finally
     {
