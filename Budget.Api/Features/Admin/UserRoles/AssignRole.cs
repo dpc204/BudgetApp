@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Budget.DB;
 
 namespace Budget.Api.Features.Admin.UserRoles;
 

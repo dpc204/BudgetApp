@@ -2,7 +2,6 @@
 using Budget.Api;
 using Budget.Api.Features.Authentication;
 using Budget.Api.Services;
-using Budget.DB;
 using Budget.Shared;
 using Budget.Shared.Services;
 using ServiceDefaults;

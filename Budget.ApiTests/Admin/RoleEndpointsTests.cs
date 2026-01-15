@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Budget.Api.Features.Admin.Roles;
 using Budget.DB;
@@ -58,8 +57,8 @@ public class RoleEndpointsTests
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
     
     var role = new Role 
-    { 
-      Id = 1, 
+    {
+      Id = 1,
       Name = "Admin", 
       Description = "Administrator", 
       CreatedAt = DateTime.UtcNow,

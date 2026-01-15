@@ -1,5 +1,3 @@
-using Budget.DB;
-
 namespace Budget.Api.Features.Accounts.AccountMaint;
 
 public static class RemoveAccount

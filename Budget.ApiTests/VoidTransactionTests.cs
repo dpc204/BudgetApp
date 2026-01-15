@@ -1,4 +1,3 @@
-using System.Threading;
 using FluentResults.Extensions.FluentAssertions;
 
 namespace Budget.ApiTests;

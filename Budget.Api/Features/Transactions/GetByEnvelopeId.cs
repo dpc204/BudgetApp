@@ -1,6 +1,4 @@
-﻿using Budget.DB;
-
-namespace Budget.Api.Features.Transactions;
+﻿namespace Budget.Api.Features.Transactions;
 
 public static class GetByEnvelopeId
 {

@@ -1,5 +1,4 @@
-﻿using Budget.DB;
-using Budget.Shared.Models;
+﻿using Budget.Shared.Models;
 
 namespace Budget.Api.Features.Envelopes;
 

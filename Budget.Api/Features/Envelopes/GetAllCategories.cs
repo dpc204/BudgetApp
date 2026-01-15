@@ -1,6 +1,4 @@
-﻿using Budget.DB;
-
-namespace Budget.Api.Features.Envelopes;
+﻿namespace Budget.Api.Features.Envelopes;
 
 
 public static class GetAllCategories

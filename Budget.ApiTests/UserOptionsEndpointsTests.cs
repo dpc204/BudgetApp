@@ -1,8 +1,6 @@
-using System.Threading;
 using Budget.Api.Features.UserOptions;
 using Budget.Shared.Enums;
 using FluentResults;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Budget.ApiTests;
 

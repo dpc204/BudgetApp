@@ -1,4 +1,3 @@
-using Budget.DB;
 using Microsoft.SqlServer.Dac;
 
 namespace Budget.Api.Features.Utilities.Backup;

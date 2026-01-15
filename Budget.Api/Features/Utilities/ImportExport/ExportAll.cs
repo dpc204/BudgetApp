@@ -1,7 +1,6 @@
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Budget.Api.Services;
-using Budget.DB;
 using Budget.Shared.Services;
 using Carter;
 using Fantum.Mediator;

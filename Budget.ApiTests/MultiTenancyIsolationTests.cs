@@ -1,11 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Budget.DB;
 using Budget.Shared.Enums;
-using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
+using Xunit.Abstractions;
 
 namespace Budget.ApiTests;
 
@@ -14,9 +8,16 @@ namespace Budget.ApiTests;
 /// </summary>
 public class MultiTenancyIsolationTests : IntegrationTestBase
 {
-  // Use a more unique database name to prevent collisions across parallel test runs
-  // Also ensure each test gets a completely isolated database by using NewGuid for every call
-  private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
+  private readonly ITestOutputHelper _output;
+
+  public MultiTenancyIsolationTests(ITestOutputHelper output)
+  {
+    _output = output;
+  }
+
+// Use a more unique database name to prevent collisions across parallel test runs
+// Also ensure each test gets a completely isolated database by using NewGuid for every call
+private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
     => new DbContextOptionsBuilder<BudgetContext>()
       .UseInMemoryDatabase(databaseName: $"MultiTenancy_{testName}_{Guid.NewGuid()}")
       .EnableSensitiveDataLogging()
@@ -26,12 +27,14 @@ public class MultiTenancyIsolationTests : IntegrationTestBase
   [Fact]
   public async Task Envelopes_Should_Be_Isolated_By_FamilyId()
   {
-   // await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
-   
-   await using var context = GetTestDBContext(10);
+    // Arrange
+    var familyService = new TestCurrentFamilyService { FamilyId = 10 };
+    await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
+    
     // Create two families with IDs that don't conflict with seed data
+    var family1 = new Family { Id = 10, Name = "Family 10" };
     var family2 = new Family { Id = 20, Name = "Family 20" };
-    context.Families.AddRange(family2);
+    context.Families.AddRange(family1, family2);
     
     
     // Create categories for both families
@@ -87,7 +90,13 @@ public class MultiTenancyIsolationTests : IntegrationTestBase
 
     // Act: Query all envelopes (should only get family 10 due to query filter)
     var envelopes = await context.Envelopes.Where(e => e.Id >= 500).ToListAsync();
-    
+
+    foreach (var env in envelopes)
+    {
+      _output.WriteLine($"{env.Id}  Family: {env.FamilyId}");
+    }
+
+
     // Assert: Should only see family 10 envelopes (query filter should exclude family 20)
     envelopes.Should().HaveCount(2, "query filter should only return Family 10 envelopes");
     envelopes.All(e => e.FamilyId == 10).Should().BeTrue("all envelopes should belong to Family 10");

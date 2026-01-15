@@ -1,5 +1,3 @@
-using Budget.DB;
-
 namespace Budget.Api.Features.Admin.Users;
 
 /// <summary>

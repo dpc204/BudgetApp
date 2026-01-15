@@ -1,5 +1,3 @@
-using Budget.DB;
-
 namespace Budget.Api.Features.Utilities.Backup;
 
 /// <summary>

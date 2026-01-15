@@ -1,4 +1,3 @@
-using Budget.DB;
 using Mapster;
 
 namespace Budget.Api.Features.Admin.Users;

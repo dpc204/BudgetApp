@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CategoryGetByEnvelopeId = Budget.Api.Features.Categories.GetByEnvelopeId;
 using Budget.Api.Features.Categories.CategoryMaint;
@@ -8,7 +7,6 @@ using Budget.DB;
 using Budget.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Budget.ApiTests;

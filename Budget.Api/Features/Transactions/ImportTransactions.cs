@@ -1,4 +1,3 @@
-using Budget.DB;
 using Budget.Shared.Models;
 using Carter;
 using Fantum.Mediator;

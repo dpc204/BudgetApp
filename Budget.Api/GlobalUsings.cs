@@ -7,6 +7,7 @@ global using System.Security.Claims;
 global using System.Text;
 global using Azure.Core;
 global using Azure.Identity;
+global using Budget.DB;
 global using Fantum.Mediator;
 global using Carter;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
