@@ -6,6 +6,7 @@ public partial class TransactionsCsvImport : ComponentBase
   [Inject] protected IBudgetApiClient Api { get; set; } = default!;
   [Inject] protected ISnackbar Snackbar { get; set; } = default!;
   [Inject] protected IBudgetMonthlyApiClient BudgetMonthlyApi { get; set; } = default!;
+  [Inject] protected IDialogService DialogService { get; set; } = default!;
   protected bool Busy { get; set; }
   protected string Status { get; set; } = string.Empty;
   protected int ParsedRowsCount => Preview.Count;
@@ -203,9 +204,11 @@ public partial class TransactionsCsvImport : ComponentBase
   }
 
   private int _selectedCount;
+  private HashSet<TransactionImportDto> _selectedItems = [];
 
   private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
   {
+    _selectedItems = items;
     _selectedCount = items.Count;
   }
   protected async Task OnDuplicateToggled(TransactionImportDto import)
@@ -219,6 +222,123 @@ public partial class TransactionsCsvImport : ComponentBase
     else
     {
       Errors.Add($"Failed to update duplicate flag for transaction {import.Id}");
+    }
+  }
+
+  protected async Task DeleteStagedTransactionsAsync()
+  {
+    var confirmed = await DialogService.ShowMessageBox(
+      "Confirm Delete",
+      "Are you sure you want to delete all staged transactions?",
+      yesText: "Delete",
+      cancelText: "Cancel");
+
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    Busy = true;
+    try
+    {
+      var count = await Api.ClearTransactionImportsAsync();
+      Preview.Clear();
+      _selectedItems.Clear();
+      _selectedCount = 0;
+      Status = $"Deleted {count} staged transactions.";
+      Snackbar.Add($"Deleted {count} staged transactions", Severity.Success);
+    }
+    catch (Exception ex)
+    {
+      Errors.Add($"Failed to delete staged transactions: {ex.Message}");
+      Snackbar.Add("Failed to delete staged transactions", Severity.Error);
+    }
+    finally
+    {
+      Busy = false;
+      await InvokeAsync(StateHasChanged);
+    }
+  }
+
+  protected async Task ClearDuplicateFlagForSelectionAsync()
+  {
+    if (_selectedItems.Count == 0)
+    {
+      return;
+    }
+
+    Busy = true;
+    try
+    {
+      var tasks = _selectedItems.Select(item => 
+        Api.UpdateTransactionImportAsync(item.Id, false));
+      
+      var results = await Task.WhenAll(tasks);
+      
+      if (results.All(r => r))
+      {
+        foreach (var item in _selectedItems)
+        {
+          item.Duplicate = false;
+        }
+        Snackbar.Add($"Cleared duplicate flag for {_selectedItems.Count} transactions", Severity.Success);
+      }
+      else
+      {
+        Errors.Add("Some transactions failed to update");
+        Snackbar.Add("Some transactions failed to update", Severity.Warning);
+      }
+    }
+    catch (Exception ex)
+    {
+      Errors.Add($"Failed to clear duplicate flags: {ex.Message}");
+      Snackbar.Add("Failed to clear duplicate flags", Severity.Error);
+    }
+    finally
+    {
+      Busy = false;
+      await InvokeAsync(StateHasChanged);
+    }
+  }
+
+  protected async Task SetDuplicateFlagForSelectionAsync()
+  {
+    if (_selectedItems.Count == 0)
+    {
+      return;
+    }
+
+    Busy = true;
+    try
+    {
+      var tasks = _selectedItems.Select(item => 
+        Api.UpdateTransactionImportAsync(item.Id, true));
+      
+      var results = await Task.WhenAll(tasks);
+      
+      if (results.All(r => r))
+      {
+        foreach (var item in _selectedItems)
+        {
+          item.Duplicate = true;
+        }
+        Snackbar.Add($"Set duplicate flag for {_selectedItems.Count} transactions", Severity.Success);
+      }
+      else
+      {
+        Errors.Add("Some transactions failed to update");
+        Snackbar.Add("Some transactions failed to update", Severity.Warning);
+      }
+    }
+    catch (Exception ex)
+    {
+      Errors.Add($"Failed to set duplicate flags: {ex.Message}");
+      Snackbar.Add("Failed to set duplicate flags", Severity.Error);
+    }
+    finally
+    {
+      Busy = false;
+      await InvokeAsync(StateHasChanged);
     }
   }
 

@@ -56,9 +56,9 @@
                  FixedHeader="true"
                  Height="600px">
       <ToolBarContent >
-        <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
-        <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
-        <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
+        <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
+        <MudButton OnClick="ClearDuplicateFlagForSelectionAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
+        <MudButton OnClick="SetDuplicateFlagForSelectionAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
         <MudSpacer/>
         <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || _selectedCount == 0" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
       </ToolbarContent>
