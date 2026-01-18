@@ -13,5 +13,6 @@ public sealed class OneTransactionDetail
 
   public decimal BalanceAfterTransaction { get; set; }
   public bool IsVoided { get; set; }
+  public bool WasPotentialDuplicate { get; set; }
   public List<TransactionDto> Details { get; set; } = [];
 }

@@ -116,9 +116,18 @@ public partial class TransactionsCsvImport : ComponentBase
 
   private async Task LoadPreviewAsync()
   {
-    Preview.Clear();
-    var imports = await Api.GetTransactionImportsAsync();
-    Preview.AddRange(imports);
+    try
+    {
+      Busy = true;
+      await InvokeAsync(StateHasChanged);
+      Preview.Clear();
+      var imports = await Api.GetTransactionImportsAsync();
+      Preview.AddRange(imports);
+    }
+    finally
+    {
+      Busy = false;
+    }
   }
 
   protected async Task ImportAsync()
@@ -129,7 +138,7 @@ public partial class TransactionsCsvImport : ComponentBase
     }
 
     // Filter out duplicates
-    var nonDuplicates = Preview.Where(p => !p.Duplicate).ToList();
+    var nonDuplicates = Preview.Where(p => !p.Duplicate || (p.Duplicate && p.KeepDuplicate)).ToList();
 
     if (nonDuplicates.Count == 0)
     {
@@ -137,6 +146,17 @@ public partial class TransactionsCsvImport : ComponentBase
       return;
     }
 
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Confirm Import",
+      "This will import all non-duplicate transactions into the Unassigned Envelope.  Continue?",
+      yesText: "Continue",
+      cancelText: "Cancel") ?? false;
+
+    if (!confirmed)
+    {
+      return;
+    }
+    
     Busy = true;
     Value = 0;
     await InvokeAsync(StateHasChanged);
@@ -157,21 +177,23 @@ public partial class TransactionsCsvImport : ComponentBase
           Vendor = rec.Vendor,
           UserId = int.TryParse(UserIdText, out var uid) ? uid : 1,
           UserName = string.Empty,
-          Details = []
+          WasPotentialDuplicate = rec.KeepDuplicate,  
+          Details =
+          [
+            new TransactionDto
+            {
+              LineId = 0,
+              Vendor = rec.Vendor,
+              Description = rec.Description,
+              Amount = rec.Amount,
+              Date = rec.Date,
+              EnvelopeId = unassigned.Id,
+              EnvelopeName = rec.EnvelopeName,
+              UserId = rec.UserId
+            }
+
+          ]
         };
-
-
-        trans.Details.Add(new TransactionDto
-        {
-          LineId = 0,
-          Vendor = rec.Vendor,
-          Description = rec.Description,
-          Amount = rec.Amount,
-          Date = rec.Date,
-          EnvelopeId = unassigned.Id,
-          EnvelopeName = rec.EnvelopeName,
-          UserId = rec.UserId
-        });
 
 
         await Api.AddTransactionAsync(trans);

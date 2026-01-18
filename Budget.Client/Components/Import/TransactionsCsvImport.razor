@@ -27,7 +27,7 @@
 
   @if (Busy)
   {
-    <MudProgressLinear Color="Color.Primary" Value="@Value" Size="Size.Large"/>
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Striped="true" Size="Size.Large"/>
   }
 
   @if (Errors.Count > 0)
@@ -44,7 +44,7 @@
 
   @if (Preview.Count > 0)
   {
-    <div style="flex: 1; min-height: 0; overflow: hidden;">
+    <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
       <MudDataGrid T="TransactionImportDto"
                    Items="@Preview"
                    Filterable="true"
@@ -55,21 +55,18 @@
                    Bordered="true"
                    Sortable="true"
                    FixedHeader="true"
-                   Style="height: 100%; overflow: auto;">
-        <ColGroup>
+                   Style="height: 100%; overflow: auto; width: auto;">
+      @*   <ColGroup>
           <col style="width: 50px;"/>
           <col style="width: 50px;"/>
           <col style="width: 50px;"/>
           <col style="width: 50px;"/>
           <col style="width: 50px;"/>
           <col style="width: 50px;"/>
-        </ColGroup>
+        </ColGroup> *@
         <ToolBarContent >
-          @* <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
-        <MudButton OnClick="ClearDuplicateFlagForSelectionAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
-        <MudButton OnClick="SetDuplicateFlagForSelectionAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
-        <MudSpacer/> *@
-          <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || _selectedCount == 0" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
+           <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
+          <MudButton OnClick="ImportAsync" Disabled="Busy || Preview.Count == 0  " Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
         </ToolbarContent>
         <Columns>
           <PropertyColumn Property="x => x.Date"
@@ -96,26 +93,20 @@
                           CellStyle="text-align: right;"
                           HeaderStyle="text-align: right;"/>
 
-          <TemplateColumn Title="Duplicate"
+          <TemplateColumn Title="Duplicate/Keep Dup."
                           Filterable="false"
                           Sortable="true"
                           SortBy="@(x => x.Duplicate)"
-                          HeaderStyle=" text-align: right;"
-                          CellStyle=" text-align: right;">
+                          HeaderStyle=" text-align: left;"
+                          CellStyle=" text-align: left;">
             <CellTemplate>
+              <MudStack Row="true">
               <MudCheckBox T="bool" Value="@context.Item.Duplicate"
                            Color="Color.Warning"
                            ReadOnly="true"
                            Disabled="Busy"/>
-            </CellTemplate>
-          </TemplateColumn>
-
-          <PropertyColumn Property="x => x.KeepDuplicate"
-                          Title="Keep Dup."
-                          Filterable="false"
-                          Sortable="true">
-            <CellTemplate>
-              <MudCheckBox T="bool" 
+              /
+              <MudCheckBox T="bool"
                            Value="@context.Item.KeepDuplicate"
                            Color="Color.Warning"
                            ReadOnly="false"
@@ -125,8 +116,11 @@
                                            context.Item.KeepDuplicate = value;
                                            await UpdateTransaction(context.Item);
                                          })"/>
+            </MudStack>
             </CellTemplate>
-          </PropertyColumn>
+          </TemplateColumn>
+
+       
         </Columns>
       </MudDataGrid>
     </div>

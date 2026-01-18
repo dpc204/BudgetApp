@@ -71,13 +71,13 @@ public static class AddNewTransaction
 
     private static Transaction CreateTransaction(Command request)
     {
-      var trans = new Transaction()
+      var trans = new Transaction
       {
         AccountId = request.Trans.AccountId,
         Date = request.Trans.Date,
         Vendor = request.Trans.Vendor,
-        UserId = request.Trans.UserId
-      };
+        UserId = request.Trans.UserId,
+        WasPotentialDuplicate = request.Trans.WasPotentialDuplicate };
 
       var lineId = 1;
 

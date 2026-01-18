@@ -23,7 +23,7 @@ namespace Budget.DB
     public decimal BalanceAfterTransaction { get; set; }
     public bool IsVoided { get; set; }
     public int FamilyId { get; set; } = 1;
-    public PotentialDuplicates DuplicateStatus { get; set; } 
+    public bool WasPotentialDuplicate { get; set; } 
     public Family Family { get; set; } = null!;
     public List<TransactionDetail> Details { get; set; } = [];
 

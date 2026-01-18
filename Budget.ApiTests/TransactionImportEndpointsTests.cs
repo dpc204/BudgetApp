@@ -265,7 +265,7 @@ public class TransactionImportEndpointsTests
 
 
     var handler = new UpdateTransactionImport.Handler(arrangeDb);
-    var command = new UpdateTransactionImport.Command(importId, true, PotentialDuplicates.NotDuplicate);
+    var command = new UpdateTransactionImport.Command(importId, true, false);
 
     // Act - Update to mark as duplicate
     var response = await handler.Handle(command, CancellationToken.None);
@@ -275,6 +275,7 @@ public class TransactionImportEndpointsTests
     
     updatedImport.Should().NotBeNull();
     updatedImport!.Duplicate.Should().BeTrue();
+    updatedImport.KeepDuplicate.Should().BeFalse();
   }
 
   private class TestCurrentFamilyService : ICurrentFamilyService
