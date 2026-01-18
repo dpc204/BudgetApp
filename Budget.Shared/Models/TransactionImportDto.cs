@@ -12,6 +12,9 @@ public class TransactionImportDto
   public int UserId { get; set; }
   public DateTime ImportedAt { get; set; }
   public bool Duplicate { get; set; } = false;
+  public PotentialDuplicates PotentialDuplicate { get; set; }
+
+  public bool NotDuplicate { get; set; }
 
   public override bool Equals(object? obj) =>
     obj is TransactionImportDto tran && Id == tran.Id;

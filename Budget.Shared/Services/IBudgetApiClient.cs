@@ -21,6 +21,7 @@ public interface IBudgetApiClient
   Task<List<TransactionImportDto>> GetTransactionImportsAsync(CancellationToken cancellationToken = default);
   Task<int> ClearTransactionImportsAsync(CancellationToken cancellationToken = default);
   Task<bool> UpdateTransactionImportAsync(int id, bool duplicate, CancellationToken cancellationToken = default);
+  Task<int> UpdateTransactionImportsBatchAsync(List<int> ids, bool duplicate, CancellationToken cancellationToken = default);
 
   // Maintenance
   Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default);

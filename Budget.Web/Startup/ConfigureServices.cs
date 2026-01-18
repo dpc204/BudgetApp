@@ -226,6 +226,11 @@ public static class ConfigureServices
     builder.Logging.AddJsonConsole();
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Trace);
     builder.Logging.AddFilter("Budget.Client.Components.Maintenance.AccountCRUD", LogLevel.Debug);
+    
+    // Suppress verbose MSAL (Microsoft Authentication Library) logging
+    // MSAL outputs detailed trace logs for every token acquisition attempt
+    builder.Logging.AddFilter("Microsoft.Identity.Client", LogLevel.Warning);
+    builder.Logging.AddFilter("Microsoft.Identity.Web", LogLevel.Warning);
   }
 
   /// <summary>

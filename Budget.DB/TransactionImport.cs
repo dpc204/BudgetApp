@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using Budget.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,7 +8,7 @@ namespace Budget.DB;
 /// <summary>
 /// Staging table for imported transactions before final import
 /// </summary>
-public class TransactionImport
+public partial class TransactionImport
 {
   public int Id { get; set; }
   public DateTime Date { get; set; }
@@ -20,6 +22,10 @@ public class TransactionImport
   public Family Family { get; set; } = null!;
   public DateTime ImportedAt { get; set; }
   public bool Duplicate { get; set; } = false;
+  public PotentialDuplicates PotentialDuplicate { get; set; }
+
+  [NotMapped] 
+  public bool NotDuplicate { get; set; } = false;
 
   public class TransactionImportConfiguration : IEntityTypeConfiguration<TransactionImport>
   {
@@ -46,4 +52,5 @@ public class TransactionImport
       entity.HasIndex(t => t.ImportedAt);
     }
   }
+
 }

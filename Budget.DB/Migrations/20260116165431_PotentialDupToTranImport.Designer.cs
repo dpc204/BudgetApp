@@ -4,6 +4,7 @@ using Budget.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Budget.DB.Migrations
 {
     [DbContext(typeof(BudgetContext))]
-    partial class BudgetContextModelSnapshot : ModelSnapshot
+    [Migration("20260116165431_PotentialDupToTranImport")]
+    partial class PotentialDupToTranImport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -493,9 +496,6 @@ namespace Budget.DB.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("DuplicateStatus")
-                        .HasColumnType("int");
-
                     b.Property<int>("FamilyId")
                         .HasColumnType("int");
 
@@ -593,8 +593,8 @@ namespace Budget.DB.Migrations
                     b.Property<DateTime>("ImportedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PotentialDuplicate")
-                        .HasColumnType("int");
+                    b.Property<bool>("PotentialDuplicate")
+                        .HasColumnType("bit");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

@@ -27,6 +27,7 @@ public partial class Assign : ComponentBase
   private static string TransactionGridHeightPx => $"{(TransactionRowHeightPx * 5) + TransactionHeaderHeightPx}px";
 
   private bool _loading = true;
+  private bool Busy = true;
   private string? _loadError;
   private bool _afterRenderInit;
 
@@ -34,7 +35,9 @@ public partial class Assign : ComponentBase
   {
     try
     {
+      State.InOnInitializedAsync = true;
       await State.RefreshAsync();
+
 
       // Convert State.AllEnvelopeData to EnvelopeIdName list
       _availableEnvelopes =
@@ -62,6 +65,8 @@ public partial class Assign : ComponentBase
     }
     finally
     {
+      Busy = false;
+      await InvokeAsync(StateHasChanged);
       _loading = false;
     }
   }
@@ -87,15 +92,21 @@ public partial class Assign : ComponentBase
     }
   }
 
-  private static void OnRowClicked(DataGridRowClickEventArgs<TransactionDto> args)
-  {
-    if (args?.Item is null) return;
-  }
+
 
   private EnvelopeIdName? GetCurrentEnvelope(TransactionDto transaction)
   {
     return _availableEnvelopes.GetValueOrDefault(transaction.EnvelopeId);
   }
+
+  bool CaseInsensitiveContains(string? source, string? search)
+  {
+    if(string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(search))
+      return false;
+
+    return source.Contains(search, StringComparison.OrdinalIgnoreCase);
+  }
+
 
   private async Task OnEnvelopeSelectedAsync(TransactionDto transaction, EnvelopeIdName? selectedEnvelope)
   {
@@ -174,5 +185,26 @@ public partial class Assign : ComponentBase
     _bulkEnvelope = null;
 
     StateHasChanged();
+  }
+
+  private int _selectedCount;
+  private HashSet<TransactionImportDto> _selectedItems = new();
+
+  private string _transactionSearch = string.Empty;
+
+  private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
+  {
+    _selectedItems = items;
+    _selectedCount = items.Count;
+  }
+
+  private bool FilterTransactions(TransactionDto transaction, string search)
+  {
+    if (string.IsNullOrWhiteSpace(search))
+      return true;
+
+    // Use case-insensitive comparison across relevant string fields
+    return (transaction.Vendor ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
+           || (transaction.Description ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase);
   }
 }

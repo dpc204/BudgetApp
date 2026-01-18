@@ -13,4 +13,5 @@ public class TransactionDto
   public bool IsVoided { get; set; }
   public string EnvelopeName { get; set; } = string.Empty;
   public int UserId { get; set; }
+  public PotentialDuplicates PotentialDuplicate { get; set; }
 }

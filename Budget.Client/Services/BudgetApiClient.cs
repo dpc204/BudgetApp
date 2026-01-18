@@ -86,6 +86,15 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return resp.IsSuccessStatusCode;
   }
 
+  public async Task<int> UpdateTransactionImportsBatchAsync(List<int> ids, bool duplicate, CancellationToken cancellationToken = default)
+  {
+    var payload = new { Ids = ids, Duplicate = duplicate };
+    using var resp = await http.PutAsJsonAsync("/Transaction/Import/Batch", payload, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<BatchUpdateResult>(cancellationToken);
+    return result?.UpdatedCount ?? 0;
+  }
+
   public async Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default)
   {
     using var resp = await http.PostAsync("/api/maintenance/backup-azure-sql", null, cancellationToken);
@@ -242,4 +251,5 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   private sealed record GetUserOptionsResponse(UserOptions? Options);
   private sealed record SaveUserOptionsCommand(string UserId, UserOptions Options);
   private sealed record ImportResult(int Count);
+  private sealed record BatchUpdateResult(int UpdatedCount);
 }

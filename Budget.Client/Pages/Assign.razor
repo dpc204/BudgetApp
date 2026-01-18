@@ -53,20 +53,40 @@ else
                    Items="@Transactions"
                    ReadOnly="false"
                    EditMode="DataGridEditMode.Cell"
+                   Filterable="true"
+                   FilterMode="DataGridFilterMode.ColumnFilterRow"
+                   FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
                    Hover="true"
+                   Bordered="true"
                    SortMode="SortMode.Multiple"
+                   Sortable="true"
                    dense="true"
                    FixedHeader="true"
                    MultiSelection="true"
                    @bind-SelectedItems="_selectedTransactions"
-                   RowClick="@((DataGridRowClickEventArgs<TransactionDto> args) => OnRowClicked(args))"
                    Class="envelopes-table">
+        
+    
+
+        <ToolBarContent >
+          <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy">Delete Staged Transactions</MudButton>
+          <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
+          <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
+          <MudSpacer/>
+        </ToolBarContent>
+
+
         <Columns >
-          <SelectColumn T="TransactionDto" />
-          <TemplateColumn Title="Date" Editable="false" Sortable="true" SortBy="@(x => x.Date)" InitialDirection="MudBlazor.SortDirection.Descending">
-            <CellTemplate>@context.Item.Date.ToString("MM/dd/yy")</CellTemplate>
-          </TemplateColumn>
-          <TemplateColumn Title="Envelope" Sortable="true" SortBy="@(x => x.EnvelopeName)">
+          <SelectColumn T="TransactionDto"/>
+          
+          
+          <PropertyColumn Property="x => x.Date"
+                          Title="Date"
+                          Format="d"
+                          Filterable="false"
+                          Sortable="true"/>
+          
+          <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)" >
             <CellTemplate>
               @{
                 var envelope = _availableEnvelopes.GetValueOrDefault(context.Item.EnvelopeId);
@@ -92,26 +112,32 @@ else
                                dense="true"
                                ShowProgressIndicator="true"
                                ProgressIndicatorColor="Color.Primary"/>
+
+
+
+
             </EditTemplate>
           </TemplateColumn>
 
-          <TemplateColumn Title="Vendor" Editable="false" Sortable="true" SortBy="@(x => x.Vendor)">
-            <CellTemplate>@context.Item.Vendor</CellTemplate>
-          </TemplateColumn>
-          <TemplateColumn Title="Description" Editable="true" Sortable="true" SortBy="@(x => x.Description)">
-            <CellTemplate>@context.Item.Description</CellTemplate>
-            <EditTemplate>
-              <MudTextField Value="@context.Item.Description"
-                            ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
-                            Variant="Variant.Outlined"
-                            dense="true"
-                            Immediate="true"
-                            Placeholder="Description"/>
-            </EditTemplate>
-          </TemplateColumn>
-          <TemplateColumn Title="Amount" Editable="false" Sortable="true" SortBy="@(x => x.Amount)">
-            <CellTemplate>@context.Item.Amount.ToString("C2")</CellTemplate>
-          </TemplateColumn>
+          <PropertyColumn Title="Vendor" 
+                          Editable="true" 
+                          Sortable="true" 
+                          Filterable="true" 
+                          SortBy="@(x => x.Vendor)" 
+                          Property="x => x.Vendor" />
+          <PropertyColumn Title="Description"
+                          Editable="true"
+                          Sortable="true"
+                          Filterable="true"
+                          SortBy="@(x => x.Description)"
+                          Property="x => x.Description"
+                        />
+
+          <PropertyColumn Title="Amount" 
+                          Editable="false" 
+                          Sortable="true" 
+                          Filterable="false" 
+                          SortBy="@(x => x.Amount)" Property="x=> x.Amount" />
         </Columns >
       </MudDataGrid >
     </MudPaper >

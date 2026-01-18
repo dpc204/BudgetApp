@@ -1,4 +1,3 @@
-
 namespace Budget.Client.Components.Import;
 
 public partial class TransactionsCsvImport : ComponentBase
@@ -26,7 +25,7 @@ public partial class TransactionsCsvImport : ComponentBase
     Accounts.Clear();
     Accounts.AddRange(accounts);
     SelectedAccountId = Accounts.FirstOrDefault()?.Id ?? 0;
-    
+
     // Load any existing staged imports when page loads
     await LoadPreviewAsync();
   }
@@ -100,7 +99,7 @@ public partial class TransactionsCsvImport : ComponentBase
       {
         var count = await Api.ImportTransactionsAsync(transactionsToImport);
         Status = $"Imported {count} rows to staging.";
-        
+
         // Reload preview from database
         await LoadPreviewAsync();
       }
@@ -131,7 +130,7 @@ public partial class TransactionsCsvImport : ComponentBase
 
     // Filter out duplicates
     var nonDuplicates = Preview.Where(p => !p.Duplicate).ToList();
-    
+
     if (nonDuplicates.Count == 0)
     {
       Snackbar.Add("No non-duplicate transactions to import", Severity.Warning);
@@ -211,7 +210,26 @@ public partial class TransactionsCsvImport : ComponentBase
     _selectedItems = items;
     _selectedCount = items.Count;
   }
-  protected async Task OnDuplicateToggled(TransactionImportDto import)
+
+  protected async Task OnSetPotentialDuplicate(TransactionImportDto import)
+  {
+    switch (import.Duplicate)
+    {
+      // If Keep is toggled on, ensure Duplicate is off
+      case false:
+        import.PotentialDuplicate = PotentialDuplicates.NotDuplicate;
+        break;
+      case true when import.NotDuplicate:
+        import.PotentialDuplicate = PotentialDuplicates.ClearedDuplicate;
+        break;
+      default:
+        import.PotentialDuplicate = PotentialDuplicates.PotentialDuplicate;
+        break;
+    }
+
+  }
+
+  protected async Task UpdateTransaction(TransactionImportDto import)
   {
     // Save the change immediately
     var success = await Api.UpdateTransactionImportAsync(import.Id, import.Duplicate);
@@ -276,7 +294,8 @@ public partial class TransactionsCsvImport : ComponentBase
   /// <param name="duplicateValue">The value to set for the Duplicate flag (true or false)</param>
   /// <param name="actionPastTense">Past tense verb for success messages (e.g., "Cleared", "Set")</param>
   /// <param name="actionVerb">Infinitive verb for error messages (e.g., "clear", "set")</param>
-  private async Task UpdateDuplicateFlagForSelectionAsync(bool duplicateValue, string actionPastTense, string actionVerb)
+  private async Task UpdateDuplicateFlagForSelectionAsync(bool duplicateValue, string actionPastTense,
+    string actionVerb)
   {
     if (_selectedItems.Count == 0)
     {
@@ -286,37 +305,22 @@ public partial class TransactionsCsvImport : ComponentBase
     Busy = true;
     try
     {
-      var updateTasks = _selectedItems.Select(async item => 
+      var ids = _selectedItems.Select(item => item.Id).ToList();
+      var updatedCount = await Api.UpdateTransactionImportsBatchAsync(ids, duplicateValue);
+
+      if (updatedCount > 0)
       {
-        try
+        // Update the local state for all successfully updated items
+        foreach (var item in _selectedItems)
         {
-          var success = await Api.UpdateTransactionImportAsync(item.Id, duplicateValue);
-          return (item, success);
+          item.Duplicate = duplicateValue;
         }
-        catch (Exception)
-        {
-          return (item, success: false);
-        }
-      }).ToList();
-      
-      var results = await Task.WhenAll(updateTasks);
-      
-      var successfulItems = results.Where(r => r.Item2).Select(r => r.Item1).ToList();
-      var failedCount = results.Count(r => !r.Item2);
-      
-      foreach (var item in successfulItems)
-      {
-        item.Duplicate = duplicateValue;
-      }
-      
-      if (failedCount == 0)
-      {
-        Snackbar.Add($"{actionPastTense} duplicate flag for {successfulItems.Count} transactions", Severity.Success);
+
+        Snackbar.Add($"{actionPastTense} duplicate flag for {updatedCount} transactions", Severity.Success);
       }
       else
       {
-        Snackbar.Add($"{actionPastTense} duplicate flag for {successfulItems.Count} transactions, {failedCount} failed", Severity.Warning);
-        Errors.Add($"{failedCount} transactions failed to update");
+        Snackbar.Add($"No transactions were updated", Severity.Warning);
       }
     }
     catch (Exception ex)
@@ -511,5 +515,10 @@ public partial class TransactionsCsvImport : ComponentBase
     }
 
     return result;
+  }
+
+  private bool CheckForDisabled(TransactionImportDto contextItem)
+  {
+    return !contextItem.Duplicate;
   }
 }
