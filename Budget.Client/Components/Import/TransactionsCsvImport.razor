@@ -53,9 +53,7 @@
                    Dense="true"
                    Hover="true"
                    Bordered="true"
-                   SelectedItemsChanged="OnSelectedItemsChanged"
                    Sortable="true"
-                   MultiSelection="true"
                    FixedHeader="true"
                    Style="height: 100%; overflow: auto;">
         <ColGroup>
@@ -74,8 +72,6 @@
           <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || _selectedCount == 0" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
         </ToolbarContent>
         <Columns>
-          <SelectColumn T="TransactionImportDto"/>
-
           <PropertyColumn Property="x => x.Date"
                           Title="Date"
                           Format="d"
@@ -114,19 +110,19 @@
             </CellTemplate>
           </TemplateColumn>
 
-          <PropertyColumn Property="x => x.PotentialDuplicate"
+          <PropertyColumn Property="x => x.KeepDuplicate"
                           Title="Keep Dup."
                           Filterable="false"
                           Sortable="true">
             <CellTemplate>
               <MudCheckBox T="bool" 
-                           Value="@(context.Item.PotentialDuplicate == PotentialDuplicates.KeepDuplicate)"
+                           Value="@context.Item.KeepDuplicate"
                            Color="Color.Warning"
                            ReadOnly="false"
-                           Disabled="CheckForDisabled(context.Item)"
+                           Disabled="@(!context.Item.Duplicate || Busy)"
                            ValueChanged="@(async (bool value) =>
                                          {
-                                           await OnSetPotentialDuplicate(context.Item);
+                                           context.Item.KeepDuplicate = value;
                                            await UpdateTransaction(context.Item);
                                          })"/>
             </CellTemplate>

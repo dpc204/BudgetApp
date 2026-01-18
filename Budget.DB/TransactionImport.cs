@@ -22,7 +22,7 @@ public partial class TransactionImport
   public Family Family { get; set; } = null!;
   public DateTime ImportedAt { get; set; }
   public bool Duplicate { get; set; } = false;
-  public PotentialDuplicates PotentialDuplicate { get; set; }
+  public bool KeepDuplicate { get; set; }
 
   [NotMapped] 
   public bool NotDuplicate { get; set; } = false;

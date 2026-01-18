@@ -79,9 +79,9 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return result?.Count ?? 0;
   }
 
-  public async Task<bool> UpdateTransactionImportAsync(int id, bool duplicate, PotentialDuplicates potentialDuplicate, CancellationToken cancellationToken = default)
+  public async Task<bool> UpdateTransactionImportAsync(int id, bool duplicate, bool keepDuplicate, CancellationToken cancellationToken = default)
   {
-    var payload = new { Duplicate = duplicate, PotentialDuplicate = potentialDuplicate };
+    var payload = new { Duplicate = duplicate, KeepDuplicate = keepDuplicate };
     using var resp = await http.PutAsJsonAsync($"/Transaction/Import/{id}", payload, cancellationToken);
     return resp.IsSuccessStatusCode;
   }

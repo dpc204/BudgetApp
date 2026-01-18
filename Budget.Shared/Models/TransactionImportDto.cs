@@ -12,7 +12,7 @@ public class TransactionImportDto
   public int UserId { get; set; }
   public DateTime ImportedAt { get; set; }
   public bool Duplicate { get; set; } = false;
-  public PotentialDuplicates PotentialDuplicate { get; set; }
+  public bool KeepDuplicate { get; set; }
 
   public bool NotDuplicate { get; set; }
 

@@ -202,37 +202,11 @@ public partial class TransactionsCsvImport : ComponentBase
     }
   }
 
-  private int _selectedCount;
-  private HashSet<TransactionImportDto> _selectedItems = new();
-
-  private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
-  {
-    _selectedItems = items;
-    _selectedCount = items.Count;
-  }
-
-  protected async Task OnSetPotentialDuplicate(TransactionImportDto import)
-  {
-    switch (import.Duplicate)
-    {
-      // If Keep is toggled on, ensure Duplicate is off
-      case false:
-        import.PotentialDuplicate = PotentialDuplicates.NotDuplicate;
-        break;
-      case true when import.NotDuplicate:
-        import.PotentialDuplicate = PotentialDuplicates.KeepDuplicate;
-        break;
-      default:
-        import.PotentialDuplicate = PotentialDuplicates.PotentialDuplicate;
-        break;
-    }
-
-  }
 
   protected async Task UpdateTransaction(TransactionImportDto import)
   {
     // Save the change immediately
-    var success = await Api.UpdateTransactionImportAsync(import.Id, import.Duplicate, import.PotentialDuplicate);
+    var success = await Api.UpdateTransactionImportAsync(import.Id, import.Duplicate, import.KeepDuplicate);
     if (success)
     {
       await InvokeAsync(StateHasChanged);
@@ -261,8 +235,6 @@ public partial class TransactionsCsvImport : ComponentBase
     {
       var count = await Api.ClearTransactionImportsAsync();
       Preview.Clear();
-      _selectedItems.Clear();
-      _selectedCount = 0;
       Status = $"Deleted {count} staged transactions.";
       Snackbar.Add($"Deleted {count} staged transactions", Severity.Success);
     }
@@ -270,63 +242,6 @@ public partial class TransactionsCsvImport : ComponentBase
     {
       Errors.Add($"Failed to delete staged transactions: {ex.Message}");
       Snackbar.Add("Failed to delete staged transactions", Severity.Error);
-    }
-    finally
-    {
-      Busy = false;
-      await InvokeAsync(StateHasChanged);
-    }
-  }
-
-  protected async Task ClearDuplicateFlagForSelectionAsync()
-  {
-    await UpdateDuplicateFlagForSelectionAsync(false, "Cleared", "clear");
-  }
-
-  protected async Task SetDuplicateFlagForSelectionAsync()
-  {
-    await UpdateDuplicateFlagForSelectionAsync(true, "Set", "set");
-  }
-
-  /// <summary>
-  /// Updates the duplicate flag for all selected transaction imports
-  /// </summary>
-  /// <param name="duplicateValue">The value to set for the Duplicate flag (true or false)</param>
-  /// <param name="actionPastTense">Past tense verb for success messages (e.g., "Cleared", "Set")</param>
-  /// <param name="actionVerb">Infinitive verb for error messages (e.g., "clear", "set")</param>
-  private async Task UpdateDuplicateFlagForSelectionAsync(bool duplicateValue, string actionPastTense,
-    string actionVerb)
-  {
-    if (_selectedItems.Count == 0)
-    {
-      return;
-    }
-
-    Busy = true;
-    try
-    {
-      var ids = _selectedItems.Select(item => item.Id).ToList();
-      var updatedCount = await Api.UpdateTransactionImportsBatchAsync(ids, duplicateValue);
-
-      if (updatedCount > 0)
-      {
-        // Update the local state for all successfully updated items
-        foreach (var item in _selectedItems)
-        {
-          item.Duplicate = duplicateValue;
-        }
-
-        Snackbar.Add($"{actionPastTense} duplicate flag for {updatedCount} transactions", Severity.Success);
-      }
-      else
-      {
-        Snackbar.Add($"No transactions were updated", Severity.Warning);
-      }
-    }
-    catch (Exception ex)
-    {
-      Errors.Add($"Failed to {actionVerb} duplicate flags: {ex.Message}");
-      Snackbar.Add($"Failed to {actionVerb} duplicate flags", Severity.Error);
     }
     finally
     {
@@ -515,10 +430,5 @@ public partial class TransactionsCsvImport : ComponentBase
     }
 
     return result;
-  }
-
-  private bool CheckForDisabled(TransactionImportDto contextItem)
-  {
-    return !contextItem.Duplicate;
   }
 }
