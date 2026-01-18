@@ -1,4 +1,5 @@
 using System.Net.Http;
+using Budget.Shared.Enums;
 
 namespace Budget.ApiTests;
 
@@ -264,7 +265,7 @@ public class TransactionImportEndpointsTests
 
 
     var handler = new UpdateTransactionImport.Handler(arrangeDb);
-    var command = new UpdateTransactionImport.Command(importId, true);
+    var command = new UpdateTransactionImport.Command(importId, true, PotentialDuplicates.NotDuplicate);
 
     // Act - Update to mark as duplicate
     var response = await handler.Handle(command, CancellationToken.None);

@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 @inject Budget.Web.Services.ThemeService ThemeService
 
-<MudLayout >
+<MudLayout>
   <MudThemeProvider Theme="@ThemeService.Theme" IsDarkMode="@ThemeService.IsDarkMode" />
   <MudPopoverProvider />
   <MudDialogProvider />
@@ -17,8 +17,8 @@
   <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Docked" Anchor="Anchor.Start" Width="200px">
     <NavMenuMud/>
   </MudDrawer>
-  <MudMainContent>
-    <MudContainer MaxWidth="MaxWidth.False">
+  <MudMainContent Class="d-flex flex-column" Style="height: 100vh;">
+    <MudContainer MaxWidth="MaxWidth.False" Class="flex-grow-1 d-flex flex-column pa-4" Style="overflow: hidden;">
       <Budget.Web.Components.Auth.AuthStateSync />
       @Body
     </MudContainer>

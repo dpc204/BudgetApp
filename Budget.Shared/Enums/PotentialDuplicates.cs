@@ -4,5 +4,5 @@ public enum PotentialDuplicates
 {
   NotDuplicate,
   PotentialDuplicate,
-  ClearedDuplicate
+  KeepDuplicate
 }

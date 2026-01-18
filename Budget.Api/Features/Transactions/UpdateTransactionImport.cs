@@ -10,7 +10,8 @@ namespace Budget.Api.Features.Transactions;
 /// </summary>
 public static class UpdateTransactionImport
 {
-  public sealed record Command(int Id, bool Duplicate) : IRequest<bool>;
+  public record UpdateRequest(bool Duplicate, PotentialDuplicates PotentialDuplicate);
+  public sealed record Command(int Id, bool Duplicate, PotentialDuplicates PotentialDuplicate) : IRequest<bool>;
 
   /// <summary>
   /// Handles updating a transaction import record
@@ -28,6 +29,8 @@ public static class UpdateTransactionImport
       }
 
       import.Duplicate = request.Duplicate;
+      import.PotentialDuplicate = request.PotentialDuplicate;
+
       await db.SaveChangesAsync(cancellationToken);
 
       return true;
@@ -43,12 +46,12 @@ public static class UpdateTransactionImport
     {
       app.MapPut("/Transaction/Import/{id}", async ([FromServices] ISender sender, int id, [FromBody] UpdateRequest request) =>
       {
-        var command = new Command(id, request.Duplicate);
+        var command = new Command(id, request.Duplicate, request.PotentialDuplicate);
         var success = await sender.Send(command);
         return success ? Results.Ok() : Results.NotFound();
       }).RequireAuthorization();
     }
   }
 
-  public record UpdateRequest(bool Duplicate);
+
 }

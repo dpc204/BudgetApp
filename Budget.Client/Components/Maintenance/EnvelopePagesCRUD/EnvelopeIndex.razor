@@ -203,7 +203,7 @@
     {
       // Show error dialog - cannot delete envelope with transactions
       var options = new DialogOptions { MaxWidth = MaxWidth.Small, CloseButton = true };
-      await DialogService.ShowMessageBox(
+      await DialogService.ShowMessageBoxAsync(
         "Cannot Delete Envelope",
         $"The envelope \"{envelope.Name}\" has {transactionCount} transaction(s) assigned to it and cannot be deleted. Please reassign or remove the transactions first.",
         yesText: "OK");
@@ -211,7 +211,7 @@
     }
     
     // Show confirmation dialog
-    var confirmed = await DialogService.ShowMessageBox(
+    var confirmed = await DialogService.ShowMessageBoxAsync(
       "Delete Envelope",
       $"Are you sure you want to delete the envelope \"{envelope.Name}\"? This action cannot be undone.",
       yesText: "Delete",

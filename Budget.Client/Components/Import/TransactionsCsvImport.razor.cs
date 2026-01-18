@@ -220,7 +220,7 @@ public partial class TransactionsCsvImport : ComponentBase
         import.PotentialDuplicate = PotentialDuplicates.NotDuplicate;
         break;
       case true when import.NotDuplicate:
-        import.PotentialDuplicate = PotentialDuplicates.ClearedDuplicate;
+        import.PotentialDuplicate = PotentialDuplicates.KeepDuplicate;
         break;
       default:
         import.PotentialDuplicate = PotentialDuplicates.PotentialDuplicate;
@@ -232,7 +232,7 @@ public partial class TransactionsCsvImport : ComponentBase
   protected async Task UpdateTransaction(TransactionImportDto import)
   {
     // Save the change immediately
-    var success = await Api.UpdateTransactionImportAsync(import.Id, import.Duplicate);
+    var success = await Api.UpdateTransactionImportAsync(import.Id, import.Duplicate, import.PotentialDuplicate);
     if (success)
     {
       await InvokeAsync(StateHasChanged);
@@ -245,7 +245,7 @@ public partial class TransactionsCsvImport : ComponentBase
 
   protected async Task DeleteStagedTransactionsAsync()
   {
-    var confirmed = await DialogService.ShowMessageBox(
+    var confirmed = await DialogService.ShowMessageBoxAsync(
       "Confirm Delete",
       "Are you sure you want to delete all staged transactions?",
       yesText: "Delete",

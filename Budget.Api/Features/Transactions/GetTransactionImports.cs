@@ -23,19 +23,7 @@ public static class GetTransactionImports
     {
       var imports = await db.TransactionImports
         .OrderBy(t => t.Date)
-        .Select(t => new TransactionImportDto
-        {
-          Id = t.Id,
-          Date = t.Date,
-          Vendor = t.Vendor,
-          Description = t.Description,
-          Amount = t.Amount,
-          EnvelopeId = t.EnvelopeId,
-          EnvelopeName = t.EnvelopeName,
-          UserId = t.UserId,
-          ImportedAt = t.ImportedAt,
-          Duplicate = t.Duplicate
-        })
+      .ProjectToType<TransactionImportDto>()
         .ToListAsync(cancellationToken);
 
       return imports;

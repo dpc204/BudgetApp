@@ -92,7 +92,7 @@ public partial class RolesIndex
 
   private async Task DeleteRole(RoleDto role)
   {
-    var confirmed = await DialogService.ShowMessageBox(
+    var confirmed = await DialogService.ShowMessageBoxAsync(
       "Confirm Delete",
       $"Are you sure you want to delete the role '{role.Name}'?",
       yesText: "Delete",

@@ -1,5 +1,5 @@
 @page "/import"
-<MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100vh; overflow: hidden;">
+<MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100%; overflow: hidden;">
 
   <MudText Typo="Typo.h6">Import Transactions (CSV)</MudText>
 
@@ -14,7 +14,7 @@
     <MudTextField @bind-Value="UserIdText" Label="User Id" Disabled="Busy" dense="true" Class="w-150"/>
 
     <InputFile OnChange="OnInputFileChange" accept=".csv"/>
-    
+
     <MudText>Filename:&nbsp;@Busy.ToString()</MudText>
 
     <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || ParsedRowsCount == 0" Variant="Variant.Filled" Color="Color.Primary">Import</MudButton>
@@ -58,82 +58,81 @@
                    MultiSelection="true"
                    FixedHeader="true"
                    Style="height: 100%; overflow: auto;">
-      @* <ColGroup>
-        <col style="width: 50px;" />
-        <col style="width: 50px;" />
-        <col style="width: 50px;" />
-        <col style="width: 50px;" />
-        <col style="width: 50px;" />
-        <col style="width: 50px;" />
-      </ColGroup> *@
-      <ToolBarContent >
-        @* <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
+        <ColGroup>
+          <col style="width: 50px;"/>
+          <col style="width: 50px;"/>
+          <col style="width: 50px;"/>
+          <col style="width: 50px;"/>
+          <col style="width: 50px;"/>
+          <col style="width: 50px;"/>
+        </ColGroup>
+        <ToolBarContent >
+          @* <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
         <MudButton OnClick="ClearDuplicateFlagForSelectionAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
         <MudButton OnClick="SetDuplicateFlagForSelectionAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
         <MudSpacer/> *@
-        <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || _selectedCount == 0" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
-      </ToolbarContent>
-      <Columns>
-        <SelectColumn T="TransactionImportDto"/>
+          <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || _selectedCount == 0" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
+        </ToolbarContent>
+        <Columns>
+          <SelectColumn T="TransactionImportDto"/>
 
-        <PropertyColumn Property="x => x.Date"
-                        Title="Date"
-                        Format="d"
-                        Filterable="true"
-                        Sortable="true"/>
+          <PropertyColumn Property="x => x.Date"
+                          Title="Date"
+                          Format="d"
+                          Filterable="true"
+                          Sortable="true"/>
 
-        <PropertyColumn Property="x => x.Vendor"
-                        Title="Vendor"
-                        Filterable="true"
-                        Sortable="true"/>
+          <PropertyColumn Property="x => x.Vendor"
+                          Title="Vendor"
+                          Filterable="true"
+                          Sortable="true"/>
 
-        <PropertyColumn Property="x => x.Description"
-                        Title="Description"
-                        Filterable="true"
-                        Sortable="true"/>
+          <PropertyColumn Property="x => x.Description"
+                          Title="Description"
+                          Filterable="true"
+                          Sortable="true"/>
 
-        <PropertyColumn Property="x => x.Amount"
-                        Title="Amount"
-                        Format="C"
-                        Filterable="true"
-                        Sortable="true"
-                        CellStyle="text-align: right;"
-                        HeaderStyle="text-align: right;"/>
+          <PropertyColumn Property="x => x.Amount"
+                          Title="Amount"
+                          Format="C"
+                          Filterable="true"
+                          Sortable="true"
+                          CellStyle="text-align: right;"
+                          HeaderStyle="text-align: right;"/>
 
-        <TemplateColumn Title="Duplicate"
-                        Filterable="false"
-                        Sortable="true"
-                        SortBy="@(x => x.Duplicate)"
-                        HeaderStyle=" text-align: right;"
-                        CellStyle=" text-align: right;">
-          <CellTemplate>
-            <MudCheckBox Value="@context.Item.Duplicate"
-                         Color="Color.Warning"
-                         ReadOnly="true"
-                         Disabled="Busy"/>
-          </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => x.NotDuplicate"
-                        Title="Keep Dup."
-                        Filterable="false"
-                        Sortable="true"
-                        SortBy="@(x => x.NotDuplicate)"
-                        >
-          <CellTemplate>
-            <MudCheckBox Value="context.Item.NotDuplicate"
-                         Color="Color.Warning"
-                         ReadOnly="false"
-                         Disabled="CheckForDisabled(context.Item)"
-                         ValueChanged="@(async (bool value) =>
-                                       {
-                                         context.Item.NotDuplicate = value;
-                                         await OnSetPotentialDuplicate(context.Item);
-                                         await UpdateTransaction(context.Item);
-                                       })"/>
-          </CellTemplate>
-        </PropertyColumn>
-      </Columns>
-    </MudDataGrid>
+          <TemplateColumn Title="Duplicate"
+                          Filterable="false"
+                          Sortable="true"
+                          SortBy="@(x => x.Duplicate)"
+                          HeaderStyle=" text-align: right;"
+                          CellStyle=" text-align: right;">
+            <CellTemplate>
+              <MudCheckBox T="bool" Value="@context.Item.Duplicate"
+                           Color="Color.Warning"
+                           ReadOnly="true"
+                           Disabled="Busy"/>
+            </CellTemplate>
+          </TemplateColumn>
+
+          <PropertyColumn Property="x => x.PotentialDuplicate"
+                          Title="Keep Dup."
+                          Filterable="false"
+                          Sortable="true">
+            <CellTemplate>
+              <MudCheckBox T="bool" 
+                           Value="@(context.Item.PotentialDuplicate == PotentialDuplicates.KeepDuplicate)"
+                           Color="Color.Warning"
+                           ReadOnly="false"
+                           Disabled="CheckForDisabled(context.Item)"
+                           ValueChanged="@(async (bool value) =>
+                                         {
+                                           await OnSetPotentialDuplicate(context.Item);
+                                           await UpdateTransaction(context.Item);
+                                         })"/>
+            </CellTemplate>
+          </PropertyColumn>
+        </Columns>
+      </MudDataGrid>
     </div>
   }
 </MudStack>

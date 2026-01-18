@@ -14,7 +14,7 @@
     <PackageReference Include="FluentResults" Version="4.0.0" />
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
-    <PackageReference Include="MudBlazor" Version="8.15.0" />
+    <PackageReference Include="MudBlazor" Version="9.0.0-preview.2" />
   </ItemGroup>
 
   <ItemGroup>

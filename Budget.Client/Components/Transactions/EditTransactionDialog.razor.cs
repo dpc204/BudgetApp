@@ -188,7 +188,7 @@ public partial class EditTransactionDialog
 
   private async Task VoidTransaction()
   {
-    var result = await DialogService.ShowMessageBox(
+    var result = await DialogService.ShowMessageBoxAsync(
       "Confirm Void Transaction",
       $"Are you sure you want to void this transaction? This will reverse the transaction in the budget and account balances.\n\nVendor: {_header.Vendor}\nAmount: {_header.TotalAmount:C}",
       yesText: "Yes, Void Transaction",
@@ -203,7 +203,7 @@ public partial class EditTransactionDialog
       }
       catch (Exception ex)
       {
-        await DialogService.ShowMessageBox(
+        await DialogService.ShowMessageBoxAsync(
           "Error",
           $"Failed to void transaction: {ex.Message}",
           yesText: "OK");
