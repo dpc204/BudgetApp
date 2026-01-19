@@ -24,7 +24,7 @@
         {
             @foreach (var envelope in Envelopes)
             {
-                <MudSelectItem T="EnvelopeIdName" Value="@envelope">@envelope.Name</MudSelectItem>
+                <MudSelectItem T="EnvelopeIdName" Value="@envelope">@envelope.EnvelopeName</MudSelectItem>
             }
         }
     </ChildContent>

@@ -24,8 +24,6 @@ public partial class TransactionImport
   public bool Duplicate { get; set; } = false;
   public bool KeepDuplicate { get; set; }
 
-  [NotMapped] 
-  public bool NotDuplicate { get; set; } = false;
 
   public class TransactionImportConfiguration : IEntityTypeConfiguration<TransactionImport>
   {

@@ -9,7 +9,7 @@ public partial class Assign : ComponentBase
 
 
   public List<TransactionDto> Transactions { get; set; } = [];
-  private Dictionary<int, EnvelopeIdName> _availableEnvelopes = [];
+  private List<EnvelopeIdName> _availableEnvelopes = [];
 
 
   // Multi-selection stat
@@ -40,10 +40,10 @@ public partial class Assign : ComponentBase
 
 
       // Convert State.AllEnvelopeData to EnvelopeIdName list
-      _availableEnvelopes =
-        State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, e => new EnvelopeIdName(e.EnvelopeId, e.EnvelopeName)) ??
-        [];
+      _availableEnvelopes = SetAvailableEnvelopes();
 
+       _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
+      
       var result = await Api.GetTransactionsUnassignedAsync();
       if (result.IsSuccess)
       {
@@ -71,6 +71,12 @@ public partial class Assign : ComponentBase
     }
   }
 
+  private List<EnvelopeIdName> SetAvailableEnvelopes()
+  {
+    return State.AllEnvelopeData.Where(a=> a.EnvelopeType == EnvelopeTypes.Standard).Select(a =>
+      new EnvelopeIdName(a.EnvelopeId, a.CategoryName , a.EnvelopeName, a.CategorySortOrder, a.EnvelopeSortOrder)).OrderBy(a=> a.CategorySortOrder).ThenBy(a=> a.EnvelopeSortOrder).ToList();
+  }
+
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender && !_afterRenderInit)
@@ -83,20 +89,30 @@ public partial class Assign : ComponentBase
       }
 
       // Refresh envelope list after state is loaded
-      _availableEnvelopes =
-        State.AllEnvelopeData?.ToDictionary(e => e.EnvelopeId, x => new EnvelopeIdName(x.EnvelopeId, x.EnvelopeName)) ??
-        [];
-
+      _availableEnvelopes = SetAvailableEnvelopes();
 
       StateHasChanged();
     }
   }
 
+  private string? GetEnvelopeNameOnly(EnvelopeIdName? e)
+  {
+    if(e == null)
+      return null;
 
+    return  e.EnvelopeName;
+  }
+  private string? GetCatAndEnvName(EnvelopeIdName? e)
+  {
+    if(e == null)
+      return null;
+
+    return e.CategoryName + " - " + e.EnvelopeName;
+  }
 
   private EnvelopeIdName? GetCurrentEnvelope(TransactionDto transaction)
   {
-    return _availableEnvelopes.GetValueOrDefault(transaction.EnvelopeId);
+    return null;
   }
 
   bool CaseInsensitiveContains(string? source, string? search)
@@ -113,8 +129,8 @@ public partial class Assign : ComponentBase
     if (selectedEnvelope is null) return;
 
     // Update the transaction's envelope
-    transaction.EnvelopeId = selectedEnvelope.Id;
-    transaction.EnvelopeName = selectedEnvelope.Name;
+    transaction.EnvelopeId = selectedEnvelope.EnvelopeId;
+    transaction.EnvelopeName = selectedEnvelope.EnvelopeName;
 
     // Call API to save the transaction envelope assignment
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
@@ -126,20 +142,34 @@ public partial class Assign : ComponentBase
   {
     if (string.IsNullOrWhiteSpace(arg1))
     {
-      return [.. _availableEnvelopes.Values];
+      return [.. _availableEnvelopes];
     }
 
-    return [.. _availableEnvelopes.Values.Where(e =>
-      e.Name.Contains(arg1, StringComparison.InvariantCultureIgnoreCase))];
+    return [.. _availableEnvelopes.Where(e =>
+      e.CategoryName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)||
+      e.EnvelopeName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)
+      )];
   }
 
   private async Task<object> OnEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val)
   {
-    if (val is null) return contextItem;
+    if(val is null) return contextItem;
 
-    var selectedEnvelope = _availableEnvelopes.GetValueOrDefault(val.Id);
+    var selectedEnvelope = _availableEnvelopes.FirstOrDefault(a=> a.EnvelopeId ==val.EnvelopeId);
 
-    if (selectedEnvelope is null) return contextItem;
+    if(selectedEnvelope is null) return contextItem;
+
+    await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
+    return contextItem;
+  }
+  private async Task<object> SetBulkEnvelope(TransactionDto contextItem, EnvelopeIdName? val)
+  {
+    if(val is null) return contextItem;
+
+    var selectedEnvelope = _availableEnvelopes.FirstOrDefault(a => a.EnvelopeId == val.EnvelopeId);
+
+
+    if(selectedEnvelope is null) return contextItem;
 
     await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
     return contextItem;
@@ -156,6 +186,15 @@ public partial class Assign : ComponentBase
     StateHasChanged();
   }
 
+  /// <summary>
+  /// Handles the selection of an envelope for bulk assignment
+  /// </summary>
+  private Task OnBulkEnvelopeSelected(EnvelopeIdName? selectedEnvelope)
+  {
+    _bulkEnvelope = selectedEnvelope;
+    return Task.CompletedTask;
+  }
+
   private async Task BulkAssignAsync()
   {
     if (_bulkEnvelope is null || _selectedTransactions.Count == 0)
@@ -167,8 +206,8 @@ public partial class Assign : ComponentBase
     var transactionsToAssign = _selectedTransactions.ToList();
     foreach (var transaction in transactionsToAssign)
     {
-      transaction.EnvelopeId = _bulkEnvelope.Id;
-      transaction.EnvelopeName = _bulkEnvelope.Name;
+      transaction.EnvelopeId = _bulkEnvelope.EnvelopeId;
+      transaction.EnvelopeName = _bulkEnvelope.EnvelopeName;
 
       await Api.AssignTransactionAsync(
         transaction.TransactionId,
@@ -191,6 +230,7 @@ public partial class Assign : ComponentBase
   private HashSet<TransactionImportDto> _selectedItems = new();
 
   private string _transactionSearch = string.Empty;
+  private EnvelopeResult? _unassignedEnvelope;
 
   private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
   {

@@ -57,5 +57,5 @@ public partial class FDSelectEnvelope
     public string? Class { get; set; }
 
     private static string ConvertEnvelopeToString(EnvelopeIdName? envelope) 
-        => envelope?.Name ?? string.Empty;
+        => envelope?.EnvelopeName ?? string.Empty;
 }

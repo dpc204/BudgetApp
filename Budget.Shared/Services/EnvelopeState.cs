@@ -77,18 +77,20 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
       Cats = [ new Cat { CategoryId = "0", CategoryName = "All" } ];
       Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name , CatType = c.CatType}));
 
-      var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c.Name);
+      var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c);
 
       AllEnvelopeData = [.. envelopes
         .Select(e => new EnvelopeResult
         {
           CategoryId = e.CategoryId,
-          CategoryName = categoryNameLookup.TryGetValue(e.CategoryId, out var catName) ? catName : string.Empty,
+          CategoryName = categoryNameLookup.TryGetValue(e.CategoryId, out var catName) ? catName.Name : string.Empty,
+          CategorySortOrder = categoryNameLookup.TryGetValue(e.CategoryId, out var catOrder) ? catOrder.SortOrder : 0,
           EnvelopeId = e.Id,
           EnvelopeName = e.Name,
-          SortOrder = e.SortOrder,
+          EnvelopeSortOrder = e.SortOrder,
           Balance = e.Balance,
-          Budget = e.Budget
+          Budget = e.Budget,
+          EnvelopeType = e.EnvelopeType
         })
         .OrderBy(e => e.CategoryId)
         .ThenBy(e => e.EnvelopeName)];

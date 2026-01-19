@@ -1,4 +1,5 @@
 @page "/assign"
+
 @rendermode InteractiveServer
 
 
@@ -17,19 +18,19 @@ else
 {
   <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
     <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
-      
+
       @* Bulk Assignment Section *@
       <MudPaper Elevation="1" Class="pa-3 mb-3">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
           <MudAutocomplete T="EnvelopeIdName"
-                           @bind-Value="_bulkEnvelope"
+                           Value="@_bulkEnvelope"
                            SearchFunc="@SearchEnvelopes"
-                           ToStringFunc="@(e => e?.Name ?? "")"
+                           ToStringFunc="GetCatAndEnvName"
                            ResetValueOnEmptyText="false"
                            CoerceText="false"
-                           CoerceValue="true"
+                           CoerceValue="false"
                            OpenOnFocus="true"
-                           selectOnClick="true"
+                           ValueChanged="@OnBulkEnvelopeSelected"
                            Placeholder="Select Envelope for Bulk Assignment"
                            Disabled="@(_selectedTransactions.Count == 0)"
                            Immediate="true"
@@ -37,6 +38,7 @@ else
                            AdornmentColor="Color.Primary"
                            Variant="Variant.Outlined"
                            dense="true"
+                           MaxItems="null"
                            ShowProgressIndicator="true"
                            ProgressIndicatorColor="Color.Primary"
                            Style="min-width: 300px;"/>
@@ -49,97 +51,98 @@ else
         </MudStack>
       </MudPaper>
 
-      <MudDataGrid T="TransactionDto"
-                   Items="@Transactions"
-                   ReadOnly="false"
-                   EditMode="DataGridEditMode.Cell"
-                   Filterable="true"
-                   FilterMode="DataGridFilterMode.ColumnFilterRow"
-                   FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
-                   Hover="true"
-                   Bordered="true"
-                   SortMode="SortMode.Multiple"
-                   Sortable="true"
-                   dense="true"
-                   FixedHeader="true"
-                   MultiSelection="true"
-                   @bind-SelectedItems="_selectedTransactions"
-                   Class="envelopes-table">
-        
-    
-
-        <ToolBarContent >
-          <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy">Delete Staged Transactions</MudButton>
-          <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
-          <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
-          <MudSpacer/>
-        </ToolBarContent>
+      <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
+        <MudDataGrid T="TransactionDto"
+                     Items="@Transactions"
+                     ReadOnly="false"
+                     EditMode="DataGridEditMode.Cell"
+                     Filterable="true"
+                     FilterMode="DataGridFilterMode.ColumnFilterRow"
+                     FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+                     Hover="true"
+                     Bordered="true"
+                     SortMode="SortMode.Multiple"
+                     dense="true"
+                     FixedHeader="true"
+                     MultiSelection="true"
+                     @bind-SelectedItems="_selectedTransactions"
+                     Class="envelopes-table"
+                     Style="height: 100%; overflow: auto; width: auto">
 
 
-        <Columns >
-          <SelectColumn T="TransactionDto"/>
-          
-          
-          <PropertyColumn Property="x => x.Date"
-                          Title="Date"
-                          Format="d"
-                          Filterable="false"
-                          Sortable="true"/>
-          
-          <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)" >
-            <CellTemplate>
-              @{
-                var envelope = _availableEnvelopes.GetValueOrDefault(context.Item.EnvelopeId);
-              }
-              @(envelope?.Name ?? "")
-            </CellTemplate>
-            <EditTemplate>
-              <MudAutocomplete T="EnvelopeIdName"
-                               Value="@GetCurrentEnvelope(context.Item)"
-                               SearchFunc="@SearchEnvelopes"
-                               ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
-                               ToStringFunc="@(e => e?.Name ?? "")"
-                               ResetValueOnEmptyText="false"
-                               CoerceText="false"
-                               CoerceValue="true"
-                               OpenOnFocus="true"
-                               selectOnClick="true"
-                               Placeholder="Search Envelope"
-                               Immediate="true"
-                               AdornmentIcon="@Icons.Material.Filled.Search"
-                               AdornmentColor="Color.Primary"
-                               Variant="Variant.Outlined"
-                               dense="true"
-                               ShowProgressIndicator="true"
-                               ProgressIndicatorColor="Color.Primary"/>
+          <ToolBarContent >
+            <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy">Delete Staged Transactions</MudButton>
+            <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Clear Duplicate Flag for Selection</MudButton>
+            <MudButton Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || _selectedCount == 0">Set Duplicate Flag for Selection</MudButton>
+            <MudSpacer/>
+          </ToolBarContent>
 
 
+          <Columns >
+            <SelectColumn T="TransactionDto"/>
 
 
-            </EditTemplate>
-          </TemplateColumn>
+            <PropertyColumn Property="x => x.Date"
+                            Title="Date"
+                            Format="d"
+                            Filterable="false"
+                            Sortable="true"
+                            Editable="false"/>
 
-          <PropertyColumn Title="Vendor" 
-                          Editable="true" 
-                          Sortable="true" 
-                          Filterable="true" 
-                          SortBy="@(x => x.Vendor)" 
-                          Property="x => x.Vendor" />
-          <PropertyColumn Title="Description"
-                          Editable="true"
-                          Sortable="true"
-                          Filterable="true"
-                          SortBy="@(x => x.Description)"
-                          Property="x => x.Description"
-                        />
+            <TemplateColumn Title="Envelope" Filterable="false">
+              <CellTemplate>
+                asdfsdfsss
+              </CellTemplate>
+            </TemplateColumn>
 
-          <PropertyColumn Title="Amount" 
-                          Editable="false" 
-                          Sortable="true" 
-                          Filterable="false" 
-                          SortBy="@(x => x.Amount)" Property="x=> x.Amount" />
-        </Columns >
-      </MudDataGrid >
+
+            <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
+              <EditTemplate>
+                <MudAutocomplete T="EnvelopeIdName"
+                                 Value="@null"
+                                 SearchFunc="@SearchEnvelopes"
+                                 ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
+                                 ToStringFunc="GetEnvelopeNameOnly"
+                                 ResetValueOnEmptyText="false"
+                                 CoerceText="false"
+                                 CoerceValue="false"
+                                 OpenOnFocus="true"
+                                 Placeholder="Search Envelope"
+                                 Immediate="true"
+                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                 AdornmentColor="Color.Primary"
+                                 Variant="Variant.Outlined"
+                                 dense="true"
+                                 MaxItems="null"
+                                 ShowProgressIndicator="true"
+                                 ProgressIndicatorColor="Color.Primary"/>
+
+
+              </EditTemplate>
+            </TemplateColumn>
+
+            <PropertyColumn Title="Vendor"
+                            Editable="true"
+                            Sortable="true"
+                            Filterable="true"
+                            SortBy="@(x => x.Vendor)"
+                            Property="x => x.Vendor"/>
+            <PropertyColumn Title="Description"
+                            Editable="true"
+                            Sortable="true"
+                            Filterable="true"
+                            SortBy="@(x => x.Description)"
+                            Property="x => x.Description"/>
+
+            <PropertyColumn Title="Amount"
+                            Editable="false"
+                            Sortable="true"
+                            Filterable="false"
+                            SortBy="@(x => x.Amount)" Property="x => x.Amount"/>
+          </Columns >
+        </MudDataGrid >
+
+      </div>
     </MudPaper >
   </MudContainer>
 }

@@ -38,7 +38,8 @@
     /// <summary>
     /// Gets or sets the type of envelope (e.g., Standard, Funding).
     /// </summary>
-    public EnvelopeTypes EnvelopeType { get; set; }
+    public EnvelopeTypes 
+EnvelopeType { get; set; }
     
     /// <summary>
     /// Gets or sets the amount to fund this envelope with during the funding process.
