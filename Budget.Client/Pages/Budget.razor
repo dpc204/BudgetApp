@@ -5,21 +5,17 @@
 @inject ISnackbar Snackbar
 
 <style>
-  :root {
-    /* Offset includes: page title (h4) ~60px, top margin 16px, MudPaper controls ~120px, bottom margin 16px, plus buffer */
-    --budget-table-header-offset: 300px;
-  }
-  .draft-input-right {
-    width: 100px;
-  }
-  .draft-input-right input {
-    text-align: right !important;
-  }
-  .budget-tables-wrapper {
-    max-height: calc(100vh - var(--budget-table-header-offset));
-    display: flex;
-    flex-direction: column;
-  }
+.draft-input-right {
+  width: 100px;
+}
+.draft-input-right input {
+  text-align: right !important;
+}
+.budget-tables-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
   .budget-fixed-section {
     flex-shrink: 0;
     position: relative;
@@ -84,10 +80,10 @@
 
 <PageTitle>Budget</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-1" Style="padding-left: 0; padding-right: 0;">
-  <MudText Typo="Typo.h4" Class="mb-1">Budget Maintenance</MudText>
+<MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100%; overflow: hidden;">
+<MudText Typo="Typo.h4" Style="flex-shrink: 0;">Budget Maintenance</MudText>
 
-  @if(_loading)
+@if(_loading)
   {
     <MudProgressLinear Indeterminate="true" />
   }
@@ -98,7 +94,7 @@
       <MudProgressLinear Indeterminate="true"  />
     }
 
-    <MudPaper Class="pa-1 mb-1" Style="@(_isSmallScreen ? "padding: 8px !important;" : "")">
+    <MudPaper Class="pa-1 mb-1" Style="@(_isSmallScreen ? "padding: 8px !important; flex-shrink: 0;" : "flex-shrink: 0;")">
       <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
         <MudStack Row="true" Spacing="@(_isSmallScreen ? 1 : 2)" AlignItems="AlignItems.Center">
           <MudTooltip Text="Prior Month">
@@ -144,7 +140,7 @@
       </MudStack>
     </MudPaper>
 
-    <div class="budget-tables-wrapper">
+    <div class="budget-tables-wrapper" style="flex: 1; min-height: 0; overflow: hidden;">
       @* Fixed table with header and summary rows *@
       <div class="budget-fixed-section">
         <MudTable Items="@_summaryRows" dense="true" Hover="false" Striped="false" CustomHeader="true" Breakpoint="Breakpoint.None" Class="budget-fixed-table">
@@ -268,6 +264,6 @@
       </div>
     </div>
   }
-</MudContainer>
+</MudStack>
 
 

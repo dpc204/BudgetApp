@@ -16,11 +16,9 @@ else if (!string.IsNullOrEmpty(_loadError))
 }
 else
 {
-  <MudContainer MaxWidth="MaxWidth.False" Class="pa-2 envelope-page-container">
-    <MudPaper Elevation="0" Class="h-100 d-flex flex-column">
-
-      @* Bulk Assignment Section *@
-      <MudPaper Elevation="1" Class="pa-3 mb-3">
+  <MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100%; overflow: hidden;">
+    @* Bulk Assignment Section *@
+    <MudPaper Elevation="1" Class="pa-3" Style="flex-shrink: 0;">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
           <MudAutocomplete T="EnvelopeIdName"
                            Value="@_bulkEnvelope"
@@ -142,7 +140,6 @@ else
           </Columns >
         </MudDataGrid >
 
-      </div>
-    </MudPaper >
-  </MudContainer>
+    </div>
+  </MudStack>
 }
