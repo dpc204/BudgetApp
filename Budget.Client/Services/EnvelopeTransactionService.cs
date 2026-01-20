@@ -16,15 +16,37 @@ public class EnvelopeTransactionService(
   /// </summary>
   /// <param name="envelopeId">The envelope ID to load transactions for</param>
   /// <param name="cancellationToken">Cancellation token</param>
+  /// <param name="startIndex">The starting index for pagination</param>
+  /// <param name="pageSize">The number of items to retrieve for pagination</param>
   /// <returns>List of transactions for the envelope</returns>
-  public async Task<List<TransactionDto>> LoadTransactionsAsync(int envelopeId, CancellationToken cancellationToken = default)
+  public async Task<List<TransactionDto>> LoadTransactionsAsync(int envelopeId, int startIndex = 0, int pageSize = 0, CancellationToken cancellationToken = default)
   {
     try
     {
-      var result = await api.GetTransactionsByEnvelopeAsync(envelopeId, cancellationToken);
+      var result = await api.GetTransactionsByEnvelopeAsync(envelopeId, cancellationToken: cancellationToken);
       return [.. result];
     }
-    catch (Exception ex)
+    catch(Exception ex)
+    {
+      logger.LogError(ex, "Failed loading transactions for envelope {EnvelopeId}", envelopeId);
+      return [];
+    }
+  } /// <summary>
+  /// Loads transactions for a specific envelope
+  /// </summary>
+  /// <param name="envelopeId">The envelope ID to load transactions for</param>
+  /// <param name="cancellationToken">Cancellation token</param>
+  /// <param name="startIndex">The starting index for pagination</param>
+  /// <param name="pageSize">The number of items to retrieve for pagination</param>
+  /// <returns>List of transactions for the envelope</returns>
+  public async Task<List<FullTransactionDto>> LoadFullTransactionsAsync(int envelopeId, int startIndex = 0, int pageSize = 0, CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      var result = await api.GetFullTransactionsByEnvelopeAsync(envelopeId, cancellationToken: cancellationToken);
+      return [.. result];
+    }
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed loading transactions for envelope {EnvelopeId}", envelopeId);
       return [];
@@ -120,7 +142,11 @@ public interface IEnvelopeTransactionService
   /// <summary>
   /// Loads transactions for a specific envelope
   /// </summary>
-  Task<List<TransactionDto>> LoadTransactionsAsync(int envelopeId, CancellationToken cancellationToken = default);
+  Task<List<TransactionDto>> LoadTransactionsAsync(int envelopeId, int StartIndex = 0, int PageSize = 0, CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Loads transactions for a specific envelope
+  /// </summary>
+  Task<List<FullTransactionDto>> LoadFullTransactionsAsync(int envelopeId, int StartIndex = 0, int PageSize = 0, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Shows transaction details dialog - editable for admin users, read-only for others

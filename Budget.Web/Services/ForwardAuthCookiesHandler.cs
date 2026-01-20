@@ -21,6 +21,13 @@ public sealed class ForwardAuthCookiesHandler(
   protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
     CancellationToken cancellationToken)
   {
+    // Check if request was already cancelled (e.g., navigation/component disposal)
+    if (cancellationToken.IsCancellationRequested)
+    {
+      logger.LogDebug("Request to {Url} was cancelled before processing", request.RequestUri);
+      throw new TaskCanceledException("Request was cancelled before token acquisition");
+    }
+
     try
     {
       // Get the API scope from configuration
@@ -39,24 +46,44 @@ public sealed class ForwardAuthCookiesHandler(
         [apiScope],
         authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme);
 
+      // Check again after async operation
+      if (cancellationToken.IsCancellationRequested)
+      {
+        logger.LogDebug("Request to {Url} was cancelled after token acquisition", request.RequestUri);
+        throw new TaskCanceledException("Request was cancelled after token acquisition");
+      }
+
       if (!string.IsNullOrEmpty(accessToken))
       {
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-        logger.LogDebug("? Added Bearer token for {Url} (token length: {Length})", 
+        logger.LogDebug("✓ Added Bearer token for {Url} (token length: {Length})", 
           request.RequestUri, accessToken.Length);
       }
       else
       {
-        logger.LogError("? Token acquisition returned null for {Url}", request.RequestUri);
+        logger.LogError("✗ Token acquisition returned null for {Url}", request.RequestUri);
         return CreateUnauthorizedResponse("Token acquisition returned null");
       }
+    }
+    catch (TaskCanceledException)
+    {
+      // Request was cancelled (navigation/component disposal) - this is expected behavior
+      logger.LogDebug("Request to {Url} was cancelled (likely due to navigation or component disposal)", 
+        request.RequestUri);
+      throw; // Re-throw to let caller handle
+    }
+    catch (OperationCanceledException)
+    {
+      // Similar to TaskCanceledException but more generic
+      logger.LogDebug("Operation cancelled for request to {Url}", request.RequestUri);
+      throw;
     }
     catch (MsalUiRequiredException ex) when (ex.ErrorCode == "user_null")
     {
       // Token cache has no account data for this user
       // This happens when the distributed cache expires but the cookie is still valid
       // TokenCacheValidationMiddleware will force re-authentication on the next page load
-      logger.LogWarning("? Token cache empty (user_null) for {Url}. User needs to re-authenticate.", request.RequestUri);
+      logger.LogWarning("✗ Token cache empty (user_null) for {Url}. User needs to re-authenticate.", request.RequestUri);
       
       // Mark the session as failed so middleware knows to force re-auth
       MarkSessionForReauth();
@@ -65,7 +92,7 @@ public sealed class ForwardAuthCookiesHandler(
     }
     catch (MsalUiRequiredException ex)
     {
-      logger.LogWarning(ex, "? MSAL UI interaction required for {Url}. ErrorCode: {ErrorCode}", 
+      logger.LogWarning(ex, "✗ MSAL UI interaction required for {Url}. ErrorCode: {ErrorCode}", 
         request.RequestUri, ex.ErrorCode);
       
       MarkSessionForReauth();
@@ -73,7 +100,7 @@ public sealed class ForwardAuthCookiesHandler(
     }
     catch (MicrosoftIdentityWebChallengeUserException ex)
     {
-      logger.LogWarning(ex, "? User challenge required for {Url}. MsalError: {Error}",
+      logger.LogWarning(ex, "✗ User challenge required for {Url}. MsalError: {Error}",
         request.RequestUri, ex.MsalUiRequiredException?.ErrorCode);
       
       MarkSessionForReauth();
@@ -81,13 +108,29 @@ public sealed class ForwardAuthCookiesHandler(
     }
     catch (Exception ex)
     {
-      logger.LogError(ex, "? Error acquiring access token for {Url}: {Message}", 
+      logger.LogError(ex, "✗ Error acquiring access token for {Url}: {Message}", 
         request.RequestUri, ex.Message);
       
       return CreateUnauthorizedResponse("Token acquisition failed");
     }
 
-    return await base.SendAsync(request, cancellationToken);
+    try
+    {
+      return await base.SendAsync(request, cancellationToken);
+    }
+    catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
+    {
+      // Request was explicitly cancelled via the token
+      logger.LogDebug("HTTP request to {Url} was cancelled", request.RequestUri);
+      throw;
+    }
+    catch (TaskCanceledException ex)
+    {
+      // Timeout or other cancellation not related to our token
+      logger.LogWarning(ex, "HTTP request to {Url} timed out or was cancelled unexpectedly", 
+        request.RequestUri);
+      throw;
+    }
   }
 
   private void MarkSessionForReauth()

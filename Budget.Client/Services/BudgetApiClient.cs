@@ -17,10 +17,24 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return readOnlyList;
   }
 
-  public async Task<List<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId,
+  public async Task<List<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, int startIndex = 0, int pageSize = 0,
     CancellationToken cancellationToken = default)
   {
-    var readOnlyList = await GetListAsync<TransactionDto>($"transactions/{envelopeId}", cancellationToken);
+    var parameters = "";
+    if(startIndex > 0 && pageSize > 0)
+      parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
+
+    var readOnlyList = await GetListAsync<TransactionDto>($"transactions/{envelopeId}{parameters}", cancellationToken);
+    return readOnlyList;
+  }
+  public async Task<List<FullTransactionDto>> GetFullTransactionsByEnvelopeAsync(int envelopeId, int startIndex = 0, int pageSize = 0,
+    CancellationToken cancellationToken = default)
+  {
+    var parameters = "";
+    if(startIndex > 0 && pageSize > 0)
+      parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
+
+    var readOnlyList = await GetListAsync<FullTransactionDto>($"transactions/getfull/{envelopeId}{parameters}", cancellationToken);
     return readOnlyList;
   }
 

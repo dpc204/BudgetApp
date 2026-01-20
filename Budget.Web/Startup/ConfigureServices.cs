@@ -37,7 +37,8 @@ public static class ConfigureServices
   public static void AddBlazorServices(WebApplicationBuilder builder)
   {
     // Get timeout from configuration for SignalR circuits (default 30 seconds if not specified)
-    var circuitTimeoutSeconds = builder.Configuration.GetValue<int>("CircuitOptions:DisconnectedCircuitRetentionPeriod", 180);
+    var circuitTimeoutSeconds =
+      builder.Configuration.GetValue<int>("CircuitOptions:DisconnectedCircuitRetentionPeriod", 180);
     var circuitRetentionPeriod = TimeSpan.FromSeconds(circuitTimeoutSeconds);
 
     builder.Services.AddRazorComponents()
@@ -71,6 +72,9 @@ public static class ConfigureServices
     builder.Services.AddSingleton<TokenCacheManager>();
     builder.Services.AddTransient<ForwardAuthCookiesHandler>();
 
+    // Check if we're in development mode - skip resilience handlers for faster debugging
+    var isDevelopment = builder.Environment.IsDevelopment();
+
     // Get timeout from configuration (default 100 seconds if not specified)
     var timeoutSeconds = builder.Configuration.GetValue<int>("HttpClient:TimeoutSeconds", 100);
     var timeout = TimeSpan.FromSeconds(timeoutSeconds);
@@ -81,7 +85,7 @@ public static class ConfigureServices
       // Keep retries enabled for transient failures
       options.Retry.MaxRetryAttempts = 3;
       options.Retry.Delay = TimeSpan.FromSeconds(2);
-      
+
       // Standard timeout (30 seconds per attempt, 100 seconds total)
       options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
       {
@@ -100,49 +104,66 @@ public static class ConfigureServices
       // Minimal retries for long-running operations
       options.Retry.MaxRetryAttempts = 1;
       options.Retry.Delay = TimeSpan.FromSeconds(1);
-      
+
       // CRITICAL: Both AttemptTimeout and TotalRequestTimeout must match the HttpClient timeout
       options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
       {
-        Timeout = timeout  // 5 minutes
+        Timeout = timeout // 5 minutes
       };
       options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
       {
-        Timeout = timeout  // Same as AttemptTimeout since we're not retrying
+        Timeout = timeout // Same as AttemptTimeout since we're not retrying
       };
-      
+
       // Circuit breaker sampling must be at least 2x the attempt timeout
       options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(timeoutSeconds * 2);
     }
 
     // Budget API Client - uses Aspire service discovery
-    builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
+    var budgetApiClientBuilder = builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = TimeSpan.FromSeconds(100);
       })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
-      .AddStandardResilienceHandler(ConfigureStandardResilience);
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    // Only add resilience handlers in non-development environments
+    if (!isDevelopment)
+    {
+      budgetApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+    }
 
     // Budget Maintenance API Client - uses Aspire service discovery with extended timeouts
 #pragma warning disable EXTEXP0001
-    builder.Services.AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>(client =>
+    var budgetMaintApiClientBuilder = builder.Services.AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
       })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
-      .RemoveAllResilienceHandlers()
-      .AddStandardResilienceHandler(ConfigureLongRunningResilience);
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    builder.Services.AddHttpClient<IBudgetMonthlyApiClient, BudgetMonthlyApiClient>(client =>
+    // Only add resilience handlers in non-development environments
+    if (!isDevelopment)
+    {
+      budgetMaintApiClientBuilder
+        .RemoveAllResilienceHandlers()
+        .AddStandardResilienceHandler(ConfigureLongRunningResilience);
+    }
+
+    var budgetMonthlyApiClientBuilder = builder.Services.AddHttpClient<IBudgetMonthlyApiClient, BudgetMonthlyApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
       })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>()
-      .RemoveAllResilienceHandlers()
-      .AddStandardResilienceHandler(ConfigureLongRunningResilience);
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    // Only add resilience handlers in non-development environments
+    if (!isDevelopment)
+    {
+      budgetMonthlyApiClientBuilder
+        .RemoveAllResilienceHandlers()
+        .AddStandardResilienceHandler(ConfigureLongRunningResilience);
+    }
 
 #pragma warning restore EXTEXP0001
   }
@@ -168,53 +189,56 @@ public static class ConfigureServices
     // Token cache persistence strategy:
     // - Always use SQL Server distributed cache (works both locally and in Azure)
     // - Fallback to in-memory if SQL Server is not available
-    
+
     var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
-    
+
     // Get connection string from the registered provider
     var serviceProvider = builder.Services.BuildServiceProvider();
     var connectionStringProvider = serviceProvider.GetService<IConnectionStringProvider>();
-    var sqlConnection = connectionStringProvider?.BudgetConnectionString 
-      ?? builder.Configuration["LocalBudgetConnection"] 
-      ?? builder.Configuration["BudgetConnection"];
+    var sqlConnection = connectionStringProvider?.BudgetConnectionString
+                        ?? builder.Configuration["LocalBudgetConnection"]
+                        ?? builder.Configuration["BudgetConnection"];
 
     if (!string.IsNullOrEmpty(sqlConnection))
     {
       logger.LogInformation("Configuring SQL Server distributed cache for token persistence");
-      logger.LogInformation("Connection string source: {Source}", 
+      logger.LogInformation("Connection string source: {Source}",
         connectionStringProvider != null ? "ConnectionStringProvider" : "Configuration");
-      logger.LogInformation("Connection string (first 50 chars): {ConnString}", sqlConnection.Substring(0, Math.Min(50, sqlConnection.Length)));
-      
+      logger.LogInformation("Connection string (first 50 chars): {ConnString}",
+        sqlConnection.Substring(0, Math.Min(50, sqlConnection.Length)));
+
       builder.Services.AddDistributedSqlServerCache(options =>
       {
         options.ConnectionString = sqlConnection;
         options.SchemaName = "dbo";
         options.TableName = "SessionCache";
-        logger.LogInformation("SQL Distributed Cache configured: Schema={Schema}, Table={Table}", options.SchemaName, options.TableName);
+        logger.LogInformation("SQL Distributed Cache configured: Schema={Schema}, Table={Table}", options.SchemaName,
+          options.TableName);
       });
     }
     else
     {
       // Fallback to in-memory (development only - tokens won't persist)
-      logger.LogWarning("NO SQL CONNECTION STRING FOUND! Using in-memory cache (tokens will NOT persist across restarts)");
+      logger.LogWarning(
+        "NO SQL CONNECTION STRING FOUND! Using in-memory cache (tokens will NOT persist across restarts)");
       builder.Services.AddDistributedMemoryCache();
     }
-    
+
     builder.Services.AddScoped<EnvelopeState>();
     builder.Services.AddSingleton<ThemeService>();
     builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
-    
+
     // Register role management service
     builder.Services.AddScoped<IRoleService, RoleService>();
-    
+
     // Register Fund page services
     builder.Services.AddScoped<IFundAllocationService, FundAllocationService>();
     builder.Services.AddScoped<IFundDataService, FundDataService>();
-    
+
     // Register Envelope page services
     builder.Services.AddScoped<IEnvelopeDataService, EnvelopeDataService>();
     builder.Services.AddScoped<IEnvelopeTransactionService, EnvelopeTransactionService>();
-    
+
     // Do not register IBudgetMonthlyApiClient again here - configured by AddHttpClient
   }
 
@@ -226,7 +250,7 @@ public static class ConfigureServices
     builder.Logging.AddJsonConsole();
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Trace);
     builder.Logging.AddFilter("Budget.Client.Components.Maintenance.AccountCRUD", LogLevel.Debug);
-    
+
     // Suppress verbose MSAL (Microsoft Authentication Library) logging
     // MSAL outputs detailed trace logs for every token acquisition attempt
     builder.Logging.AddFilter("Microsoft.Identity.Client", LogLevel.Warning);
@@ -238,7 +262,8 @@ public static class ConfigureServices
   /// </summary>
   public static void ConfigureKestrel(WebApplicationBuilder builder)
   {
-    var requestHeadersTimeoutMinutes = builder.Configuration.GetValue<int>("Kestrel:Limits:RequestHeadersTimeoutMinutes", 5);
+    var requestHeadersTimeoutMinutes =
+      builder.Configuration.GetValue<int>("Kestrel:Limits:RequestHeadersTimeoutMinutes", 5);
     var keepAliveTimeoutMinutes = builder.Configuration.GetValue<int>("Kestrel:Limits:KeepAliveTimeoutMinutes", 5);
 
     builder.WebHost.ConfigureKestrel(serverOptions =>
@@ -277,8 +302,12 @@ public static class ConfigureServices
         var scheme = string.IsNullOrEmpty(uri.Scheme) ? "http" : uri.Scheme;
         return $"{scheme}://127.0.0.1:{port}";
       }
+
       return value;
     }
-    catch { return "http://127.0.0.1:8080"; }
+    catch
+    {
+      return "http://127.0.0.1:8080";
+    }
   }
 }

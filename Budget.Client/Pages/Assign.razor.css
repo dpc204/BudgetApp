@@ -6,6 +6,7 @@
 
 .envelope-page-container, .envelope-page-stack, .envelope-grid-grow {
   height: 100%;
+    border:aqua
 }
 
 /* Ensure the body/html allow full-height flex usage */

@@ -4,6 +4,19 @@
   padding: 1rem;                  /* ~16px */
 }
 
+/* Root wrapper that takes all available height from parent container */
+.envelope-page-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.envelope-page-root h1 {
+  flex-shrink: 0; /* Prevent h1 from shrinking */
+  margin-bottom: 1rem;
+}
+
 .envelope-page-container, .envelope-page-stack, .envelope-grid-grow {
   height: 100%;
 }
@@ -16,6 +29,8 @@
 .envelope-page-container {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto; /* Allow container to grow */
+  min-height: 0;
 }
 
 .envelope-page-stack {
@@ -30,8 +45,34 @@
   min-height: 0;
 }
 
-.envelopes-table .mud-table-container {
+.envelopes-table {
   height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Ensure the DataGrid's internal divs also respect the height */
+::deep .envelopes-table {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+::deep .envelopes-table .mud-table-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+::deep .envelopes-table .mud-table-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto !important;
+}
+
+::deep .envelopes-table .mud-table {
+  height: auto;
 }
 
 /* Keep row selection highlight, remove per-cell focus box */

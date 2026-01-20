@@ -38,7 +38,7 @@ public class EnvelopeTransactionServiceTests
     };
 
     _mockApi
-      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId, It.IsAny<CancellationToken>()))
+      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId,0,0, It.IsAny<CancellationToken>()))
       .ReturnsAsync(transactions);
 
     // Act
@@ -56,7 +56,7 @@ public class EnvelopeTransactionServiceTests
     // Arrange
     var envelopeId = 1;
     _mockApi
-      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId, It.IsAny<CancellationToken>()))
+      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId,0,0, It.IsAny<CancellationToken>()))
       .ThrowsAsync(new Exception("API error"));
 
     // Act

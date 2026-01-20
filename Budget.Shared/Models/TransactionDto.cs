@@ -15,3 +15,30 @@ public class TransactionDto
   public int UserId { get; set; }
   public bool WasPotentialDuplicate { get; set; }
 }
+
+
+public class FullTransactionDto
+{
+  public int TransactionId { get; set; }
+  public int LineId { get; set; }
+  public string Vendor { get; set; } = string.Empty;
+  public string Description { get; set; } = string.Empty;
+  public decimal Amount { get; set; }
+  public DateTime Date { get; set; }
+  public bool IsVoided { get; set; }
+  public int UserId { get; set; }
+  public List<TransactionDetailDto> Details { get; set; } = [];
+  public bool WasPotentialDuplicate { get; set; }
+}
+
+public class TransactionDetailDto
+{
+  public int TransactionId { get; set; }
+  public int LineId { get; set; }
+  public FullTransactionDto Transaction { get; set; } = null!;
+  public int EnvelopeId { get; set; }
+  public EnvelopeDto Envelope { get; set; } = null!;
+  public string Notes { get; set; } = string.Empty;
+  public decimal Amount { get; set; }
+
+}
