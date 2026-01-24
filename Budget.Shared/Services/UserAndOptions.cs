@@ -126,16 +126,13 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public UserOptions Options
   {
-    get => _options;
+    get
+    {
+      EnsureOptionsLoadedAsync();
+      return _options;
+    }
     set
     {
-      // Unwire old handlers
-      if (_options != null)
-      {
-        _options.PropertyChanged -= OnOptionsChanged;
-        _options.PropertyRead -= OnOptionsPropertyRead;
-      }
-      
       _options = value;
       WireUpOptionsChangeHandler();
     }

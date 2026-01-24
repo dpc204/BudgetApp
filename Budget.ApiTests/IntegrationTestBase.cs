@@ -1,8 +1,14 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
+using System.Reflection;
 using Budget.Api;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Configuration;
+
 
 namespace Budget.ApiTests;
 
@@ -86,13 +92,18 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
   //}
 
 
-  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
-    => new DbContextOptionsBuilder<BudgetContext>()
-      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
-      .Options;
+  public  DbContextOptions<BudgetContext> CreateInMemoryOptions()
+  {
 
+    var bld = new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}");
 
-  protected  BudgetContext GetTestDBContext(int familyId = 1)
+    bld.ConfigureWarnings(warn => warn.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+
+return bld.Options;
+  }
+
+protected  BudgetContext GetTestDBContext(int familyId = 1)
   {
     var db = new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService(familyId));
     
@@ -104,6 +115,37 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
   {
     public int FamilyId { get; set; } = familyId;
     public int GetCurrentFamilyId() => FamilyId;
+  }
+
+  public class UserSecretsReader
+  {
+    public static string GetSecret(string key)
+    {
+      // Locate the user secrets file
+      var userSecretsId = typeof(UserSecretsReader).Assembly.GetCustomAttribute<UserSecretsIdAttribute>().UserSecretsId;
+      if(string.IsNullOrEmpty(userSecretsId))
+      {
+        throw new InvalidOperationException("User Secrets ID is not defined.");
+      }
+      var secretsPath = PathHelper.GetSecretsPathFromSecretsId(userSecretsId);
+      // Load the secrets file
+      var configuration = new ConfigurationBuilder()
+        .AddJsonFile(secretsPath)
+        .Build();
+      // Retrieve the secret value by key
+      return configuration[key];
+    }
+  }
+  public static class PathHelper
+  {
+    public static string GetSecretsPathFromSecretsId(string userSecretsId)
+    {
+      var userSecretsRoot = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "Microsoft",
+        "UserSecrets");
+      return Path.Combine(userSecretsRoot, userSecretsId, "secrets.json");
+    }
   }
 
 }

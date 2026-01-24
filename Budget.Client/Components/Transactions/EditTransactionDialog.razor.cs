@@ -7,6 +7,7 @@ public partial class EditTransactionDialog
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
   [Parameter] public int InitialEnvelopeId { get; set; }
   [Parameter] public OneTransactionDetail? ExistingTransaction { get; set; }
+  [Parameter] public bool IsReadOnly { get; set; }
   private MudForm? _form;
   private readonly PurchaseHeader _header = new();
   private readonly List<TransactionDto> _lines = [];
@@ -38,11 +39,16 @@ public partial class EditTransactionDialog
     _header.Vendor.Length > 100 ||
     _header.Date.Date > DateTime.Today ||
     _lines.Count == 0 ||
-    _lines.Any(l => l.Amount <= 0);
+    _lines.Any(l => l.Amount <= 0) ||
+    IsBusy;
 
+  public bool IsBusy { get; set; }
+
+  [Inject] private ISnackbar SnackBar { get; set; } = default!;
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   [Inject] private IDialogService DialogService { get; set; } = default!;
   private MudTextField<string>? _vendorField;
+  private MudTextField<string>? _descriptionField;
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -82,6 +88,7 @@ public partial class EditTransactionDialog
           IsVoided = detail.IsVoided
         });
       }
+
       Recalc();
     }
     else if (_lines.Count == 0)
@@ -89,8 +96,6 @@ public partial class EditTransactionDialog
       _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
       Recalc();
     }
-
-
   }
 
 
@@ -141,6 +146,7 @@ public partial class EditTransactionDialog
         return;
     }
 
+
     await HandleSaveAsync();
   }
 
@@ -148,7 +154,7 @@ public partial class EditTransactionDialog
   {
     if (IsSaveDisabled) return;
 
-
+    IsBusy = true;
 
 
     var result = new OneTransactionDetail()
@@ -159,29 +165,49 @@ public partial class EditTransactionDialog
       Date = _header.Date.Date,
       UserId = 1,
       UserName = UserOptions.User.Email!,
-      Details = [.. _lines.Select((l, i) => new TransactionDto()
-      {
-        LineId = i + 1,
-        EnvelopeId = l.EnvelopeId,
-        Amount = l.Amount,
-        Description = l.Description?.Trim() ?? string.Empty
-      })],
+      Details =
+      [
+        .. _lines.Select((l, i) => new TransactionDto()
+        {
+          LineId = i + 1,
+          EnvelopeId = l.EnvelopeId,
+          Amount = l.Amount,
+          Description = l.Description?.Trim() ?? string.Empty
+        })
+      ],
       TotalAmount = _header.TotalAmount
     };
 
+    TransactionAddResult addResult = new TransactionAddResult();
+
+
     // Call appropriate API based on whether we're adding or updating
-    List<EnvelopeDto> envelopes;
+    List<EnvelopeDto> envelopes = [];
     if (IsEditMode)
     {
       envelopes = await BudgetApi.UpdateTransactionAsync(result);
     }
     else
     {
-      envelopes = await BudgetApi.AddTransactionAsync(result);
+      addResult = await BudgetApi.AddTransactionAsync(result);
     }
 
+    if (addResult is not null)
+      SnackBar.Add(
+        "// change to to return a list of: EnvelopeTransactionListItem  and add those items to the appropreat screen?   and Update the envelope balances",
+        Severity.Error); // change to to return a list of: EnvelopeTransactionListItem  and add those items to the appropreat screen?   and Update the envelope balances
+    else
+      await UpdateEnvelopeBalances(addResult);
+
     // Pass the updated envelopes back to the caller (EnvelopePage)
+    SnackBar.Add("Transaction Saved!", Severity.Success);
+
     MudDialog.Close(DialogResult.Ok(envelopes));
+  }
+
+  private async Task UpdateEnvelopeBalances(TransactionAddResult? addResult)
+  {
+    
   }
 
   private void Cancel() => MudDialog.Cancel();
@@ -218,6 +244,7 @@ public partial class EditTransactionDialog
     [Required] public int AccountId { get; set; }
 
     [Required] public DateTime Date { get; set; } = DateTime.Today;
+    public string Description { get; set; }
 
     public decimal TotalAmount { get; set; }
   }

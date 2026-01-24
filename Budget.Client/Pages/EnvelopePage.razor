@@ -17,67 +17,93 @@ else
 {
   <MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100%; overflow: hidden;">
     <MudPaper Elevation="0" Class="sb-property-border" Style="flex-shrink: 0;">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="pa-2">
-          <MudSelect T="string?" Label="Choose Category" Variant="Variant.Outlined" dense="true"
-                     @bind-Value="SelectedCategoryId" @bind-Value:after="@(() => _ = CatChanged(SelectedCategoryId))">
-            @foreach (var c in CategoriesForSelect)
-            {
-              <MudSelectItem @key="c.CategoryId" Value="@(c.CategoryId)">@c.CategoryName</MudSelectItem>
-            }
-          </MudSelect >
-        </MudStack >
-      </MudPaper >
-      <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
-        <MudDataGrid Items="@SelectedEnvelopeData"
-                         Hover="true"
-                         dense="true"
-                         FixedHeader="true"
-                         RowClassFunc="GetEnvelopeRowClass"
-                         RowStyleFunc="GetEnvelopeRowStyle"
-                         @bind-SelectedItem="SelectedEnvelope"
-                       ExpandSingleRow="true"
-                       Class="envelopes-table"
-                       Style="height: 100%; overflow: auto; width: auto;">
-            <Columns >
-                <HierarchyColumn T="EnvelopeResult"/>
+      <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="pa-2">
+        <MudSelect T="string?" Label="Choose Category" Variant="Variant.Outlined" dense="true"
+                   @bind-Value="SelectedCategoryId" @bind-Value:after="@(() => _ = CatChanged(SelectedCategoryId))">
+          @foreach (var c in CategoriesForSelect)
+          {
+            <MudSelectItem @key="c.CategoryId" Value="@(c.CategoryId)">@c.CategoryName</MudSelectItem>
+          }
+        </MudSelect >
+      </MudStack >
+    </MudPaper >
+    <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
+      <MudDataGrid Items="@SelectedEnvelopeData"
+                   Hover="true"
+                   dense="true"
+                   @ref="EnvGrid"
+                   FixedHeader="true"
+                   RowClassFunc="GetEnvelopeRowClass"
+                   RowStyleFunc="GetEnvelopeRowStyle"
+                   @bind-SelectedItem="SelectedEnvelope"
+                   ExpandSingleRow="true"
+                   Class="envelopes-table"
+                   Style="height: 100%; overflow: auto; width: auto;">
+        <Columns >
+          <HierarchyColumn T="EnvelopeResult"  />
 
-                <TemplateColumn Title="">
-                  <CellTemplate Context="ctx">
-                    <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                   Size="Size.Small"
-                                   Variant="Variant.Outlined"
-                                   Color="Color.Primary"
-                                   OnClick="@(() => NewTransactionAsync(ctx.Item))"/>
-                  </CellTemplate >
-                </TemplateColumn >
-                <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Title="Category" HeaderStyle="min-width: 16rem;"/>
-                <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
+          <TemplateColumn Title="">
+            <CellTemplate Context="ctx">
+              <MudIconButton Icon="@Icons.Material.Filled.Add"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined"
+                             Color="Color.Primary"
+                             OnClick="@(() => NewTransactionAsync(ctx.Item))"/>
+            </CellTemplate >
+          </TemplateColumn >
+          <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Title="Category" HeaderStyle="min-width: 16rem;"/>
+          <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
+          <PropertyColumn Property="x => x.Balance" Format="#,0.00" Title="Balance" HeaderStyle="min-width: 16rem; text-align: right;"
+                          CellStyle="text-align: right;"/>
+        </Columns >
+        <ChildRowContent Context="context">
+          <MudDataGrid @key="@_childGridRefreshKey"
+                       T="EnvelopeTransactionListItem"
+                       VirtualizeServerData="@(async (state, token) => await ServerDataForEnvelopeVirtualized(context.Item, state, token))"
+                       Virtualize="false"
+                       Filterable
+                       FixedHeader
+                       ItemSize="52.68f">
+            <Columns>
+              <PropertyColumn Property="x => x.Date" Title="Date" Format="d"/>
+              <PropertyColumn Property="x => x.Vendor" Title="Vendor"/>
+              <TemplateColumn T="EnvelopeTransactionListItem" Title="Tran Desc\Line Note">
+                <CellTemplate Context="cell">
+                  <div>
+                    <div>@cell.Item.Description</div>
+                    @if (!string.IsNullOrEmpty(cell.Item.Notes))
+                    {
+                      <div style="font-size: 0.875rem; color: var(--mud-palette-text-secondary);">@cell.Item.Notes</div>
+                    }
+                  </div>
+                </CellTemplate>
+              </TemplateColumn>
 
-                <TemplateColumn Title="Balance"
-                                titleClass="text-end"
-                                CellClass="text-end"
-                                HeaderStyle="text-align: right;"
-                                CellStyle="text-align: right;">
-                  <CellTemplate Context="ctx">
-                    @ctx.Item?.Balance.ToString("C2")
-                  </CellTemplate >
-                </TemplateColumn >
-              </Columns >
-              <ChildRowContent>
-                <MudDataGrid T="FullTransactionDto" VirtualizeServerData="ServerData" Virtualize="false" Filterable FixedHeader Height="400px" ItemSize="52.68f">
-                  <Columns>
-                    <PropertyColumn Property="x => x" Title="Number"/>
-                  </Columns>
-                  <RowLoadingContent>
-                    <tr class="mud-table-row">
-                      <td class="mud-table-cell" colspan="1000">
-                        Loading...
-                      </td>
-                    </tr>
-                  </RowLoadingContent>
-                </MudDataGrid>
-              </ChildRowContent>
-            </MudDataGrid >
-          </div>
-    </MudStack>
+              <PropertyColumn Property="x => x.LineAmount" Format="#,#.##" HeaderStyle="min-width: 16rem; text-align: right;"  CellStyle="text-align: right;"/>
+              <TemplateColumn Title="">
+                <CellTemplate Context="ctx">
+                  <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Primary"
+                                 OnClick="@(() => OnTransactionRowClick(ctx.Item, true))" />
+                </CellTemplate >
+              </TemplateColumn >
+
+              </Columns>
+            <NoRecordsContent>
+              <MudText Typo="Typo.body2" Class="pa-4">No transactions found for this envelope.</MudText>
+            </NoRecordsContent>
+            <RowLoadingContent>
+              <tr class="mud-table-row">
+                <td class="mud-table-cell" colspan="1000">
+                  Loading...
+                </td>
+              </tr>
+            </RowLoadingContent>
+          </MudDataGrid>
+        </ChildRowContent>
+      </MudDataGrid >
+    </div>
+  </MudStack>
 }

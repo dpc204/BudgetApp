@@ -123,7 +123,7 @@ public static class ConfigureServices
     var budgetApiClientBuilder = builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
-        client.Timeout = TimeSpan.FromSeconds(100);
+        client.Timeout = timeout;
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
@@ -248,8 +248,7 @@ public static class ConfigureServices
   public static void ConfigureLogging(WebApplicationBuilder builder)
   {
     builder.Logging.AddJsonConsole();
-    builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Trace);
-    builder.Logging.AddFilter("Budget.Client.Components.Maintenance.AccountCRUD", LogLevel.Debug);
+    builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Debug);
 
     // Suppress verbose MSAL (Microsoft Authentication Library) logging
     // MSAL outputs detailed trace logs for every token acquisition attempt

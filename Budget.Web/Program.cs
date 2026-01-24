@@ -1,4 +1,6 @@
-﻿var stopWatch = Stopwatch.StartNew();
+﻿using System.Globalization;
+
+var stopWatch = Stopwatch.StartNew();
 
 var builder = WebApplication.CreateBuilder(args);
 var assembly = typeof(App).Assembly;
@@ -9,6 +11,7 @@ using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
     .SetMinimumLevel(LogLevel.Information)
     .AddConsole();
 });
+
 
 ILogger logger = loggerFactory.CreateLogger<Program>();
 

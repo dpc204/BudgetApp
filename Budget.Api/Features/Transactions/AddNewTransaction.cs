@@ -2,99 +2,14 @@
 
 public static class AddNewTransaction
 {
-  public sealed record Command(OneTransactionDetail Trans) : IRequest<List<EnvelopeDto>>;
+  public sealed record Command(OneTransactionDetail Trans) : IRequest<TransactionAddResult>;
 
-  public sealed record Response(List<EnvelopeDto> Envelopes); 
 
-  public class Handler(BudgetContext db) : IRequestHandler<Command, List<EnvelopeDto>>
+  public class Handler(BudgetContext db, IInsertTransactions inserter) : IRequestHandler<Command, TransactionAddResult>
   {
-    public async Task<List<EnvelopeDto>> Handle(Command request, CancellationToken cancellationToken)
+    public async Task<TransactionAddResult> Handle(Command request, CancellationToken cancellationToken)
     {
-      var trans = CreateTransaction(request); 
-      db.Transactions.Add(trans);
-
-      await UpdateAccountAsync(trans);
-      var rslt = await UpdateEnvelopesAsync(trans).ConfigureAwait(false);
-
-      var chg = db.ChangeTracker.Entries();
-
-
-      await db.SaveChangesAsync(cancellationToken);
-      return rslt;
-    }
-
-    private async Task<List<EnvelopeDto>> UpdateEnvelopesAsync(Transaction trans)
-    {
-      var rslt = new List<EnvelopeDto>();
-
-      // Group by envelope to ensure only one "last" detail is set per envelope
-      var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
-      foreach (var grp in grouped)
-      {
-        await UpdateOneEvelope(grp, rslt);
-      }
-
-      return rslt;
-    }
-
-    private async Task UpdateOneEvelope(IGrouping<int, TransactionDetail> grp, List<EnvelopeDto> rslt)
-    {
-      var env = await db.Envelopes.FindAsync([grp.Key]);
-      if (env is null) return;
-      env.LastTransactionDate = DateTime.UtcNow;
-      // pick the highest line id as last within this transaction for the envelope
-      var lastDtl = grp.OrderByDescending(d => d.LineId).First();
-      env.LastTransactionDetail = lastDtl; // EF will map FK on Envelope
-      env.Balance -= grp.Sum(d => d.Amount); // subtract total amount for this envelope
-
-      // Map to DTO for return
-      rslt.Add(new EnvelopeDto
-      {
-        Id = env.Id,
-        CategoryId = env.CategoryId,
-        Name = env.Name,
-        Budget = env.Budget,
-        Balance = env.Balance,
-        Description = env.Description,
-        SortOrder = env.SortOrder
-      });
-    }
-
-    private async Task UpdateAccountAsync(Transaction trans)
-    {
-      var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
-      if (acct is null) return;
-      acct.LastTransactionDate = DateTime.UtcNow;
-      acct.LastTransaction = trans; // set navigation, EF will set FK after save
-      acct.Balance -= trans.TotalAmount;
-    }
-
-    private static Transaction CreateTransaction(Command request)
-    {
-      var trans = new Transaction
-      {
-        AccountId = request.Trans.AccountId,
-        Date = request.Trans.Date,
-        Vendor = request.Trans.Vendor,
-        UserId = request.Trans.UserId,
-        WasPotentialDuplicate = request.Trans.WasPotentialDuplicate };
-
-      var lineId = 1;
-
-      foreach (var detail in request.Trans.Details)
-      {
-        var dtl = new TransactionDetail()
-        {
-          LineId = lineId++,
-          Amount = detail.Amount,
-          EnvelopeId = detail.EnvelopeId,
-          Notes = detail.Description
-        };
-
-        trans.TotalAmount += detail.Amount;
-        trans.Details.Add(dtl);
-      }
-
+      var trans = await inserter.AddSingleTransaction(request);
       return trans;
     }
   }
@@ -111,3 +26,4 @@ public static class AddNewTransaction
     }
   }
 }
+

@@ -9,7 +9,9 @@ namespace Budget.DB
   {
     public int Id { get; set; }
     public DateTime Date { get; set; }
+    
     public string Vendor { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
 
     [ForeignKey("Account")]
@@ -32,6 +34,8 @@ namespace Budget.DB
       public void Configure(EntityTypeBuilder<Transaction> entity)
       {
         entity.Property(t => t.Vendor)
+          .HasMaxLength(200).IsRequired(); 
+        entity.Property(t => t.Description)
           .HasMaxLength(200);
         entity.Property(t => t.TotalAmount)
           .HasPrecision(18, 2);
@@ -85,6 +89,9 @@ namespace Budget.DB
           .WithMany(en => en.Details)
           .HasForeignKey(t => t.EnvelopeId)
           .OnDelete(DeleteBehavior.Restrict);
+
+        // Document trigger for EF Core model (ensures it's included in future Initial migrations)
+        entity.ToTable(tb => tb.HasTrigger("trg_TransactionDetails_UpdateEnvelopeBalance"));
 
         //entity.HasData(
         //  new TransactionDetail { TransactionId = 1, LineId = 1, Amount = 52m, EnvelopeId = 2, Notes = "Yasso" },

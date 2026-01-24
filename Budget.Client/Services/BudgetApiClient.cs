@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FluentResults;
 
 namespace Budget.Client.Services;
@@ -27,15 +28,62 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     var readOnlyList = await GetListAsync<TransactionDto>($"transactions/{envelopeId}{parameters}", cancellationToken);
     return readOnlyList;
   }
-  public async Task<List<FullTransactionDto>> GetFullTransactionsByEnvelopeAsync(int envelopeId, int startIndex = 0, int pageSize = 0,
+  public async Task<List<EnvelopeTransactionListItem>> GetFullTransactionsByEnvelopeAsyncs(int envelopeId, int startIndex = 0, int pageSize = 0,
     CancellationToken cancellationToken = default)
   {
     var parameters = "";
     if(startIndex > 0 && pageSize > 0)
       parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
 
-    var readOnlyList = await GetListAsync<FullTransactionDto>($"transactions/getfull/{envelopeId}{parameters}", cancellationToken);
+    var readOnlyList = await GetListAsync<EnvelopeTransactionListItem>($"transactions/getfull/{envelopeId}{parameters}", cancellationToken);
     return readOnlyList;
+  }
+
+
+  public async Task<Result<List<EnvelopeTransactionListItem>>> GetFullTransactionsByEnvelopeAsync(int envelopeId, int startIndex = 0, int pageSize = 0,
+    CancellationToken cancellationToken = default)
+
+  {
+    try
+    {
+      var parameters = "";
+      if(startIndex > 0 && pageSize > 0)
+        parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
+
+      var response = await http.GetAsync($"transactions/getfull/{envelopeId}{parameters}", cancellationToken);
+      //var response = await http.GetAsync($"transactions/unassigned", cancellationToken);
+
+      if(!response.IsSuccessStatusCode)
+      {
+        var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        logger.LogWarning("GetTransactionsUnassignedAsync failed with status {Status}: {Error}",
+          response.StatusCode, errorContent);
+        return Result.Fail<List<EnvelopeTransactionListItem>>($"Failed to get unassigned transactions: {response.StatusCode}");
+      }
+
+      var result = await response.Content.ReadFromJsonAsync<List<EnvelopeTransactionListItem>>(cancellationToken: cancellationToken);
+      
+      //I need to convert the result value to a Type of Result<List<FullTransactionDto>>
+      if (result != null)
+      {
+        // The API returns a list of FullResponse, where each FullResponse contains a single transaction.
+        // We need to extract the transaction from each FullResponse and return a list of FullTransactionDto.
+        return Result.Ok(result);
+      }
+      else
+      {
+        logger.LogWarning("GetFullTransactionsByEnvelopeAsync returned null content.");
+        return Result.Fail<List<EnvelopeTransactionListItem>>("Received null data from the API.");
+      }
+      
+    }
+    catch(Exception ex)
+    {
+      logger.LogError(ex, "Error getting unassigned transactions");
+      return Result.Fail<List<EnvelopeTransactionListItem>>($"Error: {ex.Message}");
+    }
+
+
   }
 
   public async Task<Result<List<TransactionDto>>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default)
@@ -138,7 +186,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return result!;
   }
 
-  public async Task<List<EnvelopeDto>> AddTransactionAsync(OneTransactionDetail newTransaction,
+  public async Task<TransactionAddResult> AddTransactionAsync(OneTransactionDetail newTransaction,
     CancellationToken cancellationToken = default)
   {
     // The API currently returns 202 Accepted with no body. Post and ensure success; if no JSON body, return the request object.
@@ -149,14 +197,14 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
     try
     {
-      var envelopes = await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
-      return envelopes ?? [];
+      var transaction = await resp.Content.ReadFromJsonAsync<TransactionAddResult>(cancellationToken: cancellationToken);
+      return transaction ?? new TransactionAddResult();
     }
     catch (Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return [];
+      return null;
     }
   }
 
@@ -266,4 +314,29 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   private sealed record SaveUserOptionsCommand(string UserId, UserOptions Options);
   private sealed record ImportResult(int Count);
   private sealed record BatchUpdateResult(int UpdatedCount);
+  private sealed record LoadImportsCommand(int AccountId, int UserId);
+  private sealed record LoadImportsResponse(int ImportedCount);
+
+  public async Task<int> LoadTransactionImportsToUnassignedAsync(int accountId, int userId, CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      var command = new LoadImportsCommand(accountId, userId);
+      using var resp = await http.PostAsJsonAsync("/api/transactions/load-imports", command, cancellationToken);
+
+      if (!resp.IsSuccessStatusCode)
+      {
+        logger.LogWarning("LoadTransactionImportsToUnassigned failed with status {Status}", resp.StatusCode);
+        return 0;
+      }
+
+      var result = await resp.Content.ReadFromJsonAsync<LoadImportsResponse>(cancellationToken: cancellationToken);
+      return result?.ImportedCount ?? 0;
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex, "Error loading transaction imports to unassigned");
+      return 0;
+    }
+  }
 }

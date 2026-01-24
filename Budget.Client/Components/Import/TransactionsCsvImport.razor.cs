@@ -158,62 +158,31 @@ public partial class TransactionsCsvImport : ComponentBase
     }
     
     Busy = true;
-    Value = 0;
     await InvokeAsync(StateHasChanged);
 
     try
     {
-      var unassigned = await BudgetMonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
+      int userId = int.TryParse(UserIdText, out var uid) ? uid : 1;
+      Status = "Loading transactions to Unassigned";
+      // Call the new API endpoint to load all imports to Unassigned
+      var importedCount = await Api.LoadTransactionImportsToUnassignedAsync(SelectedAccountId, userId);
 
-      int totalCount = nonDuplicates.Count;
-      int currentIndex = 0;
-
-      foreach (var rec in nonDuplicates)
+      if (importedCount > 0)
       {
-        var trans = new OneTransactionDetail
-        {
-          AccountId = SelectedAccountId,
-          Date = rec.Date,
-          Vendor = rec.Vendor,
-          UserId = int.TryParse(UserIdText, out var uid) ? uid : 1,
-          UserName = string.Empty,
-          WasPotentialDuplicate = rec.KeepDuplicate,  
-          Details =
-          [
-            new TransactionDto
-            {
-              LineId = 0,
-              Vendor = rec.Vendor,
-              Description = rec.Description,
-              Amount = rec.Amount,
-              Date = rec.Date,
-              EnvelopeId = unassigned.Id,
-              EnvelopeName = rec.EnvelopeName,
-              UserId = rec.UserId
-            }
-
-          ]
-        };
-
-
-        await Api.AddTransactionAsync(trans);
-
-        currentIndex++;
-        Value = (int)((currentIndex / (double)totalCount) * 100);
-        await InvokeAsync(StateHasChanged);
+        Snackbar.Add($"Imported {importedCount} transactions", Severity.Success);
+        Status = $"Loaded {importedCount} transactions to Unassigned.";
+        Preview.Clear();
+        SelectedFile = null;
       }
-
-      // Clear the staging table after successful import
-      await Api.ClearTransactionImportsAsync();
-
-      Snackbar.Add($"Imported {nonDuplicates.Count} items across  transactions", Severity.Success);
-      Status = "Import complete.";
-      Preview.Clear();
-      SelectedFile = null;
+      else
+      {
+        Snackbar.Add("No transactions were imported", Severity.Warning);
+      }
     }
     catch (Exception ex)
     {
       Errors.Add(ex.Message);
+      Snackbar.Add($"Error importing transactions: {ex.Message}", Severity.Error);
     }
 
     finally

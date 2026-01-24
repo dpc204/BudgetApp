@@ -6,11 +6,13 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <RazorLangVersion>Latest</RazorLangVersion>
+    <UserSecretsId>a0c2c5b7-5de1-4612-bd4e-43b30e547427</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentResults" Version="4.0.0" />
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageReference Include="MudBlazor" Version="9.0.0-preview.2" />
     <PackageReference Include="Syncfusion.Blazor" Version="31.2.10" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.10" />

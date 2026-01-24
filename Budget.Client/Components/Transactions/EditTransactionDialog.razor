@@ -1,10 +1,15 @@
 @using System.Globalization
 @inject IBudgetApiClient BudgetApi
 @inject IUserAndOptions UserOptions
-<MudDialog >
-  <DialogContent>
-    <MudForm @ref="_form" Model="_header">
-      <MudGrid Class="mb-2">
+<MudDialog ContentClass="pa-2" >
+  <DialogContent > 
+    <MudForm @ref="_form" Model="_header" >
+      <MudGrid Class="mb-2" Spacing="0">
+
+        <MudItem xs="12" md="3" >
+          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" Disabled="@IsVoided" style="width: 150px;"  RelativeWidth="DropdownWidth.Ignore"/>
+        </MudItem>
+
         <MudItem xs="3" md="2">
           <MudSelect T="int" @bind-Value="_header.AccountId" Label="Account" id="AccountSelect" Disabled="@IsVoided">
             @foreach (var e in Accounts)
@@ -12,28 +17,29 @@
               <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
             }
           </MudSelect>
-        </MudItem> 
-        <MudItem xs="12" md="4">
-          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" Disabled="@IsVoided" />
-        </MudItem>
-        <MudItem xs="12" md="3">
-          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" Disabled="@IsVoided"/>
         </MudItem>
         <MudItem xs="12" md="3">
           <MudText Class="form-label mb-0 small text-muted">Total</MudText>
           <MudText Typo="Typo.subtitle2" Class="fw-bold">@_header.TotalAmount.ToString("C")</MudText>
         </MudItem>
+        <MudFlexBreak/>
+        <MudItem xs="12" md="4">
+          <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" Disabled="@IsVoided"/>
+        </MudItem>
+        &nbsp&nbsp&nbsp
+        <MudItem xs="12" md="4">
+          <MudTextField @ref="_descriptionField" T="string" @bind-Value="_header.Description" Label="Description" Required="false" Immediate="true" Disabled="@IsVoided"/>
+        </MudItem>
+
       </MudGrid>
 
       @* Show at most 5 visible data rows (dense mode) with a scrollable body instead of paging *@
-      <MudTable Items="@_lines" dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="230px">
-        <ToolBarContent>
-        </ToolBarContent>
+      <MudTable Items="@_lines" dense="true" Hover="true" Elevation="0" FixedHeader="true" Height="230px" Class="mt-5">
         <HeaderContent>
           <MudTh>Envelope</MudTh>
           <MudTh class="text-end">Amount</MudTh>
           <MudTh>Note</MudTh>
-          <MudTh style="width:90px;"></MudTh>
+          <MudTh style="width: 90px;"></MudTh>
         </HeaderContent>
         <RowTemplate>
           <MudTd>
@@ -56,9 +62,8 @@
                              HideSpinButtons="true"
                              Validation="@((decimal val) => ValidateAmount(val))"
                              Disabled="@IsVoided"/>
-            
 
-            
+
           </MudTd>
           <MudTd>
             <MudTextField @bind-Value="context.Description" Immediate="true" Placeholder="Note (optional)" Disabled="@IsVoided"/>
@@ -75,29 +80,32 @@
     </MudForm>
   </DialogContent>
   <DialogActions>
-    <MudGrid Justify="Justify.SpaceBetween"  alignItems="AlignItems.Center">
+    <MudGrid Justify="Justify.SpaceBetween" alignItems="AlignItems.Center">
       <MudItem xs="5">
-        @if (!IsVoided)
+        @if(!IsEditMode || (!IsVoided && !IsReadOnly && IsEditMode && UserOptions.IsAdminUser()))
         {
           <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
         }
       </MudItem>
-      <MudItem xs="2">@if (IsVoided)
-                         {
-                           <MudText Color="Color.Error">Void</MudText>
-                         }
+      <MudItem xs="2">
+        @if (IsVoided)
+        {
+          <MudText Color="Color.Error">Void</MudText>
+        }
       </MudItem>
       <MudItem xs="5">
-        <MudStack Row="true" Spacing="2">
-          @if (!IsVoided && IsEditMode && UserOptions.IsAdminUser())
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" >
+          @if (!IsVoided && !IsReadOnly && IsEditMode && UserOptions.IsAdminUser())
           {
-            <MudButton Variant="Variant.Filled" 
-                       Color="Color.Error" 
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
                        Style="background-color: red; color: white;"
-                       OnClick="VoidTransaction">Void</MudButton>
+                       OnClick="VoidTransaction">
+              Void
+            </MudButton>
           }
           <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
-          @if (!IsVoided)
+          @if (!IsVoided && !IsReadOnly)
           {
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsSaveDisabled" OnClick="Save">@SaveButtonText</MudButton>
           }
@@ -109,5 +117,6 @@
 
 <style>
   .purchase-dialog .e-dlg-content { padding-top: .75rem; }
+
   .purchase-dialog table td { vertical-align: middle; }
 </style>

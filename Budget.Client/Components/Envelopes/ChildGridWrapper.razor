@@ -1,0 +1,46 @@
+@using Budget.Shared.Models
+
+<MudDataGrid @ref="_grid"
+             T="EnvelopeTransactionListItem"
+             VirtualizeServerData="@(async (state, token) => await ServerDataFunc(EnvelopeItem, state, token))"
+             Virtualize="false"
+             Filterable
+             FixedHeader
+             ItemSize="52.68f">
+  <Columns>
+    <PropertyColumn Property="x => x.Date" Title="Date" Format="d"/>
+    <PropertyColumn Property="x => x.Vendor" Title="Vendor"/>
+    <TemplateColumn T="EnvelopeTransactionListItem" Title="Tran Desc\Line Note">
+      <CellTemplate Context="cell">
+        <div>
+          <div>@cell.Item.Description</div>
+          @if (!string.IsNullOrEmpty(cell.Item.Notes))
+          {
+            <div style="font-size: 0.875rem; color: var(--mud-palette-text-secondary);">@cell.Item.Notes</div>
+          }
+        </div>
+      </CellTemplate>
+    </TemplateColumn>
+
+    <PropertyColumn Property="x => x.LineAmount" Format="#,#.##" HeaderStyle="min-width: 16rem; text-align: right;"  CellStyle="text-align: right;"/>
+    <TemplateColumn Title="">
+      <CellTemplate Context="ctx">
+        <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye"
+                       Size="Size.Small"
+                       Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       OnClick="@(async () => await OnTransactionRowClick(ctx.Item, true))" />
+      </CellTemplate >
+    </TemplateColumn >
+  </Columns>
+  <NoRecordsContent>
+    <MudText Typo="Typo.body2" Class="pa-4">No transactions found for this envelope.</MudText>
+  </NoRecordsContent>
+  <RowLoadingContent>
+    <tr class="mud-table-row">
+      <td class="mud-table-cell" colspan="1000">
+        Loading...
+      </td>
+    </tr>
+  </RowLoadingContent>
+</MudDataGrid>

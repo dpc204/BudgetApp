@@ -151,6 +151,8 @@ public static class Misc
     if (!Debugger.IsAttached)
       return;
 
+    return;
+    
     if (webApplicationBuilder.Configuration is IConfigurationRoot configRoot)
     {
       var headerMessage = "===================== Configuration Settings by Provider === === === === === === === === === === === === === === === === === === === === === === === === === === === ";
@@ -171,7 +173,7 @@ public static class Misc
           {
             // Mask sensitive values
             var displayValue = IsSensitiveKey(key) ? "***REDACTED***" : value;
-            var keyValueMessage = $"  Key: {key}, Value: {value}";
+            var keyValueMessage = $"  xKey: {key}, Value: {value}";
             logger.LogInformation(keyValueMessage);
             Debug.WriteLine(keyValueMessage);
           }

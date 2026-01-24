@@ -54,6 +54,9 @@ public class UserOptions
     }
   }
 
+
+
+
   /// <summary>
   /// Event raised when any property changes
   /// </summary>

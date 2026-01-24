@@ -1,9 +1,11 @@
-﻿using Scalar.AspNetCore;
-using Budget.Api;
+﻿using Budget.Api;
 using Budget.Api.Features.Authentication;
+using Budget.Api.Features.Transactions;
 using Budget.Api.Services;
 using Budget.Shared;
 using Budget.Shared.Services;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Scalar.AspNetCore;
 using ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +31,6 @@ builder.AddServiceDefaults();
 
 // Configure logging
 builder.Logging.AddJsonConsole();
-builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 
 
 
@@ -61,6 +62,7 @@ builder.Services.AddFantumMediator();
 // Register HttpContextAccessor and CurrentFamilyService for multi-tenancy
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentFamilyService, CurrentFamilyService>();
+builder.Services.AddTransient<IInsertTransactions, InsertTransactions>();
 
 // Check if running in test mode
 var isTest = AppDomain.CurrentDomain.GetAssemblies()
@@ -93,6 +95,7 @@ builder.Services.AddDbContext<BudgetContext>(options =>
   if (isTest)
   {
     options.UseInMemoryDatabase("BudgetTestDb");
+    options.ConfigureWarnings(warn => warn.Ignore(InMemoryEventId.TransactionIgnoredWarning));
   }
   else
   {
@@ -117,6 +120,8 @@ builder.Services.AddDbContext<ApiIdentityContext>(options =>
   if (isTest)
   {
     options.UseInMemoryDatabase("IdentityTestDb");
+    options.ConfigureWarnings(warn => warn.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+
   }
   else
   {

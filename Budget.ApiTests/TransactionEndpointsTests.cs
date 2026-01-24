@@ -15,12 +15,12 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for Transaction API endpoints
 /// </summary>
-public class TransactionEndpointsTests
+public class TransactionEndpointsTests : IntegrationTestBase
 {
-  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
-    => new DbContextOptionsBuilder<BudgetContext>()
-      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
-      .Options;
+  //private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+  //  => new DbContextOptionsBuilder<BudgetContext>()
+  //    .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+  //    .Options;
 
   [Fact]
   public async Task AddNewTransaction_Should_Create_Transaction_And_Update_Balances()
@@ -66,8 +66,9 @@ public class TransactionEndpointsTests
         }
       ]
     };
-
-    var handler = new AddNewTransaction.Handler(context);
+     
+    var inserter = new InsertTransactions(context);
+    var handler = new AddNewTransaction.Handler(context, inserter);
     var command = new AddNewTransaction.Command(transactionDetail);
 
     // Act
