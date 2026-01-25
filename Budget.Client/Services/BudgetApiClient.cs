@@ -208,6 +208,30 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     }
   }
 
+  public async Task<TransactionAddResult> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction,
+    CancellationToken cancellationToken = default)
+  {
+    // The API currently returns 202 Accepted with no body. Post and ensure success; if no JSON body, return the request object.
+    var payload = new { Trans = newTransaction };
+
+    using var resp = await http.PostAsJsonAsync("/Transaction/InsertMulti", payload, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+
+    try
+    {
+      var transaction = await resp.Content.ReadFromJsonAsync<TransactionAddResult>(cancellationToken: cancellationToken);
+      return transaction ?? new TransactionAddResult();
+    }
+    catch(Exception ex)
+    {
+      // Log at debug level and return the submitted transaction to maintain API contract
+      logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
+      return null;
+    }
+  }
+
+
+
   public async Task<List<EnvelopeDto>> UpdateTransactionAsync(OneTransactionDetail transaction,
     CancellationToken cancellationToken = default)
   {

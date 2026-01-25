@@ -68,19 +68,30 @@ public class EnvelopeDataService(EnvelopeState state, IUserAndOptions userOption
   }
 
   /// <summary>
-  /// Updates envelope balances with new values from API
+  /// Updates the balances of envelopes on the client side based on the provided updates.
   /// </summary>
-  /// <param name="envelopes">List of envelopes with updated balances</param>
-  public void UpdateEnvelopeBalances(List<EnvelopeDto> envelopes)
+  /// <param name="updates">
+  /// A list of <see cref="EnvelopeUpdate"/> objects containing the envelope IDs and the balance changes to apply.
+  /// </param>
+  public void UpdateClientSideEnvelopeBalances(List<EnvelopeUpdate> updates)
   {
-    foreach (var env in envelopes)
+    foreach(var env in updates)
     {
-      var rec = state.AllEnvelopeData?.Find(e => e.EnvelopeId == env.Id);
-      if (rec != null)
+      var rec = state.AllEnvelopeData?.Find(e => e.EnvelopeId == env.EnvelopeId);
+      if(rec != null)
       {
-        rec.Balance = env.Balance;
+        rec.Balance -= env.EnvelopeDelta;
       }
     }
+    
+  }
+  /// <summary>
+  /// Updates UI envelope balances with new values from API
+  /// </summary>
+  /// <param name="envelopes">List of envelopes with updated balances</param>
+  public void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult)
+  {
+    UpdateClientSideEnvelopeBalances(addResult.EnvelopeUpdates);
   }
 
   /// <summary>
@@ -125,7 +136,11 @@ public interface IEnvelopeDataService
   /// <summary>
   /// Updates envelope balances with new values from API
   /// </summary>
-  void UpdateEnvelopeBalances(List<EnvelopeDto> envelopes);
+  void UpdateClientSideEnvelopeBalances(List<EnvelopeUpdate> addResult);
+  /// <summary>
+  /// Updates envelope balances with new values from API
+  /// </summary>
+  void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult);
 
   /// <summary>
   /// Saves the current state

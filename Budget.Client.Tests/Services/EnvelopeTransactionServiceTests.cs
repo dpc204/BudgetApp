@@ -78,9 +78,11 @@ public class EnvelopeTransactionServiceTests
       TotalAmount = 50m
     };
 
-    var updatedEnvelopes = new List<EnvelopeDto>
-    {
-      new EnvelopeDto { Id = 1, Name = "Groceries", Balance = 150m }
+    var updatedEnvelopes = new TransactionAddResult() {
+      EnvelopeUpdates = new List<EnvelopeUpdate>
+      {
+        new EnvelopeUpdate( 1, 150m )
+      }
     };
 
     _mockApi
@@ -106,8 +108,8 @@ public class EnvelopeTransactionServiceTests
     // Assert
     result.Should().NotBeNull();
     result!.WasEdited.Should().BeTrue();
-    result.UpdatedEnvelopes.Should().HaveCount(1);
-    result.UpdatedEnvelopes[0].Id.Should().Be(1);
+    result.UpdatedEnvelopes.Should().HaveCount(1);  
+    result.UpdatedEnvelopes[0].EnvelopeId.Should().Be(1);
   }
 
   [Fact]
@@ -207,10 +209,10 @@ public class EnvelopeTransactionServiceTests
   {
     // Arrange
     var envelopeId = 1;
-    var updatedEnvelopes = new List<EnvelopeDto>
+    var updatedEnvelopes = new TransactionAddResult(){EnvelopeUpdates = new List<EnvelopeUpdate>
     {
-      new EnvelopeDto { Id = envelopeId, Name = "Groceries", Balance = 150m }
-    };
+      new EnvelopeUpdate( envelopeId, 150m )
+    }};
 
     var mockDialogReference = new Mock<IDialogReference>();
     var dialogResult = DialogResult.Ok(updatedEnvelopes);
@@ -230,7 +232,7 @@ public class EnvelopeTransactionServiceTests
     result.Should().NotBeNull();
     result!.WasEdited.Should().BeTrue();
     result.UpdatedEnvelopes.Should().HaveCount(1);
-    result.UpdatedEnvelopes[0].Id.Should().Be(envelopeId);
+    result.UpdatedEnvelopes[0].EnvelopeId.Should().Be(envelopeId);
   }
 
   [Fact]

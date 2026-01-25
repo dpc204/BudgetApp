@@ -192,23 +192,13 @@ public partial class EditTransactionDialog
       addResult = await BudgetApi.AddTransactionAsync(result);
     }
 
-    if (addResult is not null)
-      SnackBar.Add(
-        "// change to to return a list of: EnvelopeTransactionListItem  and add those items to the appropreat screen?   and Update the envelope balances",
-        Severity.Error); // change to to return a list of: EnvelopeTransactionListItem  and add those items to the appropreat screen?   and Update the envelope balances
-    else
-      await UpdateEnvelopeBalances(addResult);
 
     // Pass the updated envelopes back to the caller (EnvelopePage)
     SnackBar.Add("Transaction Saved!", Severity.Success);
 
-    MudDialog.Close(DialogResult.Ok(envelopes));
+    MudDialog.Close(DialogResult.Ok(addResult));
   }
 
-  private async Task UpdateEnvelopeBalances(TransactionAddResult? addResult)
-  {
-    
-  }
 
   private void Cancel() => MudDialog.Cancel();
 

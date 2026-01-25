@@ -177,11 +177,12 @@ public partial class EnvelopePage(
   {
 
     var result = await transactionService.ShowTransactionDetailsAsync(lineItem.TransactionId, readOnly);
+    
 
     if (result?.WasEdited == true)
     {
       // Refresh envelope data after edit
-      dataService.UpdateEnvelopeBalances(result.UpdatedEnvelopes);
+      dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes);
       ApplyCategorySelection();
       await dataService.RefreshAsync();
       
@@ -243,7 +244,7 @@ public partial class EnvelopePage(
     {
       try
       {
-        dataService.UpdateEnvelopeBalances(result.UpdatedEnvelopes);
+        dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes);
         ApplyCategorySelection();
         
         // Increment refresh key to force child grids to reload

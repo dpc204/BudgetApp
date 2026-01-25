@@ -63,6 +63,7 @@ builder.Services.AddFantumMediator();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentFamilyService, CurrentFamilyService>();
 builder.Services.AddTransient<IInsertTransactions, InsertTransactions>();
+builder.Services.AddTransient<IMoveEnvelopeBalance, MoveEnvelopeBalance>();
 
 // Check if running in test mode
 var isTest = AppDomain.CurrentDomain.GetAssemblies()

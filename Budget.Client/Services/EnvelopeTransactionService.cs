@@ -85,12 +85,12 @@ public class EnvelopeTransactionService(
         var dialog = await dialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", parameters, options);
         var result = await dialog.Result;
 
-        if (result is { Canceled: false, Data: List<EnvelopeDto> envResult })
+        if (result is { Canceled: false, Data: TransactionAddResult envResult })
         {
           return new TransactionDialogResult
           {
             WasEdited = true,
-            UpdatedEnvelopes = envResult
+            UpdatedEnvelopes = envResult.EnvelopeUpdates
           };
         }
       }
@@ -126,12 +126,12 @@ public class EnvelopeTransactionService(
       var dialog = await dialogService.ShowAsync<EditTransactionDialog>("New Purchase", parameters, options);
       var result = await dialog.Result;
 
-      if (result is { Canceled: false, Data: List<EnvelopeDto> envResult })
+      if (result is { Canceled: false, Data: TransactionAddResult envResult })
       {
         return new TransactionDialogResult
         {
           WasEdited = true,
-          UpdatedEnvelopes = envResult
+          UpdatedEnvelopes = envResult.EnvelopeUpdates
         };
       }
 
@@ -180,5 +180,5 @@ public interface IEnvelopeTransactionService
 public class TransactionDialogResult
 {
   public bool WasEdited { get; set; }
-  public List<EnvelopeDto> UpdatedEnvelopes { get; set; } = [];
+  public List<EnvelopeUpdate> UpdatedEnvelopes { get; set; } = [];
 }

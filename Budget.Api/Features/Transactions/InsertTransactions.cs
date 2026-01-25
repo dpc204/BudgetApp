@@ -1,5 +1,4 @@
-﻿using EFCore.BulkExtensions;
-using Task = System.Threading.Tasks.Task;
+﻿using Task = System.Threading.Tasks.Task;
 
 namespace Budget.Api.Features.Transactions;
 
@@ -8,7 +7,7 @@ public interface IInsertTransactions
   Task BeginBatchAsync();
   Task EndBatchAsync();
   Task<TransactionAddResult> AddSingleTransaction(AddNewTransaction.Command request);
-  Task<int> AddMultipleTransactions(List<OneTransactionDetail> list);
+  Task<TransactionAddResult> AddMultipleTransactions(List<OneTransactionDetail> list);
   ValueTask DisposeAsync();
 }
 
@@ -60,21 +59,12 @@ public class InsertTransactions(BudgetContext db) : IAsyncDisposable, IInsertTra
       using var transaction = await db.Database.BeginTransactionAsync();
 
 
-      // I hated doing this, but EFCore.BulkExtensions does not support inmemory databases for testing
-      if(db.Database.ProviderName!.Contains("InMemory"))
+      foreach (var tran in _transactions)
       {
-        foreach (var tran in _transactions)
-        {
-          await db.Transactions.AddAsync(tran);
-        }
-        await db.SaveChangesAsync();
+        await db.Transactions.AddAsync(tran);
       }
-      else
-      {
-        await db.BulkInsertAsync(_transactions, b => b.IncludeGraph = true);
-        await db.BulkSaveChangesAsync();
 
-      }
+      await db.SaveChangesAsync();
 
 
       await transaction.CommitAsync();
@@ -105,7 +95,7 @@ public class InsertTransactions(BudgetContext db) : IAsyncDisposable, IInsertTra
     }
   }
 
-  public async Task<int> AddMultipleTransactions(List<OneTransactionDetail> list)
+  public async Task<TransactionAddResult> AddMultipleTransactions(List<OneTransactionDetail> list)
   {
     await BeginBatchAsync();
 
@@ -116,7 +106,7 @@ public class InsertTransactions(BudgetContext db) : IAsyncDisposable, IInsertTra
 
     await UpdateEnvelopeBalancesAsync();
     await EndBatchAsync();
-    return 0;
+    return _InsertTransactionResult;
   }
 
   private async Task<Transaction> AddTransactionAsync(OneTransactionDetail tran)

@@ -186,23 +186,25 @@ public class EnvelopeDataServiceTests
     var envelopes = new List<EnvelopeResult>
     {
       new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", Balance = 100m },
-      new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "Gas", Balance = 50m }
+      new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "Gas", Balance = 100m }
     };
 
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
 
-    var updatedEnvelopes = new List<EnvelopeDto>
+    var tranResult = new TransactionAddResult();
+    
+    tranResult.EnvelopeUpdates = new List<EnvelopeUpdate>
     {
-      new EnvelopeDto { Id = 1, Name = "Groceries", Balance = 150m },
-      new EnvelopeDto { Id = 2, Name = "Gas", Balance = 75m }
+      new EnvelopeUpdate( 1, 150m ),
+      new EnvelopeUpdate ( 2,   75m )
     };
 
     // Act
-    _service.UpdateEnvelopeBalances(updatedEnvelopes);
+    _service.UpdateClientSideEnvelopeBalances(tranResult);
 
     // Assert
-    envelopes[0].Balance.Should().Be(150m);
-    envelopes[1].Balance.Should().Be(75m);
+    envelopes[0].Balance.Should().Be(-50m);
+    envelopes[1].Balance.Should().Be(25m);
   }
 
   [Fact]
@@ -216,13 +218,18 @@ public class EnvelopeDataServiceTests
 
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
 
-    var updatedEnvelopes = new List<EnvelopeDto>
+    var tranResult = new TransactionAddResult();
+
+
+    // Non-existent envelope ID
+    tranResult.EnvelopeUpdates= new List<EnvelopeUpdate>
     {
-      new EnvelopeDto { Id = 999, Name = "NonExistent", Balance = 200m }
+      new EnvelopeUpdate( 999, 200m )
     };
+    
 
     // Act
-    var act = () => _service.UpdateEnvelopeBalances(updatedEnvelopes);
+    var act = () => _service.UpdateClientSideEnvelopeBalances(tranResult);
 
     // Assert
     act.Should().NotThrow();

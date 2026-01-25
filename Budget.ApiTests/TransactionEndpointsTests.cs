@@ -339,7 +339,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.TransactionDetails.Add(detail);
     await context.SaveChangesAsync();
 
-    var handler = new AssignTransaction.Handler(context);
+    var handler = new AssignTransaction.Handler(context, new MoveEnvelopeBalance());
     var command = new AssignTransaction.Command(600, 1, 204, "Reassigned");
 
     // Act

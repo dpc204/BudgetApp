@@ -39,6 +39,9 @@ public static class LoadTransactionImportsToUnassigned
         return new Response(0);
       }
 
+
+      List<OneTransactionDetail> transactionsToAdd = new List<OneTransactionDetail>();
+
       // Process each transaction import
       foreach (var rec in nonDuplicates)
       {
@@ -67,10 +70,10 @@ public static class LoadTransactionImportsToUnassigned
           ]
         };
 
-        // Use the existing AddNewTransaction handler
-        await sender.Send(new AddNewTransaction.Command(trans), cancellationToken);
+        transactionsToAdd.Add(trans);
       }
 
+      await sender.Send(new AddMultipleTransaction.Command(transactionsToAdd), cancellationToken);
       // Clear the staging table after successful import
       var importedCount = nonDuplicates.Count;
       db.TransactionImports.RemoveRange(nonDuplicates);

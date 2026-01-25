@@ -16,7 +16,7 @@ else if (!string.IsNullOrEmpty(_loadError))
 }
 else
 {
-  <MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100%; overflow: hidden;">
+  <MudStack Spacing="2" Class="d-flex flex-column" Style="height: calc(100vh - 120px);">
     @* Bulk Assignment Section *@
     <MudPaper Elevation="1" Class="pa-3" Style="flex-shrink: 0;">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
@@ -49,7 +49,7 @@ else
         </MudStack>
       </MudPaper>
 
-      <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
+      <div style="flex: 1; min-height: 0;">
         <MudDataGrid T="TransactionDto"
                      Items="@Transactions"
                      ReadOnly="false"
@@ -62,10 +62,10 @@ else
                      SortMode="SortMode.Multiple"
                      dense="true"
                      FixedHeader="true"
+                     Height="calc(100vh - 250px)"
                      MultiSelection="true"
                      @bind-SelectedItems="_selectedTransactions"
-                     Class="envelopes-table"
-                     Style="height: 100%; overflow: auto; width: auto">
+                     Class="envelopes-table">
 
 
           <ToolBarContent >
