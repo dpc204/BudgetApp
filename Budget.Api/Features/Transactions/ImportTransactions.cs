@@ -19,7 +19,7 @@ public static class ImportTransactions
     public async Task<int> Handle(Command request, CancellationToken cancellationToken)
     {
       var familyId = currentFamilyService.GetCurrentFamilyId();
-      
+
       var entities = request.Transactions.Select(dto => new TransactionImport
       {
         Date = dto.Date,
@@ -34,6 +34,9 @@ public static class ImportTransactions
         Duplicate = false
       }).ToList();
 
+      SetVendor(entities);
+
+
       db.TransactionImports.AddRange(entities);
       await db.SaveChangesAsync(cancellationToken);
 
@@ -41,6 +44,31 @@ public static class ImportTransactions
       await DetectDuplicatesAsync(entities, cancellationToken);
 
       return entities.Count;
+    }
+
+    private static void SetVendor(List<TransactionImport> entities)
+    {
+      foreach (var dto in entities)
+      {
+        if (!string.IsNullOrWhiteSpace(dto.Vendor))
+          continue;
+
+        var idx = dto.Description.IndexOf(' ');
+        if (idx < 6 && dto.Description.Length > 10)
+          idx = dto.Description.IndexOf(' ', idx + 1);
+
+
+        if (idx == -1)
+        {
+          dto.Vendor = dto.Description;
+          dto.Description = string.Empty;
+        }
+        else
+        {
+          dto.Vendor = dto.Description.Substring(0, idx).Trim();
+          dto.Description = dto.Description.Substring(idx + 1).Trim();
+        }
+      }
     }
 
     private async Task DetectDuplicatesAsync(List<TransactionImport> imports, CancellationToken cancellationToken)

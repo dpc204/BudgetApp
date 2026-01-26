@@ -245,8 +245,8 @@ public partial class EditTransactionDialog
     if (value <= 0m)
       return "Amount must be greater than 0.";
     // allow at most 2 decimal places
-    if ((value * 100m) % 1m != 0m)
-      return "Maximum of two decimal places.";
+    //if ((value * 100m) % 1m != 0m)
+    //  return "Maximum of two decimal places.";
     return null;
   }
 }

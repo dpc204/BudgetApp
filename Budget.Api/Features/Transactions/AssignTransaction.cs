@@ -62,8 +62,8 @@ public class MoveEnvelopeBalance : IMoveEnvelopeBalance
     if (fromEnvelope == null || toEnvelope == null)
       throw new InvalidOperationException("One or both envelopes do not exist.");
 
-    if (fromEnvelope.Balance < amountToMove)
-      throw new InvalidOperationException("Insufficient balance in the source envelope.");
+    //if (fromEnvelope.Balance < amountToMove)
+    //  throw new InvalidOperationException("Insufficient balance in the source envelope.");
 
     toEnvelope.Balance += amountToMove;
     fromEnvelope.Balance -= amountToMove;

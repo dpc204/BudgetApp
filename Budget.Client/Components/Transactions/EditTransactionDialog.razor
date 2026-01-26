@@ -1,13 +1,20 @@
 @using System.Globalization
 @inject IBudgetApiClient BudgetApi
 @inject IUserAndOptions UserOptions
-<MudDialog ContentClass="pa-2" >
-  <DialogContent > 
-    <MudForm @ref="_form" Model="_header" >
+
+<style>
+  .draft-input-right { width: 100px; }
+
+  .draft-input-right input { text-align: right !important; }
+</style>
+
+<MudDialog ContentClass="pa-2">
+  <DialogContent >
+    <MudForm @ref="_form" Model="_header">
       <MudGrid Class="mb-2" Spacing="0">
 
-        <MudItem xs="12" md="3" >
-          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" Disabled="@IsVoided" style="width: 150px;"  RelativeWidth="DropdownWidth.Ignore"/>
+        <MudItem xs="12" md="3">
+          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" Disabled="@IsVoided" style="width: 150px;" RelativeWidth="DropdownWidth.Ignore"/>
         </MudItem>
 
         <MudItem xs="3" md="2">
@@ -50,7 +57,7 @@
               }
             </MudSelect>
           </MudTd>
-          <MudTd Class="text-end" xs="5" md="5">
+          @* <MudTd Class="text-end" xs="5" md="5">
             <MudNumericField T="decimal"
                              @bind-Value="context.Amount"
                              For="@(() => context.Amount)"
@@ -64,6 +71,20 @@
                              Disabled="@IsVoided"/>
 
 
+          </MudTd> *@
+          <MudTd>
+            <MudNumericField T="decimal"
+                             @bind-Value="context.Amount"
+                             For="@(() => context.Amount)"
+                             @bind-Value:after="() => NormalizeAmount(context)"
+                             Validation="@((decimal val) => ValidateAmount(val))"
+                             Format="C2"
+                             Immediate="false"
+                             HideSpinButtons="true"
+                             Class="draft-input-right"
+                             Variant="Variant.Text"
+                             Margin="Margin.Dense"
+                             Disabled="@IsVoided"/>
           </MudTd>
           <MudTd>
             <MudTextField @bind-Value="context.Description" Immediate="true" Placeholder="Note (optional)" Disabled="@IsVoided"/>
@@ -82,7 +103,7 @@
   <DialogActions>
     <MudGrid Justify="Justify.SpaceBetween" alignItems="AlignItems.Center">
       <MudItem xs="5">
-        @if(!IsEditMode || (!IsVoided && !IsReadOnly && IsEditMode && UserOptions.IsAdminUser()))
+        @if (!IsEditMode || (!IsVoided && !IsReadOnly && IsEditMode && UserOptions.IsAdminUser()))
         {
           <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
         }
@@ -94,7 +115,7 @@
         }
       </MudItem>
       <MudItem xs="5">
-        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" >
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
           @if (!IsVoided && !IsReadOnly && IsEditMode && UserOptions.IsAdminUser())
           {
             <MudButton Variant="Variant.Filled"

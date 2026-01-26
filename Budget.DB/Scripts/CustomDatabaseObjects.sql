@@ -14,7 +14,7 @@
 -- Or execute in SQL Server Management Studio / Azure Data Studio
 -- =============================================
 
-USE [YourDatabaseName]; -- Update this with your actual database name
+USE BudgetDB; -- Update this with your actual database name
 GO
 
 -- =============================================
@@ -54,7 +54,7 @@ GO
 CREATE OR ALTER TRIGGER budget.trg_TransactionDetails_UpdateEnvelopeBalance
 ON budget.TransactionDetails
 AFTER INSERT
-AS
+ASx`
 BEGIN
   SET NOCOUNT ON;
   

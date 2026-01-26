@@ -49,7 +49,7 @@ else
         </MudStack>
       </MudPaper>
 
-      <div style="flex: 1; min-height: 0;">
+      <div style="flex: 1; min-height: 0; overflow: auto;">
         <MudDataGrid T="TransactionDto"
                      Items="@Transactions"
                      ReadOnly="false"
@@ -62,7 +62,7 @@ else
                      SortMode="SortMode.Multiple"
                      dense="true"
                      FixedHeader="true"
-                     Height="calc(100vh - 250px)"
+                     Height="100%"
                      MultiSelection="true"
                      @bind-SelectedItems="_selectedTransactions"
                      Class="envelopes-table">
@@ -87,12 +87,7 @@ else
                             Sortable="true"
                             Editable="false"/>
 
-            <TemplateColumn Title="Envelope" Filterable="false">
-              <CellTemplate>
-                asdfsdfsss
-              </CellTemplate>
-            </TemplateColumn>
-
+           
 
             <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
               <EditTemplate>
