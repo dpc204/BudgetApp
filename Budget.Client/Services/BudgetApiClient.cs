@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Budget.Shared.Models.Queries;
 using FluentResults;
 
 namespace Budget.Client.Services;
@@ -85,6 +86,14 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
 
   }
+
+  public async Task<AssignQueryResult> GetUnassignedVirtualAsync(AssignQuery query, CancellationToken cancellationToken = default)
+  {
+    var response = await http.PostAsJsonAsync("transactions/unassigned/virtual", query, cancellationToken);
+    response.EnsureSuccessStatusCode();
+    var result = await response.Content.ReadFromJsonAsync<AssignQueryResult>(cancellationToken: cancellationToken);
+    return result ?? new AssignQueryResult();
+  } 
 
   public async Task<Result<List<TransactionDto>>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default)
   {
@@ -333,6 +342,8 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       return false;
     }
   }
+
+
 
   private sealed record GetUserOptionsResponse(UserOptions? Options);
   private sealed record SaveUserOptionsCommand(string UserId, UserOptions Options);

@@ -1,3 +1,5 @@
+using Budget.Shared.Models.Queries;
+
 namespace Budget.Client.Pages;
 
 public partial class Assign : ComponentBase
@@ -121,6 +123,53 @@ public partial class Assign : ComponentBase
       return false;
 
     return source.Contains(search, StringComparison.OrdinalIgnoreCase);
+  }
+  private async Task<GridData<TransactionDto>> LoadServerData(GridState<TransactionDto> state, CancellationToken cancellationToken)
+  {
+    try
+    {
+      Logger.LogInformation("Loading server data: Page={Page}, PageSize={PageSize}, Sort={Sort}, Descending={Descending}, Filters={Filters}",
+        state.Page, state.PageSize,
+        state.SortDefinitions.FirstOrDefault()?.SortBy,
+        state.SortDefinitions.FirstOrDefault()?.Descending ?? false,
+        string.Join(";", state.FilterDefinitions.Select(f => $"{f.Column?.PropertyName} {f.Operator} {f.Value}"))
+      );
+
+      var query = new AssignQuery
+      {
+        StartIndex = state.Page * state.PageSize,
+        Count = state.PageSize,
+        Sort = state.SortDefinitions.FirstOrDefault()?.SortBy,
+        Descending = state.SortDefinitions.FirstOrDefault()?.Descending ?? false,
+        Filters = state.FilterDefinitions
+          .Select(f => new FilterItem
+          {
+            Column = f.Column?.PropertyName,
+            Operator = f.Operator,
+            Value = f.Value?.ToString()
+          })
+          .ToList()
+      };
+
+      var response = await Api.GetUnassignedVirtualAsync(query);
+
+      Logger.LogInformation("Loading server data: Received {ItemCount} items, Total: {TotalCount}", response.Items.Count, response.TotalCount);
+
+      return new GridData<TransactionDto>
+      {
+        Items = response.Items,
+        TotalItems = response.TotalCount
+      };
+    }
+    catch (Exception ex)
+    {
+      Logger.LogError(ex, "Error loading server data");
+      return new GridData<TransactionDto>
+      {
+        Items = [],
+        TotalItems = 0
+      };
+    }
   }
 
 
@@ -247,4 +296,6 @@ public partial class Assign : ComponentBase
     return (transaction.Vendor ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
            || (transaction.Description ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase);
   }
+
+
 }

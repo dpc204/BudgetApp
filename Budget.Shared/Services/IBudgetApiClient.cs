@@ -1,3 +1,5 @@
+using Budget.Shared.Models.Queries;
+
 namespace Budget.Shared.Services;
 
 public interface IBudgetApiClient
@@ -33,5 +35,6 @@ public interface IBudgetApiClient
   // User Options
   Task<UserOptions?> GetUserOptionsAsync(string userId, CancellationToken cancellationToken = default);
   Task<bool> SaveUserOptionsAsync(string userId, UserOptions options, CancellationToken cancellationToken = default);
+  Task<AssignQueryResult> GetUnassignedVirtualAsync(AssignQuery query, CancellationToken cancellationToken = default);
 }
 
