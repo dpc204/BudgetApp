@@ -35,6 +35,57 @@
   height: 100%;
 }
 
+::deep .envelopes-table .mud-table-row {
+    height: 38px !important;
+}
+
+::deep .envelopes-table .mud-table-row.mud-table-row-dense {
+    height: 26px !important;
+}
+
+/* Column width overrides */
+::deep .envelopes-table .mud-table-cell {
+    padding: 8px 12px;
+}
+
+::deep .envelopes-table th:nth-child(1),
+::deep .envelopes-table td:nth-child(1) {
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+}
+
+::deep .envelopes-table th:nth-child(2),
+::deep .envelopes-table td:nth-child(2) {
+    width: 120px;
+    min-width: 120px;
+}
+
+::deep .envelopes-table th:nth-child(3),
+::deep .envelopes-table td:nth-child(3) {
+    width: 250px;
+    min-width: 200px;
+}
+
+::deep .envelopes-table th:nth-child(4),
+::deep .envelopes-table td:nth-child(4) {
+    width: 200px;
+    min-width: 150px;
+}
+
+::deep .envelopes-table th:nth-child(5),
+::deep .envelopes-table td:nth-child(5) {
+    width: auto;
+    min-width: 200px;
+}
+
+::deep .envelopes-table th:nth-child(6),
+::deep .envelopes-table td:nth-child(6) {
+    width: 120px;
+    min-width: 100px;
+    text-align: right;
+}
+
 /* Keep row selection highlight, remove per-cell focus box */
 ::deep .e-grid .e-rowcell:focus,
 ::deep .e-grid .e-rowcell:focus-visible,

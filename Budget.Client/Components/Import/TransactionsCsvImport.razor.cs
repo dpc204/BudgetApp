@@ -333,7 +333,7 @@ public partial class TransactionsCsvImport : ComponentBase
     int envelopeId = 0;
     int userId = 0;
 
-    if (map.TryGetValue("date", out var idxDate) && idxDate < row.Count)
+    if (map.TryGetValue("posting date", out var idxDate) && idxDate < row.Count)
     {
       var txt = row[idxDate];
       if (!DateTime.TryParse(txt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out date))

@@ -6,11 +6,15 @@ public partial class Assign : ComponentBase
 {
   [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
-  [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!; 
-  [Inject] private IUserAndOptions UserOptions { get; set; } = default!; 
+  [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
+  [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
 
 
   public List<TransactionDto> Transactions { get; set; } = [];
+  public MudDataGrid<TransactionDto> Grid { get; set; }
+  public int ProgressValue { get; set; }
+  public int ProgressMax { get; set; }
+
   private List<EnvelopeIdName> _availableEnvelopes = [];
 
 
@@ -44,8 +48,8 @@ public partial class Assign : ComponentBase
       // Convert State.AllEnvelopeData to EnvelopeIdName list
       _availableEnvelopes = SetAvailableEnvelopes();
 
-       _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
-      
+      _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
+
       var result = await Api.GetTransactionsUnassignedAsync();
       if (result.IsSuccess)
       {
@@ -75,8 +79,9 @@ public partial class Assign : ComponentBase
 
   private List<EnvelopeIdName> SetAvailableEnvelopes()
   {
-    return State.AllEnvelopeData.Where(a=> a.EnvelopeType == EnvelopeTypes.Standard).Select(a =>
-      new EnvelopeIdName(a.EnvelopeId, a.CategoryName , a.EnvelopeName, a.CategorySortOrder, a.EnvelopeSortOrder)).OrderBy(a=> a.CategorySortOrder).ThenBy(a=> a.EnvelopeSortOrder).ToList();
+    return State.AllEnvelopeData.Where(a => a.EnvelopeType == EnvelopeTypes.Standard).Select(a =>
+        new EnvelopeIdName(a.EnvelopeId, a.CategoryName, a.EnvelopeName, a.CategorySortOrder, a.EnvelopeSortOrder))
+      .OrderBy(a => a.CategorySortOrder).ThenBy(a => a.EnvelopeSortOrder).ToList();
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -99,14 +104,15 @@ public partial class Assign : ComponentBase
 
   private string? GetEnvelopeNameOnly(EnvelopeIdName? e)
   {
-    if(e == null)
+    if (e == null)
       return null;
 
-    return  e.EnvelopeName;
+    return e.EnvelopeName;
   }
+
   private string? GetCatAndEnvName(EnvelopeIdName? e)
   {
-    if(e == null)
+    if (e == null)
       return null;
 
     return e.CategoryName + " - " + e.EnvelopeName;
@@ -119,16 +125,19 @@ public partial class Assign : ComponentBase
 
   bool CaseInsensitiveContains(string? source, string? search)
   {
-    if(string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(search))
+    if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(search))
       return false;
 
     return source.Contains(search, StringComparison.OrdinalIgnoreCase);
   }
-  private async Task<GridData<TransactionDto>> LoadServerData(GridState<TransactionDto> state, CancellationToken cancellationToken)
+
+  private async Task<GridData<TransactionDto>> LoadServerData(GridState<TransactionDto> state,
+    CancellationToken cancellationToken)
   {
     try
     {
-      Logger.LogInformation("Loading server data: Page={Page}, PageSize={PageSize}, Sort={Sort}, Descending={Descending}, Filters={Filters}",
+      Logger.LogInformation(
+        "Loading server data: Page={Page}, PageSize={PageSize}, Sort={Sort}, Descending={Descending}, Filters={Filters}",
         state.Page, state.PageSize,
         state.SortDefinitions.FirstOrDefault()?.SortBy,
         state.SortDefinitions.FirstOrDefault()?.Descending ?? false,
@@ -153,7 +162,8 @@ public partial class Assign : ComponentBase
 
       var response = await Api.GetUnassignedVirtualAsync(query);
 
-      Logger.LogInformation("Loading server data: Received {ItemCount} items, Total: {TotalCount}", response.Items.Count, response.TotalCount);
+      Logger.LogInformation("Loading server data: Received {ItemCount} items, Total: {TotalCount}",
+        response.Items.Count, response.TotalCount);
 
       return new GridData<TransactionDto>
       {
@@ -182,8 +192,9 @@ public partial class Assign : ComponentBase
     transaction.EnvelopeName = selectedEnvelope.EnvelopeName;
 
     // Call API to save the transaction envelope assignment
-    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
-
+    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
+      transaction.Description);
+    await Grid.ReloadServerData();
     StateHasChanged();
   }
 
@@ -194,31 +205,35 @@ public partial class Assign : ComponentBase
       return [.. _availableEnvelopes];
     }
 
-    return [.. _availableEnvelopes.Where(e =>
-      e.CategoryName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)||
-      e.EnvelopeName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)
-      )];
+    return
+    [
+      .. _availableEnvelopes.Where(e =>
+        e.CategoryName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase) ||
+        e.EnvelopeName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)
+      )
+    ];
   }
 
   private async Task<object> OnEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val)
   {
-    if(val is null) return contextItem;
+    if (val is null) return contextItem;
 
-    var selectedEnvelope = _availableEnvelopes.FirstOrDefault(a=> a.EnvelopeId ==val.EnvelopeId);
+    var selectedEnvelope = _availableEnvelopes.FirstOrDefault(a => a.EnvelopeId == val.EnvelopeId);
 
-    if(selectedEnvelope is null) return contextItem;
+    if (selectedEnvelope is null) return contextItem;
 
     await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
     return contextItem;
   }
+
   private async Task<object> SetBulkEnvelope(TransactionDto contextItem, EnvelopeIdName? val)
   {
-    if(val is null) return contextItem;
+    if (val is null) return contextItem;
 
     var selectedEnvelope = _availableEnvelopes.FirstOrDefault(a => a.EnvelopeId == val.EnvelopeId);
 
 
-    if(selectedEnvelope is null) return contextItem;
+    if (selectedEnvelope is null) return contextItem;
 
     await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
     return contextItem;
@@ -230,7 +245,8 @@ public partial class Assign : ComponentBase
     transaction.Description = newDescription;
 
     // Call API to save the transaction description assignment
-    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId, transaction.Description);
+    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
+      transaction.Description);
 
     StateHasChanged();
   }
@@ -251,28 +267,41 @@ public partial class Assign : ComponentBase
       return;
     }
 
-    // Loop through selected transactions and assign each one
-    var transactionsToAssign = _selectedTransactions.ToList();
-    foreach (var transaction in transactionsToAssign)
+    try
     {
-      transaction.EnvelopeId = _bulkEnvelope.EnvelopeId;
-      transaction.EnvelopeName = _bulkEnvelope.EnvelopeName;
 
-      await Api.AssignTransactionAsync(
-        transaction.TransactionId,
-        transaction.LineId,
-        transaction.EnvelopeId,
-        transaction.Description);
+      Busy = true;
+      // Loop through selected transactions and assign each one
+      var transactionsToAssign = _selectedTransactions.ToList();
+      ProgressMax = transactionsToAssign.Count;
+      ProgressValue = 0;
+      foreach(var transaction in transactionsToAssign)
+      {
+        ProgressValue++;
+        StateHasChanged();
+        transaction.EnvelopeId = _bulkEnvelope.EnvelopeId;
+        transaction.EnvelopeName = _bulkEnvelope.EnvelopeName;
 
-      // Remove from the unassigned transactions list
-      Transactions.Remove(transaction);
+        await Api.AssignTransactionAsync(
+          transaction.TransactionId,
+          transaction.LineId,
+          transaction.EnvelopeId,
+          transaction.Description);
+
+        // Remove from the unassigned transactions list
+        Transactions.Remove(transaction);
+      }
+
+      // Clear selection after assignment
+      _selectedTransactions.Clear();
+      _bulkEnvelope = null;
+      await Grid.ReloadServerData();
+      StateHasChanged();
     }
-
-    // Clear selection after assignment
-    _selectedTransactions.Clear();
-    _bulkEnvelope = null;
-
-    StateHasChanged();
+    finally
+    {
+      Busy = false;
+    }
   }
 
   private int _selectedCount;
@@ -296,6 +325,4 @@ public partial class Assign : ComponentBase
     return (transaction.Vendor ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
            || (transaction.Description ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase);
   }
-
-
 }

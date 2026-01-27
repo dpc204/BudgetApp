@@ -17,7 +17,7 @@
 
     <MudText>Filename:&nbsp;@Busy.ToString()</MudText>
 
-    <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || ParsedRowsCount == 0" Variant="Variant.Filled" Color="Color.Primary">Import</MudButton>
+    @* <MudButton OnClick="ImportAsync" Disabled="Busy || SelectedFile is null || SelectedAccountId == 0 || ParsedRowsCount == 0" Variant="Variant.Filled" Color="Color.Primary">Import</MudButton> *@
   </MudStack>
 
   @if (!string.IsNullOrEmpty(Status))
