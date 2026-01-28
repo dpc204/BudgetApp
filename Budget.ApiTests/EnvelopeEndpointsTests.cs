@@ -54,10 +54,10 @@ public class EnvelopeEndpointTests
     context.Envelopes.AddRange(envelope1, envelope2);
     await context.SaveChangesAsync();
 
-    var handler = new GetAllCategories.Handler(context);
+    var handler = new EnvelopeGetAll.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetAllCategories.Query(), CancellationToken.None);
+    var result = await handler.Handle(new EnvelopeGetAll.Query(EnvelopeTypes.All), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();

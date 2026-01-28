@@ -21,5 +21,5 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging.Abstractions;
 global using Xunit;
 global using CategoryGetAll = Budget.Api.Features.Categories.GetByEnvelopeId;
-global using EnvelopeGetAll = Budget.Api.Features.Envelopes.GetAllCategories;
+global using EnvelopeGetAll = Budget.Api.Features.Envelopes.GetAllEnvelopes;
 global using GetAll = Budget.Api.Features.Accounts.AccountMaint.GetAllAccounts;

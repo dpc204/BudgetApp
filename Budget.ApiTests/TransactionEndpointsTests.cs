@@ -305,7 +305,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       CategoryId = "-1", 
       Balance = 50m,
       FamilyId = 1,
-      EnvelopeType = EnvelopeTypes.Unallocated,
+      EnvelopeType = EnvelopeTypes.Income,
       SortOrder = 999
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
