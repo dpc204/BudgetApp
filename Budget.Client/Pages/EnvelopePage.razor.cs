@@ -138,7 +138,9 @@ public partial class EnvelopePage(
     SelectedEnvelopeData = dataService.ApplyCategoryFilter(
       AllEnvelopeData,
       CategoriesForSelect,
-      SelectedCategoryId);
+      SelectedCategoryId)
+      .Where(a=> a.EnvelopeType == EnvelopeTypes.Standard)
+      .ToList();
 
     if (_selectedEnvelope is not null && SelectedEnvelopeData.All(e => e.EnvelopeId != _selectedEnvelope.EnvelopeId))
     {

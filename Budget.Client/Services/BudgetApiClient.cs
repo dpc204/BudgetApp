@@ -7,9 +7,9 @@ namespace Budget.Client.Services;
 
 public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> logger) : Shared.Services.IBudgetApiClient
 {
-  public async Task<List<EnvelopeDto>> GetEnvelopesAsync(CancellationToken cancellationToken = default)
+  public async Task<List<EnvelopeDto>> GetEnvelopesAsync(EnvelopeTypes envelopeType = EnvelopeTypes.All, CancellationToken cancellationToken = default)
   {
-    var readOnlyList = await GetListAsync<EnvelopeDto>("envelopes/getall", cancellationToken);
+    var readOnlyList = await GetListAsync<EnvelopeDto>($"envelopes/getall/{envelopeType}", cancellationToken);
     return readOnlyList;
   }
 

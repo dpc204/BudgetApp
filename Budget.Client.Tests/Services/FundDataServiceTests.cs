@@ -82,7 +82,7 @@ public class FundDataServiceTests
       .ReturnsAsync(monthData);
 
     _mockApiClient
-      .Setup(x => x.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unallocated, It.IsAny<CancellationToken>()))
+      .Setup(x => x.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Income, It.IsAny<CancellationToken>()))
       .ReturnsAsync(unallocatedEnvelope);
 
     // Act
@@ -148,7 +148,7 @@ public class FundDataServiceTests
       .ReturnsAsync(monthData);
 
     _mockApiClient
-      .Setup(x => x.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unallocated, It.IsAny<CancellationToken>()))
+      .Setup(x => x.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Income, It.IsAny<CancellationToken>()))
       .ReturnsAsync(unallocatedEnvelope);
 
     // Act

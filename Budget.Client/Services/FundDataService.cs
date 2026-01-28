@@ -15,7 +15,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient) : IFundDataServi
   public async Task<FundDataResult> LoadFundDataAsync(int year, int month, CancellationToken cancellationToken = default)
   {
     var monthData = await apiClient.GetBudgetMonthAsync(year, month, cancellationToken);
-    var allocateEnvelope = await apiClient.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unallocated, cancellationToken);
+    var allocateEnvelope = await apiClient.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Income, cancellationToken);
 
     var fundData = new Dictionary<int, FundEnvelopeData>();
     var totalBudget = 0m;

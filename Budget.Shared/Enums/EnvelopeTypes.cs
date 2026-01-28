@@ -3,6 +3,7 @@
 public enum EnvelopeTypes
 {
   Standard = 0,
-  Unallocated = 1,
-  Unassigned = 2
+  Income = 1,
+  Unassigned = 2,
+  All = 3
 }

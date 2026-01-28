@@ -79,7 +79,9 @@ public partial class Assign : ComponentBase
 
   private List<EnvelopeIdName> SetAvailableEnvelopes()
   {
-    return State.AllEnvelopeData.Where(a => a.EnvelopeType == EnvelopeTypes.Standard).Select(a =>
+    return State.AllEnvelopeData
+      .Where(a => a.EnvelopeType == EnvelopeTypes.Standard || a.EnvelopeType == EnvelopeTypes.Income)
+      .Select(a =>
         new EnvelopeIdName(a.EnvelopeId, a.CategoryName, a.EnvelopeName, a.CategorySortOrder, a.EnvelopeSortOrder))
       .OrderBy(a => a.CategorySortOrder).ThenBy(a => a.EnvelopeSortOrder).ToList();
   }

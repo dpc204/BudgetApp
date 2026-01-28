@@ -133,9 +133,15 @@ public partial class EditTransactionDialog
 
   private void Recalc()
   {
+    if(!IsEditMode)
     _header.TotalAmount = _lines.Sum(l => l.Amount);
+    EditTotalAmount = _lines.Sum(l => l.Amount);
     StateHasChanged();
   }
+
+  public decimal EditTotalAmount { get; set; }
+
+  public decimal EditDifference => EditTotalAmount - _header.TotalAmount;
 
   private async Task Save()
   {

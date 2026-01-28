@@ -36,13 +36,17 @@ else
                    RowClassFunc="GetEnvelopeRowClass"
                    RowStyleFunc="GetEnvelopeRowStyle"
                    @bind-SelectedItem="SelectedEnvelope"
+                   Filterable="true"
+                   FilterMode="DataGridFilterMode.ColumnFilterRow"
+                   FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
                    ExpandSingleRow="true"
                    Class="envelopes-table"
                    Style="height: 100%; overflow: auto; width: auto;">
         <Columns >
           <HierarchyColumn T="EnvelopeResult"  />
 
-          <TemplateColumn Title="">
+          <TemplateColumn Title="" 
+                          Filterable="false">
             <CellTemplate Context="ctx">
               <MudIconButton Icon="@Icons.Material.Filled.Add"
                              Size="Size.Small"
@@ -51,9 +55,9 @@ else
                              OnClick="@(() => NewTransactionAsync(ctx.Item))"/>
             </CellTemplate >
           </TemplateColumn >
-          <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Title="Category" HeaderStyle="min-width: 16rem;"/>
+          <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Filterable="false" Title="Category" HeaderStyle="min-width: 16rem;" />
           <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
-          <PropertyColumn Property="x => x.Balance" Format="#,0.00" Title="Balance" HeaderStyle="min-width: 16rem; text-align: right;"
+          <PropertyColumn Property="x => x.Balance" Format="#,0.00" Title="Balance" Filterable="false" HeaderStyle="min-width: 16rem; text-align: right;"
                           CellStyle="text-align: right;"/>
         </Columns >
         <ChildRowContent Context="context">

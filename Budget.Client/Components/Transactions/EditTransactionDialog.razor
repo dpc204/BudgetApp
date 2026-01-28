@@ -6,6 +6,8 @@
   .draft-input-right { width: 100px; }
 
   .draft-input-right input { text-align: right !important; }
+
+  .display-field-right input { text-align: right !important; }
 </style>
 
 <MudDialog ContentClass="pa-2">
@@ -13,8 +15,8 @@
     <MudForm @ref="_form" Model="_header">
       <MudGrid Class="mb-2" Spacing="0">
 
-        <MudItem xs="12" md="3">
-          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" Disabled="@IsVoided" style="width: 150px;" RelativeWidth="DropdownWidth.Ignore"/>
+        <MudItem xs="12" md="2">
+          <MudDatePicker @bind-Date="HeaderDate" Label="Date" MaxDate="@DateTime.Today" Disabled="@IsVoided" style="width: 150px;" RelativeWidth="DropdownWidth.Adaptive"/>
         </MudItem>
 
         <MudItem xs="3" md="2">
@@ -25,17 +27,37 @@
             }
           </MudSelect>
         </MudItem>
-        <MudItem xs="12" md="3">
-          <MudText Class="form-label mb-0 small text-muted">Total</MudText>
-          <MudText Typo="Typo.subtitle2" Class="fw-bold">@_header.TotalAmount.ToString("C")</MudText>
+        &nbsp;&nbsp;
+        <MudItem xs="12" md="1">
+          <MudTextField T="decimal" Value="EditTotalAmount" Label="Edit Total" tabindex="-1" ReadOnly="true" Underline="false" Immediate="true" Class="display-field-right" />
         </MudItem>
+        &nbsp;&nbsp;
+        <MudItem xs="12" md="1">
+          <MudTextField T="decimal" Value="EditDifference" Label="Difference" tabindex="-1" ReadOnly="true" Underline="false" Immediate="true" Class="display-field-right" />
+        </MudItem>
+        &nbsp;&nbsp;
+        <MudItem xs="12" md="1">
+          <MudTextField T="decimal" Value="_header.TotalAmount" Label="Transaction Total" tabindex="-1" Underline="false" ReadOnly="true" Class="display-field-right" />
+        </MudItem>
+        @*     <MudItem xs="12" md="2">
+          <MudText Class="form-label mb-0 small text-muted">Edit Total</MudText>
+          <MudText Typo="Typo.subtitle2" Class="fw-bold">@EditTotalAmount.ToString("C")</MudText>
+        </MudItem>  
+        <MudItem xs="12" md="2">
+          <MudText Class="form-label mb-0 small text-muted" Color="Color.Error">Difference </MudText>
+          <MudText Typo="Typo.subtitle2" Class="fw-bold" Color="Color.Error">@EditDifference.ToString("C")</MudText>
+        </MudItem>
+        <MudItem xs="12" md="2">
+          <MudText Class="form-label mb-0 small text-muted">Transaction Total</MudText>
+          <MudText Typo="Typo.subtitle2" Class="fw-bold">@_header.TotalAmount.ToString("C")</MudText>
+        </MudItem> *@
         <MudFlexBreak/>
         <MudItem xs="12" md="4">
           <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" Disabled="@IsVoided"/>
         </MudItem>
         &nbsp&nbsp&nbsp
         <MudItem xs="12" md="4">
-          <MudTextField @ref="_descriptionField" T="string" @bind-Value="_header.Description" Label="Description" Required="false" Immediate="true" Disabled="@IsVoided"/>
+          <MudTextField @ref="_descriptionField" T="string" @bind-Value="_header.Description" Label="Description" Required="false" Immediate="true" Disabled="@IsVoided" />
         </MudItem>
 
       </MudGrid>
@@ -103,7 +125,7 @@
   <DialogActions>
     <MudGrid Justify="Justify.SpaceBetween" alignItems="AlignItems.Center">
       <MudItem xs="5">
-        @if (!IsEditMode || (!IsVoided && !IsReadOnly && IsEditMode && UserOptions.IsAdminUser()))
+        @if (!IsEditMode || (!IsVoided && IsEditMode && UserOptions.IsAdminUser()))
         {
           <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddLine">Add Line</MudButton>
         }

@@ -32,6 +32,7 @@ public static class GetBudgetMonth
       var allEnvelopes = await db.Envelopes
         .AsNoTracking()
         .Include(e => e.Category)
+        .Where(a=>a.EnvelopeType == EnvelopeTypes.Standard)
         .OrderBy(e => e.SortOrder)
         .ToListAsync(cancellationToken);
 
