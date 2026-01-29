@@ -27,30 +27,23 @@
             }
           </MudSelect>
         </MudItem>
+        <MudSpacer />
         &nbsp;&nbsp;
+        <MudItem md="1" />
         <MudItem xs="12" md="1">
           <MudTextField T="decimal" Value="EditTotalAmount" Label="Edit Total" tabindex="-1" ReadOnly="true" Underline="false" Immediate="true" Class="display-field-right" />
         </MudItem>
         &nbsp;&nbsp;
+        <MudItem md="1" />
         <MudItem xs="12" md="1">
           <MudTextField T="decimal" Value="EditDifference" Label="Difference" tabindex="-1" ReadOnly="true" Underline="false" Immediate="true" Class="display-field-right" />
         </MudItem>
         &nbsp;&nbsp;
+        <MudItem md="1" />
         <MudItem xs="12" md="1">
-          <MudTextField T="decimal" Value="_header.TotalAmount" Label="Transaction Total" tabindex="-1" Underline="false" ReadOnly="true" Class="display-field-right" />
+          <MudTextField T="decimal" Value="_header.TotalAmount" Label="Tran. Total" tabindex="-1" Underline="false" ReadOnly="true" Class="display-field-right" />
         </MudItem>
-        @*     <MudItem xs="12" md="2">
-          <MudText Class="form-label mb-0 small text-muted">Edit Total</MudText>
-          <MudText Typo="Typo.subtitle2" Class="fw-bold">@EditTotalAmount.ToString("C")</MudText>
-        </MudItem>  
-        <MudItem xs="12" md="2">
-          <MudText Class="form-label mb-0 small text-muted" Color="Color.Error">Difference </MudText>
-          <MudText Typo="Typo.subtitle2" Class="fw-bold" Color="Color.Error">@EditDifference.ToString("C")</MudText>
-        </MudItem>
-        <MudItem xs="12" md="2">
-          <MudText Class="form-label mb-0 small text-muted">Transaction Total</MudText>
-          <MudText Typo="Typo.subtitle2" Class="fw-bold">@_header.TotalAmount.ToString("C")</MudText>
-        </MudItem> *@
+    
         <MudFlexBreak/>
         <MudItem xs="12" md="4">
           <MudTextField @ref="_vendorField" T="string" @bind-Value="_header.Vendor" Label="Vendor" Required="true" Immediate="true" Disabled="@IsVoided"/>

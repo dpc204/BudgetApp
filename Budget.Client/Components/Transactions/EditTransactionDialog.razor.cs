@@ -177,11 +177,11 @@ public partial class EditTransactionDialog
         {
           LineId = i + 1,
           EnvelopeId = l.EnvelopeId,
-          Amount = l.Amount,
+          Amount = l.Amount * -1,
           Description = l.Description?.Trim() ?? string.Empty
         })
       ],
-      TotalAmount = _header.TotalAmount
+      TotalAmount = _header.TotalAmount * -1
     };
 
     TransactionAddResult addResult = new TransactionAddResult();

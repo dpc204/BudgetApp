@@ -10,7 +10,7 @@ public partial class EnvelopePage(
 {
   [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
 
-  public List<EnvelopeResult> AllEnvelopeData => state.AllEnvelopeData ?? [];
+  public List<EnvelopeResult> AllEnvelopeData  { get; set; }
   public List<EnvelopeResult> SelectedEnvelopeData { get; set; } = [];
   public List<TransactionDto> TransactionData { get; set; } = [];
 
@@ -83,7 +83,7 @@ public partial class EnvelopePage(
       try
       {
         var result = await dataService.LoadEnvelopeDataAsync();
-
+        AllEnvelopeData = result.AllEnvelopes;
         SelectedCategoryId = result.SelectedCategoryId;
         CategoriesForSelect = result.Categories;
         ApplyCategorySelection();

@@ -61,7 +61,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
         new TransactionDto
         {
           EnvelopeId = envelope.Id,
-          Amount = 100m,
+          Amount = -100m,
           Description = "Test purchase"
         }
       ]

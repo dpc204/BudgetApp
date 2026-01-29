@@ -152,7 +152,7 @@ public class InsertTransactions(BudgetContext db) : IAsyncDisposable, IInsertTra
   {
     var env = await db.Envelopes.FindAsync([grp.Key]);
     if (env is null) return;
-    env.Balance -= grp.Sum(d => d.EnvelopeDelta); // subtract total amount for this envelope
+    env.Balance += grp.Sum(d => d.EnvelopeDelta); // subtract total amount for this envelope
     _InsertTransactionResult.EnvelopeUpdates.Add(new EnvelopeUpdate(grp.Key, grp.Sum(d => d.EnvelopeDelta)));
   }
 
@@ -162,9 +162,10 @@ public class InsertTransactions(BudgetContext db) : IAsyncDisposable, IInsertTra
     if (acct is null) return;
     acct.LastTransactionDate = DateTime.UtcNow;
     acct.LastTransaction = trans; // set navigation, EF will set FK after save
-    acct.Balance -= trans.TotalAmount;
+    acct.Balance += trans.TotalAmount;
   }
-
+  // envelope balance and account balance are being added wrong.  At least for manual transactions
+  // the envelope balances seem correct for imports but not manual
 
   public async ValueTask DisposeAsync()
   {

@@ -3,7 +3,7 @@ namespace Budget.Client.Services;
 /// <summary>
 /// Service for loading and transforming envelope data
 /// </summary>
-public class EnvelopeDataService(EnvelopeState state, IUserAndOptions userOptions) : IEnvelopeDataService
+public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUserAndOptions userOptions) : IEnvelopeDataService
 {
   /// <summary>
   /// Loads envelope data from cache or refreshes from API
@@ -13,29 +13,44 @@ public class EnvelopeDataService(EnvelopeState state, IUserAndOptions userOption
   /// <returns>Result containing loaded envelope data</returns>
   public async Task<EnvelopeDataResult> LoadEnvelopeDataAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)
   {
-    if (forceRefresh || !state.IsLoaded)
-    {
-      await state.RefreshAsync();
-    }
-    else
-    {
-      await state.TryLoadFromCacheAsync();
-      if (!state.IsLoaded)
-      {
-        await state.RefreshAsync();
-      }
-    }
-
-    var categories = GetCategoriesForSelect();
+    var categories = await api.GetCategoriesAsync(cancellationToken);
+    var envelopes = await api.GetEnvelopesAsync(cancellationToken: cancellationToken);
+  
     
+    var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c);
+    List<Cat> Cats = [new Cat { CategoryId = "0", CategoryName = "All" }];
+    Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name, CatType = c.CatType }));
+
+    List<EnvelopeResult> resultEnvs = [.. envelopes
+      .Select(e => new EnvelopeResult
+      {
+        CategoryId = e.CategoryId,
+        CategoryName = categoryNameLookup.TryGetValue(e.CategoryId, out var catName) ? catName.Name : string.Empty,
+        CategorySortOrder = categoryNameLookup.TryGetValue(e.CategoryId, out var catOrder) ? catOrder.SortOrder : 0,
+        EnvelopeId = e.Id,
+        EnvelopeName = e.Name,
+        EnvelopeSortOrder = e.SortOrder,
+        Balance = e.Balance,
+        Budget = e.Budget,
+        EnvelopeType = e.EnvelopeType
+      })
+      .OrderBy(e => e.CategoryId)
+      .ThenBy(e => e.EnvelopeName)];
+
+    
+
+  
     return new EnvelopeDataResult
     {
       AllEnvelopes = state.AllEnvelopeData ?? [],
-      Categories = categories,
+      Categories = Cats,
       SelectedCategoryId = userOptions.Options.SelectedCategoryType
     };
   }
 
+  
+  
+  
   /// <summary>
   /// Gets categories available for selection based on user permissions
   /// </summary>
@@ -80,7 +95,7 @@ public class EnvelopeDataService(EnvelopeState state, IUserAndOptions userOption
       var rec = state.AllEnvelopeData?.Find(e => e.EnvelopeId == env.EnvelopeId);
       if(rec != null)
       {
-        rec.Balance -= env.EnvelopeDelta;
+        rec.Balance += env.EnvelopeDelta;
       }
     }
     

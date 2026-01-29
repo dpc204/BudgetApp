@@ -10,22 +10,29 @@ public class EnvelopeDataServiceTests
   private readonly Mock<EnvelopeState> _mockState;
   private readonly Mock<IUserAndOptions> _mockUserOptions;
   private readonly EnvelopeDataService _service;
-
+  private readonly Mock<IBudgetApiClient> _mockApiClient = new();
   public EnvelopeDataServiceTests()
   {
     _mockState = new Mock<EnvelopeState>(null!, null!, null!);
     _mockUserOptions = new Mock<IUserAndOptions>();
-    _service = new EnvelopeDataService(_mockState.Object, _mockUserOptions.Object);
+    _mockApiClient = new Mock<IBudgetApiClient>();
+    _service = new EnvelopeDataService(_mockState.Object, _mockApiClient.Object, _mockUserOptions.Object);
   }
 
   [Fact]
   public async Task LoadEnvelopeDataAsync_WithCachedData_LoadsFromCache()
   {
     // Arrange
-    var categories = new List<Cat>
+    var categoryDtos = new List<CategoryDto>
     {
-      new Cat { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 },
-      new Cat { CategoryId = "2", CategoryName = "Transport", CatType = CatTypes.User, SortOrder = 2 }
+      new CategoryDto { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 },
+      new CategoryDto { CategoryId = "2", Name = "Transport", CatType = CatTypes.User, SortOrder = 2 }
+    };
+
+    var envelopeDtos = new List<EnvelopeDto>
+    {
+      new EnvelopeDto { Id = 1, Name = "Groceries", CategoryId = "1", Balance = 100m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard },
+      new EnvelopeDto { Id = 2, Name = "Gas", CategoryId = "2", Balance = 50m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard }
     };
 
     var envelopes = new List<EnvelopeResult>
@@ -34,9 +41,10 @@ public class EnvelopeDataServiceTests
       new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "Gas", CategoryId = "2", Balance = 50m }
     };
 
+    _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
+    _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>())).ReturnsAsync(envelopeDtos);
     _mockState.Setup(s => s.IsLoaded).Returns(true);
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
-    _mockState.Setup(s => s.Cats).Returns(categories);
     _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions { SelectedCategoryType = "1" });
 
     // Act
@@ -45,19 +53,22 @@ public class EnvelopeDataServiceTests
     // Assert
     result.Should().NotBeNull();
     result.AllEnvelopes.Should().HaveCount(2);
-    result.Categories.Should().HaveCount(2);
+    result.Categories.Should().HaveCount(3); // Includes "All" category
     result.SelectedCategoryId.Should().Be("1");
-    _mockState.Verify(s => s.TryLoadFromCacheAsync(), Times.Once);
-    _mockState.Verify(s => s.RefreshAsync(), Times.Never);
   }
 
   [Fact]
   public async Task LoadEnvelopeDataAsync_WithoutCachedData_RefreshesFromApi()
   {
     // Arrange
-    var categories = new List<Cat>
+    var categoryDtos = new List<CategoryDto>
     {
-      new Cat { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 }
+      new CategoryDto { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 }
+    };
+
+    var envelopeDtos = new List<EnvelopeDto>
+    {
+      new EnvelopeDto { Id = 1, Name = "Groceries", CategoryId = "1", Balance = 100m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard }
     };
 
     var envelopes = new List<EnvelopeResult>
@@ -65,9 +76,10 @@ public class EnvelopeDataServiceTests
       new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m }
     };
 
+    _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
+    _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>())).ReturnsAsync(envelopeDtos);
     _mockState.Setup(s => s.IsLoaded).Returns(false);
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
-    _mockState.Setup(s => s.Cats).Returns(categories);
     _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions { SelectedCategoryType = "0" });
 
     // Act
@@ -75,31 +87,32 @@ public class EnvelopeDataServiceTests
 
     // Assert
     result.Should().NotBeNull();
-    // When IsLoaded is false, it goes directly to RefreshAsync without trying cache first
-    _mockState.Verify(s => s.TryLoadFromCacheAsync(), Times.Never);
-    _mockState.Verify(s => s.RefreshAsync(), Times.Once);
+    result.Categories.Should().HaveCount(2); // Includes "All" category
   }
 
   [Fact]
   public async Task LoadEnvelopeDataAsync_WithForceRefresh_SkipsCache()
   {
     // Arrange
-    var categories = new List<Cat>
+    var categoryDtos = new List<CategoryDto>
     {
-      new Cat { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 }
+      new CategoryDto { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 }
     };
 
+    var envelopeDtos = new List<EnvelopeDto>();
+
+    _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
+    _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>())).ReturnsAsync(envelopeDtos);
     _mockState.Setup(s => s.IsLoaded).Returns(true);
     _mockState.Setup(s => s.AllEnvelopeData).Returns(new List<EnvelopeResult>());
-    _mockState.Setup(s => s.Cats).Returns(categories);
     _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions());
 
     // Act
     var result = await _service.LoadEnvelopeDataAsync(forceRefresh: true);
 
     // Assert
-    _mockState.Verify(s => s.TryLoadFromCacheAsync(), Times.Never);
-    _mockState.Verify(s => s.RefreshAsync(), Times.Once);
+    result.Should().NotBeNull();
+    result.Categories.Should().HaveCount(2); // Includes "All" category
   }
 
   [Fact]
@@ -192,11 +205,11 @@ public class EnvelopeDataServiceTests
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
 
     var tranResult = new TransactionAddResult();
-    
+
     tranResult.EnvelopeUpdates = new List<EnvelopeUpdate>
     {
-      new EnvelopeUpdate( 1, 150m ),
-      new EnvelopeUpdate ( 2,   75m )
+      new EnvelopeUpdate( 1, -150m ),
+      new EnvelopeUpdate ( 2,   -75m )
     };
 
     // Act
