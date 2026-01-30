@@ -19,6 +19,10 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
   private decimal _totalBudget = 0;
   private decimal _totalBalance = 0;
   private decimal _availableToFund = 0;
+  private decimal _totalToFund;
+  private decimal _originalAvailableToFund;
+  public bool HideFundButton => _selectedFillType == FillAmounts.NotSet;
+  public bool NotReadyToFill => (_availableToFund < 0 || _totalToFund == 0);
 
   /// <summary>
   /// Initialize the selectable month options (previous, current, next), select the current month, and load fund data for that month.
@@ -30,10 +34,13 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
     var currentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
     _monthOptions =
     [
+      new DateTime(2025, 10, 1),
+      new DateTime(2025, 11, 1),
       currentDate.AddMonths(-1),
       currentDate,
       currentDate.AddMonths(1)
     ];
+
     _selectedMonth = currentDate;
 
     await LoadFundDataAsync();
@@ -67,7 +74,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       _totalBudget = result.TotalBudget;
       _totalBalance = result.TotalBalance;
       _availableToFund = result.AvailableToFund;
-
+      _originalAvailableToFund = _availableToFund;
       _envelopeRows.Clear();
       _envelopeRows.AddRange(fundDataService.BuildDisplayRows(_fundData));
     }
@@ -165,13 +172,16 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       try
       {
         _availableToFund += envelope.FundAmount ?? 0; // Reclaim previous amount
-        var response = await BudgetMonthlyApi.UpdateFundAmountAsync(envelopeId, fundAmount);
+        var response = await api.UpdateFundAmountAsync(envelopeId, fundAmount);
 
         if (response.Success)
         {
           // Update local data
           envelope.FundAmount = fundAmount;
-          if (fundAmount != null) _availableToFund -= fundAmount.Value;
+          if (fundAmount != null)
+          {
+            _availableToFund -= fundAmount.Value;
+          }
 
           // Update the display row data without rebuilding entire table (prevents focus stealing)
           var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
@@ -193,6 +203,16 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       {
         Snackbar.Add($"Error updating fund amount: {ex.Message}", Severity.Error);
       }
+      finally
+      {
+        _totalToFund = 0;
+        _availableToFund = _originalAvailableToFund;
+        foreach (var env in _envelopeRows)
+        {
+          _totalToFund += env.FundAmount?? 0;
+          _availableToFund -= env.FundAmount ?? 0;
+        }
+      }
     }
   }
 
@@ -209,6 +229,11 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       "Fund screen help: Use the Fill button to automatically calculate funding amounts based on budget percentages. Use the three-dot menu to fill individual envelopes.",
       Severity.Info);
   }
+
+  private async Task CalculateFund()
+  {
+  }
+
 
   /// <summary>
   /// Clears all fund amounts across all envelopes, returning the fund dollars to available funds, and persists the changes to the backend.
@@ -259,7 +284,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
         StateHasChanged();
 
         // Call API to persist changes
-        var response = await BudgetMonthlyApi.ClearAllFundAmountsAsync();
+        var response = await api.ClearAllFundAmountsAsync();
 
         if (response.Success)
         {
@@ -280,9 +305,15 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       }
       finally
       {
+        _totalToFund = 0;
         _processing = false;
         StateHasChanged();
       }
     }
+  }
+
+  private async Task FundEnvelopes(MouseEventArgs arg)
+  {
+    await Task.CompletedTask;
   }
 }
