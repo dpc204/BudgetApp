@@ -51,9 +51,6 @@
     <PackageReference Include="Syncfusion.Blazor" Version="31.2.10" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.10" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
 
   <PropertyGroup>
     <HotReloadAutoRestart>true</HotReloadAutoRestart>

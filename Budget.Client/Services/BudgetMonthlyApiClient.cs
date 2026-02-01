@@ -1,3 +1,6 @@
+using Mapster;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+
 namespace Budget.Client.Services;
 
 /// <summary>
@@ -18,6 +21,46 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
   {
     var env = await GetAsync<EnvelopeDto>($"envelopes/bytype/{envType}", cancellationToken);
     return env;
+  }
+
+  public async Task<FundEnvelopesResponse> FundEnvelopesAsync(CancellationToken cancellationToken)
+  {
+    using var response = await http.PostAsync("envelopes/fund", null, cancellationToken);
+
+    if (!response.IsSuccessStatusCode)
+    {
+      logger.LogWarning("FundEnvelopes failed with status {Status}", response.StatusCode);
+      return new FundEnvelopesResponse(false, "Failed to fund envelopes", 0);
+    }
+
+    try
+    {
+      // Try to deserialize success response with fundedCount
+      var successResponse = await response.Content.ReadFromJsonAsync<FundSuccessResponse>(cancellationToken);
+      if (successResponse?.FundedCount != null)
+      {
+        return new FundEnvelopesResponse(
+          true, 
+          $"Successfully funded {successResponse.FundedCount} envelopes", 
+          successResponse.FundedCount);
+      }
+
+      // Try to deserialize error response
+      var errorResponse = await response.Content.ReadFromJsonAsync<FundErrorResponse>(cancellationToken);
+      if (errorResponse?.Error != null)
+      {
+        logger.LogWarning("FundEnvelopes failed: {Error}", errorResponse.Error);
+        return new FundEnvelopesResponse(false, errorResponse.Error, 0);
+      }
+
+      logger.LogWarning("FundEnvelopes returned unexpected response format");
+      return new FundEnvelopesResponse(false, "Unexpected response format", 0);
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex, "Error deserializing FundEnvelopes response");
+      return new FundEnvelopesResponse(false, ex.Message, 0);
+    }
   }
 
   private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct)
@@ -234,13 +277,23 @@ public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthl
     response.EnsureSuccessStatusCode();
     
     var result = await response.Content.ReadFromJsonAsync<ClearAllFundAmountsResponse>(cancellationToken: cancellationToken);
-    
+
     if (result is null)
     {
       logger.LogDebug("Null response for ClearAllFundAmountsResponse from envelopes/clearallfundamounts");
       throw new InvalidOperationException("Expected non-null ClearAllFundAmountsResponse from 'envelopes/clearallfundamounts'.");
     }
-    
+
     return result;
   }
 }
+
+/// <summary>
+/// Internal record for deserializing success response from fund endpoint
+/// </summary>
+file record FundSuccessResponse(int FundedCount);
+
+/// <summary>
+/// Internal record for deserializing error response from fund endpoint
+/// </summary>
+file record FundErrorResponse(string Error);

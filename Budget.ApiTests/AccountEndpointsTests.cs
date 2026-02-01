@@ -1,3 +1,5 @@
+using Budget.Shared.Enums;
+
 namespace Budget.ApiTests;
 
 /// <summary>
@@ -22,7 +24,7 @@ public class AccountEndpointsTests
       Id = 300, 
       Name = "Checking", 
       Balance = 1000m, 
-      AccountType = BankAccount.AccountTypes.Checking,
+      AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
     var account2 = new BankAccount 
@@ -30,7 +32,7 @@ public class AccountEndpointsTests
       Id = 301, 
       Name = "Credit Card", 
       Balance = 5000m, 
-      AccountType = BankAccount.AccountTypes.Credit,
+      AccountType = AccountTypes.Credit,
       FamilyId = 1
     };
 
@@ -51,12 +53,12 @@ public class AccountEndpointsTests
     var acct1 = resultList.Should().ContainSingle(a => a.Id == 300).Subject;
     acct1.Name.Should().Be("Checking");
     acct1.Balance.Should().Be(1000m);
-    acct1.AccountType.Should().Be(BankAccount.AccountTypes.Checking);
+    acct1.AccountType.Should().Be(AccountTypes.Checking);
 
     var acct2 = resultList.Should().ContainSingle(a => a.Id == 301).Subject;
     acct2.Name.Should().Be("Credit Card");
     acct2.Balance.Should().Be(5000m);
-    acct2.AccountType.Should().Be(BankAccount.AccountTypes.Credit);
+    acct2.AccountType.Should().Be(AccountTypes.Credit);
   }
 
   [Fact]
@@ -73,7 +75,7 @@ public class AccountEndpointsTests
     var command = new InsertAccount.Command(
       Name: "New Account",
       Balance: 2500m,
-      AccountType: BankAccount.AccountTypes.Checking);
+      AccountType: AccountTypes.Checking);
 
     // Act
     var result = await handler.Handle(command, CancellationToken.None);
@@ -82,7 +84,7 @@ public class AccountEndpointsTests
     result.Should().NotBeNull();
     result.Name.Should().Be("New Account");
     result.Balance.Should().Be(2500m);
-    result.AccountType.Should().Be(BankAccount.AccountTypes.Checking);
+    result.AccountType.Should().Be(AccountTypes.Checking);
     result.Id.Should().BeGreaterThan(0);
 
     // Verify in database
@@ -104,7 +106,7 @@ public class AccountEndpointsTests
       Id = 302, 
       Name = "Original Name", 
       Balance = 1000m, 
-      AccountType = BankAccount.AccountTypes.Checking,
+      AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
     
@@ -117,7 +119,7 @@ public class AccountEndpointsTests
       Id: 302,
       Name: "Updated Name",
       Balance: 1500m,
-      AccountType: BankAccount.AccountTypes.Credit);
+      AccountType: AccountTypes.Credit);
 
     // Act
     var result = await handler.Handle(command, CancellationToken.None);
@@ -127,7 +129,7 @@ public class AccountEndpointsTests
     result!.Id.Should().Be(302);
     result.Name.Should().Be("Updated Name");
     result.Balance.Should().Be(1500m);
-    result.AccountType.Should().Be(BankAccount.AccountTypes.Credit);
+    result.AccountType.Should().Be(AccountTypes.Credit);
 
     // Verify in database
     context.ChangeTracker.Clear();
@@ -135,7 +137,7 @@ public class AccountEndpointsTests
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Name.Should().Be("Updated Name");
     updatedAccount.Balance.Should().Be(1500m);
-    updatedAccount.AccountType.Should().Be(BankAccount.AccountTypes.Credit);
+    updatedAccount.AccountType.Should().Be(AccountTypes.Credit);
   }
 
   [Fact]
@@ -149,7 +151,7 @@ public class AccountEndpointsTests
       Id: 99999,
       Name: "Test",
       Balance: 100m,
-      AccountType: BankAccount.AccountTypes.Checking);
+      AccountType: AccountTypes.Checking);
 
     // Act
     var result = await handler.Handle(command, CancellationToken.None);
@@ -170,7 +172,7 @@ public class AccountEndpointsTests
       Id = 304, 
       Name = "To Delete", 
       Balance = 500m, 
-      AccountType = BankAccount.AccountTypes.Checking,
+      AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
     
@@ -236,7 +238,7 @@ public class AccountEndpointsTests
     var command = new InsertAccount.Command(
       Name: "Family Account",
       Balance: 1000m,
-      AccountType: BankAccount.AccountTypes.Checking);
+      AccountType: AccountTypes.Checking);
 
     // Act
     var result = await handler.Handle(command, CancellationToken.None);
@@ -259,7 +261,7 @@ public class AccountEndpointsTests
       Id = 305, 
       Name = "Original", 
       Balance = 1000m, 
-      AccountType = BankAccount.AccountTypes.Checking,
+      AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
     
@@ -272,7 +274,7 @@ public class AccountEndpointsTests
       Id: 305,
       Name: "Updated",
       Balance: 2000m,
-      AccountType: BankAccount.AccountTypes.Credit);
+      AccountType: AccountTypes.Credit);
 
     // Act
     var result = await handler.Handle(command, CancellationToken.None);

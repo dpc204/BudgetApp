@@ -314,7 +314,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return resp.IsSuccessStatusCode;
   }
 
-  public async Task<UserOptions?> GetUserOptionsAsync(string userId, CancellationToken cancellationToken = default)
+  public async Task<UserOptions?> GetUserOptionsAsync(int userId, CancellationToken cancellationToken = default)
   {
     try
     {
@@ -328,7 +328,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     }
   }
 
-  public async Task<bool> SaveUserOptionsAsync(string userId, UserOptions options, CancellationToken cancellationToken = default)
+  public async Task<bool> SaveUserOptionsAsync(int userId, UserOptions options, CancellationToken cancellationToken = default)
   {
     try
     {
@@ -346,7 +346,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
 
   private sealed record GetUserOptionsResponse(UserOptions? Options);
-  private sealed record SaveUserOptionsCommand(string UserId, UserOptions Options);
+  private sealed record SaveUserOptionsCommand(int UserId, UserOptions Options);
   private sealed record ImportResult(int Count);
   private sealed record BatchUpdateResult(int UpdatedCount);
   private sealed record LoadImportsCommand(int AccountId, int UserId);

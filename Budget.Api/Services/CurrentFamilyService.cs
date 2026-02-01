@@ -10,21 +10,22 @@ public class CurrentFamilyService(IHttpContextAccessor httpContextAccessor) : IC
   /// <summary>
   /// Gets the FamilyId of the currently authenticated user from claims
   /// </summary>
-  /// <returns>The FamilyId from claims, or 1 as default if not found or not authenticated</returns>
+  /// <returns>The FamilyId from claims</returns>
+  /// <exception cref="UnauthorizedAccessException">Thrown when user is not authenticated or FamilyId claim is missing/invalid</exception>
   public int GetCurrentFamilyId()
   {
     var user = httpContextAccessor.HttpContext?.User;
     if (user?.Identity?.IsAuthenticated != true)
     {
-      return 1; // Default family for unauthenticated requests
+      throw new UnauthorizedAccessException("User is not authenticated.");
     }
 
     var familyIdClaim = user.FindFirst("FamilyId")?.Value;
-    if (int.TryParse(familyIdClaim, out var familyId))
+    if (!int.TryParse(familyIdClaim, out var familyId))
     {
-      return familyId;
+      throw new UnauthorizedAccessException("User authenticated but FamilyId claim is missing or invalid.");
     }
 
-    return 1; // Default family if claim not found
+    return familyId;
   }
 }

@@ -33,8 +33,8 @@ public interface IBudgetApiClient
   Task<string> TriggerAzureSqlBackupAsync(CancellationToken cancellationToken = default);
 
   // User Options
-  Task<UserOptions?> GetUserOptionsAsync(string userId, CancellationToken cancellationToken = default);
-  Task<bool> SaveUserOptionsAsync(string userId, UserOptions options, CancellationToken cancellationToken = default);
+  Task<UserOptions?> GetUserOptionsAsync(int userId, CancellationToken cancellationToken = default);
+  Task<bool> SaveUserOptionsAsync(int userId, UserOptions options, CancellationToken cancellationToken = default);
   Task<AssignQueryResult> GetUnassignedVirtualAsync(AssignQuery query, CancellationToken cancellationToken = default);
 }
 

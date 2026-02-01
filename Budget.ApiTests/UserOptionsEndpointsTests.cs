@@ -28,7 +28,7 @@ public class UserOptionsEndpointsTests
   {
     // Arrange
     var db = GetTestDBContext();
-    var userId = "test-user-123";
+    var userId = 1;
     var options = new Budget.Shared.Services.UserOptions
     {
       FillAmountType = FillAmounts.FiftyPercent
@@ -57,7 +57,7 @@ public class UserOptionsEndpointsTests
   public async Task SaveUserOptions_Should_Update_Existing_Options()
   {
     // Arrange
-    var userId = "test-user-456";
+    var userId = 1;
     
     // First, save initial options
     var db = GetTestDBContext();
@@ -95,7 +95,7 @@ public class UserOptionsEndpointsTests
   {
     // Arrange
     var db = GetTestDBContext();
-    var userId = "test-user-789";
+    var userId = 1;
     
     // First, save some options
 
@@ -132,7 +132,7 @@ public class UserOptionsEndpointsTests
   {
     // Arrange
     var db = GetTestDBContext();
-    var userId = "non-existent-user";
+    var userId = 1;
 
     var command = new GetUserOptions.Query(userId);
     var handler = new GetUserOptions.Handler(db, new NullLogger<GetUserOptions.Handler>());

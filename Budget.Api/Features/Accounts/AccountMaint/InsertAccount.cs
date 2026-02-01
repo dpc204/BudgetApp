@@ -2,8 +2,8 @@ namespace Budget.Api.Features.Accounts.AccountMaint;
 
 public static class InsertAccount
 {
-  public sealed record Command(string Name, decimal Balance, BankAccount.AccountTypes AccountType) : IRequest<Response>;
-  public sealed record Response(int Id, string Name, decimal Balance, BankAccount.AccountTypes AccountType);
+  public sealed record Command(string Name, decimal Balance, AccountTypes AccountType) : IRequest<Response>;
+  public sealed record Response(int Id, string Name, decimal Balance, AccountTypes AccountType);
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response>
   {

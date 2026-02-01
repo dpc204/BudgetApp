@@ -3,7 +3,7 @@ namespace Budget.Client.Services;
 /// <summary>
 /// Service for loading and transforming fund data
 /// </summary>
-public class FundDataService(IBudgetMonthlyApiClient apiClient) : IFundDataService
+public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundDataService> logger) : IFundDataService
 {
   /// <summary>
   /// Loads fund data for the specified month
@@ -54,6 +54,21 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient) : IFundDataServi
   }
 
   /// <summary>
+  /// Moves fund amounts from Income folder to individual envelopes based on the
+  /// the Envelope.Fund amount that has been set by the user
+  /// </summary>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  public async Task<FundEnvelopesResponse> FundEnvelopesAsync(CancellationToken cancellationToken)
+  {
+    var response = await apiClient.FundEnvelopesAsync(cancellationToken);
+    if(!response.Success)
+      logger.LogError("Error funding envelopes: {Message} ", response.Message);
+
+    return response;
+  }
+  
+  /// <summary>
   /// Builds display rows from fund data
   /// </summary>
   /// <param name="fundData">The fund data to transform</param>
@@ -92,6 +107,14 @@ public interface IFundDataService
   /// Builds display rows from fund data
   /// </summary>
   List<FundDisplayRow> BuildDisplayRows(Dictionary<int, FundEnvelopeData> fundData);
+
+  /// <summary>
+  /// Moves fund amounts from Income folder to individual envelopes based on the
+  /// the Envelope.Fund amount that has been set by the user
+  /// </summary>
+  /// <param name="cancellationToken"></param>
+  /// <returns>True if funding was successful, otherwise false</returns>
+  Task<FundEnvelopesResponse> FundEnvelopesAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>

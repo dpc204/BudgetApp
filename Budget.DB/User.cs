@@ -43,4 +43,10 @@ namespace Budget.DB
       }
     }
   }
+
+  public enum UserTypes
+  {
+    Standard = 0,
+    System = 1,
+  }
 }

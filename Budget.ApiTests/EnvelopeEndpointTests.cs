@@ -287,7 +287,7 @@ public class EnvelopeEndpointTests
     
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var account = new BankAccount { Id = 406, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var account = new BankAccount { Id = 406, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
     var envelope = new Envelope 
     { 
       Id = 406, 

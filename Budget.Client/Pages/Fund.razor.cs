@@ -77,6 +77,8 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       _originalAvailableToFund = _availableToFund;
       _envelopeRows.Clear();
       _envelopeRows.AddRange(fundDataService.BuildDisplayRows(_fundData));
+      
+      UpdateFundTotals();
     }
     finally
     {
@@ -207,12 +209,17 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       {
         _totalToFund = 0;
         _availableToFund = _originalAvailableToFund;
-        foreach (var env in _envelopeRows)
-        {
-          _totalToFund += env.FundAmount?? 0;
-          _availableToFund -= env.FundAmount ?? 0;
-        }
+        UpdateFundTotals();
       }
+    }
+  }
+
+  private void UpdateFundTotals()
+  {
+    foreach (var env in _envelopeRows)
+    {
+      _totalToFund += env.FundAmount ?? 0;
+      _availableToFund -= env.FundAmount ?? 0;
     }
   }
 
@@ -314,6 +321,14 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
 
   private async Task FundEnvelopes(MouseEventArgs arg)
   {
-    await Task.CompletedTask;
+    var response = await fundDataService.FundEnvelopesAsync(CancellationToken.None);
+    if (response.Success)
+    {
+      Snackbar.Add($"{response.FundedEnvelopeCount} Envelopes funded successfully", Severity.Success);
+    }
+    else
+    {
+      Snackbar.Add("Error funding envelopes", Severity.Error);
+    }
   }
 }

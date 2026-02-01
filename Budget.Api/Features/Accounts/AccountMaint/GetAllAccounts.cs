@@ -3,13 +3,12 @@ namespace Budget.Api.Features.Accounts.AccountMaint;
 public static class GetAllAccounts
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
-  public sealed record Response(int Id, string Name, decimal Balance, BankAccount.AccountTypes AccountType);
+  public sealed record Response(int Id, string Name, decimal Balance, AccountTypes AccountType);
 
   public class Handler(BudgetContext db, ILogger<Handler> logger) : IRequestHandler<Query, IEnumerable<Response>>
   {
     public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken)
     {
-      logger.LogInformation("******* In Account query");
       var result = await db.BankAccounts.AsNoTracking()
         .Select(a => new Response(a.Id, a.Name, a.Balance, a.AccountType))
         .ToListAsync(cancellationToken);
@@ -17,6 +16,9 @@ public static class GetAllAccounts
     }
   }
 
+  /// <summary>
+  /// Maps the GET /accounts/maint/getall endpoint for retrieving all accounts.
+  /// </summary>
   public class Endpoint : ICarterModule
   {
     public void AddRoutes(IEndpointRouteBuilder app)

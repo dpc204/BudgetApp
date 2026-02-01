@@ -207,24 +207,68 @@ if (isEntraConfigured)
     
     logger.LogWarning("✅ Configured Entra JWT with RoleClaimType = 'roles' and valid issuers for tenant {TenantId}", tenantId);
     
-    // Add event handler to log claims after validation
+    // Add event handler to add FamilyId claim from database after token validation
     options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
     {
-      OnTokenValidated = context =>
+      OnTokenValidated = async context =>
       {
         var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}").ToList();
-        logger.LogWarning("🔍 Token validated for {Scheme}. Claims: {Claims}", 
+        logger.LogInformation("🔍 Token validated for {Scheme}. Claims: {Claims}", 
           EntraScheme, claims != null ? string.Join(", ", claims) : "NONE");
-        
+
         var roleClaims = context.Principal?.Claims
           .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "roles")
           .Select(c => c.Value)
           .ToList();
-        
-        logger.LogWarning("🔍 Role claims after mapping: {Roles}", 
+
+        logger.LogInformation("🔍 Role claims after mapping: {Roles}", 
           roleClaims != null && roleClaims.Any() ? string.Join(", ", roleClaims) : "NONE");
-        
-        return Task.CompletedTask;
+
+        // Add FamilyId claim from database for multi-tenancy
+        if (context.Principal != null)
+        {
+          // Get email from token claims
+          var email = context.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                      ?? context.Principal.FindFirst("preferred_username")?.Value
+                      ?? context.Principal.FindFirst("upn")?.Value;
+
+          if (!string.IsNullOrEmpty(email))
+          {
+            try
+            {
+              // Get database context from service provider
+              var dbContext = context.HttpContext.RequestServices.GetRequiredService<BudgetContext>();
+
+              // Load user from database (ignore query filters to find user by email across all families)
+              var user = await dbContext.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Email == email.ToUpper());
+
+              if (user != null)
+              {
+                // Add FamilyId claim to the principal
+                var claimsIdentity = new System.Security.Claims.ClaimsIdentity();
+                claimsIdentity.AddClaim(new System.Security.Claims.Claim("FamilyId", user.FamilyId.ToString()));
+                context.Principal.AddIdentity(claimsIdentity);
+
+                logger.LogInformation("✅ Added FamilyId claim: {FamilyId} for user {Email}", user.FamilyId, email);
+              }
+              else
+              {
+                logger.LogWarning("⚠️ User not found in database for email: {Email}", email);
+              }
+            }
+            catch (Exception ex)
+            {
+              logger.LogError(ex, "❌ Error adding FamilyId claim for email: {Email}", email);
+              // Don't throw - allow authentication to succeed even if FamilyId loading fails
+            }
+          }
+          else
+          {
+            logger.LogWarning("⚠️ No email claim found in token");
+          }
+        }
       }
     };
   }, 
@@ -449,16 +493,6 @@ app.MapDefaultEndpoints();
 var summaries = new[]
   { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
 
-app.MapGet("/weatherforecast", () =>
-{
-  var forecast = Enumerable.Range(1, 5)
-    .Select(index => new WeatherForecast(
-      DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-      Random.Shared.Next(-20, 55),
-      summaries[Random.Shared.Next(summaries.Length)]))
-    .ToArray();
-  return forecast;
-}).WithName("GetWeatherForecast");
 
 // DEBUG: Temporary endpoint to check user roles and claims
 if (app.Environment.IsDevelopment())
@@ -545,7 +579,3 @@ namespace Budget.Api
   }
 }
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-  public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

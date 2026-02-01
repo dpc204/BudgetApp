@@ -76,6 +76,7 @@ public interface IBudgetMonthlyApiClient
   Task<ClearAllFundAmountsResponse> ClearAllFundAmountsAsync(CancellationToken cancellationToken = default);
 
   Task<EnvelopeDto> GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes envType, CancellationToken cancellationToken = default);
+  Task<FundEnvelopesResponse> FundEnvelopesAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -104,6 +105,13 @@ public record CheckDraftsResponse(bool HasDrafts, int DraftCount);
 /// Response for UpdateBudgetDraft endpoint
 /// </summary>
 public record UpdateDraftResponse(bool Success, string Message);
+
+
+/// <summary>
+/// Response for FundEnvelopes endpoint
+/// </summary>
+public record FundEnvelopesResponse(bool Success, string Message, int FundedEnvelopeCount);
+
 
 /// <summary>
 /// Response for UpdateBudgetLock endpoint

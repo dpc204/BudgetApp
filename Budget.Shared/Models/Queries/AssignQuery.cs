@@ -17,16 +17,7 @@ namespace Budget.Shared.Models.Queries
     public List<FilterItem>? Filters { get; set; }
   }
 
-  public class FilterItem
-  {
-    public string? Column { get; set; }
-    public string? Operator { get; set; }
-    public string? Value { get; set; }
-  }
 
-  public class AssignQueryResult
-  {
-    public List<TransactionDto> Items { get; set; } = new();
-    public int TotalCount { get; set; }
-  }
+
+ 
 }

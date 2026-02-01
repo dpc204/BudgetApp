@@ -28,7 +28,11 @@ public class UserEmailTriggerTests : IDisposable
       .Options;
       
     _context = new BudgetContext(options);
-    
+
+
+    // Ensure the database schema is up-to-date
+    _context.Database.EnsureCreated(); // This line is important for initial creation if not using migrations.
+        _context.Database.EnsureDeleted();
     // Create database and run migrations
     _context.Database.Migrate();
   }
@@ -155,7 +159,7 @@ public class UserEmailTriggerTests : IDisposable
     Assert.NotNull(savedUser);
     Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
   }
-  
+    
   public void Dispose()
   {
     // Clean up test database

@@ -8,12 +8,14 @@ namespace Budget.Client.Tests.Services;
 public class FundDataServiceTests
 {
   private readonly Mock<IBudgetMonthlyApiClient> _mockApiClient;
+  private readonly Mock<ILogger<FundDataService>> _mockLogger;
   private readonly FundDataService _service;
 
   public FundDataServiceTests()
   {
     _mockApiClient = new Mock<IBudgetMonthlyApiClient>();
-    _service = new FundDataService(_mockApiClient.Object);
+    _mockLogger = new Mock<ILogger<FundDataService>>();
+    _service = new FundDataService(_mockApiClient.Object, _mockLogger.Object);
   }
 
   [Fact]

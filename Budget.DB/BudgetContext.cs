@@ -51,16 +51,16 @@ namespace Budget.DB
       // Only filter when ICurrentFamilyService is available (not in migrations or seeding)
       if (_currentFamilyService != null)
       {
-        var familyId = _currentFamilyService.GetCurrentFamilyId();
-
-        //        modelBuilder.Entity<User>().HasQueryFilter(e => e.FamilyId == familyId);  // Users are not filtered by FamilyId
-        modelBuilder.Entity<BankAccount>().HasQueryFilter(e => e.FamilyId == familyId);
-        modelBuilder.Entity<Category>().HasQueryFilter(e => e.FamilyId == familyId);
-        modelBuilder.Entity<Envelope>().HasQueryFilter(e => e.FamilyId == familyId);
-        modelBuilder.Entity<Transaction>().HasQueryFilter(e => e.FamilyId == familyId);
-        modelBuilder.Entity<Favorite>().HasQueryFilter(e => e.FamilyId == familyId);
-        modelBuilder.Entity<BudgetMonth>().HasQueryFilter(e => e.FamilyId == familyId);
-        modelBuilder.Entity<TransactionImport>().HasQueryFilter(e => e.FamilyId == familyId);
+        // CRITICAL: Use lambda expression so FamilyId is evaluated at query execution time, not at model creation time
+        // This ensures the filter uses the current HttpContext's FamilyId for each query
+        //        modelBuilder.Entity<User>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());  // Users are not filtered by FamilyId
+        modelBuilder.Entity<BankAccount>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
+        modelBuilder.Entity<Category>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
+        modelBuilder.Entity<Envelope>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
+        modelBuilder.Entity<Transaction>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
+        modelBuilder.Entity<Favorite>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
+        modelBuilder.Entity<BudgetMonth>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
+        modelBuilder.Entity<TransactionImport>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
       }
 
 #if DEBUG

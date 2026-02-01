@@ -13,8 +13,8 @@
         <MudStack Spacing="2">
           <MudTextField @bind-Value="_account.Name" Label="Name" For="() => _account.Name" Required="true"/>
           <MudNumericField @bind-Value="_account.Balance" Label="Balance" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Variant="Variant.Outlined"/>
-          <MudSelect T="BankAccountType" @bind-Value="_account.AccountType" Label="Type" Required="true">
-            @foreach (var t in Enum.GetValues<BankAccountType>())
+          <MudSelect T="AccountTypes" @bind-Value="_account.AccountType" Label="Type" Required="true">
+            @foreach (var t in Enum.GetValues<AccountTypes>())
             {
               <MudSelectItem Value="@t">@t</MudSelectItem>
             }

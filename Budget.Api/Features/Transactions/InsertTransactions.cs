@@ -11,8 +11,10 @@ public interface IInsertTransactions
   ValueTask DisposeAsync();
 }
 
-public class InsertTransactions(BudgetContext db) : IAsyncDisposable, IInsertTransactions
+public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentFamilyService) : IAsyncDisposable, IInsertTransactions
 {
+  private readonly ICurrentFamilyService _currentFamilyService = currentFamilyService;
+
   /// <summary>
   /// _transactions holds a list of all added transactions that will be added via a bulk insert
   /// </summary>
@@ -118,6 +120,7 @@ public class InsertTransactions(BudgetContext db) : IAsyncDisposable, IInsertTra
       Date = tran.Date,
       Vendor = tran.Vendor,
       Description = tran.Description,
+      FamilyId = _currentFamilyService.GetCurrentFamilyId(),
       UserId = tran.UserId,
       WasPotentialDuplicate = tran.WasPotentialDuplicate
     };

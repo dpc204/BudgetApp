@@ -13,7 +13,7 @@ public static class GetUserOptions
   /// <summary>
   /// Query to get user options
   /// </summary>
-  public sealed record Query(string UserId) : IRequest<Response>;
+  public sealed record Query(int UserId) : IRequest<Response>;
 
   /// <summary>
   /// Response containing user options
@@ -56,7 +56,7 @@ public static class GetUserOptions
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapGet("/api/useroptions/{userId}", async (string userId, [FromServices] ISender sender) =>
+      app.MapGet("/api/useroptions/{userId}", async (int userId, [FromServices] ISender sender) =>
       {
         var result = await sender.Send(new Query(userId));
         return Results.Ok(result);

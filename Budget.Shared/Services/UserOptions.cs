@@ -10,7 +10,7 @@ public class UserOptions
     _selectedCategoryType = "ALL";
   }
   
-  public string UserId { get; set; } = string.Empty;
+  public int UserId { get; set; }
   
   /// <summary>
   /// Event raised when any property is being read (before returning value).

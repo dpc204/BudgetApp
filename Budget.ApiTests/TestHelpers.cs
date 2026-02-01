@@ -1,3 +1,5 @@
+using Budget.Shared.Enums;
+
 namespace Budget.ApiTests;
 
 /// <summary>
@@ -17,7 +19,7 @@ public static class TestHelpers
         int? id = null,
         string? name = null,
         decimal balance = 1000m,
-        BankAccount.AccountTypes accountType = BankAccount.AccountTypes.Checking,
+        AccountTypes accountType = AccountTypes.Checking,
         int familyId = 1)
     {
         var accountId = id ?? _nextAccountId++;

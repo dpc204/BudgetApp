@@ -117,8 +117,8 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     context.Families.AddRange(family1, family2);
     
     // Create accounts for both families
-    var account1 = new BankAccount { Id = 200, Name = "Account 1 - Family 10", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 10 };
-    var account2 = new BankAccount { Id = 201, Name = "Account 2 - Family 20", Balance = 2000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 20 };
+    var account1 = new BankAccount { Id = 200, Name = "Account 1 - Family 10", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 10 };
+    var account2 = new BankAccount { Id = 201, Name = "Account 2 - Family 20", Balance = 2000m, AccountType = AccountTypes.Checking, FamilyId = 20 };
     context.BankAccounts.AddRange(account1, account2);
     
     // Create users for both families
@@ -178,14 +178,13 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     context.Families.AddRange(family1, family2);
     
     // Create accounts
-    var account1 = new BankAccount { Id = 300, Name = "Checking - Family 10", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 10 };
-    var account2 = new BankAccount { Id = 301, Name = "Savings - Family 20", Balance = 2000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 20 };
+    var account1 = new BankAccount { Id = 300, Name = "Checking - Family 10", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 10 };
+    var account2 = new BankAccount { Id = 301, Name = "Savings - Family 20", Balance = 2000m, AccountType = AccountTypes.Checking, FamilyId = 20 };
     context.BankAccounts.AddRange(account1, account2);
     await context.SaveChangesAsync();
     
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
-
     // Act
     var accounts = await context.BankAccounts.Where(a => a.Id >= 300).ToListAsync();
     

@@ -17,15 +17,15 @@ public class CurrentFamilyService(IHttpContextAccessor httpContextAccessor) : IC
     var user = httpContextAccessor.HttpContext?.User;
     if (user?.Identity?.IsAuthenticated != true)
     {
-      return 1; // Default family for unauthenticated requests
+      return -999;
     }
 
     var familyIdClaim = user.FindFirst("FamilyId")?.Value;
-    if (int.TryParse(familyIdClaim, out var familyId))
+    if (!int.TryParse(familyIdClaim, out var familyId))
     {
-      return familyId;
+      return -998;
     }
 
-    return 1; // Default family if claim not found
+    return familyId;
   }
 }

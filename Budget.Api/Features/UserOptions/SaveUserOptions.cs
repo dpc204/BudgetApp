@@ -12,7 +12,7 @@ public static class SaveUserOptions
   /// <summary>
   /// Command to save user options
   /// </summary>
-  public sealed record Command(string UserId, Budget.Shared.Services.UserOptions Options) : IRequest<Response>;
+  public sealed record Command(int UserId, Budget.Shared.Services.UserOptions Options) : IRequest<Response>;
 
   /// <summary>
   /// Response indicating save success

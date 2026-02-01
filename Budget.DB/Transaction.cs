@@ -9,26 +9,22 @@ namespace Budget.DB
   {
     public int Id { get; set; }
     public DateTime Date { get; set; }
-    
+    public TransactionTypes TransactionType { get; set; }
     public string Vendor { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
-
     [ForeignKey("Account")]
     public int AccountId { get; set; }
     public BankAccount Account { get; set; } = null!;
     public string UserName { get; set; } = string.Empty;
-
     [ForeignKey("User")] public int UserId { get; set; }
     public User User { get; set; } = null!;
-
     public decimal BalanceAfterTransaction { get; set; }
     public bool IsVoided { get; set; }
     public int FamilyId { get; set; } = 1;
     public bool WasPotentialDuplicate { get; set; } 
     public Family Family { get; set; } = null!;
     public List<TransactionDetail> Details { get; set; } = [];
-
     public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
     {
       public void Configure(EntityTypeBuilder<Transaction> entity)

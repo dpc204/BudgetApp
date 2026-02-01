@@ -2,8 +2,8 @@ namespace Budget.Api.Features.Accounts.AccountMaint;
 
 public static class UpdateAccount
 {
-  public sealed record Command(int Id, string Name, decimal Balance, BankAccount.AccountTypes AccountType) : IRequest<Response?>;
-  public sealed record Response(int Id, string Name, decimal Balance, BankAccount.AccountTypes AccountType);
+  public sealed record Command(int Id, string Name, decimal Balance, AccountTypes AccountType) : IRequest<Response?>;
+  public sealed record Response(int Id, string Name, decimal Balance, AccountTypes AccountType);
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response?>
   {
@@ -40,6 +40,6 @@ public static class UpdateAccount
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public decimal Balance { get; set; }
-    public BankAccount.AccountTypes AccountType { get; set; }
+    public AccountTypes AccountType { get; set; }
   }
 }

@@ -8,7 +8,7 @@ namespace Budget.DB
   public class SavedUserOptions
   {
     [Key]
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string? JsonOptions { get; set; }
 
     public class SavedUserOptionsConfiguration : IEntityTypeConfiguration<SavedUserOptions>
@@ -16,7 +16,7 @@ namespace Budget.DB
       public void Configure(EntityTypeBuilder<SavedUserOptions> entity)
       {
         entity.Property(e => e.UserId)
-          .HasMaxLength(100);
+          .ValueGeneratedNever(); // UserId is not auto-generated, it's a FK to User
         entity.Property(a => a.JsonOptions)
           .HasMaxLength(1000);
       }

@@ -30,7 +30,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var account = new BankAccount { Id = 200, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var account = new BankAccount { Id = 200, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
     var envelope = new Envelope 
     { 
       Id = 200, 
@@ -67,7 +67,8 @@ public class TransactionEndpointsTests : IntegrationTestBase
       ]
     };
      
-    var inserter = new InsertTransactions(context);
+    var mockFamilyService = new TestCurrentFamilyService(1);
+    var inserter = new InsertTransactions(context, mockFamilyService);
     var handler = new AddNewTransaction.Handler(context, inserter);
     var command = new AddNewTransaction.Command(transactionDetail);
 
@@ -96,7 +97,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "-2", Name = "Unassigned", Description = "Unassigned", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.System };
-    var account = new BankAccount { Id = 201, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var account = new BankAccount { Id = 201, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
     var unassignedEnvelope = new Envelope 
     { 
       Id = -2, 
@@ -159,7 +160,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var account = new BankAccount { Id = 202, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var account = new BankAccount { Id = 202, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
     var envelope = new Envelope 
     { 
       Id = 202, 
@@ -222,7 +223,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var account = new BankAccount { Id = 203, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var account = new BankAccount { Id = 203, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
     var envelope = new Envelope 
     { 
       Id = 203, 
@@ -287,7 +288,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var unallocatedCategory = new Category { CategoryId = "-1", Name = "UnAllocated", Description = "UnAllocated", SortOrder = 999, FamilyId = 1, CategoryType = CatTypes.System };
-    var account = new BankAccount { Id = 204, Name = "Test Account", Balance = 1000m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var account = new BankAccount { Id = 204, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
     var envelope = new Envelope 
     { 
       Id = 204, 
@@ -362,7 +363,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var account = new BankAccount { Id = 205, Name = "Test Account", Balance = 900m, AccountType = BankAccount.AccountTypes.Checking, FamilyId = 1 };
+    var account = new BankAccount { Id = 205, Name = "Test Account", Balance = 900m, AccountType = AccountTypes.Checking, FamilyId = 1 };
     var envelope = new Envelope 
     { 
       Id = 205, 

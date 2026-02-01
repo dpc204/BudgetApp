@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.ComponentModel.DataAnnotations.Schema;
+using Budget.Shared.Enums;
 
 namespace Budget.DB
 {
   public class BankAccount
   {
-    public enum AccountTypes { Checking, Credit }
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public decimal Balance { get; set; } = 0m;

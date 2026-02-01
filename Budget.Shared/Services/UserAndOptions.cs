@@ -31,7 +31,7 @@ public class UserAndOptions : IUserAndOptions
     User = userInfo;
     HasInfo = true;
     // Update UserId in Options when user info is set
-    if (Options != null && !string.IsNullOrEmpty(userInfo.Id))
+    if (Options != null && userInfo.Id != 0)
     {
       Options.UserId = userInfo.Id;
     }
@@ -50,7 +50,7 @@ public class UserAndOptions : IUserAndOptions
     }
     
     // First call - start loading
-    if (!_optionsLoadAttempted && _apiClient != null && HasInfo && !string.IsNullOrEmpty(User.Id))
+    if (!_optionsLoadAttempted && _apiClient != null && HasInfo && User.Id != 0)
     {
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
@@ -155,7 +155,7 @@ public class UserAndOptions : IUserAndOptions
   {
     // When any property is read, ensure options are loaded
     // This makes lazy loading completely transparent
-    if (!_optionsLoadAttempted && _apiClient != null && HasInfo && !string.IsNullOrEmpty(User.Id))
+    if (!_optionsLoadAttempted && _apiClient != null && HasInfo && User.Id != 0)
     {
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
@@ -165,12 +165,12 @@ public class UserAndOptions : IUserAndOptions
 
   private async void OnOptionsChanged()
   {
-    if (_apiClient != null && HasInfo && !string.IsNullOrEmpty(User.Id))
+    if (_apiClient != null && HasInfo && User.Id != 0)
     {
       try
       {
         // Ensure UserId is set
-        if (string.IsNullOrEmpty(Options.UserId))
+        if (Options.UserId == 0)
         {
           Options.UserId = User.Id;
         }

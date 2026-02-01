@@ -3,16 +3,16 @@ using System.Net.Http;
 using System.Reflection;
 using Budget.Api;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Configuration;
 
 
 namespace Budget.ApiTests;
 
-public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
+public class IntegrationTestBase
 {
   //protected HttpClient Client => _factory.CreateClient();
   //protected readonly WebApplicationFactory<Program> _factory;
@@ -96,7 +96,8 @@ public class IntegrationTestBase : IClassFixture<WebApplicationFactory<Program>>
   {
 
     var bld = new DbContextOptionsBuilder<BudgetContext>()
-      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}");
+      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .EnableServiceProviderCaching(false); // Disable caching to ensure fresh database per test
 
     bld.ConfigureWarnings(warn => warn.Ignore(InMemoryEventId.TransactionIgnoredWarning));
 
@@ -111,7 +112,7 @@ protected  BudgetContext GetTestDBContext(int familyId = 1)
     return db;
   }
 
-  private class TestCurrentFamilyService(int familyId = 1) : ICurrentFamilyService
+  protected class TestCurrentFamilyService(int familyId = 1) : ICurrentFamilyService
   {
     public int FamilyId { get; set; } = familyId;
     public int GetCurrentFamilyId() => FamilyId;
