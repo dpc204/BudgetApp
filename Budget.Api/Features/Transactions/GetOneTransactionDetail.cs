@@ -16,9 +16,8 @@ public static class GetOneTransactionDetail
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public string UserInitials { get; set; } = string.Empty;
-    public decimal BalanceAfterTransaction { get; set; }
     public bool IsVoided { get; set; }
-    public List<TransactionDto> Details { get; set; } = [];
+    public List<TransactionDetailDto> Details { get; set; } = [];
   }
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, Response?>
@@ -43,16 +42,13 @@ public static class GetOneTransactionDetail
           IsVoided = t.IsVoided,
           Details = t.Details
             .OrderBy(d => d.LineId)
-            .Select(d => new TransactionDto
+            .Select(d => new TransactionDetailDto
             {
               TransactionId = d.TransactionId,
               LineId = d.LineId,
-              Description = d.Notes,
-              Amount = d.Amount,
-              Date = t.Date,
-              EnvelopeId = d.Envelope.Id,
-              EnvelopeName = d.Envelope.Name,
-              IsVoided = t.IsVoided
+              EnvelopeId = d.EnvelopeId,
+              Notes = d.Notes,
+              Amount = d.Amount
             })
             .ToList()
         })

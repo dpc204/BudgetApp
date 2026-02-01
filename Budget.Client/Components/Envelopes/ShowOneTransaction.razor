@@ -23,8 +23,8 @@
         </HeaderContent>
         <RowTemplate>
           <MudTd DataLabel="Line#">@context.LineId</MudTd>
-          <MudTd DataLabel="Envelope">@context.EnvelopeName</MudTd>
-          <MudTd DataLabel="Description">@context.Description</MudTd>
+          <MudTd DataLabel="Envelope">Envelope @context.EnvelopeId</MudTd>
+          <MudTd DataLabel="Description">@context.Notes</MudTd>
           <MudTd DataLabel="Amount" Class="text-end">@context.Amount.ToString("N2")</MudTd>
         </RowTemplate>
         <NoRecordsContent>

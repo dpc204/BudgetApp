@@ -84,8 +84,8 @@ public partial class EditTransactionDialog
         {
           EnvelopeId = detail.EnvelopeId,
           Amount = detail.Amount,
-          Description = detail.Description,
-          IsVoided = detail.IsVoided
+          Description = detail.Notes,
+          IsVoided = ExistingTransaction.IsVoided
         });
       }
 
@@ -173,12 +173,13 @@ public partial class EditTransactionDialog
       UserName = UserOptions.User.Email!,
       Details =
       [
-        .. _lines.Select((l, i) => new TransactionDto()
+        .. _lines.Select((l, i) => new TransactionDetailDto()
         {
-          LineId = i + 1,
+          TransactionId = _transactionId,
           EnvelopeId = l.EnvelopeId,
           Amount = l.Amount * -1,
-          Description = l.Description?.Trim() ?? string.Empty
+          Notes = l.Description?.Trim() ?? string.Empty
+          // LineId intentionally left unset - will be assigned by backend
         })
       ],
       TotalAmount = _header.TotalAmount * -1

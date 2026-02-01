@@ -48,7 +48,7 @@ public static class UpdateTransaction
           LineId = lineId++,
           Amount = detail.Amount,
           EnvelopeId = detail.EnvelopeId,
-          Notes = detail.Description
+          Notes = detail.Notes
         };
         existingTrans.TotalAmount += detail.Amount;
         existingTrans.Details.Add(dtl);

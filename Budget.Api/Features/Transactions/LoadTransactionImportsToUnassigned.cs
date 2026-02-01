@@ -56,16 +56,13 @@ public static class LoadTransactionImportsToUnassigned
           WasPotentialDuplicate = rec.KeepDuplicate,
           Details =
           [
-            new TransactionDto
+            new TransactionDetailDto
             {
-              LineId = 0,
-              Vendor = rec.Vendor,
-              Description = rec.Description,
-              Amount = rec.Amount,
-              Date = rec.Date,
+              TransactionId = 0, // Will be set by backend
+              LineId = 0, // Will be set by backend
               EnvelopeId = unassigned.Id,
-              EnvelopeName = rec.EnvelopeName,
-              UserId = rec.UserId
+              Amount = rec.Amount,
+              Notes = rec.Description
             }
           ]
         };

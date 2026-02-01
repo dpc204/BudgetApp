@@ -16,6 +16,15 @@ public class TransactionDto
   public bool WasPotentialDuplicate { get; set; }
 }
 
+public class TransactionDetailDto
+{
+  public int TransactionId { get; set; }
+  public int LineId { get; set; }
+  public int EnvelopeId { get; set; }
+  public string Notes { get; set; } = string.Empty;
+  public decimal Amount { get; set; }
+
+}
 
 public class EnvelopeTransactionListItem
 {
@@ -32,16 +41,4 @@ public class EnvelopeTransactionListItem
   public bool WasPotentialDuplicate { get; set; }
   public decimal LineAmount { get; set; }
   public string Notes { get; set; } = string.Empty;
-}
-
-public class TransactionDetailDto
-{
-  public int TransactionId { get; set; }
-  public int LineId { get; set; }
-  public EnvelopeTransactionListItem Transaction { get; set; } = null!;
-  public int EnvelopeId { get; set; }
-  public EnvelopeDto Envelope { get; set; } = null!;
-  public string Notes { get; set; } = string.Empty;
-  public decimal Amount { get; set; }
-
 }

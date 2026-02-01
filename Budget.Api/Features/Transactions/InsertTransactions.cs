@@ -134,7 +134,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
         LineId = lineId++,
         Amount = detail.Amount,
         EnvelopeId = detail.EnvelopeId,
-        Notes = detail.Description
+        Notes = detail.Notes
       };
 
       trans.TotalAmount += detail.Amount;

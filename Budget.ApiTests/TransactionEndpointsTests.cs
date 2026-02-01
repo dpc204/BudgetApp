@@ -58,11 +58,13 @@ public class TransactionEndpointsTests : IntegrationTestBase
       UserId = 1,
       Details =
       [
-        new TransactionDto
+        new TransactionDetailDto
         {
+          TransactionId = 0,
           EnvelopeId = envelope.Id,
           Amount = -100m,
-          Description = "Test purchase"
+          Notes = "Test purchase"
+          // LineId will be assigned by backend
         }
       ]
     };
@@ -415,12 +417,13 @@ public class TransactionEndpointsTests : IntegrationTestBase
       UserId = 1,
       Details =
       [
-        new TransactionDto
+        new TransactionDetailDto
         {
+          TransactionId = 700,
           LineId = 1,
           EnvelopeId = 205,
           Amount = 150m,
-          Description = "Updated"
+          Notes = "Updated"
         }
       ]
     };
