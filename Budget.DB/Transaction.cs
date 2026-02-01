@@ -19,7 +19,6 @@ namespace Budget.DB
     public string UserName { get; set; } = string.Empty;
     [ForeignKey("User")] public int UserId { get; set; }
     public User User { get; set; } = null!;
-    public decimal BalanceAfterTransaction { get; set; }
     public bool IsVoided { get; set; }
     public int FamilyId { get; set; } = 1;
     public bool WasPotentialDuplicate { get; set; } 
@@ -35,10 +34,6 @@ namespace Budget.DB
           .HasMaxLength(200);
         entity.Property(t => t.TotalAmount)
           .HasPrecision(18, 2);
-        entity.Property(t => t.BalanceAfterTransaction)
-          .HasPrecision(18, 2);
-
-
 
         // Explicit relationships ensure principal data is seeded first
         entity.HasOne(t => t.Account)

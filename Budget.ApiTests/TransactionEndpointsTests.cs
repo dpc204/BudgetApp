@@ -390,8 +390,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       Date = DateTime.UtcNow,
       TotalAmount = 100m,
       UserId = 1,
-      FamilyId = 1,
-      BalanceAfterTransaction = 900m
+      FamilyId = 1
     };
     var detail = new TransactionDetail 
     { 

@@ -40,7 +40,6 @@ public static class GetOneTransactionDetail
 #pragma warning disable CA1845 // Use span-based 'string.Concat' - cannot use spans in expression trees
           UserInitials = t.User.FirstName.Substring(0, 1) + t.User.LastName.Substring(0, 1),
 #pragma warning restore CA1845
-          BalanceAfterTransaction = t.BalanceAfterTransaction,
           IsVoided = t.IsVoided,
           Details = t.Details
             .OrderBy(d => d.LineId)
