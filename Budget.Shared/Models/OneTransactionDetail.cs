@@ -13,4 +13,5 @@ public sealed class OneTransactionDetail
   public bool IsVoided { get; set; }
   public bool WasPotentialDuplicate { get; set; }
   public List<TransactionDetailDto> Details { get; set; } = [];
+  public TransactionTypes TransactionType { get; set; }
 }

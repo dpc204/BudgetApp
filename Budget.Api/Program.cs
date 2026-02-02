@@ -63,8 +63,8 @@ builder.Services.AddFantumMediator();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentFamilyService, CurrentFamilyService>();
 builder.Services.AddTransient<IInsertTransactions, InsertTransactions>();
+builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
 builder.Services.AddTransient<IMoveEnvelopeBalance, MoveEnvelopeBalance>();
-
 // Check if running in test mode
 var isTest = AppDomain.CurrentDomain.GetAssemblies()
   .Any(a => a.FullName != null && (a.FullName.StartsWith("xunit")

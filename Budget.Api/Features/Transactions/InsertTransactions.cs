@@ -11,7 +11,8 @@ public interface IInsertTransactions
   ValueTask DisposeAsync();
 }
 
-public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentFamilyService) : IAsyncDisposable, IInsertTransactions
+public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentFamilyService)
+  : IAsyncDisposable, IInsertTransactions
 {
   private readonly ICurrentFamilyService _currentFamilyService = currentFamilyService;
 
@@ -80,6 +81,9 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   {
     await BeginBatchAsync();
 
+    if (request.Trans == null)
+      throw (new ArgumentNullException(nameof(request.Trans)));
+
     var rslt = await AddTransactionAsync(request.Trans);
 
     _InsertTransactionResult.SingleAddedTransaction = rslt.Adapt<TransactionDto>();
@@ -100,6 +104,9 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   public async Task<TransactionAddResult> AddMultipleTransactions(List<OneTransactionDetail> list)
   {
     await BeginBatchAsync();
+
+    if (list == null)
+      throw (new ArgumentNullException(nameof(list)));
 
     foreach (var tran in list)
     {
@@ -122,7 +129,8 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
       Description = tran.Description,
       FamilyId = _currentFamilyService.GetCurrentFamilyId(),
       UserId = tran.UserId,
-      WasPotentialDuplicate = tran.WasPotentialDuplicate
+      WasPotentialDuplicate = tran.WasPotentialDuplicate,
+      TransactionType = tran.TransactionType
     };
 
     var lineId = 1;

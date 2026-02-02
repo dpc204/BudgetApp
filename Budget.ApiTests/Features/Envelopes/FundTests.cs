@@ -2,9 +2,11 @@ using Budget.Api.Features.Envelopes;
 using Budget.Api.Features.Transactions;
 using Budget.DB;
 using Budget.Shared.Enums;
+using Budget.Shared.Services;
 using FluentAssertions;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -19,6 +21,7 @@ public class FundTests
   private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
     => new DbContextOptionsBuilder<BudgetContext>()
       .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+      .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
       .Options;
 
   [Fact]
@@ -87,11 +90,12 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, envelope1, envelope2);
     await context.SaveChangesAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     // Act
     var result = await handler.Handle(new Fund.Command(), CancellationToken.None);
@@ -158,11 +162,12 @@ public class FundTests
     context.Envelopes.Add(envelope1);
     await context.SaveChangesAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     // Act
     var result = await handler.Handle(new Fund.Command(), CancellationToken.None);
@@ -219,11 +224,12 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, envelope1);
     await context.SaveChangesAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     // Act
     var result = await handler.Handle(new Fund.Command(), CancellationToken.None);
@@ -232,7 +238,7 @@ public class FundTests
     result.Should().NotBeNull();
     result.IsSuccess.Should().BeTrue();
     result.Value.Should().Be(0, "because no envelopes have FundAmount != 0");
-    
+
     // Verify no transactions were created
     var transactions = await context.Transactions.ToListAsync();
     transactions.Should().BeEmpty();
@@ -316,11 +322,12 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, envelope1, envelope2, envelope3);
     await context.SaveChangesAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     // Act
     var result = await handler.Handle(new Fund.Command(), CancellationToken.None);
@@ -329,7 +336,7 @@ public class FundTests
     result.Should().NotBeNull();
     result.IsSuccess.Should().BeTrue();
     result.Value.Should().Be(2, "because only two envelopes have non-zero FundAmount");
-    
+
     // Verify only 2 transactions were created
     var transactions = await context.Transactions.Include(t => t.Details).ToListAsync();
     transactions.Should().HaveCount(2);
@@ -390,11 +397,12 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, targetEnvelope);
     await context.SaveChangesAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     // Act
     var result = await handler.Handle(new Fund.Command(), CancellationToken.None);
@@ -464,11 +472,12 @@ public class FundTests
     // Dispose context to force exception on SaveChangesAsync
     await context.DisposeAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     // Act
     var result = await handler.Handle(new Fund.Command(), CancellationToken.None);
@@ -537,7 +546,7 @@ public class FundTests
       Id = 22,
       FamilyId = 1
     };
-    
+
     context.BankAccounts.Add(account);
 
     context.Families.Add(family);
@@ -545,11 +554,12 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, envelope1);
     await context.SaveChangesAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     // Act
     var result = await handler.Handle(new Fund.Command(), CancellationToken.None);
@@ -557,7 +567,7 @@ public class FundTests
     // Assert
     result.IsSuccess.Should().BeTrue();
     result.Value.Should().Be(1);
-    
+
     var transaction = await context.Transactions.Include(t => t.Details).FirstOrDefaultAsync();
     transaction.Should().NotBeNull();
     transaction!.Details.Should().Contain(d => d.EnvelopeId == 2 && d.Amount == -50m);
@@ -613,11 +623,12 @@ public class FundTests
     context.Envelopes.Add(incomeEnvelope);
     await context.SaveChangesAsync();
 
-    var mockMoveBalance = new Mock<IMoveEnvelopeBalance>();
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
-    var handler = new Fund.Handler(context, mockMoveBalance.Object, mockLogger.Object, mockCurrentFamilyService.Object);
+    var insertTransactions = new InsertTransactions(context, mockCurrentFamilyService.Object);
+    var handler = new Fund.Handler(context, mockUserAndOptions.Object, mockLogger.Object, insertTransactions);
 
     var cts = new CancellationTokenSource();
     cts.Cancel();

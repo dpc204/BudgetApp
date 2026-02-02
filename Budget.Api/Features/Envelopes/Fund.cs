@@ -1,4 +1,5 @@
 ﻿using Budget.Api.Features.Transactions;
+using Budget.Shared.Services;
 using FluentResults;
 
 namespace Budget.Api.Features.Envelopes;
@@ -15,9 +16,9 @@ public static class Fund
   /// </summary>
   public class Handler(
     BudgetContext db,
-    IMoveEnvelopeBalance moveBalance,
+    IUserAndOptions userAndOptions,
     ILogger<Handler> logger,
-    ICurrentFamilyService currentFamilyService) : IRequestHandler<Command, Result<int>>
+    IInsertTransactions insertTransactions) : IRequestHandler<Command, Result<int>>
   {
     public async Task<Result<int>> Handle(Command request, CancellationToken cancellationToken)
     {
@@ -33,75 +34,69 @@ public static class Fund
           return Result.Fail("Income envelope not found. Cannot fund envelopes.");
         }
 
-        
-
         // Find all budget records with draft values in current or future months
         envelopesWithFunds = await db.Envelopes
           .Where(b => b.FundAmount != 0)
           .ToListAsync(cancellationToken);
 
-        var fundingAccount = (await db.BankAccounts.FirstOrDefaultAsync(a => a.AccountType == AccountTypes.Funding,cancellationToken))?.Id;
+        var fundingAccount =
+          (await db.BankAccounts.FirstOrDefaultAsync(a => a.AccountType == AccountTypes.Funding, cancellationToken))
+          ?.Id;
 
+
+        var _newAssignTransactions = new List<OneTransactionDetail>();
 
         // Move funds from Income to the standard envelopes
-        foreach(var toEnvelope in envelopesWithFunds)
+        foreach (var toEnvelope in envelopesWithFunds)
         {
           var assignTran = MakeAssignTransaction(toEnvelope, incomeEnvelope, fundingAccount);
-          await db.Transactions.AddAsync(assignTran, cancellationToken);
+          _newAssignTransactions.Add(assignTran);
         }
 
-        await db.SaveChangesAsync(cancellationToken);
-
+        // add the new assign transactions using the AddMultipleTransactions handler
+        var addMultipleHandler = new AddMultipleTransaction.Handler(db, insertTransactions);
+        await addMultipleHandler.Handle(new AddMultipleTransaction.Command(_newAssignTransactions), cancellationToken);
       }
       catch (Exception e)
       {
         logger.LogError(e, "Error funding envelopes");
         return Result.Fail(new ExceptionalError(e));
-        
       }
 
       return Result.Ok(envelopesWithFunds.Count);
     }
 
-    private Transaction MakeAssignTransaction(Envelope env, EnvelopeDto? incomeEnvelope, int? fundingAccount)
+    private OneTransactionDetail MakeAssignTransaction(Envelope env, EnvelopeDto? incomeEnvelope, int? fundingAccount)
     {
       ArgumentNullException.ThrowIfNull(incomeEnvelope, nameof(incomeEnvelope));
-      
-      
+
+
       ArgumentNullException.ThrowIfNull(fundingAccount, "Funding account not found");
-      
-      var rslt = new Transaction
+
+      var rslt = new OneTransactionDetail()
       {
-        FamilyId = env.FamilyId,
         Date = DateTime.UtcNow,
         TransactionType = TransactionTypes.Funding,
         Description = $"Funding envelope {env.Name}",
-        
-        UserId = currentFamilyService.GetCurrentFamilyId(),
+        UserId =  userAndOptions.User.Id,
         AccountId = fundingAccount.Value,
         Vendor = "System"
       };
 
-      
-   
-        
-      
-      
-      rslt.Details = new List<TransactionDetail>
+
+      rslt.Details = new List<TransactionDetailDto>
       {
-        new TransactionDetail
+        new TransactionDetailDto
         {
           EnvelopeId = env.Id,
           Amount = env.FundAmount,
-          LineId = 1,
-          Transaction = rslt
+          LineId = 1
         },
-        new TransactionDetail
+        new TransactionDetailDto
         {
           EnvelopeId = incomeEnvelope!.Id,
           Amount = -env.FundAmount,
-          LineId = 2,
-          Transaction = rslt
+          LineId = 2
         }
       };
 
