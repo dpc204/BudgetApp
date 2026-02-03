@@ -56,7 +56,7 @@ Misc.SetupConfigurationSources(builder, assembly, logger);
 // Log all configuration settings with their provider sources
 Misc.LogAllConfigurationSettings(builder, logger);
 
-// Add MediatR
+// Add Custom Mediator
 builder.Services.AddFantumMediator();
 
 // Register HttpContextAccessor and CurrentFamilyService for multi-tenancy
@@ -481,6 +481,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+
+// Initialize UserAndOptions with email from token for lazy loading
+app.UseMiddleware<Budget.Api.Middleware.UserEmailMiddleware>();
+
 app.UseAuthorization();
 
 // Map Carter endpoints

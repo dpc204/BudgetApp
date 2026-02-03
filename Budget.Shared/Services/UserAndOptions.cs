@@ -1,4 +1,6 @@
-﻿namespace Budget.Shared.Services;
+﻿using Microsoft.Extensions.Validation;
+
+namespace Budget.Shared.Services;
 
 public class UserAndOptions : IUserAndOptions
 {
@@ -14,29 +16,67 @@ public class UserAndOptions : IUserAndOptions
 
   public UserAndOptions()
   {
+    _options = new UserOptions() { UserAndOptions = this , UserId = -1};
     // Parameterless constructor for cases where API client is not available
   }
 
   public UserAndOptions(IBudgetApiClient apiClient)
   {
+    _options = new UserOptions() { UserAndOptions = this, UserId = -2 };
     _apiClient = apiClient;
     WireUpOptionsChangeHandler();
   }
 
   public bool HasInfo { get; set; }
-  public UserInfoDto User { get; set; } = new UserInfoDto();
+  private  bool _hasUserInfo = false;
+  public UserInfoDto User { get => loadUserFromDatabase(); set; } = new UserInfoDto();
+
+  private UserInfoDto loadUserFromDatabase()
+  {
+    if (string.IsNullOrWhiteSpace(_userEmail))
+      return new UserInfoDto();
+    
+    var response = _apiClient.GetUserByEmailAsync(_userEmail);
+    
+    if(response.IsFaulted || response.Result is null)
+      return new UserInfoDto();
+
+    var name = string.Join(' ', response.Result.FirstName, response.Result.LastName);
+
+    var rslt = response is not null
+      ? new UserInfoDto
+      {
+        Id = response.Result.Id,
+        Email = response.Result.Email,
+        Name = name,
+        FamilyId = response.Result.FamilyId,
+        Roles = response.Result.Roles.Select(a=> a.Name).ToArray()
+      }
+      : new UserInfoDto();
+    _hasUserInfo = rslt.Id != 0;
+    return rslt;
+
+  }
+
+  string _userEmail = string.Empty;
+  public void SetUserEmail(string email)
+  {
+    _userEmail = email;
+  }
 
   public void SetUserInfo(UserInfoDto userInfo)
   {
     User = userInfo;
     HasInfo = true;
     // Update UserId in Options when user info is set
-    if (Options != null && userInfo.Id != 0)
-    {
-      Options.UserId = userInfo.Id;
-    }
+    //if (Options != null && userInfo.Id != 0)
+    //{
+    //  Options.UserId = userInfo.Id;
+    //}
   }
   
+  
+
   /// <summary>
   /// Ensures user options are loaded. Safe to call multiple times - only loads once.
   /// This is the preferred way to access options - it ensures they're loaded before returning.
@@ -135,6 +175,7 @@ public class UserAndOptions : IUserAndOptions
     {
       _options = value;
       WireUpOptionsChangeHandler();
+      _options.UserAndOptions = this;
     }
   }
 

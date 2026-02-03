@@ -28,6 +28,7 @@
     <PackageReference Include="FluentResults" Version="4.0.0" />
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.37-preview" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.11.7" />

@@ -10,6 +10,8 @@ public class UserOptions
     _selectedCategoryType = "ALL";
   }
   
+  public IUserAndOptions UserAndOptions { get; set; }
+
   public int UserId { get; set; }
   
   /// <summary>

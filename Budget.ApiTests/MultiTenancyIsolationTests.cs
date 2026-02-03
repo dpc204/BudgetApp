@@ -1,5 +1,4 @@
 using Budget.Shared.Enums;
-using Xunit.Abstractions;
 
 namespace Budget.ApiTests;
 

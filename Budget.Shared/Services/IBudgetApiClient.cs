@@ -1,4 +1,5 @@
 using Budget.Shared.Models.Queries;
+using static System.Net.WebRequestMethods;
 
 namespace Budget.Shared.Services;
 
@@ -11,6 +12,7 @@ public interface IBudgetApiClient
 
   Task<Result<List<TransactionDto>>> GetTransactionsUnassignedAsync(CancellationToken cancellationToken = default);
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
+  Task<UserDetailDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
 
   Task<TransactionAddResult> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);
 

@@ -91,7 +91,8 @@ public sealed partial class AuthStateSync : ComponentBase
     {
       Id = dbUser.Id,
       Email = name,
-      Name = name,
+      FamilyId = dbUser.FamilyId,
+      Name =   dbUser.FirstName,  
       Roles = roles
     };
   }

@@ -320,6 +320,8 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
   public async Task<UserDetailDto?> GetUserAsync(int id, CancellationToken cancellationToken = default)
     => await http.GetFromJsonAsync<UserDetailDto>($"/api/admin/users/{id}", cancellationToken);
 
+ 
+
   public async Task<UserDto> UpdateUserAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default)
   {
     var response = await http.PutAsJsonAsync($"/api/admin/users/{id}", request, cancellationToken);

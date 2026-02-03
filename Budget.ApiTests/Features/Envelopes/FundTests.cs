@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using UserInfoDto = Budget.Shared.Models.UserInfoDto;
 
 namespace Budget.ApiTests.Features.Envelopes;
 
@@ -29,18 +30,18 @@ public class FundTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category  
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    
+
     var incomeEnvelope = new Envelope
     {
       Id = 1,
@@ -51,7 +52,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Income,
       SortOrder = 1
     };
-    
+
     var envelope1 = new Envelope
     {
       Id = 2,
@@ -63,7 +64,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 2
     };
-    
+
     var envelope2 = new Envelope
     {
       Id = 3,
@@ -90,7 +91,7 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, envelope1, envelope2);
     await context.SaveChangesAsync();
 
-    var mockUserAndOptions = new Mock<IUserAndOptions>();
+    var mockUserAndOptions = SetupMockUserAndOptions();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
@@ -108,7 +109,7 @@ public class FundTests
     // Verify transactions were created
     var transactions = await context.Transactions.Include(t => t.Details).ToListAsync();
     transactions.Should().HaveCount(2);
-    
+
     var groceryTransaction = transactions.FirstOrDefault(t => t.Description.Contains("Groceries"));
     groceryTransaction.Should().NotBeNull();
     groceryTransaction!.TransactionType.Should().Be(TransactionTypes.Funding);
@@ -117,14 +118,13 @@ public class FundTests
     groceryTransaction.Details.Should().Contain(d => d.EnvelopeId == 2 && d.Amount == 200m);
     groceryTransaction.Details.Should().Contain(d => d.EnvelopeId == 1 && d.Amount == -200m);
     groceryTransaction.AccountId.Should().Be(account.Id);
-    
+
     var gasTransaction = transactions.FirstOrDefault(t => t.Description.Contains("Gas"));
     gasTransaction.Should().NotBeNull();
     gasTransaction!.Details.Should().HaveCount(2);
     gasTransaction.Details.Should().Contain(d => d.EnvelopeId == 3 && d.Amount == 150m);
     gasTransaction.Details.Should().Contain(d => d.EnvelopeId == 1 && d.Amount == -150m);
     gasTransaction.AccountId.Should().Be(account.Id);
-
   }
 
   [Fact]
@@ -132,18 +132,18 @@ public class FundTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    
+
     // No income envelope created
     var envelope1 = new Envelope
     {
@@ -184,18 +184,18 @@ public class FundTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    
+
     var incomeEnvelope = new Envelope
     {
       Id = 1,
@@ -206,7 +206,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Income,
       SortOrder = 1
     };
-    
+
     var envelope1 = new Envelope
     {
       Id = 2,
@@ -249,18 +249,18 @@ public class FundTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    
+
     var incomeEnvelope = new Envelope
     {
       Id = 1,
@@ -271,7 +271,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Income,
       SortOrder = 1
     };
-    
+
     var envelope1 = new Envelope
     {
       Id = 2,
@@ -283,7 +283,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 2
     };
-    
+
     var envelope2 = new Envelope
     {
       Id = 3,
@@ -295,7 +295,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 3
     };
-    
+
     var envelope3 = new Envelope
     {
       Id = 4,
@@ -307,7 +307,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 4
     };
-    
+
     var account = new BankAccount()
     {
       AccountType = AccountTypes.Funding,
@@ -322,7 +322,7 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, envelope1, envelope2, envelope3);
     await context.SaveChangesAsync();
 
-    var mockUserAndOptions = new Mock<IUserAndOptions>();
+    var mockUserAndOptions = SetupMockUserAndOptions();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
@@ -348,18 +348,18 @@ public class FundTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    
+
     var incomeEnvelope = new Envelope
     {
       Id = 100,
@@ -370,7 +370,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Income,
       SortOrder = 1
     };
-    
+
     var targetEnvelope = new Envelope
     {
       Id = 200,
@@ -382,7 +382,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 2
     };
-    
+
     var account = new BankAccount
     {
       Id = 22,
@@ -397,7 +397,8 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, targetEnvelope);
     await context.SaveChangesAsync();
 
-    var mockUserAndOptions = new Mock<IUserAndOptions>();
+    var mockUserAndOptions = SetupMockUserAndOptions();
+
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
@@ -409,30 +410,39 @@ public class FundTests
 
     // Assert
     result.IsSuccess.Should().BeTrue();
-    
+
     var transaction = await context.Transactions
       .Include(t => t.Details)
       .FirstOrDefaultAsync();
-    
+
     transaction.Should().NotBeNull();
     transaction!.FamilyId.Should().Be(1);
     transaction.TransactionType.Should().Be(TransactionTypes.Funding);
     transaction.Description.Should().Be("Funding envelope Test Envelope");
     transaction.Vendor.Should().Be("System");
     transaction.Date.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-    
+
     // Verify detail lines
     transaction.Details.Should().HaveCount(2);
-    
+
     var toDetail = transaction.Details.FirstOrDefault(d => d.LineId == 1);
     toDetail.Should().NotBeNull();
     toDetail!.EnvelopeId.Should().Be(200);
     toDetail.Amount.Should().Be(250m);
-    
+
     var fromDetail = transaction.Details.FirstOrDefault(d => d.LineId == 2);
     fromDetail.Should().NotBeNull();
     fromDetail!.EnvelopeId.Should().Be(100);
     fromDetail.Amount.Should().Be(-250m);
+  }
+
+  private static Mock<IUserAndOptions> SetupMockUserAndOptions()
+  {
+    var mockUserAndOptions = new Mock<IUserAndOptions>();
+    mockUserAndOptions.Setup(u => u.User).Returns(new UserInfoDto { Email = "test@test.com", Id = 1, Name = "Test User", Roles = new List<string> { "Admin" } });
+    mockUserAndOptions.Setup(u => u.HasInfo).Returns(true);
+    mockUserAndOptions.Setup(u => u.Options).Returns(new UserOptions() { UserId = 1, FillAmountType = FillAmounts.OneHundredPercent, SelectedCategoryType = "CatTypes.User" });
+    return mockUserAndOptions;
   }
 
   [Fact]
@@ -440,19 +450,19 @@ public class FundTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     // Create minimal data that will cause an exception during processing
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    
+
     var incomeEnvelope = new Envelope
     {
       Id = 1,
@@ -486,7 +496,7 @@ public class FundTests
     result.Should().NotBeNull();
     result.IsFailed.Should().BeTrue();
     result.Errors.Should().NotBeEmpty();
-    
+
     // Verify error was logged
     mockLogger.Verify(
       x => x.Log(
@@ -503,18 +513,18 @@ public class FundTests
   {
     // Arrange - This tests edge case where FundAmount could be negative
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    
+
     var incomeEnvelope = new Envelope
     {
       Id = 1,
@@ -525,7 +535,7 @@ public class FundTests
       EnvelopeType = EnvelopeTypes.Income,
       SortOrder = 1
     };
-    
+
     var envelope1 = new Envelope
     {
       Id = 2,
@@ -554,7 +564,7 @@ public class FundTests
     context.Envelopes.AddRange(incomeEnvelope, envelope1);
     await context.SaveChangesAsync();
 
-    var mockUserAndOptions = new Mock<IUserAndOptions>();
+    var mockUserAndOptions = SetupMockUserAndOptions();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
     var mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     mockCurrentFamilyService.Setup(x => x.GetCurrentFamilyId()).Returns(1);
@@ -581,14 +591,14 @@ public class FundTests
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Test Category", 
-      Description = "Test", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var category = new Category
+    {
+      CategoryId = "1",
+      Name = "Test Category",
+      Description = "Test",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
 
     var incomeEnvelope = new Envelope
