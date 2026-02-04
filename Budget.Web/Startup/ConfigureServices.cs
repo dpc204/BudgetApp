@@ -226,6 +226,9 @@ public static class ConfigureServices
 
     builder.Services.AddScoped<EnvelopeState>();
     builder.Services.AddSingleton<ThemeService>();
+
+    // Register data provider for frontend (uses API client)
+    builder.Services.AddScoped<IUserAndOptionsDataProvider, ApiUserAndOptionsDataProvider>();
     builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
 
     // Register role management service

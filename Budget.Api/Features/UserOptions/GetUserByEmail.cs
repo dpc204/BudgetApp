@@ -1,4 +1,6 @@
 ﻿using Budget.Shared.Services;
+using Carter;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.UserOptions;
 
@@ -7,14 +9,16 @@ namespace Budget.Api.Features.UserOptions;
 /// </summary>
 public static class GetUserByEmail
 {
-  public sealed record Query(string UserEmail) : IRequest<UserDetailDto?>;
+  public sealed record Query(string UserEmail) : IRequest<Response>;
+
+  public sealed record Response(UserDetailDto? User);
 
   /// <summary>
   /// Handles retrieving a single user with roles
   /// </summary>
-  public class Handler(BudgetContext db) : IRequestHandler<Query, UserDetailDto?>
+  public class Handler(BudgetContext db) : IRequestHandler<Query, Response>
   {
-    public async Task<UserDetailDto?> Handle(Query request, CancellationToken cancellationToken)
+    public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
       // Normalize email for case-insensitive comparison
       var normalizedEmail = request.UserEmail.ToUpperInvariant();
@@ -35,7 +39,7 @@ public static class GetUserByEmail
         ))
         .FirstOrDefaultAsync(cancellationToken);
 
-      return user;
+      return new Response(user);
     }
   }
 
@@ -46,12 +50,14 @@ public static class GetUserByEmail
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapGet("api/useroptions/GetUserByEmail",
+
+      app.MapGet("/api/useroptions/GetUserByEmail",
           async ([FromQuery] string userEmail, [FromServices] ISender sender) =>
           {
             var result = await sender.Send(new Query(userEmail));
-            return result != null ? Results.Ok(result) : Results.NotFound();
+            return Results.Ok(result);
           })
+        .WithTags("UserOptions")
         .RequireAuthorization();
     }
   }

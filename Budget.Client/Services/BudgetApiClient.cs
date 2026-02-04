@@ -21,19 +21,19 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   {
     try
     {
-      logger.LogDebug("Starting GetUserByEmailAsync for email: {Email}", email);
-      var url = $"api/useroptions/GetUserByEmail?userEmail={Uri.EscapeDataString(email)}";
+      logger.LogDebug("UserAndOptions:Starting GetUserByEmailAsync for email: {Email}", email);
+      var url = $"/api/useroptions/GetUserByEmail?userEmail={Uri.EscapeDataString(email)}";
       logger.LogDebug("Request URL: {Url}", url);
 
-      var response = await http.GetFromJsonAsync<UserDetailDto>(url, cancellationToken);
+      var response = await http.GetFromJsonAsync<GetUserByEmailResponse>(url, cancellationToken);
 
-      logger.LogDebug("Received response for GetUserByEmailAsync: {HasValue}", response != null);
-      return response;
+      logger.LogDebug("UserAndOptions:Received response for GetUserByEmailAsync: {HasValue}", response?.User != null);
+      return response?.User;
     }
     catch (Exception ex)
     {
-      logger.LogError(ex, "Error in GetUserByEmailAsync for email: {Email}", email);
-      throw;
+      logger.LogError(ex, "UserAndOptions:Error in GetUserByEmailAsync for email: {Email}", email);
+      return null;
     }
   }
 
@@ -383,6 +383,8 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     }
   }
 
+
+  private sealed record GetUserByEmailResponse(UserDetailDto? User);
 
   private sealed record GetUserOptionsResponse(UserOptions? Options);
 

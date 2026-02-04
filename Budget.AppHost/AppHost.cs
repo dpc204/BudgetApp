@@ -36,6 +36,7 @@ var budgetApi = builder.AddProject<Projects.Budget_Api>("budget-api")
   .WithEnvironment("AZURE_STORAGE_BLOB_ENDPOINT", storageBlobEndpoint)
   .WithEnvironment("AZURE_STORAGE_TABLE_ENDPOINT", storageTableEndpoint)
   .WithExternalHttpEndpoints()
+  .WithHttpHealthCheck("/health")  // Add health check
   .PublishAsAzureContainerApp((infrastructure, app) =>
   {
     // Scale to zero when idle, max 10 replicas, 600s cooldown
@@ -50,11 +51,13 @@ var budgetApi = builder.AddProject<Projects.Budget_Api>("budget-api")
 // Azure AD configuration (ClientId, ClientSecret, TenantId) is loaded from Key Vault automatically
 builder.AddProject<Projects.Budget_Web>("budget")
   .WithReference(budgetApi)
+  .WaitFor(budgetApi)  // Wait for API to be ready
   .WithEnvironment("UseAzureDB", useAzureDb)
   .WithEnvironment("ASPNETCORE_ENVIRONMENT", aspnetEnv)
   .WithEnvironment("AZURE_CLIENT_ID", managedIdentityClientId)
   .WithEnvironment("KeyVault__Uri", keyVaultEndpoint)
   .WithExternalHttpEndpoints()
+  .WithHttpHealthCheck("/health")  // Add health check
   .PublishAsAzureContainerApp((infrastructure, app) =>
   {
     // Scale to zero when idle, max 10 replicas, 600s cooldown

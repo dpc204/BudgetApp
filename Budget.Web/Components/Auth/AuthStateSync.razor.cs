@@ -35,10 +35,12 @@ public sealed partial class AuthStateSync : ComponentBase
       // Options will be loaded lazily when first accessed via EnsureOptionsLoadedAsync()
       if (!UserAndOptions.HasInfo)
       { 
-        var dto = MapToDto(user!);
-
-        UserAndOptions.SetUserEmail(dto.Email ?? string.Empty);
-        UserAndOptions.SetUserInfo(dto);
+        //var dto = MapToDto(user!);
+        
+        
+        
+        
+        UserAndOptions.SetUserEmail(GetEmail(user));
         
         // Don't load options here - too early in auth pipeline
         // Components that need options should call: await UserAndOptions.EnsureOptionsLoadedAsync()
@@ -70,7 +72,25 @@ public sealed partial class AuthStateSync : ComponentBase
        ?? user.FindFirstValue("sub")
        ?? user.Identity?.Name;
 
-  private  UserInfoDto MapToDto(ClaimsPrincipal user)
+
+
+  private string GetEmail(ClaimsPrincipal user)
+  {
+    var id = GetStableUserId(user);
+    var email = user.FindFirstValue(ClaimTypes.Email);
+    var name = user.Identity?.Name
+               ?? user.FindFirst("preferred_username")?.Value
+               ?? email
+               ?? id
+               ?? string.Empty;
+
+    return name;
+    
+  }
+
+
+
+  private UserInfoDto MapToDto(ClaimsPrincipal user)
   {
     var id = GetStableUserId(user);
     var email = user.FindFirstValue(ClaimTypes.Email);

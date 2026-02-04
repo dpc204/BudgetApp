@@ -4,7 +4,8 @@ namespace Budget.Shared.Services;
 
 public class UserAndOptions : IUserAndOptions
 {
-  private readonly IBudgetApiClient? _apiClient;
+  private readonly IUserAndOptionsDataProvider? _dataProvider;
+  private readonly ILogger _logger;
   private Task<UserOptions>? _loadOptionsTask;
   private bool _optionsLoadAttempted;
   private Task<UserInfoDto>? _loadUserTask;
@@ -19,13 +20,14 @@ public class UserAndOptions : IUserAndOptions
   public UserAndOptions()
   {
     _options = new UserOptions() { UserAndOptions = this , UserId = -1};
-    // Parameterless constructor for cases where API client is not available
+    // Parameterless constructor for cases where data provider is not available
   }
 
-  public UserAndOptions(IBudgetApiClient apiClient)
+  public UserAndOptions(IUserAndOptionsDataProvider dataProvider, ILogger<UserAndOptions> logger)
   {
     _options = new UserOptions() { UserAndOptions = this, UserId = -2 };
-    _apiClient = apiClient;
+    _dataProvider = dataProvider;
+    _logger = logger;
     WireUpOptionsChangeHandler();
   }
 
@@ -53,26 +55,49 @@ public class UserAndOptions : IUserAndOptions
   
   private async Task<UserInfoDto?> EnsureUserLoadedAsync()
   {
-    if (string.IsNullOrWhiteSpace(_userEmail))
-      return User;
+    // thoroughly log this method for debugging
+    // log the call for debugging purposes
+    _logger.LogInformation(
+      "UserAndOptions:Ensuring user is loaded. Email: {UserEmail}, Load Attempted: {LoadAttempted}, Load Task Not Null: {LoadTaskNotNull}",
+      _userEmail, _userLoadAttempted, _loadUserTask != null);
+    
 
+
+
+    if(string.IsNullOrWhiteSpace(_userEmail))
+      return User;
+    _logger.LogDebug("UserAndOptions:User email is set to: {UserEmail}", _userEmail);
 
     if(_userLoadAttempted && _loadUserTask != null)
     {
-      return await _loadUserTask;
+     // log this
+     // log the existing user load task
+     _logger.LogDebug("UserAndOptions:User load already in progress. Returning existing task. Email: {UserEmail}", _userEmail);
+     
+     var rslt =await _loadUserTask;
+      _logger.LogDebug("UserAndOptions:User load task completed for email: {UserEmail}", _userEmail);
+      return rslt;
     }
 
     // First call - start loading
-    if(!_userLoadAttempted && _apiClient != null )
+    if(!_userLoadAttempted && _dataProvider != null )
     {
+      _logger.LogDebug("UserAndOptions:Starting user load for email: {UserEmail}", _userEmail);
       _userLoadAttempted = true;
       _loadUserTask = LoadUserInternalAsync();
       _hasUserInfo = true;
+      _logger.LogDebug("UserAndOptions:User load task started for email: {UserEmail}", _userEmail);
+
+
       return await _loadUserTask;
     }
 
+    // log that no data provider is available
+    _logger.LogDebug("UserAndOptions:No data provider available. User information cannot be loaded. Email: {UserEmail}", _userEmail);
 
-    
+    // If no data provider, return the current user info.
+    // This might be default or previously loaded info.
+
     return User;
 
   }
@@ -102,21 +127,31 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public async Task<UserOptions> EnsureOptionsLoadedAsync()
   {
+    _logger.LogDebug(
+      "UserAndOptions:Options:Ensuring options are loaded. UserId: {UserId}, Load Attempted: {LoadAttempted}, Load Task Not Null: {LoadTaskNotNull}",
+      User.Id, _optionsLoadAttempted, _loadOptionsTask != null);
     // Already loaded or load in progress
     if (_optionsLoadAttempted && _loadOptionsTask != null)
     {
+      _logger.LogDebug(
+  "UserAndOptions:Options:Options load already in progress. Returning existing task. UserId: {UserId}", User.Id);
       return await _loadOptionsTask;
     }
-    
+
     // First call - start loading
-    if (!_optionsLoadAttempted && _apiClient != null && HasInfo && User.Id != 0)
+    if (!_optionsLoadAttempted && _dataProvider != null && HasInfo && User.Id != 0)
     {
+      _logger.LogDebug(  "UserAndOptions:Options: Starting options load for UserId: {UserId}", User.Id);
+
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
-      return await _loadOptionsTask;
+      _logger.LogDebug(  "UserAndOptions:Options: Options load task started for UserId: {UserId}", User.Id);
+      var rslt = await _loadOptionsTask;
+      _logger.LogDebug(  "UserAndOptions:Options: Options load task completed for UserId: {UserId}", User.Id);
+      return rslt;
     }
-    
-    // No API client or not authenticated - return current options
+
+    // No data provider or not authenticated - return current options
     return Options;
   }
   
@@ -129,20 +164,21 @@ public class UserAndOptions : IUserAndOptions
   //{
   //  return await EnsureOptionsLoadedAsync();
   //}
-  
+
   private async Task<UserOptions> LoadOptionsInternalAsync()
   {
     try
     {
-      var loaded = await _apiClient!.GetUserOptionsAsync(User.Id);
+
+      var loaded = await _dataProvider!.LoadUserOptionsAsync(User.Id);
       if (loaded != null)
       {
         Options = loaded;
       }
-      
+
       // Notify subscribers that options are loaded
       OptionsLoaded?.Invoke();
-      
+
       return Options;
     }
     catch (Exception)
@@ -158,7 +194,7 @@ public class UserAndOptions : IUserAndOptions
     try
     {
 
-      var response = await _apiClient.GetUserByEmailAsync(_userEmail);
+      var response = await _dataProvider!.LoadUserByEmailAsync(_userEmail);
 
       if(response is null)
         return null;
@@ -246,7 +282,7 @@ public class UserAndOptions : IUserAndOptions
   {
     // When any property is read, ensure options are loaded
     // This makes lazy loading completely transparent
-    if (!_optionsLoadAttempted && _apiClient != null && HasInfo && User.Id != 0)
+    if (!_optionsLoadAttempted && _dataProvider != null && HasInfo && User.Id != 0)
     {
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
@@ -256,7 +292,7 @@ public class UserAndOptions : IUserAndOptions
 
   private async void OnOptionsChanged()
   {
-    if (_apiClient != null && HasInfo && User.Id != 0)
+    if (_dataProvider != null && HasInfo && User.Id != 0)
     {
       try
       {
@@ -265,8 +301,8 @@ public class UserAndOptions : IUserAndOptions
         {
           Options.UserId = User.Id;
         }
-        
-        await _apiClient.SaveUserOptionsAsync(User.Id, Options);
+
+        await _dataProvider.SaveUserOptionsAsync(User.Id, Options);
       }
       catch
       {
