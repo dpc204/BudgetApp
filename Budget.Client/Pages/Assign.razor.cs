@@ -7,7 +7,7 @@ public partial class Assign : ComponentBase
   [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
-  [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
+  [CascadingParameter] private IUserAndOptions UserOptions { get; set; } = default!;
 
 
   public List<TransactionDto> Transactions { get; set; } = [];

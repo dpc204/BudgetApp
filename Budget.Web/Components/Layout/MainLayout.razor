@@ -1,6 +1,8 @@
 @inherits LayoutComponentBase
 @inject Budget.Web.Services.ThemeService ThemeService
+@inject Budget.Shared.Services.IUserAndOptions UserAndOptionsService
 
+<CascadingValue Value="UserAndOptionsService" IsFixed="true">
 <MudLayout>
   <MudThemeProvider Theme="@ThemeService.Theme" IsDarkMode="@ThemeService.IsDarkMode" />
   <MudPopoverProvider />
@@ -24,6 +26,7 @@
     </MudContainer>
   </MudMainContent>
 </MudLayout>
+</CascadingValue>
 
 <div id="blazor-error-ui" data-nosnippet>
   An unhandled error has occurred.

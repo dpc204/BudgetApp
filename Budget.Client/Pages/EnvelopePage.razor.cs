@@ -8,7 +8,7 @@ public partial class EnvelopePage(
   EnvelopeState state,
   ILogger<EnvelopePage> logger) : ComponentBase
 {
-  [Inject] private IUserAndOptions UserOptions { get; set; } = default!;
+  [CascadingParameter] private IUserAndOptions UserOptions { get; set; } = default!;
 
   public List<EnvelopeResult> AllEnvelopeData  { get; set; }
   public List<EnvelopeResult> SelectedEnvelopeData { get; set; } = [];

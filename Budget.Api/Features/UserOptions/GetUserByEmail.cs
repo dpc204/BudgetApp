@@ -1,33 +1,28 @@
-﻿namespace Budget.Api.Features.UserOptions;
+﻿using Budget.Shared.Services;
+
+namespace Budget.Api.Features.UserOptions;
 
 /// <summary>
-/// Gets a single user by ID with their assigned roles
+/// Gets a single user by email with their assigned roles
 /// </summary>
 public static class GetUserByEmail
 {
-  public sealed record Query(string UserEmail) : IRequest<Response?>;
-
-  public sealed record Response(
-    int Id,
-    string Email,
-    string FirstName,
-    string LastName,
-    int FamilyId,
-    List<RoleDto> Roles);
-
-  public sealed record RoleDto(int Id, string Name);
+  public sealed record Query(string UserEmail) : IRequest<UserDetailDto?>;
 
   /// <summary>
   /// Handles retrieving a single user with roles
   /// </summary>
-  public class Handler(BudgetContext db) : IRequestHandler<Query, Response?>
+  public class Handler(BudgetContext db) : IRequestHandler<Query, UserDetailDto?>
   {
-    public async Task<Response?> Handle(Query request, CancellationToken cancellationToken)
+    public async Task<UserDetailDto?> Handle(Query request, CancellationToken cancellationToken)
     {
+      // Normalize email for case-insensitive comparison
+      var normalizedEmail = request.UserEmail.ToUpperInvariant();
+
       var user = await db.Users
         .IgnoreQueryFilters()
-        .Where(u => u.Email == request.UserEmail)
-        .Select(u => new Response(
+        .Where(u => u.Email.ToUpper() == normalizedEmail)
+        .Select(u => new UserDetailDto(
           u.Id,
           u.Email,
           u.FirstName,
@@ -35,7 +30,7 @@ public static class GetUserByEmail
           u.FamilyId,
           db.UserRoles
             .Where(ur => ur.UserId == u.Id)
-            .Select(ur => new RoleDto(ur.Role.Id, ur.Role.Name))
+            .Select(ur => new RoleInfoDto(ur.Role.Id, ur.Role.Name))
             .ToList()
         ))
         .FirstOrDefaultAsync(cancellationToken);
@@ -51,7 +46,7 @@ public static class GetUserByEmail
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapPost("api/useroptions/GetUserByEmail",
+      app.MapGet("api/useroptions/GetUserByEmail",
           async ([FromQuery] string userEmail, [FromServices] ISender sender) =>
           {
             var result = await sender.Send(new Query(userEmail));

@@ -19,8 +19,22 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
   public async Task<UserDetailDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
   {
-    return await http.GetFromJsonAsync<UserDetailDto>($"api/useroptions/GetUserByEmail", cancellationToken);
+    try
+    {
+      logger.LogDebug("Starting GetUserByEmailAsync for email: {Email}", email);
+      var url = $"api/useroptions/GetUserByEmail?userEmail={Uri.EscapeDataString(email)}";
+      logger.LogDebug("Request URL: {Url}", url);
 
+      var response = await http.GetFromJsonAsync<UserDetailDto>(url, cancellationToken);
+
+      logger.LogDebug("Received response for GetUserByEmailAsync: {HasValue}", response != null);
+      return response;
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex, "Error in GetUserByEmailAsync for email: {Email}", email);
+      throw;
+    }
   }
 
 

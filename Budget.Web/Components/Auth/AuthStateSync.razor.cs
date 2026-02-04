@@ -10,7 +10,7 @@ public sealed partial class AuthStateSync : ComponentBase
   [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
   [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
-  [Inject] private IUserAndOptions UserAndOptions { get; set; } = null!;
+  [CascadingParameter] private IUserAndOptions UserAndOptions { get; set; } = null!;
   [Inject] private EnvelopeState EnvelopeState { get; set; } = null!;
   [Inject] private IBudgetApiClient ApiClient { get; set; } = null!;
   [Inject] public required BudgetContext db { get; set; } 
@@ -36,6 +36,8 @@ public sealed partial class AuthStateSync : ComponentBase
       if (!UserAndOptions.HasInfo)
       { 
         var dto = MapToDto(user!);
+
+        UserAndOptions.SetUserEmail(dto.Email ?? string.Empty);
         UserAndOptions.SetUserInfo(dto);
         
         // Don't load options here - too early in auth pipeline

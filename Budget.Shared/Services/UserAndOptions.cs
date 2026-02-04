@@ -7,6 +7,8 @@ public class UserAndOptions : IUserAndOptions
   private readonly IBudgetApiClient? _apiClient;
   private Task<UserOptions>? _loadOptionsTask;
   private bool _optionsLoadAttempted;
+  private Task<UserInfoDto>? _loadUserTask;
+  private bool _userLoadAttempted;
 
   /// <summary>
   /// Event fired when options finish loading from the API.
@@ -29,32 +31,49 @@ public class UserAndOptions : IUserAndOptions
 
   public bool HasInfo { get; set; }
   private  bool _hasUserInfo = false;
-  public UserInfoDto User { get => loadUserFromDatabase(); set; } = new UserInfoDto();
+  private UserInfoDto _user = new UserInfoDto();
 
-  private UserInfoDto loadUserFromDatabase()
+  public UserInfoDto User 
+  { 
+    get
+    {
+      if (!_hasUserInfo)
+      {
+        var usr = EnsureUserLoadedAsync();
+        _user = usr.Result ?? new UserInfoDto();
+      }
+
+      return _user;
+
+    }
+    set => _user = value;
+  }
+
+  
+  
+  private async Task<UserInfoDto?> EnsureUserLoadedAsync()
   {
     if (string.IsNullOrWhiteSpace(_userEmail))
-      return new UserInfoDto();
-    
-    var response = _apiClient.GetUserByEmailAsync(_userEmail);
-    
-    if(response.IsFaulted || response.Result is null)
-      return new UserInfoDto();
+      return User;
 
-    var name = string.Join(' ', response.Result.FirstName, response.Result.LastName);
 
-    var rslt = response is not null
-      ? new UserInfoDto
-      {
-        Id = response.Result.Id,
-        Email = response.Result.Email,
-        Name = name,
-        FamilyId = response.Result.FamilyId,
-        Roles = response.Result.Roles.Select(a=> a.Name).ToArray()
-      }
-      : new UserInfoDto();
-    _hasUserInfo = rslt.Id != 0;
-    return rslt;
+    if(_userLoadAttempted && _loadUserTask != null)
+    {
+      return await _loadUserTask;
+    }
+
+    // First call - start loading
+    if(!_userLoadAttempted && _apiClient != null )
+    {
+      _userLoadAttempted = true;
+      _loadUserTask = LoadUserInternalAsync();
+      _hasUserInfo = true;
+      return await _loadUserTask;
+    }
+
+
+    
+    return User;
 
   }
 
@@ -101,15 +120,15 @@ public class UserAndOptions : IUserAndOptions
     return Options;
   }
   
-  /// <summary>
-  /// Gets user options, automatically loading from API if needed.
-  /// RECOMMENDED: Use EnsureOptionsLoadedAsync() instead to await the load properly.
-  /// This property returns default options if not yet loaded.
-  /// </summary>
-  public async ValueTask<UserOptions> GetOptionsAsync()
-  {
-    return await EnsureOptionsLoadedAsync();
-  }
+  ///// <summary>
+  ///// Gets user options, automatically loading from API if needed.
+  ///// RECOMMENDED: Use EnsureOptionsLoadedAsync() instead to await the load properly.
+  ///// This property returns default options if not yet loaded.
+  ///// </summary>
+  //public async ValueTask<UserOptions> GetOptionsAsync()
+  //{
+  //  return await EnsureOptionsLoadedAsync();
+  //}
   
   private async Task<UserOptions> LoadOptionsInternalAsync()
   {
@@ -130,6 +149,37 @@ public class UserAndOptions : IUserAndOptions
     {
       // Return default options on error
       return Options;
+    }
+  }
+
+
+  private async Task<UserInfoDto?> LoadUserInternalAsync()
+  {
+    try
+    {
+
+      var response = await _apiClient.GetUserByEmailAsync(_userEmail);
+
+      if(response is null)
+        return null;
+
+      var name = string.Join(' ', response.FirstName, response.LastName);
+
+      var rslt = new UserInfoDto {
+        Id = response.Id,
+        Email = response.Email,
+        Name = name,
+        FamilyId = response.FamilyId,
+        Roles = response.Roles.Select(a => a.Name).ToArray()
+      };
+      _hasUserInfo = rslt.Id != 0;
+
+      return rslt;
+    }
+    catch(Exception)
+    {
+      // Return default options on error
+      return new UserInfoDto();
     }
   }
 

@@ -21,6 +21,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
   private decimal _availableToFund = 0;
   private decimal _totalToFund;
   private decimal _originalAvailableToFund;
+  [CascadingParameter] private IUserAndOptions UserOptions { get; set; } = default!;
   public bool HideFundButton => _selectedFillType == FillAmounts.NotSet;
   public bool NotReadyToFill => (_availableToFund < 0 || _totalToFund == 0);
 
@@ -52,7 +53,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
     {
       // Initialize fund field auto-select on focus
       await JsRuntime.InvokeVoidAsync("initializeFundFieldAutoSelect");
-      _selectedFillType = UserAndOptions.Options.FillAmountType;
+      _selectedFillType = UserOptions.Options.FillAmountType;
     }
   }
 
@@ -102,7 +103,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
   /// <param name="fillAmount">The preset fill amount to apply (e.g., OneHundredPercent or FiftyPercent).</param>
   private void SetFillAmount(FillAmounts fillAmount)
   {
-    UserAndOptions.Options.FillAmountType = fillAmount;
+    UserOptions.Options.FillAmountType = fillAmount;
     _selectedFillType = fillAmount;
     StateHasChanged();
   }

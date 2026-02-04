@@ -25,11 +25,11 @@
     void ClearUserInfo();
     bool IsAdminUser();
 
-    /// <summary>
-    /// Gets user options, loading from API if needed. Safe to call multiple times.
-    /// This is the RECOMMENDED way to access options - ensures they're loaded.
-    /// </summary>
-    ValueTask<UserOptions> GetOptionsAsync();
+    ///// <summary>
+    ///// Gets user options, loading from API if needed. Safe to call multiple times.
+    ///// This is the RECOMMENDED way to access options - ensures they're loaded.
+    ///// </summary>
+    //ValueTask<UserOptions> GetOptionsAsync();
 
     /// <summary>
     /// Ensures user options are loaded from the API. Safe to call multiple times.

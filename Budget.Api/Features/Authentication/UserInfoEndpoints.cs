@@ -2,7 +2,10 @@ using Budget.Shared;
 
 namespace Budget.Api.Features.Authentication;
 
-public sealed class UserInfoDto
+/// <summary>
+/// Identity user info DTO (different from Budget user - uses string ID for Identity)
+/// </summary>
+public sealed class IdentityUserInfoDto
 {
   public string? Id { get; set; }
   public string? Email { get; set; }
@@ -36,7 +39,7 @@ public sealed class UserInfoEndpoints : ICarterModule
         return Results.Unauthorized();
 
       var roles = await userManager.GetRolesAsync(identityUser);
-      var dto = new UserInfoDto
+      var dto = new IdentityUserInfoDto
       {
         Id = identityUser.Id,
         Email = identityUser.Email,

@@ -63,7 +63,7 @@ builder.Services.AddFantumMediator();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentFamilyService, CurrentFamilyService>();
 builder.Services.AddTransient<IInsertTransactions, InsertTransactions>();
-builder.Services.AddScoped<IUserAndOptions, UserAndOptions>();
+// NOTE: IUserAndOptions is for CLIENT use only - not registered in API
 builder.Services.AddTransient<IMoveEnvelopeBalance, MoveEnvelopeBalance>();
 // Check if running in test mode
 var isTest = AppDomain.CurrentDomain.GetAssemblies()
@@ -482,8 +482,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 
-// Initialize UserAndOptions with email from token for lazy loading
-app.UseMiddleware<Budget.Api.Middleware.UserEmailMiddleware>();
+// NOTE: UserEmailMiddleware removed - IUserAndOptions is for client use only, not for API
 
 app.UseAuthorization();
 
