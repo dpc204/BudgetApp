@@ -174,7 +174,7 @@ public partial class EnvelopePage(
     if (result?.WasEdited == true)
     {
       // Refresh envelope data after edit
-      dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes);
+      dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes, AllEnvelopeData);
       ApplyCategorySelection();
       await dataService.RefreshAsync();
       
@@ -236,7 +236,7 @@ public partial class EnvelopePage(
     {
       try
       {
-        dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes);
+        dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes, AllEnvelopeData);
         ApplyCategorySelection();
         
         // Increment refresh key to force child grids to reload

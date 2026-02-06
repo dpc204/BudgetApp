@@ -5,7 +5,8 @@ namespace Budget.Client.Services;
 /// <summary>
 /// Service for loading and transforming envelope data
 /// </summary>
-public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUserAndOptions userOptions) : IEnvelopeDataService
+public class EnvelopeDataService(EnvelopeState state, IBudgetApiClient api, IUserAndOptions userOptions)
+  : IEnvelopeDataService
 {
   /// <summary>
   /// Loads envelope data from cache or refreshes from API
@@ -13,33 +14,37 @@ public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUser
   /// <param name="forceRefresh">If true, bypasses cache and loads from API</param>
   /// <param name="cancellationToken">Cancellation token</param>
   /// <returns>Result containing loaded envelope data</returns>
-  public async Task<EnvelopeDataResult> LoadEnvelopeDataAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)
+  public async Task<EnvelopeDataResult> LoadEnvelopeDataAsync(bool forceRefresh = false,
+    CancellationToken cancellationToken = default)
   {
     var categories = await api.GetCategoriesAsync(cancellationToken);
     var envelopes = await api.GetEnvelopesAsync(cancellationToken: cancellationToken);
-  
-    
+
+
     var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c);
     List<Cat> Cats = [new Cat { CategoryId = "0", CategoryName = "All" }];
-    Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name, CatType = c.CatType }));
+    Cats.AddRange(categories.Select(c => new Cat
+      { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name, CatType = c.CatType }));
 
-    List<EnvelopeResult> resultEnvs = [.. envelopes
-      .Select(e => new EnvelopeResult
-      {
-        CategoryId = e.CategoryId,
-        CategoryName = categoryNameLookup.TryGetValue(e.CategoryId, out var catName) ? catName.Name : string.Empty,
-        CategorySortOrder = categoryNameLookup.TryGetValue(e.CategoryId, out var catOrder) ? catOrder.SortOrder : 0,
-        EnvelopeId = e.Id,
-        EnvelopeName = e.Name,
-        EnvelopeSortOrder = e.SortOrder,
-        Balance = e.Balance,
-        Budget = e.Budget,
-        EnvelopeType = e.EnvelopeType
-      })
-      .OrderBy(e => e.CategoryId)
-      .ThenBy(e => e.EnvelopeName)];
+    List<EnvelopeResult> resultEnvs =
+    [
+      .. envelopes
+        .Select(e => new EnvelopeResult
+        {
+          CategoryId = e.CategoryId,
+          CategoryName = categoryNameLookup.TryGetValue(e.CategoryId, out var catName) ? catName.Name : string.Empty,
+          CategorySortOrder = categoryNameLookup.TryGetValue(e.CategoryId, out var catOrder) ? catOrder.SortOrder : 0,
+          EnvelopeId = e.Id,
+          EnvelopeName = e.Name,
+          EnvelopeSortOrder = e.SortOrder,
+          Balance = e.Balance,
+          Budget = e.Budget,
+          EnvelopeType = e.EnvelopeType
+        })
+        .OrderBy(e => e.CategoryId)
+        .ThenBy(e => e.EnvelopeName)
+    ];
 
-    
 
     return new EnvelopeDataResult
     {
@@ -75,27 +80,28 @@ public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUser
   /// Updates the balances of envelopes on the client side based on the provided updates.
   /// </summary>
   /// <param name="updates">
-  /// A list of <see cref="EnvelopeUpdate"/> objects containing the envelope IDs and the balance changes to apply.
+  ///   A list of <see cref="EnvelopeUpdate"/> objects containing the envelope IDs and the balance changes to apply.
   /// </param>
-  public void UpdateClientSideEnvelopeBalances(List<EnvelopeUpdate> updates)
+  /// <param name="allEnvelopeData"></param>
+  public void UpdateClientSideEnvelopeBalances(List<EnvelopeUpdate> updates, List<EnvelopeResult> allEnvelopeData)
   {
-    foreach(var env in updates)
+    foreach (var env in updates)
     {
-      var rec = state.AllEnvelopeData?.Find(e => e.EnvelopeId == env.EnvelopeId);
-      if(rec != null)
+      var rec = allEnvelopeData?.Find(e => e.EnvelopeId == env.EnvelopeId);
+      if (rec != null)
       {
         rec.Balance += env.EnvelopeDelta;
       }
     }
-    
   }
+
   /// <summary>
   /// Updates UI envelope balances with new values from API
   /// </summary>
   /// <param name="envelopes">List of envelopes with updated balances</param>
-  public void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult)
+  public void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult, List<EnvelopeResult> allEnvelopeData)
   {
-    UpdateClientSideEnvelopeBalances(addResult.EnvelopeUpdates);
+    UpdateClientSideEnvelopeBalances(addResult.EnvelopeUpdates, allEnvelopeData);
   }
 
   /// <summary>
@@ -104,7 +110,8 @@ public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUser
   /// <param name="cancellationToken">Cancellation token</param>
   public async Task SaveStateAsync(CancellationToken cancellationToken = default)
   {
-    await state.SaveAsync();
+    //await state.SaveAsync();
+    await Task.CompletedTask;
   }
 
   /// <summary>
@@ -113,7 +120,8 @@ public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUser
   /// <param name="cancellationToken">Cancellation token</param>
   public async Task RefreshAsync(CancellationToken cancellationToken = default)
   {
-    await state.RefreshAsync();
+   // await state.RefreshAsync();
+   await Task.CompletedTask;
   }
 }
 
@@ -125,21 +133,24 @@ public interface IEnvelopeDataService
   /// <summary>
   /// Loads envelope data from cache or refreshes from API
   /// </summary>
-  Task<EnvelopeDataResult> LoadEnvelopeDataAsync(bool forceRefresh = false, CancellationToken cancellationToken = default);
+  Task<EnvelopeDataResult> LoadEnvelopeDataAsync(bool forceRefresh = false,
+    CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Applies category filtering to envelope list
   /// </summary>
-  List<EnvelopeResult> ApplyCategoryFilter(List<EnvelopeResult> allEnvelopes, List<Cat> categories, string? selectedCategoryId);
+  List<EnvelopeResult> ApplyCategoryFilter(List<EnvelopeResult> allEnvelopes, List<Cat> categories,
+    string? selectedCategoryId);
 
   /// <summary>
   /// Updates envelope balances with new values from API
   /// </summary>
-  void UpdateClientSideEnvelopeBalances(List<EnvelopeUpdate> addResult);
+  void UpdateClientSideEnvelopeBalances(List<EnvelopeUpdate> addResult, List<EnvelopeResult> allEnvelopeData);
+
   /// <summary>
   /// Updates envelope balances with new values from API
   /// </summary>
-  void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult);
+  void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult, List<EnvelopeResult> allEnvelopeData);
 
   /// <summary>
   /// Saves the current state

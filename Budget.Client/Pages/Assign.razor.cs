@@ -44,11 +44,11 @@ public partial class Assign : ComponentBase
     try
     {
       // Convert State.AllEnvelopeData to EnvelopeIdName list
-      _availableEnvelopes = SetAvailableEnvelopes();
+      _availableEnvelopes = await SetAvailableEnvelopes();
 
     //  _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
 
-      _unassignedEnvelope = MonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned).Result;
+      _unassignedEnvelope = await MonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
 
 
 
@@ -79,19 +79,11 @@ public partial class Assign : ComponentBase
     }
   }
 
-  private List<EnvelopeIdName> SetAvailableEnvelopes()
+  private async Task< List<EnvelopeIdName>> SetAvailableEnvelopes()
   {
-    var response = Api.GetEnvelopesAsync();
-    if(!response.IsCompleted)
-      throw new ArgumentException("Unable to get all envelopes");	
+    var envelopes = await Api.GetEnvelopesAsync();
 
-    var envelopes = response.Result;
-
-    var catResponse = Api.GetCategoriesAsync();
-    if(!catResponse.IsCompleted)
-      throw new ArgumentException("Unable to get all categories");
-
-    var categories = catResponse.Result;
+    var categories= await Api.GetCategoriesAsync();
 
     var result = from e in envelopes
       join c in categories

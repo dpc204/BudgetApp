@@ -225,7 +225,7 @@ public class EnvelopeDataServiceTests
     };
 
         // Act
-        _service.UpdateClientSideEnvelopeBalances(tranResult);
+        _service.UpdateClientSideEnvelopeBalances(tranResult, envelopes);
 
         // Assert
         envelopes[0].Balance.Should().Be(-50m);
@@ -251,33 +251,16 @@ public class EnvelopeDataServiceTests
     {
       new EnvelopeUpdate( 999, 200m )
     };
+        
 
 
         // Act
-        var act = () => _service.UpdateClientSideEnvelopeBalances(tranResult);
+        var act = () => _service.UpdateClientSideEnvelopeBalances(tranResult, envelopes);
 
         // Assert
         act.Should().NotThrow();
         envelopes[0].Balance.Should().Be(100m); // Unchanged
     }
 
-    [Fact]
-    public async Task SaveStateAsync_CallsStateSave()
-    {
-        // Act
-        await _service.SaveStateAsync();
-
-        // Assert
-        _mockState.Verify(s => s.SaveAsync(), Times.Once);
-    }
-
-    [Fact]
-    public async Task RefreshAsync_CallsStateRefresh()
-    {
-        // Act
-        await _service.RefreshAsync();
-
-        // Assert
-        _mockState.Verify(s => s.RefreshAsync(), Times.Once);
-    }
+    
 }
