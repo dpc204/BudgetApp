@@ -79,10 +79,11 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
   public async Task<TransactionAddResult> AddSingleTransaction(AddNewTransaction.Command request)
   {
+    ArgumentNullException.ThrowIfNull(request);
+
     await BeginBatchAsync();
 
-    if (request.Trans == null)
-      throw (new ArgumentNullException(nameof(request.Trans)));
+    ArgumentNullException.ThrowIfNull(request.Trans);
 
     var rslt = await AddTransactionAsync(request.Trans);
 
@@ -105,8 +106,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   {
     await BeginBatchAsync();
 
-    if (list == null)
-      throw (new ArgumentNullException(nameof(list)));
+    ArgumentNullException.ThrowIfNull(list);
 
     foreach (var tran in list)
     {

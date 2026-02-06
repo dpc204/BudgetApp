@@ -31,7 +31,6 @@ public partial class InsertTransactionsTests
     /// Input: null list
     /// Expected: ArgumentNullException
     /// </summary>
-    [Fact(Skip="ProductionBugSuspected")]
     [Trait("Category", "ProductionBugSuspected")]
     public async Task AddMultipleTransactions_NullList_ThrowsArgumentNullException()
     {
@@ -52,7 +51,7 @@ public partial class InsertTransactionsTests
     /// Input: null command.
     /// Expected: ArgumentNullException is thrown.
     /// </summary>
-    [Fact(Skip="ProductionBugSuspected")]
+    [Fact]
     [Trait("Category", "ProductionBugSuspected")]
     public async Task AddSingleTransaction_WithNullCommand_ThrowsArgumentNullException()
     {

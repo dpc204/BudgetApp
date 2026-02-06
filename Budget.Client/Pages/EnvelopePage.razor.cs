@@ -151,18 +151,8 @@ public partial class EnvelopePage(
 
   private List<Cat> CategoriesForSelect { get; set; } = [];
 
-  //public string? SelectedCategoryId
-  //{
-  //  get => state.SelectedCategoryId;
-  //  set => state.SelectedCategoryId = value;
-  //}
   public string? SelectedCategoryId { get; set; }
   public MudDataGrid<EnvelopeResult> EnvGrid { get; set; }
-
-  public List<Cat> GetCategoriesForSelect()
-  {
-    return dataService.GetCategoriesForSelect();
-  }
 
   private async Task CatChanged(string? value)
   {

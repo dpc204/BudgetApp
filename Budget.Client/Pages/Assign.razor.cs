@@ -4,8 +4,10 @@ namespace Budget.Client.Pages;
 
 public partial class Assign : ComponentBase
 {
-  [Inject] private EnvelopeState State { get; set; } = default!;
+ // [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private IBudgetApiClient Api { get; set; } = default!;
+  [Inject] private IBudgetMonthlyApiClient MonthlyApi { get; set; } = default!;
+
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
   [CascadingParameter] private IUserAndOptions UserOptions { get; set; } = default!;
 
@@ -41,14 +43,14 @@ public partial class Assign : ComponentBase
   {
     try
     {
-      State.InOnInitializedAsync = true;
-      await State.RefreshAsync();
-
-
       // Convert State.AllEnvelopeData to EnvelopeIdName list
       _availableEnvelopes = SetAvailableEnvelopes();
 
-      _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
+    //  _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
+
+      _unassignedEnvelope = MonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned).Result;
+
+
 
       var result = await Api.GetTransactionsUnassignedAsync();
       if (result.IsSuccess)
@@ -79,11 +81,25 @@ public partial class Assign : ComponentBase
 
   private List<EnvelopeIdName> SetAvailableEnvelopes()
   {
-    return State.AllEnvelopeData
-      .Where(a => a.EnvelopeType == EnvelopeTypes.Standard || a.EnvelopeType == EnvelopeTypes.Income)
-      .Select(a =>
-        new EnvelopeIdName(a.EnvelopeId, a.CategoryName, a.EnvelopeName, a.CategorySortOrder, a.EnvelopeSortOrder))
-      .OrderBy(a => a.CategorySortOrder).ThenBy(a => a.EnvelopeSortOrder).ToList();
+    var response = Api.GetEnvelopesAsync();
+    if(!response.IsCompleted)
+      throw new ArgumentException("Unable to get all envelopes");	
+
+    var envelopes = response.Result;
+
+    var catResponse = Api.GetCategoriesAsync();
+    if(!catResponse.IsCompleted)
+      throw new ArgumentException("Unable to get all categories");
+
+    var categories = catResponse.Result;
+
+    var result = from e in envelopes
+      join c in categories
+        on e.CategoryId equals c.CategoryId
+      where e.EnvelopeType == EnvelopeTypes.Standard || e.EnvelopeType == EnvelopeTypes.Income
+      select new EnvelopeIdName(e.Id, c.Name, e.Name, c.SortOrder, e.SortOrder);
+
+    return result.ToList();
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -91,14 +107,7 @@ public partial class Assign : ComponentBase
     if (firstRender && !_afterRenderInit)
     {
       _afterRenderInit = true;
-      await State.TryLoadFromCacheAsync();
-      if (!State.IsLoaded)
-      {
-        await State.RefreshAsync();
-      }
-
       // Refresh envelope list after state is loaded
-      _availableEnvelopes = SetAvailableEnvelopes();
 
       StateHasChanged();
     }
@@ -133,26 +142,26 @@ public partial class Assign : ComponentBase
     return source.Contains(search, StringComparison.OrdinalIgnoreCase);
   }
 
-  private async Task<GridData<TransactionDto>> LoadServerData(GridState<TransactionDto> state,
+  private async Task<GridData<TransactionDto>> LoadServerData(GridState<TransactionDto> gridState,
     CancellationToken cancellationToken)
   {
     try
     {
       Logger.LogInformation(
         "Loading server data: Page={Page}, PageSize={PageSize}, Sort={Sort}, Descending={Descending}, Filters={Filters}",
-        state.Page, state.PageSize,
-        state.SortDefinitions.FirstOrDefault()?.SortBy,
-        state.SortDefinitions.FirstOrDefault()?.Descending ?? false,
-        string.Join(";", state.FilterDefinitions.Select(f => $"{f.Column?.PropertyName} {f.Operator} {f.Value}"))
+        gridState.Page, gridState.PageSize,
+        gridState.SortDefinitions.FirstOrDefault()?.SortBy,
+        gridState.SortDefinitions.FirstOrDefault()?.Descending ?? false,
+        string.Join(";", gridState.FilterDefinitions.Select(f => $"{f.Column?.PropertyName} {f.Operator} {f.Value}"))
       );
 
       var query = new AssignQuery
       {
-        StartIndex = state.Page * state.PageSize,
-        Count = state.PageSize,
-        Sort = state.SortDefinitions.FirstOrDefault()?.SortBy,
-        Descending = state.SortDefinitions.FirstOrDefault()?.Descending ?? false,
-        Filters = state.FilterDefinitions
+        StartIndex = gridState.Page * gridState.PageSize,
+        Count = gridState.PageSize,
+        Sort = gridState.SortDefinitions.FirstOrDefault()?.SortBy,
+        Descending = gridState.SortDefinitions.FirstOrDefault()?.Descending ?? false,
+        Filters = gridState.FilterDefinitions
           .Select(f => new FilterItem
           {
             Column = f.Column?.PropertyName,
@@ -310,7 +319,7 @@ public partial class Assign : ComponentBase
   private HashSet<TransactionImportDto> _selectedItems = new();
 
   private string _transactionSearch = string.Empty;
-  private EnvelopeResult? _unassignedEnvelope;
+  private EnvelopeDto? _unassignedEnvelope;
 
   private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
   {
