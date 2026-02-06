@@ -1,3 +1,6 @@
+using Budget.Shared.Models;
+using Mapster;
+
 namespace Budget.Client.Services;
 
 /// <summary>
@@ -42,7 +45,7 @@ public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUser
   
     return new EnvelopeDataResult
     {
-      AllEnvelopes = state.AllEnvelopeData ?? [],
+      AllEnvelopes = resultEnvs,
       Categories = Cats,
       SelectedCategoryId = userOptions.Options.SelectedCategoryType
     };
@@ -57,7 +60,12 @@ public class EnvelopeDataService(EnvelopeState state,IBudgetApiClient api, IUser
   /// <returns>List of categories the user can select</returns>
   public List<Cat> GetCategoriesForSelect()
   {
-    return state.Cats;
+    var cats = api.GetCategoriesAsync();
+    var rslt = new List<Cat>();
+    rslt = [new Cat { CategoryId = "0", CategoryName = "All" }];
+    var r2 = cats.Result.Adapt<List<Cat>>();
+    return r2;
+
   }
 
   /// <summary>

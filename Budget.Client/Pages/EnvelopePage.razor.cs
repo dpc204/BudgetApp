@@ -56,7 +56,7 @@ public partial class EnvelopePage(
     {
       state.InOnInitializedAsync = true;
       await state.RefreshAsync();
-
+  //    await UserOptions.GetUserAsync();
       // Ensure selection class applied on first render when an item is already selected
       await InvokeAsync(StateHasChanged);
     }

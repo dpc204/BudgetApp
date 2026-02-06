@@ -7,9 +7,9 @@ namespace Budget.Api.Features.UserOptions;
 /// <summary>
 /// Gets a single user by email with their assigned roles
 /// </summary>
-public static class GetUserByEmail
+public static class GetUserById
 {
-  public sealed record Query(string UserEmail) : IRequest<Response>;
+  public sealed record Query(int id) : IRequest<Response>;
 
   public sealed record Response(UserDetailDto? User);
 
@@ -20,12 +20,10 @@ public static class GetUserByEmail
   {
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
-      // Normalize email for case-insensitive comparison
-      var normalizedEmail = request.UserEmail.ToUpperInvariant();
 
       var user = await db.Users
         .IgnoreQueryFilters()
-        .Where(u => u.Email.ToUpper() == normalizedEmail)
+        .Where(u => u.Id == request.id)
         .Select(u => new UserDetailDto(
           u.Id,
           u.Email,
@@ -51,10 +49,10 @@ public static class GetUserByEmail
     public void AddRoutes(IEndpointRouteBuilder app)
     {
 
-      app.MapGet("/api/useroptions/GetUserByEmail",
-          async ([FromQuery] string userEmail, [FromServices] ISender sender) =>
+      app.MapGet("/api/useroptions/GetUserById",
+          async ([FromQuery] int id, [FromServices] ISender sender) =>
           {
-            var result = await sender.Send(new Query(userEmail));
+            var result = await sender.Send(new Query(id));
             return Results.Ok(result);
           })
         .WithTags("UserOptions")

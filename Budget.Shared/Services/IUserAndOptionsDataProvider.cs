@@ -9,7 +9,7 @@ public interface IUserAndOptionsDataProvider
   /// <summary>
   /// Load user details by email address
   /// </summary>
-  Task<UserDetailDto?> LoadUserByEmailAsync(string email, CancellationToken cancellationToken = default);
+  Task<UserDetailDto?> LoadUserByIdAsync(int id, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Load user options by user ID

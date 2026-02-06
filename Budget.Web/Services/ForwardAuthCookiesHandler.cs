@@ -58,6 +58,31 @@ public sealed class ForwardAuthCookiesHandler(
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         logger.LogDebug("✓ Added Bearer token for {Url} (token length: {Length})", 
           request.RequestUri, accessToken.Length);
+
+        // Add UserId and FamilyId as custom headers for UserAndOptions and multi-tenancy
+        var user = httpContextAccessor.HttpContext?.User;
+        
+        var userId = user?.FindFirst("UserId")?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+          request.Headers.Add("X-UserId", userId);
+          logger.LogDebug("✓ Added X-UserId header: {UserId}", userId);
+        }
+        else
+        {
+          logger.LogWarning("⚠️ UserId claim not found in user principal for {Url}", request.RequestUri);
+        }
+
+        var familyId = user?.FindFirst("FamilyId")?.Value;
+        if (!string.IsNullOrEmpty(familyId))
+        {
+          request.Headers.Add("X-FamilyId", familyId);
+          logger.LogDebug("✓ Added X-FamilyId header: {FamilyId}", familyId);
+        }
+        else
+        {
+          logger.LogWarning("⚠️ FamilyId claim not found in user principal for {Url}", request.RequestUri);
+        }
       }
       else
       {

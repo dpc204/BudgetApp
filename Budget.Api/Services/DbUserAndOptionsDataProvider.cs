@@ -10,13 +10,12 @@ namespace Budget.Api.Services;
 /// </summary>
 public sealed class DbUserAndOptionsDataProvider(BudgetContext db, ILogger<DbUserAndOptionsDataProvider> logger) : IUserAndOptionsDataProvider
 {
-  public async Task<UserDetailDto?> LoadUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+  public async Task<UserDetailDto?> LoadUserByIdAsync(int id, CancellationToken cancellationToken = default)
   {
-    var normalizedEmail = email.ToUpperInvariant();
-
+  
     var user = await db.Users
       .IgnoreQueryFilters()
-      .Where(u => u.Email.ToUpper() == normalizedEmail)
+      .Where(u => u.Id == id)
       .Select(u => new UserDetailDto(
         u.Id,
         u.Email,

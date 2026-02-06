@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Validation;
 
 namespace Budget.Shared.Services;
-
+ 
 public class UserAndOptions : IUserAndOptions
 {
   private readonly IUserAndOptionsDataProvider? _dataProvider;
@@ -35,77 +35,103 @@ public class UserAndOptions : IUserAndOptions
   private  bool _hasUserInfo = false;
   private UserInfoDto _user = new UserInfoDto();
 
-  public UserInfoDto User 
-  { 
+  /// <summary>
+  /// Snapshot of the current user info. Does not trigger lazy loading.
+  /// Use GetUser or GetUserAsync for lazy-loading behavior.
+  /// </summary>
+  public UserInfoDto User
+  {
     get
     {
-      if (!_hasUserInfo)
-      {
-        var usr = EnsureUserLoadedAsync();
-        _user = usr.Result ?? new UserInfoDto();
-      }
-
       return _user;
-
     }
     set => _user = value;
   }
 
-  
-  
-  private async Task<UserInfoDto?> EnsureUserLoadedAsync()
+  /// <summary>
+  /// Returns the current user snapshot and kicks off lazy loading in the background if needed.
+  /// Does not block the caller.
+  /// </summary>
+  public UserInfoDto GetUser()
   {
-    // thoroughly log this method for debugging
-    // log the call for debugging purposes
-    _logger.LogInformation(
-      "UserAndOptions:Ensuring user is loaded. Email: {UserEmail}, Load Attempted: {LoadAttempted}, Load Task Not Null: {LoadTaskNotNull}",
-      _userEmail, _userLoadAttempted, _loadUserTask != null);
-    
-
-
-
-    if(string.IsNullOrWhiteSpace(_userEmail))
-      return User;
-    _logger.LogDebug("UserAndOptions:User email is set to: {UserEmail}", _userEmail);
-
-    if(_userLoadAttempted && _loadUserTask != null)
+    if (!_hasUserInfo && !_userLoadAttempted && _dataProvider != null && !string.IsNullOrWhiteSpace(_userEmail))
     {
-     // log this
-     // log the existing user load task
-     _logger.LogDebug("UserAndOptions:User load already in progress. Returning existing task. Email: {UserEmail}", _userEmail);
-     
-     var rslt =await _loadUserTask;
-      _logger.LogDebug("UserAndOptions:User load task completed for email: {UserEmail}", _userEmail);
-      return rslt;
-    }
-
-    // First call - start loading
-    if(!_userLoadAttempted && _dataProvider != null )
-    {
-      _logger.LogDebug("UserAndOptions:Starting user load for email: {UserEmail}", _userEmail);
+      _logger.LogDebug("UserAndOptions:GetUser: starting background user load for email {UserEmail}", _userEmail);
       _userLoadAttempted = true;
       _loadUserTask = LoadUserInternalAsync();
-      _hasUserInfo = true;
-      _logger.LogDebug("UserAndOptions:User load task started for email: {UserEmail}", _userEmail);
-
-
-      return await _loadUserTask;
+      _ = _loadUserTask; // fire-and-forget
     }
 
-    // log that no data provider is available
-    _logger.LogDebug("UserAndOptions:No data provider available. User information cannot be loaded. Email: {UserEmail}", _userEmail);
+    return User;
+  }
 
-    // If no data provider, return the current user info.
-    // This might be default or previously loaded info.
+  public async Task SetupAsync(CancellationToken ct)
+  {
+    await GetUserAsync(ct);
+    await LoadOptionsInternalAsync();
+  }
+
+  /// <summary>
+  /// Ensures the user is loaded and returns the up-to-date user info.
+  /// Safe to await from Blazor lifecycle methods.
+  /// </summary>
+  public async Task<UserInfoDto> GetUserAsync(CancellationToken cancellationToken = default)
+  {
+    _logger.LogInformation(
+      "UserAndOptions:GetUserAsync: Email: {UserEmail}, Load Attempted: {LoadAttempted}, Load Task Not Null: {LoadTaskNotNull}",
+      _userEmail, _userLoadAttempted, _loadUserTask != null);
+
+    if (User.Id <= 0 )
+      return User;
+
+    _logger.LogDebug("UserAndOptions:GetUserAsync:User email is set to: {UserEmail}", _userEmail);
+
+    if (_userLoadAttempted && _loadUserTask != null)
+    {
+      _logger.LogDebug("UserAndOptions:GetUserAsync: user load already in progress. Email: {UserEmail}", _userEmail);
+      var rslt = await _loadUserTask.ConfigureAwait(false);
+      _logger.LogDebug("UserAndOptions:GetUserAsync: user load task completed for email: {UserEmail}", _userEmail);
+      return rslt ?? User;
+    }
+
+    if (!_userLoadAttempted && _dataProvider != null)
+    {
+      _logger.LogDebug("UserAndOptions:GetUserAsync: starting user load for email: {UserEmail}", _userEmail);
+      _userLoadAttempted = true;
+      _loadUserTask = LoadUserInternalAsync(cancellationToken);
+      var rslt = await _loadUserTask.ConfigureAwait(false);
+      _logger.LogDebug("UserAndOptions:GetUserAsync: user load task completed for email: {UserEmail}", _userEmail);
+      return rslt ?? User;
+    }
+
+    _logger.LogDebug("UserAndOptions:GetUserAsync: no data provider available. Email: {UserEmail}", _userEmail);
+
+    await LoadOptionsInternalAsync();
 
     return User;
-
   }
 
   string _userEmail = string.Empty;
   public void SetUserEmail(string email)
   {
     _userEmail = email;
+    // Don't load here - let it happen lazily later
+  }
+
+  public void SetUserIdAndFamilyId(int userId, int familyId)
+  {
+    // Set user info directly from headers - no database lookup needed
+    User = new UserInfoDto
+    {
+      Id = userId,
+      FamilyId = familyId,
+      Email = _userEmail,
+      Name = string.Empty, // Will be populated if needed
+      Roles = []
+    };
+    _hasUserInfo = userId > 0;
+    HasInfo = _hasUserInfo;
+    _logger.LogDebug("Set UserId: {UserId}, FamilyId: {FamilyId} from headers", userId, familyId);
   }
 
   public void SetUserInfo(UserInfoDto userInfo)
@@ -118,14 +144,14 @@ public class UserAndOptions : IUserAndOptions
     //  Options.UserId = userInfo.Id;
     //}
   }
-  
-  
+
+
 
   /// <summary>
   /// Ensures user options are loaded. Safe to call multiple times - only loads once.
   /// This is the preferred way to access options - it ensures they're loaded before returning.
   /// </summary>
-  public async Task<UserOptions> EnsureOptionsLoadedAsync()
+  public async Task EnsureOptionsLoadedAsync()
   {
     _logger.LogDebug(
       "UserAndOptions:Options:Ensuring options are loaded. UserId: {UserId}, Load Attempted: {LoadAttempted}, Load Task Not Null: {LoadTaskNotNull}",
@@ -135,11 +161,11 @@ public class UserAndOptions : IUserAndOptions
     {
       _logger.LogDebug(
   "UserAndOptions:Options:Options load already in progress. Returning existing task. UserId: {UserId}", User.Id);
-      return await _loadOptionsTask;
+      return;// await _loadOptionsTask;
     }
 
     // First call - start loading
-    if (!_optionsLoadAttempted && _dataProvider != null && HasInfo && User.Id != 0)
+    if (!_optionsLoadAttempted && _dataProvider != null  && User.Id != 0)
     {
       _logger.LogDebug(  "UserAndOptions:Options: Starting options load for UserId: {UserId}", User.Id);
 
@@ -148,13 +174,13 @@ public class UserAndOptions : IUserAndOptions
       _logger.LogDebug(  "UserAndOptions:Options: Options load task started for UserId: {UserId}", User.Id);
       var rslt = await _loadOptionsTask;
       _logger.LogDebug(  "UserAndOptions:Options: Options load task completed for UserId: {UserId}", User.Id);
-      return rslt;
+      return;// rslt;
     }
 
     // No data provider or not authenticated - return current options
-    return Options;
+    return;//Options;
   }
-  
+
   ///// <summary>
   ///// Gets user options, automatically loading from API if needed.
   ///// RECOMMENDED: Use EnsureOptionsLoadedAsync() instead to await the load properly.
@@ -169,6 +195,9 @@ public class UserAndOptions : IUserAndOptions
   {
     try
     {
+      if (HasInfo)
+        return Options;
+
 
       var loaded = await _dataProvider!.LoadUserOptionsAsync(User.Id);
       if (loaded != null)
@@ -189,12 +218,12 @@ public class UserAndOptions : IUserAndOptions
   }
 
 
-  private async Task<UserInfoDto?> LoadUserInternalAsync()
+  private async Task<UserInfoDto?> LoadUserInternalAsync(CancellationToken cancellationToken = default)
   {
     try
     {
 
-      var response = await _dataProvider!.LoadUserByEmailAsync(_userEmail);
+      var response = await _dataProvider!.LoadUserByIdAsync(_user.Id, cancellationToken);
 
       if(response is null)
         return null;
@@ -209,6 +238,9 @@ public class UserAndOptions : IUserAndOptions
         Roles = response.Roles.Select(a => a.Name).ToArray()
       };
       _hasUserInfo = rslt.Id != 0;
+
+      // update snapshot so subsequent GetUser() calls see the loaded data
+      User = rslt;
 
       return rslt;
     }

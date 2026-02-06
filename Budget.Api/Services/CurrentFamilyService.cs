@@ -8,22 +8,38 @@ namespace Budget.Api.Services;
 public class CurrentFamilyService(IHttpContextAccessor httpContextAccessor) : ICurrentFamilyService
 {
   /// <summary>
-  /// Gets the FamilyId of the currently authenticated user from claims
+  /// Gets the FamilyId of the currently authenticated user from custom header or claims
   /// </summary>
-  /// <returns>The FamilyId from claims</returns>
-  /// <exception cref="UnauthorizedAccessException">Thrown when user is not authenticated or FamilyId claim is missing/invalid</exception>
+  /// <returns>The FamilyId from header or claims</returns>
+  /// <exception cref="UnauthorizedAccessException">Thrown when user is not authenticated or FamilyId is missing/invalid</exception>
   public int GetCurrentFamilyId()
   {
-    var user = httpContextAccessor.HttpContext?.User;
+    var httpContext = httpContextAccessor.HttpContext;
+    if (httpContext == null)
+    {
+      throw new UnauthorizedAccessException("HttpContext is not available.");
+    }
+
+    var user = httpContext.User;
     if (user?.Identity?.IsAuthenticated != true)
     {
       throw new UnauthorizedAccessException("User is not authenticated.");
     }
 
+    // Try to get FamilyId from custom header first (sent by Budget.Web)
+    if (httpContext.Request.Headers.TryGetValue("X-FamilyId", out var headerValue))
+    {
+      if (int.TryParse(headerValue.ToString(), out var familyIdFromHeader))
+      {
+        return familyIdFromHeader;
+      }
+    }
+
+    // Fall back to claim (for local JWT tokens or future implementations)
     var familyIdClaim = user.FindFirst("FamilyId")?.Value;
     if (!int.TryParse(familyIdClaim, out var familyId))
     {
-      throw new UnauthorizedAccessException("User authenticated but FamilyId claim is missing or invalid.");
+      throw new UnauthorizedAccessException("User authenticated but FamilyId is missing from both header and claims.");
     }
 
     return familyId;

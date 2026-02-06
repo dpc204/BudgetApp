@@ -8,21 +8,21 @@ namespace Budget.Client.Services;
 public sealed class ApiUserAndOptionsDataProvider(IBudgetApiClient apiClient, ILogger<ApiUserAndOptionsDataProvider> logger)
   : IUserAndOptionsDataProvider
 {
-  public async Task<UserDetailDto?> LoadUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+  public async Task<UserDetailDto?> LoadUserByIdAsync(int id, CancellationToken cancellationToken = default)
   {
     // log the stacktrace for debugging
     logger.LogDebug("UsersAndOptions:ApiDataProvider:StackTrace: {StackTrace}", Environment.StackTrace);
     // Add logging for potential issues
-    logger.LogDebug("UsersAndOptions:ApiDataProvider:Attempting to load user by email: {Email}", email);
-    var rslt = await apiClient.GetUserByEmailAsync(email, cancellationToken);
+    logger.LogDebug("UsersAndOptions:ApiDataProvider:Attempting to load user by id: {UserId}", id);
+    var rslt = await apiClient.GetUserByIdAsync(id, cancellationToken);
     if (rslt is null)
     {
-      logger.LogDebug("UsersAndOptions:ApiDataProvider:User with email {Email} not found.", email);
+      logger.LogDebug("UsersAndOptions:ApiDataProvider:User with id {UserId} not found.", id);
       return null;
     }
     else
     {
-      logger.LogDebug("UsersAndOptions:ApiDataProvider:User with email {Email} loaded successfully. User ID: {UserId}", email, rslt.Id);
+      logger.LogDebug("UsersAndOptions:ApiDataProvider:User with UserId {Userid} loaded successfully. User ID: {UserId}", id, rslt.Id);
     }
     return rslt;
   }

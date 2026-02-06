@@ -35,13 +35,17 @@ public sealed partial class AuthStateSync : ComponentBase
       // Options will be loaded lazily when first accessed via EnsureOptionsLoadedAsync()
       if (!UserAndOptions.HasInfo)
       { 
-        //var dto = MapToDto(user!);
-        
+        UserAndOptions.User = MapToDto(user!);
         
         
         
         UserAndOptions.SetUserEmail(GetEmail(user));
+
         
+
+
+        await UserAndOptions.SetupAsync(CancellationToken.None);
+
         // Don't load options here - too early in auth pipeline
         // Components that need options should call: await UserAndOptions.EnsureOptionsLoadedAsync()
         

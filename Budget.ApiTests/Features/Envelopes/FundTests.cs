@@ -89,7 +89,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.AddRange(incomeEnvelope, envelope1, envelope2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = SetupMockUserAndOptions();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();

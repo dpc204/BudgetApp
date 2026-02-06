@@ -43,6 +43,26 @@ public sealed class UserEmailMiddleware(
       {
         userAndOptions.SetUserEmail(email);
         logger.LogDebug("Set user email for lazy loading: {Email}", email);
+
+        // Check for UserId and FamilyId in custom headers (sent by Budget.Web)
+        if (context.Request.Headers.TryGetValue("X-UserId", out var userIdHeader) &&
+            context.Request.Headers.TryGetValue("X-FamilyId", out var familyIdHeader))
+        {
+          if (int.TryParse(userIdHeader.ToString(), out var userId) &&
+              int.TryParse(familyIdHeader.ToString(), out var familyId))
+          {
+            userAndOptions.SetUserIdAndFamilyId(userId, familyId);
+            logger.LogDebug("Set UserId: {UserId}, FamilyId: {FamilyId} from headers", userId, familyId);
+          }
+          else
+          {
+            logger.LogWarning("Failed to parse UserId or FamilyId from headers");
+          }
+        }
+        else
+        {
+          logger.LogDebug("X-UserId or X-FamilyId headers not found - will load from database if needed");
+        }
       }
       else
       {

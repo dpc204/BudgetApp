@@ -76,8 +76,12 @@ public class DatabaseClaimsTransformation(
         logger.LogWarning("No roles found in database for user {Email}", email);
       }
 
-      // Create new identity with database roles and FamilyId
+      // Create new identity with database roles, UserId, and FamilyId
       var claimsIdentity = new ClaimsIdentity();
+
+      // Add UserId claim (needed for UserAndOptions)
+      claimsIdentity.AddClaim(new Claim("UserId", user.Id.ToString()));
+      logger.LogInformation("Added UserId claim: {UserId} for user {Email}", user.Id, email);
 
       // Add FamilyId claim (critical for multi-tenancy)
       claimsIdentity.AddClaim(new Claim("FamilyId", user.FamilyId.ToString()));

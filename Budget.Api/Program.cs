@@ -211,10 +211,11 @@ if (isEntraConfigured)
     
     logger.LogWarning("✅ Configured Entra JWT with RoleClaimType = 'roles' and valid issuers for tenant {TenantId}", tenantId);
     
-    // Add event handler to add FamilyId claim from database after token validation
+    // FamilyId and roles claims are added by Budget.Web's DatabaseClaimsTransformation
+    // and are already present in the JWT token - no need to query database here
     options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
     {
-      OnTokenValidated = async context =>
+      OnTokenValidated = context =>
       {
         var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}").ToList();
         logger.LogInformation("🔍 Token validated for {Scheme}. Claims: {Claims}", 
@@ -228,51 +229,10 @@ if (isEntraConfigured)
         logger.LogInformation("🔍 Role claims after mapping: {Roles}", 
           roleClaims != null && roleClaims.Any() ? string.Join(", ", roleClaims) : "NONE");
 
-        // Add FamilyId claim from database for multi-tenancy
-        if (context.Principal != null)
-        {
-          // Get email from token claims
-          var email = context.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
-                      ?? context.Principal.FindFirst("preferred_username")?.Value
-                      ?? context.Principal.FindFirst("upn")?.Value;
+        var familyId = context.Principal?.FindFirst("FamilyId")?.Value;
+        logger.LogInformation("🔍 FamilyId claim from token: {FamilyId}", familyId ?? "NOT FOUND");
 
-          if (!string.IsNullOrEmpty(email))
-          {
-            try
-            {
-              // Get database context from service provider
-              var dbContext = context.HttpContext.RequestServices.GetRequiredService<BudgetContext>();
-
-              // Load user from database (ignore query filters to find user by email across all families)
-              var user = await dbContext.Users
-                .IgnoreQueryFilters()
-                .FirstOrDefaultAsync(u => u.Email == email.ToUpper());
-
-              if (user != null)
-              {
-                // Add FamilyId claim to the principal
-                var claimsIdentity = new System.Security.Claims.ClaimsIdentity();
-                claimsIdentity.AddClaim(new System.Security.Claims.Claim("FamilyId", user.FamilyId.ToString()));
-                context.Principal.AddIdentity(claimsIdentity);
-
-                logger.LogInformation("✅ Added FamilyId claim: {FamilyId} for user {Email}", user.FamilyId, email);
-              }
-              else
-              {
-                logger.LogWarning("⚠️ User not found in database for email: {Email}", email);
-              }
-            }
-            catch (Exception ex)
-            {
-              logger.LogError(ex, "❌ Error adding FamilyId claim for email: {Email}", email);
-              // Don't throw - allow authentication to succeed even if FamilyId loading fails
-            }
-          }
-          else
-          {
-            logger.LogWarning("⚠️ No email claim found in token");
-          }
-        }
+        return Task.CompletedTask;
       }
     };
   }, 

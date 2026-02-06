@@ -7,4 +7,5 @@ public class UserInfoDto
   public string? Name { get; set; }
   public int FamilyId { get; set; }
   public IList<string> Roles { get; set; } = [];
+  public bool IsLoadedFromDB { get; set; }
 }
