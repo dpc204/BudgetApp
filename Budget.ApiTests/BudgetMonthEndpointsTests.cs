@@ -33,7 +33,7 @@ public class BudgetMonthEndpointsTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetBudgetMonth.Handler(context);
     var year = 2024;
@@ -78,7 +78,7 @@ public class BudgetMonthEndpointsTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateBudgetDraft.Handler(context);
     var command = new UpdateBudgetDraft.Command(202412, 1, 100.50m);
@@ -112,7 +112,7 @@ public class BudgetMonthEndpointsTests
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
     context.BudgetMonths.Add(budgetMonth);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new ApplyDraftValuesToBudget.Handler(context);
 
@@ -145,7 +145,7 @@ public class BudgetMonthEndpointsTests
     
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new ClearDraftBudgets.Handler(context);
 
@@ -179,7 +179,7 @@ public class BudgetMonthEndpointsTests
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
     context.BudgetMonths.Add(budgetMonth);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new CopyBudgetToNextMonth.Handler(context);
     var command = new CopyBudgetToNextMonth.Command(202411, false, true);
@@ -210,7 +210,7 @@ public class BudgetMonthEndpointsTests
     
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new ClearMonthBudgets.Handler(context);
     var command = new ClearMonthBudgets.Command(202412);
@@ -241,7 +241,7 @@ public class BudgetMonthEndpointsTests
     
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new ClearMonthDrafts.Handler(context);
     var command = new ClearMonthDrafts.Command(202412);
@@ -273,7 +273,7 @@ public class BudgetMonthEndpointsTests
     
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new ClearMonthBoth.Handler(context);
     var command = new ClearMonthBoth.Command(202412);
@@ -304,7 +304,7 @@ public class BudgetMonthEndpointsTests
     
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new ApplyMonthDrafts.Handler(context);
     var command = new ApplyMonthDrafts.Command(202412);
@@ -318,3 +318,4 @@ public class BudgetMonthEndpointsTests
     result.RecordsUpdated.Should().BeGreaterThan(0);
   }
 }
+

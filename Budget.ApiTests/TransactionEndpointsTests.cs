@@ -48,7 +48,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.BankAccounts.Add(account);
     context.Envelopes.Add(envelope);
     context.Users.Add(user);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var transactionDetail = new OneTransactionDetail
     {
@@ -81,8 +81,8 @@ public class TransactionEndpointsTests : IntegrationTestBase
     result.Should().NotBeNull();
     
     context.ChangeTracker.Clear();
-    var updatedAccount = await context.BankAccounts.FindAsync(account.Id);
-    var updatedEnvelope = await context.Envelopes.FindAsync(envelope.Id);
+    var updatedAccount = await context.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
+    var updatedEnvelope = await context.Envelopes.FindAsync(new object[] { envelope.Id }, TestContext.Current.CancellationToken);
 
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Balance.Should().Be(900m); // 1000 - 100
@@ -139,7 +139,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetUnassigned.Handler(context);
 
@@ -202,7 +202,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetByEnvelopeId.Handler(context);
 
@@ -265,7 +265,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetOneTransactionDetail.Handler(context);
 
@@ -340,7 +340,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new AssignTransaction.Handler(context, new MoveEnvelopeBalance());
     var command = new AssignTransaction.Command(600, 1, 204, "Reassigned");
@@ -352,7 +352,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     result.Should().BeTrue();
     
     context.ChangeTracker.Clear();
-    var updatedDetail = await context.TransactionDetails.FindAsync(600, 1);
+    var updatedDetail = await context.TransactionDetails.FindAsync(new object[] { 600, 1 }, TestContext.Current.CancellationToken);
     updatedDetail.Should().NotBeNull();
     updatedDetail!.EnvelopeId.Should().Be(204);
   }
@@ -405,7 +405,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateTransaction.Handler(context);
     var updatedTransaction = new OneTransactionDetail
@@ -439,7 +439,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     testResult.Id.Should().Be(205);
     
     context.ChangeTracker.Clear();
-    var updatedTx = await context.Transactions.FindAsync(700);
+    var updatedTx = await context.Transactions.FindAsync(new object[] { 700 }, TestContext.Current.CancellationToken);
     updatedTx.Should().NotBeNull();
     updatedTx!.Vendor.Should().Be("Updated Vendor");
     updatedTx.TotalAmount.Should().Be(150m);
@@ -470,3 +470,4 @@ public class TransactionEndpointsTests : IntegrationTestBase
     result.IsFailed.Should().Be(true);
   }
 }
+

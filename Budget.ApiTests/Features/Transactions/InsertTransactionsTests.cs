@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +32,7 @@ public partial class InsertTransactionsTests
     /// Expected: ArgumentNullException
     /// </summary>
     [Trait("Category", "ProductionBugSuspected")]
+  [Fact]
     public async Task AddMultipleTransactions_NullList_ThrowsArgumentNullException()
     {
         // Arrange
@@ -75,7 +76,7 @@ public partial class InsertTransactionsTests
         _mockCurrentFamilyService = new Mock<ICurrentFamilyService>();
     }
 
-    public void Dispose()
+    internal void Dispose()
     {
         _context?.Dispose();
     }
@@ -91,13 +92,13 @@ public partial class InsertTransactionsTests
     {
         // Arrange
         var service = new InsertTransactions(_context, _mockCurrentFamilyService.Object);
-        var initialTransactionCount = await _context.Transactions.CountAsync();
+        var initialTransactionCount = await _context.Transactions.CountAsync(TestContext.Current.CancellationToken);
 
         // Act
         await service.EndBatchAsync();
 
         // Assert
-        var finalTransactionCount = await _context.Transactions.CountAsync();
+        var finalTransactionCount = await _context.Transactions.CountAsync(TestContext.Current.CancellationToken);
         finalTransactionCount.Should().Be(initialTransactionCount);
     }
 
@@ -216,7 +217,7 @@ public partial class InsertTransactionsTests
         await inserter.EndBatchAsync();
 
         // Assert - should complete without error and without adding any transactions
-        var transactions = await context.Transactions.ToListAsync();
+        var transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
         transactions.Should().BeEmpty();
     }
 
@@ -244,7 +245,7 @@ public partial class InsertTransactionsTests
         await inserter.EndBatchAsync();
 
         // Assert - should complete without error
-        var transactions = await context.Transactions.ToListAsync();
+        var transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
         transactions.Should().BeEmpty();
 
         // Verify we can begin a new batch (proving _inBatch was reset to false)
@@ -272,7 +273,7 @@ public partial class InsertTransactionsTests
         await inserter.EndBatchAsync();
 
         // Assert - should complete without error
-        var transactions = await context.Transactions.ToListAsync();
+        var transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
         transactions.Should().BeEmpty();
     }
 
@@ -337,7 +338,7 @@ public partial class InsertTransactionsTests
         await inserter.DisposeAsync();
 
         // Assert
-        var act = async () => await context.SaveChangesAsync();
+        var act = async () => await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         await act.Should().ThrowAsync<ObjectDisposedException>("because the context should be disposed");
     }
 
@@ -406,3 +407,4 @@ public partial class InsertTransactionsTests
         }
     }
 }
+

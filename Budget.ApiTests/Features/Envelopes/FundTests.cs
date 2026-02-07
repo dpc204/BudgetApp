@@ -107,7 +107,7 @@ public class FundTests
     result.Value.Should().Be(2, "because two envelopes have FundAmount values");
 
     // Verify transactions were created
-    var transactions = await context.Transactions.Include(t => t.Details).ToListAsync();
+    var transactions = await context.Transactions.Include(t => t.Details).ToListAsync(TestContext.Current.CancellationToken);
     transactions.Should().HaveCount(2);
 
     var groceryTransaction = transactions.FirstOrDefault(t => t.Description.Contains("Groceries"));
@@ -160,7 +160,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope1);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
@@ -222,7 +222,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.AddRange(incomeEnvelope, envelope1);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
@@ -240,7 +240,7 @@ public class FundTests
     result.Value.Should().Be(0, "because no envelopes have FundAmount != 0");
 
     // Verify no transactions were created
-    var transactions = await context.Transactions.ToListAsync();
+    var transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
     transactions.Should().BeEmpty();
   }
 
@@ -320,7 +320,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.AddRange(incomeEnvelope, envelope1, envelope2, envelope3);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = SetupMockUserAndOptions();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
@@ -338,7 +338,7 @@ public class FundTests
     result.Value.Should().Be(2, "because only two envelopes have non-zero FundAmount");
 
     // Verify only 2 transactions were created
-    var transactions = await context.Transactions.Include(t => t.Details).ToListAsync();
+    var transactions = await context.Transactions.Include(t => t.Details).ToListAsync(TestContext.Current.CancellationToken);
     transactions.Should().HaveCount(2);
     transactions.Should().NotContain(t => t.Description.Contains("Gas"));
   }
@@ -395,7 +395,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.AddRange(incomeEnvelope, targetEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = SetupMockUserAndOptions();
 
@@ -413,7 +413,7 @@ public class FundTests
 
     var transaction = await context.Transactions
       .Include(t => t.Details)
-      .FirstOrDefaultAsync();
+      .FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
     transaction.Should().NotBeNull();
     transaction!.FamilyId.Should().Be(1);
@@ -477,7 +477,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(incomeEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     // Dispose context to force exception on SaveChangesAsync
     await context.DisposeAsync();
@@ -562,7 +562,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.AddRange(incomeEnvelope, envelope1);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = SetupMockUserAndOptions();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();
@@ -578,7 +578,7 @@ public class FundTests
     result.IsSuccess.Should().BeTrue();
     result.Value.Should().Be(1);
 
-    var transaction = await context.Transactions.Include(t => t.Details).FirstOrDefaultAsync();
+    var transaction = await context.Transactions.Include(t => t.Details).FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     transaction.Should().NotBeNull();
     transaction!.Details.Should().Contain(d => d.EnvelopeId == 2 && d.Amount == -50m);
     transaction.Details.Should().Contain(d => d.EnvelopeId == 1 && d.Amount == 50m);
@@ -631,7 +631,7 @@ public class FundTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(incomeEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     var mockLogger = new Mock<ILogger<Fund.Handler>>();

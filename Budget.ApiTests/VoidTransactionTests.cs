@@ -49,7 +49,7 @@ public class VoidTransactionTests : IntegrationTestBase
     account.Balance -= transaction.TotalAmount; // Balance should be 900
     envelope.Balance -= 100m; // Balance should be 400
 
-    await db.SaveChangesAsync();
+    await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var initialAccountBalance = account.Balance;
     var initialEnvelopeBalance = envelope.Balance;
@@ -59,13 +59,13 @@ public class VoidTransactionTests : IntegrationTestBase
 
     var handler = new VoidTransaction.Handler(db);
 
-    var response = handler.Handle(command, CancellationToken.None);
+    var response = await handler.Handle(command, CancellationToken.None);
 
 
     // Assert
 
     // Verify the response contains the updated envelope data
-    var result = response.Result.Value;
+    var result = response.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(1);
     result![0].Id.Should().Be(envelope.Id);
@@ -75,8 +75,8 @@ public class VoidTransactionTests : IntegrationTestBase
     db.ChangeTracker.Clear();
 
     // Reload entities from database
-    var updatedAccount = await db.BankAccounts.FindAsync(account.Id);
-    var updatedTransaction = await db.Transactions.FindAsync(transaction.Id);
+    var updatedAccount = await db.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
+    var updatedTransaction = await db.Transactions.FindAsync(new object[] { transaction.Id }, TestContext.Current.CancellationToken);
 
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Balance.Should().Be(initialAccountBalance + transaction.TotalAmount);
@@ -126,7 +126,7 @@ public class VoidTransactionTests : IntegrationTestBase
     account.Balance -= transaction.TotalAmount;
     envelope.Balance -= 75m; // Balance should be 725
 
-    await db.SaveChangesAsync();
+    await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var initialEnvelopeBalance = envelope.Balance;
 
@@ -197,7 +197,7 @@ public class VoidTransactionTests : IntegrationTestBase
     envelope1.Balance -= 100m; // 1000 - 100 = 900
     envelope2.Balance -= 50m; // 500 - 50 = 450
 
-    await db.SaveChangesAsync();
+    await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
@@ -224,7 +224,7 @@ public class VoidTransactionTests : IntegrationTestBase
     env2Result!.Balance.Should().Be(500m); // Back to original
 
     // Verify account balance
-    var updatedAccount = await db.BankAccounts.FindAsync(account.Id);
+    var updatedAccount = await db.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Balance.Should().Be(3000m); // Back to original
   }
@@ -265,7 +265,7 @@ public class VoidTransactionTests : IntegrationTestBase
       details: details);
 
     db.Transactions.Add(transaction);
-    await db.SaveChangesAsync();
+    await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var initialAccountBalance = account.Balance;
     var initialEnvelopeBalance = envelope.Balance;
@@ -284,8 +284,8 @@ public class VoidTransactionTests : IntegrationTestBase
     db.ChangeTracker.Clear();
 
     // Verify balances haven't changed
-    var updatedAccount = await db.BankAccounts.FindAsync(account.Id);
-    var updatedEnvelope = await db.Envelopes.FindAsync(envelope.Id);
+    var updatedAccount = await db.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
+    var updatedEnvelope = await db.Envelopes.FindAsync(new object[] { envelope.Id }, TestContext.Current.CancellationToken);
 
     updatedAccount!.Balance.Should().Be(initialAccountBalance);
     updatedEnvelope!.Balance.Should().Be(initialEnvelopeBalance);
@@ -313,3 +313,4 @@ public class VoidTransactionTests : IntegrationTestBase
       .Which.Message.Should().Contain("not found");
   }
 }
+

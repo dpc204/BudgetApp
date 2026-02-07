@@ -46,7 +46,7 @@ public class UserRoleEndpointsTests
       new UserRole { UserId = 1, RoleId = 1, AssignedAt = assignedAt1, AssignedByUserId = 2 },
       new UserRole { UserId = 1, RoleId = 2, AssignedAt = assignedAt2, AssignedByUserId = 2 }
     );
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
     var handler = new GetUserRoles.Handler(context);
 
@@ -93,7 +93,7 @@ public class UserRoleEndpointsTests
     context.Families.Add(family);
     context.Roles.Add(role);
     context.Users.AddRange(user, adminUser);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var httpContextAccessor = new TestHttpContextAccessor
     {
@@ -119,7 +119,7 @@ public class UserRoleEndpointsTests
     result.RoleName.Should().Be("Admin");
     result.AssignedAt.Should().BeOnOrAfter(beforeAssign);
     
-    var assignment = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+    var assignment = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
     assignment.Should().NotBeNull();
     assignment!.AssignedByUserId.Should().Be(2);
   }
@@ -138,7 +138,7 @@ public class UserRoleEndpointsTests
     context.Roles.Add(role);
     context.Users.Add(user);
     context.UserRoles.Add(new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow });
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var httpContextAccessor = new TestHttpContextAccessor();
     var handler = new AssignRole.Handler(context, httpContextAccessor);
@@ -159,7 +159,7 @@ public class UserRoleEndpointsTests
     
     var role = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     context.Roles.Add(role);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var httpContextAccessor = new TestHttpContextAccessor();
     var handler = new AssignRole.Handler(context, httpContextAccessor);
@@ -186,7 +186,7 @@ public class UserRoleEndpointsTests
     context.Roles.Add(role);
     context.Users.Add(user);
     context.UserRoles.Add(new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow });
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new RemoveRole.Handler(context);
 
@@ -195,7 +195,7 @@ public class UserRoleEndpointsTests
 
     // Assert
     result.Should().BeTrue();
-    (await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1))
+    (await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken))
       .Should().BeNull();
   }
 
@@ -213,3 +213,4 @@ public class UserRoleEndpointsTests
     result.Should().BeFalse();
   }
 }
+

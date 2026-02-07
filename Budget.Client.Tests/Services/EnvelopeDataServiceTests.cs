@@ -9,6 +9,7 @@ using Budget.Shared.Services;
 using FluentAssertions;
 using Moq;
 using Xunit;
+using TestContext = Xunit.TestContext;
 
 namespace Budget.Client.Tests.Services;
 
@@ -60,7 +61,7 @@ public class EnvelopeDataServiceTests
         _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions { SelectedCategoryType = "1" });
 
         // Act
-        var result = await _service.LoadEnvelopeDataAsync();
+        var result = await _service.LoadEnvelopeDataAsync(false, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -95,7 +96,7 @@ public class EnvelopeDataServiceTests
         _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions { SelectedCategoryType = "0" });
 
         // Act
-        var result = await _service.LoadEnvelopeDataAsync();
+        var result = await _service.LoadEnvelopeDataAsync(false , TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -120,7 +121,7 @@ public class EnvelopeDataServiceTests
         _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions());
 
         // Act
-        var result = await _service.LoadEnvelopeDataAsync(forceRefresh: true);
+        var result = await _service.LoadEnvelopeDataAsync(forceRefresh: true, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();

@@ -49,7 +49,7 @@ public class CategoryEndpointsTests
 
     context.Families.Add(family);
     context.Categories.AddRange(category1, category2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetAllCategories.Handler(context);
 
@@ -86,7 +86,7 @@ public class CategoryEndpointsTests
 
     context.Families.Add(family);
     context.Categories.Add(category);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new CategoryGetByEnvelopeId.Handler(context);
 
@@ -109,7 +109,7 @@ public class CategoryEndpointsTests
     
     var family = new Family { Id = 1, Name = "Test Family" };
     context.Families.Add(family);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new InsertCategory.Handler(context);
     var command = new InsertCategory.Command(
@@ -128,7 +128,7 @@ public class CategoryEndpointsTests
     result.CategoryId.Should().NotBeNullOrEmpty();
 
     // Verify in database
-    var savedCategory = await context.Categories.FindAsync(result.CategoryId);
+    var savedCategory = await context.Categories.FindAsync(new object[] { result.CategoryId }, TestContext.Current.CancellationToken);
     savedCategory.Should().NotBeNull();
     savedCategory!.Name.Should().Be("New Category");
     savedCategory.Description.Should().Be("Test description");
@@ -153,7 +153,7 @@ public class CategoryEndpointsTests
 
     context.Families.Add(family);
     context.Categories.Add(category);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateCategory.Handler(context);
     var command = new UpdateCategory.Command(
@@ -174,7 +174,7 @@ public class CategoryEndpointsTests
 
     // Verify in database
     context.ChangeTracker.Clear();
-    var updatedCategory = await context.Categories.FindAsync("503");
+    var updatedCategory = await context.Categories.FindAsync(new object[] { "503" }, TestContext.Current.CancellationToken);
     updatedCategory.Should().NotBeNull();
     updatedCategory!.Name.Should().Be("Updated Name");
     updatedCategory.Description.Should().Be("Updated description");
@@ -219,7 +219,7 @@ public class CategoryEndpointsTests
 
     context.Families.Add(family);
     context.Categories.Add(category);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new RemoveCategory.Handler(context);
 
@@ -231,7 +231,7 @@ public class CategoryEndpointsTests
 
     // Verify deletion in database
     context.ChangeTracker.Clear();
-    var deletedCategory = await context.Categories.FindAsync("505");
+    var deletedCategory = await context.Categories.FindAsync(new object[] { "505" }, TestContext.Current.CancellationToken);
     deletedCategory.Should().BeNull();
   }
 
@@ -250,3 +250,4 @@ public class CategoryEndpointsTests
     result.Should().BeFalse();
   }
 }
+

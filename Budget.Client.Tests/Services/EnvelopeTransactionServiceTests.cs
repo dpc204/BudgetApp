@@ -1,4 +1,5 @@
 using Budget.Client.Services;
+using TestContext = Xunit.TestContext;
 
 namespace Budget.Client.Tests.Services;
 
@@ -42,7 +43,7 @@ public class EnvelopeTransactionServiceTests
       .ReturnsAsync(transactions);
 
     // Act
-    var result = await _service.LoadTransactionsAsync(envelopeId);
+    var result = await _service.LoadTransactionsAsync(envelopeId, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.Should().HaveCount(2);
@@ -60,7 +61,7 @@ public class EnvelopeTransactionServiceTests
       .ThrowsAsync(new Exception("API error"));
 
     // Act
-    var result = await _service.LoadTransactionsAsync(envelopeId);
+    var result = await _service.LoadTransactionsAsync(envelopeId, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.Should().BeEmpty();
@@ -103,7 +104,7 @@ public class EnvelopeTransactionServiceTests
       .ReturnsAsync(mockDialogReference.Object);
 
     // Act
-    var result = await _service.ShowTransactionDetailsAsync(transactionId);
+    var result = await _service.ShowTransactionDetailsAsync(transactionId, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.Should().NotBeNull();
@@ -142,7 +143,7 @@ public class EnvelopeTransactionServiceTests
       .ReturnsAsync(mockDialogReference.Object);
 
     // Act
-    var result = await _service.ShowTransactionDetailsAsync(transactionId);
+    var result = await _service.ShowTransactionDetailsAsync(transactionId, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.Should().BeNull();
@@ -178,7 +179,7 @@ public class EnvelopeTransactionServiceTests
       .ReturnsAsync(mockDialogReference.Object);
 
     // Act
-    var result = await _service.ShowTransactionDetailsAsync(transactionId);
+    var result = await _service.ShowTransactionDetailsAsync(transactionId, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.Should().BeNull();
@@ -198,7 +199,7 @@ public class EnvelopeTransactionServiceTests
       .ThrowsAsync(new Exception("API error"));
 
     // Act
-    var result = await _service.ShowTransactionDetailsAsync(transactionId);
+    var result = await _service.ShowTransactionDetailsAsync(transactionId, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.Should().BeNull();

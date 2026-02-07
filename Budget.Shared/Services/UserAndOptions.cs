@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.Validation;
 
 namespace Budget.Shared.Services;
- 
+
 public class UserAndOptions : IUserAndOptions
 {
   private readonly IUserAndOptionsDataProvider? _dataProvider;
-  private readonly ILogger _logger;
   private Task<UserOptions>? _loadOptionsTask;
   private bool _optionsLoadAttempted;
   private Task<UserInfoDto>? _loadUserTask;
@@ -19,7 +18,7 @@ public class UserAndOptions : IUserAndOptions
 
   public UserAndOptions()
   {
-    _options = new UserOptions() { UserAndOptions = this , UserId = -1};
+    _options = new UserOptions() { UserAndOptions = this, UserId = -1 };
     // Parameterless constructor for cases where data provider is not available
   }
 
@@ -27,12 +26,11 @@ public class UserAndOptions : IUserAndOptions
   {
     _options = new UserOptions() { UserAndOptions = this, UserId = -2 };
     _dataProvider = dataProvider;
-    _logger = logger;
     WireUpOptionsChangeHandler();
   }
 
   public bool HasInfo { get; set; }
-  private  bool _hasUserInfo = false;
+  private bool _hasUserInfo = false;
   private UserInfoDto _user = new UserInfoDto();
 
   /// <summary>
@@ -41,10 +39,7 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public UserInfoDto User
   {
-    get
-    {
-      return _user;
-    }
+    get { return _user; }
     set => _user = value;
   }
 
@@ -56,7 +51,6 @@ public class UserAndOptions : IUserAndOptions
   {
     if (!_hasUserInfo && !_userLoadAttempted && _dataProvider != null && !string.IsNullOrWhiteSpace(_userEmail))
     {
-      _logger.LogDebug("UserAndOptions:GetUser: starting background user load for email {UserEmail}", _userEmail);
       _userLoadAttempted = true;
       _loadUserTask = LoadUserInternalAsync();
       _ = _loadUserTask; // fire-and-forget
@@ -77,34 +71,23 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public async Task<UserInfoDto> GetUserAsync(CancellationToken cancellationToken = default)
   {
-    _logger.LogInformation(
-      "UserAndOptions:GetUserAsync: Email: {UserEmail}, Load Attempted: {LoadAttempted}, Load Task Not Null: {LoadTaskNotNull}",
-      _userEmail, _userLoadAttempted, _loadUserTask != null);
-
-    if (User.Id <= 0 )
+    if (User.Id <= 0)
       return User;
-
-    _logger.LogDebug("UserAndOptions:GetUserAsync:User email is set to: {UserEmail}", _userEmail);
 
     if (_userLoadAttempted && _loadUserTask != null)
     {
-      _logger.LogDebug("UserAndOptions:GetUserAsync: user load already in progress. Email: {UserEmail}", _userEmail);
       var rslt = await _loadUserTask.ConfigureAwait(false);
-      _logger.LogDebug("UserAndOptions:GetUserAsync: user load task completed for email: {UserEmail}", _userEmail);
       return rslt ?? User;
     }
 
     if (!_userLoadAttempted && _dataProvider != null)
     {
-      _logger.LogDebug("UserAndOptions:GetUserAsync: starting user load for email: {UserEmail}", _userEmail);
       _userLoadAttempted = true;
       _loadUserTask = LoadUserInternalAsync(cancellationToken);
       var rslt = await _loadUserTask.ConfigureAwait(false);
-      _logger.LogDebug("UserAndOptions:GetUserAsync: user load task completed for email: {UserEmail}", _userEmail);
       return rslt ?? User;
     }
 
-    _logger.LogDebug("UserAndOptions:GetUserAsync: no data provider available. Email: {UserEmail}", _userEmail);
 
     await LoadOptionsInternalAsync();
 
@@ -112,6 +95,7 @@ public class UserAndOptions : IUserAndOptions
   }
 
   string _userEmail = string.Empty;
+
   public void SetUserEmail(string email)
   {
     _userEmail = email;
@@ -131,20 +115,13 @@ public class UserAndOptions : IUserAndOptions
     };
     _hasUserInfo = userId > 0;
     HasInfo = _hasUserInfo;
-    _logger.LogDebug("Set UserId: {UserId}, FamilyId: {FamilyId} from headers", userId, familyId);
   }
 
   public void SetUserInfo(UserInfoDto userInfo)
   {
     User = userInfo;
     HasInfo = true;
-    // Update UserId in Options when user info is set
-    //if (Options != null && userInfo.Id != 0)
-    //{
-    //  Options.UserId = userInfo.Id;
-    //}
   }
-
 
 
   /// <summary>
@@ -153,32 +130,22 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public async Task EnsureOptionsLoadedAsync()
   {
-    _logger.LogDebug(
-      "UserAndOptions:Options:Ensuring options are loaded. UserId: {UserId}, Load Attempted: {LoadAttempted}, Load Task Not Null: {LoadTaskNotNull}",
-      User.Id, _optionsLoadAttempted, _loadOptionsTask != null);
     // Already loaded or load in progress
     if (_optionsLoadAttempted && _loadOptionsTask != null)
     {
-      _logger.LogDebug(
-  "UserAndOptions:Options:Options load already in progress. Returning existing task. UserId: {UserId}", User.Id);
-      return;// await _loadOptionsTask;
+      return;
     }
 
     // First call - start loading
-    if (!_optionsLoadAttempted && _dataProvider != null  && User.Id != 0)
+    if (!_optionsLoadAttempted && _dataProvider != null && User.Id != 0)
     {
-      _logger.LogDebug(  "UserAndOptions:Options: Starting options load for UserId: {UserId}", User.Id);
-
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
-      _logger.LogDebug(  "UserAndOptions:Options: Options load task started for UserId: {UserId}", User.Id);
       var rslt = await _loadOptionsTask;
-      _logger.LogDebug(  "UserAndOptions:Options: Options load task completed for UserId: {UserId}", User.Id);
-      return;// rslt;
     }
 
     // No data provider or not authenticated - return current options
-    return;//Options;
+    return; //Options;
   }
 
   ///// <summary>
@@ -228,15 +195,15 @@ public class UserAndOptions : IUserAndOptions
   {
     try
     {
-
       var response = await _dataProvider!.LoadUserByIdAsync(_user.Id, cancellationToken);
 
-      if(response is null)
+      if (response is null)
         return null;
 
       var name = string.Join(' ', response.FirstName, response.LastName);
 
-      var rslt = new UserInfoDto {
+      var rslt = new UserInfoDto
+      {
         Id = response.Id,
         Email = response.Email,
         Name = name,
@@ -250,7 +217,7 @@ public class UserAndOptions : IUserAndOptions
 
       return rslt;
     }
-    catch(Exception)
+    catch (Exception)
     {
       // Return default options on error
       return new UserInfoDto();
@@ -260,18 +227,18 @@ public class UserAndOptions : IUserAndOptions
   public void ClearUserInfo()
   {
     User = new UserInfoDto();
-    
+
     // Unwire old handlers before creating new Options
     if (Options != null)
     {
       Options.PropertyChanged -= OnOptionsChanged;
       Options.PropertyRead -= OnOptionsPropertyRead;
     }
-    
+
     Options = new UserOptions();
     WireUpOptionsChangeHandler();
     HasInfo = false;
-    
+
     // Reset load tracking
     _optionsLoadAttempted = false;
     _loadOptionsTask = null;
@@ -283,7 +250,7 @@ public class UserAndOptions : IUserAndOptions
   }
 
   private UserOptions _options = new();
-  
+
   /// <summary>
   /// Gets or sets user options. 
   /// Properties automatically trigger lazy loading when accessed - no manual initialization needed!
@@ -292,7 +259,9 @@ public class UserAndOptions : IUserAndOptions
   {
     get
     {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
       EnsureOptionsLoadedAsync();
+#pragma warning restore CS4014
       return _options;
     }
     set
@@ -309,13 +278,13 @@ public class UserAndOptions : IUserAndOptions
     {
       _options.PropertyChanged -= OnOptionsChanged; // Prevent duplicate subscriptions
       _options.PropertyChanged += OnOptionsChanged;
-      
+
       // Wire up lazy load trigger on property read
       _options.PropertyRead -= OnOptionsPropertyRead;
       _options.PropertyRead += OnOptionsPropertyRead;
     }
   }
-  
+
   private async Task OnOptionsPropertyRead()
   {
     // When any property is read, ensure options are loaded
@@ -330,7 +299,7 @@ public class UserAndOptions : IUserAndOptions
 
   private async void OnOptionsChanged()
   {
-    if (_dataProvider != null &&  User.Id != 0 && !Loading)
+    if (_dataProvider != null && User.Id != 0 && !Loading)
     {
       try
       {

@@ -44,7 +44,7 @@ public class UserOptionsEndpointsTests
     
 
     // Verify in database
-    var savedOptions = await db.SavedUserOptions.FindAsync(userId);
+    var savedOptions = await db.SavedUserOptions.FindAsync(new object[] { userId }, TestContext.Current.CancellationToken);
     savedOptions.Should().NotBeNull();
     savedOptions!.UserId.Should().Be(userId);
     savedOptions.JsonOptions.Should().Contain("\"FillAmountType\":2");
@@ -66,7 +66,7 @@ public class UserOptionsEndpointsTests
         UserId = userId,
         JsonOptions = "{\"FillAmountType\":1}"
       });
-      await db.SaveChangesAsync();
+      await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var updatedOptions = new Budget.Shared.Services.UserOptions
     {
@@ -82,7 +82,7 @@ public class UserOptionsEndpointsTests
     response.IsCompletedSuccessfully.Should().Be(true);
 
     // Verify in database
-    var savedOptions = await db.SavedUserOptions.FindAsync(userId);
+    var savedOptions = await db.SavedUserOptions.FindAsync(new object[] { userId }, TestContext.Current.CancellationToken);
     savedOptions.Should().NotBeNull();
     savedOptions!.JsonOptions.Should().Contain("\"FillAmountType\":3");
   }
@@ -104,7 +104,7 @@ public class UserOptionsEndpointsTests
         UserId = userId,
         JsonOptions = "{\"FillAmountType\":2}"
       });
-      await db.SaveChangesAsync();
+      await db.SaveChangesAsync(TestContext.Current.CancellationToken);
     
 
     // Act
@@ -119,7 +119,7 @@ public class UserOptionsEndpointsTests
 
     // Assert
     response.Result.Success.Should().Be(true);
-    var rslt = await db.SavedUserOptions.FindAsync(userId);
+    var rslt = await db.SavedUserOptions.FindAsync(new object[] { userId }, TestContext.Current.CancellationToken);
     rslt.Should().NotBeNull();
     rslt!.JsonOptions.Should().Contain("\"FillAmountType\":1");
   }
@@ -140,7 +140,7 @@ public class UserOptionsEndpointsTests
     var response = handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.Result.Options.Should().BeNull();
+    (await response).Options.Should().BeNull();
   }
 
   private class TestCurrentFamilyService : ICurrentFamilyService
@@ -149,3 +149,4 @@ public class UserOptionsEndpointsTests
     public int GetCurrentFamilyId() => FamilyId;
   }
 }
+

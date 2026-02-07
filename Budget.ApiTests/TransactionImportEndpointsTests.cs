@@ -67,7 +67,7 @@ public class TransactionImportEndpointsTests
 
     // Verify data in database
     
-    var imports = await context.TransactionImports.ToListAsync();
+    var imports = await context.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
     imports.Should().HaveCount(2);
     imports[0].Vendor.Should().Be("Test Vendor 1");
     imports[1].Vendor.Should().Be("Test Vendor 2");
@@ -112,7 +112,7 @@ public class TransactionImportEndpointsTests
     };
 
     db.TransactionImports.AddRange(import1, import2);
-    await db.SaveChangesAsync();
+    await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 
     var query = new GetTransactionImports.Query();
@@ -152,7 +152,7 @@ public class TransactionImportEndpointsTests
     };
 
     arrangeDb.TransactionImports.Add(import1);
-    await arrangeDb.SaveChangesAsync();
+    await arrangeDb.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new ClearTransactionImports.Handler(arrangeDb);
     var command = new ClearTransactionImports.Command();
@@ -167,7 +167,7 @@ public class TransactionImportEndpointsTests
 
     // Verify data is cleared
 
-    var imports = await arrangeDb.TransactionImports.ToListAsync();
+    var imports = await arrangeDb.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
     imports.Should().BeEmpty();
   }
 
@@ -196,7 +196,7 @@ public class TransactionImportEndpointsTests
       FamilyId = 1
     };
     arrangeDb.Transactions.Add(existingTransaction);
-    await arrangeDb.SaveChangesAsync();
+    await arrangeDb.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     // Import new transactions with one duplicate
     var transactions = new List<TransactionImportDto>
@@ -229,7 +229,7 @@ public class TransactionImportEndpointsTests
     // Act
     var response = await handler.Handle(command, CancellationToken.None);
     // Assert
-    var imports = await arrangeDb.TransactionImports.ToListAsync();
+    var imports = await arrangeDb.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
     
     imports.Should().HaveCount(2);
     imports.First(i => i.Vendor == "Duplicate Vendor").Duplicate.Should().BeTrue();
@@ -260,7 +260,7 @@ public class TransactionImportEndpointsTests
     };
 
     arrangeDb.TransactionImports.Add(import);
-    await arrangeDb.SaveChangesAsync();
+    await arrangeDb.SaveChangesAsync(TestContext.Current.CancellationToken);
     var importId = import.Id;
 
 
@@ -271,7 +271,7 @@ public class TransactionImportEndpointsTests
     var response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    var updatedImport = await arrangeDb.TransactionImports.FindAsync(importId);
+    var updatedImport = await arrangeDb.TransactionImports.FindAsync(new object[] { importId }, TestContext.Current.CancellationToken);
     
     updatedImport.Should().NotBeNull();
     updatedImport!.Duplicate.Should().BeTrue();
@@ -284,4 +284,5 @@ public class TransactionImportEndpointsTests
     public int GetCurrentFamilyId() => FamilyId;
   }
 }
+
 

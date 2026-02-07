@@ -1,4 +1,5 @@
 using Budget.Client.Services;
+using TestContext = Xunit.TestContext;
 
 namespace Budget.Client.Tests.Services;
 
@@ -88,7 +89,7 @@ public class FundDataServiceTests
       .ReturnsAsync(unallocatedEnvelope);
 
     // Act
-    var result = await _service.LoadFundDataAsync(year, month);
+    var result = await _service.LoadFundDataAsync(year, month, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.Should().NotBeNull();
@@ -154,7 +155,7 @@ public class FundDataServiceTests
       .ReturnsAsync(unallocatedEnvelope);
 
     // Act
-    var result = await _service.LoadFundDataAsync(year, month);
+    var result = await _service.LoadFundDataAsync(year, month, cancellationToken: TestContext.Current.CancellationToken);
 
     // Assert
     result.FundData.Should().ContainSingle(); // Only the User category envelope

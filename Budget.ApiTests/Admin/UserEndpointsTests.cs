@@ -38,7 +38,7 @@ public class UserEndpointsTests : IntegrationTestBase
       new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow },
       new UserRole { UserId = 2, RoleId = 2, AssignedAt = DateTime.UtcNow }
     );
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetUsers.Handler(context);
 
@@ -70,7 +70,7 @@ public class UserEndpointsTests : IntegrationTestBase
     
     context.Families.Add(family);
     context.Users.Add(user);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetUsers.Handler(context);
 
@@ -100,7 +100,7 @@ public class UserEndpointsTests : IntegrationTestBase
       new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow },
       new UserRole { UserId = 1, RoleId = 2, AssignedAt = DateTime.UtcNow }
     );
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetUser.Handler(context);
 
@@ -151,7 +151,7 @@ public class UserEndpointsTests : IntegrationTestBase
     
     context.Families.AddRange(family1, family2);
     context.Users.Add(user);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateUser.Handler(context);
 
@@ -167,7 +167,7 @@ public class UserEndpointsTests : IntegrationTestBase
     result.LastName.Should().Be("Name");
     result.FamilyId.Should().Be(2);
     
-    var updatedUser = await context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == 1);
+    var updatedUser = await context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == 1, TestContext.Current.CancellationToken);
     updatedUser.Email.Should().Be("NEW@TEST.COM");
     updatedUser.FirstName.Should().Be("New");
     updatedUser.LastName.Should().Be("Name");
@@ -203,7 +203,7 @@ public class UserEndpointsTests : IntegrationTestBase
       new User { Id = 2, Email = "ALPHA@TEST.COM", FirstName = "A", LastName = "User", FamilyId = 1 },
       new User { Id = 3, Email = "MIKE@TEST.COM", FirstName = "M", LastName = "User", FamilyId = 1 }
     );
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetUsers.Handler(context);
 
@@ -217,3 +217,4 @@ public class UserEndpointsTests : IntegrationTestBase
     result.Users[2].Email.Should().Be("ZEBRA@TEST.COM");
   }
 }
+

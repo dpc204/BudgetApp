@@ -72,13 +72,13 @@
     
 //    // Act
 //    _context.Users.Add(user);
-//    await _context.SaveChangesAsync();
+//    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
     
 //    // Assert - Read back from database
-//    var savedUser = await _context.Users.FindAsync(user.Id);
+//    var savedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(savedUser);
 //    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
 //  }
@@ -95,17 +95,17 @@
 //      FamilyId = 1
 //    };
 //    _context.Users.Add(user);
-//    await _context.SaveChangesAsync();
+//    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
 //    // Act - Update to lowercase
 //    user.Email = "updated@example.com";
-//    await _context.SaveChangesAsync();
+//    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
     
 //    // Assert - Read back from database
-//    var updatedUser = await _context.Users.FindAsync(user.Id);
+//    var updatedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(updatedUser);
 //    Assert.Equal("UPDATED@EXAMPLE.COM", updatedUser.Email);
 //  }
@@ -124,13 +124,13 @@
     
 //    // Act
 //    _context.Users.Add(user);
-//    await _context.SaveChangesAsync();
+//    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
     
 //    // Assert
-//    var savedUser = await _context.Users.FindAsync(user.Id);
+//    var savedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(savedUser);
 //    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
 //  }
@@ -149,13 +149,13 @@
     
 //    // Act
 //    _context.Users.Add(user);
-//    await _context.SaveChangesAsync();
+//    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
     
 //    // Assert
-//    var savedUser = await _context.Users.FindAsync(user.Id);
+//    var savedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(savedUser);
 //    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
 //  }
@@ -167,3 +167,5 @@
 //    _context.Dispose();
 //  }
 //}
+
+

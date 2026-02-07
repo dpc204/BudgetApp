@@ -38,7 +38,7 @@ public class AccountEndpointsTests
 
     context.Families.Add(family);
     context.BankAccounts.AddRange(account1, account2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetAll.Handler(context, NullLogger<GetAll.Handler>.Instance);
 
@@ -69,7 +69,7 @@ public class AccountEndpointsTests
     
     var family = new Family { Id = 1, Name = "Test Family" };
     context.Families.Add(family);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new InsertAccount.Handler(context);
     var command = new InsertAccount.Command(
@@ -88,7 +88,7 @@ public class AccountEndpointsTests
     result.Id.Should().BeGreaterThan(0);
 
     // Verify in database
-    var savedAccount = await context.BankAccounts.FindAsync(result.Id);
+    var savedAccount = await context.BankAccounts.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
     savedAccount.Should().NotBeNull();
     savedAccount!.Name.Should().Be("New Account");
     savedAccount.Balance.Should().Be(2500m);
@@ -112,7 +112,7 @@ public class AccountEndpointsTests
     
     context.Families.Add(family);
     context.BankAccounts.Add(account);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateAccount.Handler(context);
     var command = new UpdateAccount.Command(
@@ -133,7 +133,7 @@ public class AccountEndpointsTests
 
     // Verify in database
     context.ChangeTracker.Clear();
-    var updatedAccount = await context.BankAccounts.FindAsync(302);
+    var updatedAccount = await context.BankAccounts.FindAsync(new object[] { 302 }, TestContext.Current.CancellationToken);
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Name.Should().Be("Updated Name");
     updatedAccount.Balance.Should().Be(1500m);
@@ -178,7 +178,7 @@ public class AccountEndpointsTests
     
     context.Families.Add(family);
     context.BankAccounts.Add(account);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new RemoveAccount.Handler(context);
 
@@ -190,7 +190,7 @@ public class AccountEndpointsTests
 
     // Verify deletion in database
     context.ChangeTracker.Clear();
-    var deletedAccount = await context.BankAccounts.FindAsync(304);
+    var deletedAccount = await context.BankAccounts.FindAsync(new object[] { 304 }, TestContext.Current.CancellationToken);
     deletedAccount.Should().BeNull();
   }
 
@@ -232,7 +232,7 @@ public class AccountEndpointsTests
     
     var family = new Family { Id = 1, Name = "Test Family" };
     context.Families.Add(family);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new InsertAccount.Handler(context);
     var command = new InsertAccount.Command(
@@ -244,7 +244,7 @@ public class AccountEndpointsTests
     var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    var savedAccount = await context.BankAccounts.FindAsync(result.Id);
+    var savedAccount = await context.BankAccounts.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
     savedAccount.Should().NotBeNull();
     savedAccount!.FamilyId.Should().Be(1); // Default family from CurrentUser context
   }
@@ -267,7 +267,7 @@ public class AccountEndpointsTests
     
     context.Families.Add(family);
     context.BankAccounts.Add(account);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateAccount.Handler(context);
     var command = new UpdateAccount.Command(
@@ -281,7 +281,7 @@ public class AccountEndpointsTests
 
     // Assert
     context.ChangeTracker.Clear();
-    var updatedAccount = await context.BankAccounts.FindAsync(305);
+    var updatedAccount = await context.BankAccounts.FindAsync(new object[] { 305 }, TestContext.Current.CancellationToken);
     updatedAccount!.FamilyId.Should().Be(1); // FamilyId should remain unchanged
   }
 }

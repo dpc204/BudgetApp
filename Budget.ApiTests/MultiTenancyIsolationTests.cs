@@ -82,13 +82,13 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     };
     
     context.Envelopes.AddRange(envelope1Family1, envelope2Family1, envelope1Family2, envelope2Family2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
 
     // Act: Query all envelopes (should only get family 10 due to query filter)
-    var envelopes = await context.Envelopes.Where(e => e.Id >= 500).ToListAsync();
+    var envelopes = await context.Envelopes.Where(e => e.Id >= 500).ToListAsync(TestContext.Current.CancellationToken);
 
     foreach (var env in envelopes)
     {
@@ -150,13 +150,13 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     };
     
     context.Transactions.AddRange(tx1Family1, tx1Family2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
 
     // Act
-    var transactions = await context.Transactions.Where(t => t.Id >= 600).ToListAsync();
+    var transactions = await context.Transactions.Where(t => t.Id >= 600).ToListAsync(TestContext.Current.CancellationToken);
     
     // Assert
     transactions.Should().HaveCount(1, "query filter should only return Family 10 transactions");
@@ -180,12 +180,12 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     var account1 = new BankAccount { Id = 300, Name = "Checking - Family 10", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 10 };
     var account2 = new BankAccount { Id = 301, Name = "Savings - Family 20", Balance = 2000m, AccountType = AccountTypes.Checking, FamilyId = 20 };
     context.BankAccounts.AddRange(account1, account2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
     // Act
-    var accounts = await context.BankAccounts.Where(a => a.Id >= 300).ToListAsync();
+    var accounts = await context.BankAccounts.Where(a => a.Id >= 300).ToListAsync(TestContext.Current.CancellationToken);
     
     // Assert
     accounts.Should().HaveCount(1, "query filter should only return Family 10 accounts");
@@ -209,13 +209,13 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     var cat1 = new Category { CategoryId = "400", Name = "Category 1 - Family 10", Description = "Cat1", SortOrder = 1, FamilyId = 10, CategoryType = CatTypes.User };
     var cat2 = new Category { CategoryId = "401", Name = "Category 2 - Family 20", Description = "Cat2", SortOrder = 1, FamilyId = 20, CategoryType = CatTypes.User };
     context.Categories.AddRange(cat1, cat2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
 
     // Act
-    var categories = await context.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync();
+    var categories = await context.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync(TestContext.Current.CancellationToken);
     
     // Assert
     categories.Should().HaveCount(1, "query filter should only return Family 10 categories");
@@ -232,3 +232,4 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     public int GetCurrentFamilyId() => FamilyId;
   }
 }
+

@@ -350,10 +350,10 @@ public class CsvImportServiceTests : IDisposable
 
         // Act
         await CsvImportService.ImportAsync(context.TestEntities, filePath);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
         // Assert
-        var entities = await context.TestEntities.ToListAsync();
+        var entities = await context.TestEntities.ToListAsync(Xunit.TestContext.Current.CancellationToken);
         entities.Should().HaveCount(1);
         entities[0].Name.Should().Be("Dining Out");
     }

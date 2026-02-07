@@ -52,7 +52,7 @@ public class EnvelopeEndpointTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.AddRange(envelope1, envelope2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new EnvelopeGetAll.Handler(context);
 
@@ -91,7 +91,7 @@ public class EnvelopeEndpointTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetAllEnvelopes.Handler(context);
 
@@ -119,7 +119,7 @@ public class EnvelopeEndpointTests
     
     context.Families.Add(family);
     context.Categories.Add(category);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new InsertEnvelope.Handler(context);
     var command = new InsertEnvelope.Command(
@@ -141,7 +141,7 @@ public class EnvelopeEndpointTests
     result.Id.Should().BeGreaterThan(0);
 
     // Verify in database
-    var savedEnvelope = await context.Envelopes.FindAsync(result.Id);
+    var savedEnvelope = await context.Envelopes.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
     savedEnvelope.Should().NotBeNull();
     savedEnvelope!.Name.Should().Be("New Envelope");
     savedEnvelope.Description.Should().Be("Test description");
@@ -169,7 +169,7 @@ public class EnvelopeEndpointTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateEnvelope.Handler(context);
     var updateDto = new EnvelopeUpdateDto
@@ -194,7 +194,7 @@ public class EnvelopeEndpointTests
 
     // Verify in database
     context.ChangeTracker.Clear();
-    var updatedEnvelope = await context.Envelopes.FindAsync(403);
+    var updatedEnvelope = await context.Envelopes.FindAsync(new object[] { 403 }, TestContext.Current.CancellationToken);
     updatedEnvelope.Should().NotBeNull();
     updatedEnvelope!.Name.Should().Be("Updated Name");
     updatedEnvelope.Budget.Should().Be(300m);
@@ -248,7 +248,7 @@ public class EnvelopeEndpointTests
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new RemoveEnvelope.Handler(context);
 
@@ -260,7 +260,7 @@ public class EnvelopeEndpointTests
 
     // Verify deletion in database
     context.ChangeTracker.Clear();
-    var deletedEnvelope = await context.Envelopes.FindAsync(405);
+    var deletedEnvelope = await context.Envelopes.FindAsync(new object[] { 405 }, TestContext.Current.CancellationToken);
     deletedEnvelope.Should().BeNull();
   }
 
@@ -303,7 +303,7 @@ public class EnvelopeEndpointTests
     context.Categories.Add(category);
     context.BankAccounts.Add(account);
     context.Envelopes.Add(envelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var transaction1 = new Transaction 
     { 
@@ -339,7 +339,7 @@ public class EnvelopeEndpointTests
 
     context.Transactions.AddRange(transaction1, transaction2);
     context.TransactionDetails.AddRange(detail1, detail2);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetEnvelopeTransactionCount.Handler(context);
 
@@ -363,7 +363,7 @@ public class EnvelopeEndpointTests
     
     context.Families.Add(family);
     context.Categories.Add(category);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var csvContent = "Name,Description,Balance,Budget,CategoryId,SortOrder\nImported Env 1,Desc 1,100,200,1,1\nImported Env 2,Desc 2,150,250,1,2";
 
@@ -379,3 +379,4 @@ public class EnvelopeEndpointTests
     result.Errors.Should().BeEmpty();
   }
 }
+

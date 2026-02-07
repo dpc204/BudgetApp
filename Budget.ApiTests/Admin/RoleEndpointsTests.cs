@@ -31,7 +31,7 @@ public class RoleEndpointsTests
     context.Roles.AddRange(role1, role2);
     context.Users.Add(user);
     context.UserRoles.Add(new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow });
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetRoles.Handler(context);
 
@@ -65,7 +65,7 @@ public class RoleEndpointsTests
       ModifiedAt = DateTime.UtcNow.AddDays(-1)
     };
     context.Roles.Add(role);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new GetRole.Handler(context);
 
@@ -112,7 +112,7 @@ public class RoleEndpointsTests
     result.Name.Should().Be("PowerUser");
     result.Description.Should().Be("Power User Description");
     
-    var savedRole = await context.Roles.FindAsync(result.Id);
+    var savedRole = await context.Roles.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
     savedRole.Should().NotBeNull();
     savedRole!.Name.Should().Be("PowerUser");
     savedRole.CreatedAt.Should().BeOnOrAfter(beforeCreate);
@@ -133,7 +133,7 @@ public class RoleEndpointsTests
       Description = "Old Description", 
       CreatedAt = originalCreatedAt 
     });
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateRole.Handler(context);
     var beforeUpdate = DateTime.UtcNow;
@@ -147,7 +147,7 @@ public class RoleEndpointsTests
     result.Should().NotBeNull();
     result!.Description.Should().Be("New Description");
     
-    var updatedRole = await context.Roles.FindAsync(1);
+    var updatedRole = await context.Roles.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken);
     updatedRole!.Description.Should().Be("New Description");
     updatedRole.CreatedAt.Should().Be(originalCreatedAt);
     updatedRole.ModifiedAt.Should().NotBeNull();
@@ -177,7 +177,7 @@ public class RoleEndpointsTests
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
     
     context.Roles.Add(new Role { Id = 1, Name = "TestRole", Description = "Test", CreatedAt = DateTime.UtcNow });
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new DeleteRole.Handler(context);
 
@@ -188,7 +188,7 @@ public class RoleEndpointsTests
     result.Should().NotBeNull();
     result.Success.Should().BeTrue();
     result.ErrorMessage.Should().BeNull();
-    (await context.Roles.FindAsync(1)).Should().BeNull();
+    (await context.Roles.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken)).Should().BeNull();
   }
 
   [Fact]
@@ -205,7 +205,7 @@ public class RoleEndpointsTests
     context.Roles.Add(role);
     context.Users.Add(user);
     context.UserRoles.Add(new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow });
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new DeleteRole.Handler(context);
 
@@ -218,7 +218,7 @@ public class RoleEndpointsTests
     result.ErrorMessage.Should().Contain("Cannot delete role");
     result.ErrorMessage.Should().Contain("TestRole");
     
-    (await context.Roles.FindAsync(1)).Should().NotBeNull();
+    (await context.Roles.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken)).Should().NotBeNull();
   }
 
   [Fact]
