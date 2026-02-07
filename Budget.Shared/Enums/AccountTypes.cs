@@ -4,6 +4,6 @@ using System.Text;
 
 namespace Budget.Shared.Enums
 {
-  public enum AccountTypes { Funding = -1, Checking = 0, Credit = 1 }
+  public enum AccountTypes { Transfers = -2, Funding = -1, Checking = 0, Credit = 1 }
 
 }

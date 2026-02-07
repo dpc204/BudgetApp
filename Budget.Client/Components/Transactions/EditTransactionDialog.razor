@@ -21,7 +21,7 @@
 
         <MudItem xs="3" md="2">
           <MudSelect T="int" @bind-Value="_header.AccountId" Label="Account" id="AccountSelect" Disabled="@IsVoided">
-            @foreach (var e in Accounts)
+            @foreach (var e in Accounts.Where(a=> a.AccountType >= 0))
             {
               <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
             }

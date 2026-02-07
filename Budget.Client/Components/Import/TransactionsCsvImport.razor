@@ -4,7 +4,7 @@
   <MudText Typo="Typo.h6">Import Transactions (CSV)</MudText>
 
   <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-    <MudSelect T="int" Label="Account" @bind-Value="SelectedAccountId" Disabled="Busy" dense="true" Class="w-300">
+    <MudSelect T="int" Label="Account" @bind-Value="SelectedAccountId"  Disabled="Busy" dense="true" Class="w-300">
       @foreach (var acct in Accounts)
       {
         <MudSelectItem T="int" Value="@acct.Id">@acct.Name (@acct.Balance.ToString("C"))</MudSelectItem>

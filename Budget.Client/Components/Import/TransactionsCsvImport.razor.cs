@@ -2,6 +2,7 @@ namespace Budget.Client.Components.Import;
 
 public partial class TransactionsCsvImport : ComponentBase
 {
+  [Inject] protected IUserAndOptions UserAndOptions { get; set; } = default!;
   [Inject] protected IBudgetApiClient Api { get; set; } = default!;
   [Inject] protected ISnackbar Snackbar { get; set; } = default!;
   [Inject] protected IBudgetMonthlyApiClient BudgetMonthlyApi { get; set; } = default!;
@@ -24,7 +25,7 @@ public partial class TransactionsCsvImport : ComponentBase
     var accounts = await Api.GetAccountsAsync();
     Accounts.Clear();
     Accounts.AddRange(accounts);
-    SelectedAccountId = Accounts.FirstOrDefault()?.Id ?? 0;
+    SelectedAccountId = UserAndOptions.Options.PreviousImportAccount;
 
     // Load any existing staged imports when page loads
     await LoadPreviewAsync();
@@ -137,6 +138,8 @@ public partial class TransactionsCsvImport : ComponentBase
       return;
     }
 
+    
+    
     // Filter out duplicates
     var nonDuplicates = Preview.Where(p => !p.Duplicate || (p.Duplicate && p.KeepDuplicate)).ToList();
 
@@ -156,6 +159,8 @@ public partial class TransactionsCsvImport : ComponentBase
     {
       return;
     }
+
+    UserAndOptions.Options.PreviousImportAccount = SelectedAccountId;
     
     Busy = true;
     await InvokeAsync(StateHasChanged);

@@ -198,7 +198,7 @@ public class UserAndOptions : IUserAndOptions
       if (HasInfo)
         return Options;
 
-
+      Loading = true;
       var loaded = await _dataProvider!.LoadUserOptionsAsync(User.Id);
       if (loaded != null)
       {
@@ -207,7 +207,7 @@ public class UserAndOptions : IUserAndOptions
 
       // Notify subscribers that options are loaded
       OptionsLoaded?.Invoke();
-
+      HasInfo = true;
       return Options;
     }
     catch (Exception)
@@ -215,7 +215,13 @@ public class UserAndOptions : IUserAndOptions
       // Return default options on error
       return Options;
     }
+    finally
+    {
+      Loading = false;
+    }
   }
+
+  public bool Loading { get; set; }
 
 
   private async Task<UserInfoDto?> LoadUserInternalAsync(CancellationToken cancellationToken = default)
@@ -324,7 +330,7 @@ public class UserAndOptions : IUserAndOptions
 
   private async void OnOptionsChanged()
   {
-    if (_dataProvider != null && HasInfo && User.Id != 0)
+    if (_dataProvider != null &&  User.Id != 0 && !Loading)
     {
       try
       {

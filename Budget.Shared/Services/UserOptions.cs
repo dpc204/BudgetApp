@@ -4,12 +4,14 @@ public class UserOptions
 {
   private string? _selectedCategoryType;
   private FillAmounts _fillAmountType;
+  private int _previousImportAccount;
 
   public UserOptions()
   {
     _selectedCategoryType = "ALL";
   }
-  
+
+  [System.Text.Json.Serialization.JsonIgnore]
   public IUserAndOptions UserAndOptions { get; set; }
 
   public int UserId { get; set; }
@@ -56,8 +58,23 @@ public class UserOptions
     }
   }
 
-
-
+  public int PreviousImportAccount
+  {
+    get
+    {
+      // Trigger lazy load before reading
+      OnPropertyRead();
+      return _previousImportAccount;
+    }
+    set
+    {
+      if (_previousImportAccount != value)
+      {
+        _previousImportAccount = value;
+        OnPropertyChanged();
+      }
+    }
+  }
 
   /// <summary>
   /// Event raised when any property changes
