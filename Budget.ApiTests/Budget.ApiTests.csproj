@@ -24,4 +24,7 @@
     <ProjectReference Include="..\Budget.Api\Budget.Api.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Features\Accounts\AccountMaint\" />
+  </ItemGroup>
 </Project>

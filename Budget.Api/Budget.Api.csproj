@@ -55,5 +55,9 @@
     <HotReloadAutoRestart>true</HotReloadAutoRestart>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Budget.ApiTests" />
+  </ItemGroup>
+
 
 </Project>
