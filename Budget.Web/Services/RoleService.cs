@@ -104,9 +104,12 @@ public class RoleService(BudgetContext context, ILogger<RoleService> logger) : I
 
   public async Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
   {
+    var inEmail = email.ToUpper();
+
+    
     // Query without global filter to find user by email across all families
     return await context.Users
       .IgnoreQueryFilters()
-      .FirstOrDefaultAsync(u => u.Email == email.ToUpper(), cancellationToken);
+      .FirstOrDefaultAsync(u => u.Email == inEmail, cancellationToken);
   }
 }

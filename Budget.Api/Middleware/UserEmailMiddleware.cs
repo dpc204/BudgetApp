@@ -23,7 +23,7 @@ public sealed class UserEmailMiddleware(
         context.Request.Path.StartsWithSegments("/health") ||
         context.Request.Path.StartsWithSegments("/openapi") ||
         context.Request.Path.StartsWithSegments("/scalar") ||
-        context.Request.Path.Value?.Contains(".") == true)
+        context.Request.Path.Value?.Contains('.') == true)
     {
       await next(context);
       return;

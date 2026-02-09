@@ -5,7 +5,7 @@ namespace Budget.Client.Services;
 /// <summary>
 /// Service for loading and transforming envelope data
 /// </summary>
-public class EnvelopeDataService(EnvelopeState state, IBudgetApiClient api, IUserAndOptions userOptions)
+public class EnvelopeDataService( IBudgetApiClient api, IUserAndOptions userOptions)
   : IEnvelopeDataService
 {
   /// <summary>

@@ -16,22 +16,24 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public event Action? OptionsLoaded;
 
+  private UserOptions _options;
+
   public UserAndOptions()
   {
-    _options = new UserOptions() { UserAndOptions = this, UserId = -1 };
+    _options = new UserOptions() {  UserId = -1 };
     // Parameterless constructor for cases where data provider is not available
   }
 
-  public UserAndOptions(IUserAndOptionsDataProvider dataProvider, ILogger<UserAndOptions> logger)
+  public UserAndOptions(IUserAndOptionsDataProvider dataProvider)
   {
-    _options = new UserOptions() { UserAndOptions = this, UserId = -2 };
+    _options = new UserOptions() {  UserId = -2 };
     _dataProvider = dataProvider;
     WireUpOptionsChangeHandler();
   }
 
   public bool HasInfo { get; set; }
   private bool _hasUserInfo = false;
-  private UserInfoDto _user = new UserInfoDto();
+  private UserInfoDto _user = new();
 
   /// <summary>
   /// Snapshot of the current user info. Does not trigger lazy loading.
@@ -51,9 +53,10 @@ public class UserAndOptions : IUserAndOptions
   {
     if (!_hasUserInfo && !_userLoadAttempted && _dataProvider != null && !string.IsNullOrWhiteSpace(_userEmail))
     {
-      _userLoadAttempted = true;
-      _loadUserTask = LoadUserInternalAsync();
-      _ = _loadUserTask; // fire-and-forget
+          _userLoadAttempted = true;
+        // Fix: Await the nullable result and assign a non-null value
+        _loadUserTask = LoadUserInternalAsync().ContinueWith(t => t.Result ?? new UserInfoDto());
+        _ = _loadUserTask; // fire-and-forget
     }
 
     return User;
@@ -83,7 +86,7 @@ public class UserAndOptions : IUserAndOptions
     if (!_userLoadAttempted && _dataProvider != null)
     {
       _userLoadAttempted = true;
-      _loadUserTask = LoadUserInternalAsync(cancellationToken);
+      _loadUserTask = LoadUserInternalAsync(cancellationToken)!;
       var rslt = await _loadUserTask.ConfigureAwait(false);
       return rslt ?? User;
     }
@@ -141,7 +144,7 @@ public class UserAndOptions : IUserAndOptions
     {
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
-      var rslt = await _loadOptionsTask;
+      _ = await _loadOptionsTask;
     }
 
     // No data provider or not authenticated - return current options
@@ -208,7 +211,7 @@ public class UserAndOptions : IUserAndOptions
         Email = response.Email,
         Name = name,
         FamilyId = response.FamilyId,
-        Roles = response.Roles.Select(a => a.Name).ToArray()
+        Roles = [.. response.Roles.Select(a => a.Name)]
       };
       _hasUserInfo = rslt.Id != 0;
 
@@ -235,7 +238,7 @@ public class UserAndOptions : IUserAndOptions
       Options.PropertyRead -= OnOptionsPropertyRead;
     }
 
-    Options = new UserOptions();
+        Options = new UserOptions() ;
     WireUpOptionsChangeHandler();
     HasInfo = false;
 
@@ -248,8 +251,6 @@ public class UserAndOptions : IUserAndOptions
   {
     return HasInfo && User.Roles.Contains("Admin");
   }
-
-  private UserOptions _options = new();
 
   /// <summary>
   /// Gets or sets user options. 
@@ -268,7 +269,6 @@ public class UserAndOptions : IUserAndOptions
     {
       _options = value;
       WireUpOptionsChangeHandler();
-      _options.UserAndOptions = this;
     }
   }
 

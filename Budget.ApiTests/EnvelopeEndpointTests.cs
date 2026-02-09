@@ -57,14 +57,14 @@ public class EnvelopeEndpointTests
     var handler = new EnvelopeGetAll.Handler(context);
 
     // Act
-    var result = await handler.Handle(new EnvelopeGetAll.Query(EnvelopeTypes.All), CancellationToken.None);
+    IEnumerable<EnvelopeGetAll.Response> result = await handler.Handle(new EnvelopeGetAll.Query(EnvelopeTypes.All), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     var resultList = result.ToList();
     resultList.Should().HaveCount(2);
 
-    var env1 = resultList.Should().ContainSingle(e => e.Id == 400).Subject;
+    EnvelopeGetAll.Response env1 = resultList.Should().ContainSingle(e => e.Id == 400).Subject;
     env1.Name.Should().Be("Groceries");
     env1.Balance.Should().Be(100m);
   }
@@ -96,14 +96,14 @@ public class EnvelopeEndpointTests
     var handler = new GetAllEnvelopes.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetAllEnvelopes.Query(), CancellationToken.None);
+    IEnumerable<GetAllEnvelopes.Response> result = await handler.Handle(new GetAllEnvelopes.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     var resultList = result.ToList();
     resultList.Should().HaveCount(1);
 
-    var env = resultList.Should().ContainSingle(e => e.Id == 402).Subject;
+    GetAllEnvelopes.Response env = resultList.Should().ContainSingle(e => e.Id == 402).Subject;
     env.Name.Should().Be("Test Envelope");
     env.Balance.Should().Be(200m);
   }
@@ -131,7 +131,7 @@ public class EnvelopeEndpointTests
       SortOrder: 10);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    InsertEnvelope.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -141,7 +141,7 @@ public class EnvelopeEndpointTests
     result.Id.Should().BeGreaterThan(0);
 
     // Verify in database
-    var savedEnvelope = await context.Envelopes.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
+    Envelope? savedEnvelope = await context.Envelopes.FindAsync([result.Id], TestContext.Current.CancellationToken);
     savedEnvelope.Should().NotBeNull();
     savedEnvelope!.Name.Should().Be("New Envelope");
     savedEnvelope.Description.Should().Be("Test description");
@@ -184,17 +184,17 @@ public class EnvelopeEndpointTests
     var command = new UpdateEnvelope.Command(updateDto);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateEnvelope.Response? result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
-    result!.envelope.Id.Should().Be(403);
-    result.envelope.Name.Should().Be("Updated Name");
-    result.envelope.Budget.Should().Be(300m);
+    result!.Envelope.Id.Should().Be(403);
+    result.Envelope.Name.Should().Be("Updated Name");
+    result.Envelope.Budget.Should().Be(300m);
 
     // Verify in database
     context.ChangeTracker.Clear();
-    var updatedEnvelope = await context.Envelopes.FindAsync(new object[] { 403 }, TestContext.Current.CancellationToken);
+    Envelope? updatedEnvelope = await context.Envelopes.FindAsync([403], TestContext.Current.CancellationToken);
     updatedEnvelope.Should().NotBeNull();
     updatedEnvelope!.Name.Should().Be("Updated Name");
     updatedEnvelope.Budget.Should().Be(300m);
@@ -220,7 +220,7 @@ public class EnvelopeEndpointTests
     var command = new UpdateEnvelope.Command(updateDto);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateEnvelope.Response? result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().BeNull();
@@ -260,7 +260,7 @@ public class EnvelopeEndpointTests
 
     // Verify deletion in database
     context.ChangeTracker.Clear();
-    var deletedEnvelope = await context.Envelopes.FindAsync(new object[] { 405 }, TestContext.Current.CancellationToken);
+    Envelope? deletedEnvelope = await context.Envelopes.FindAsync([405], TestContext.Current.CancellationToken);
     deletedEnvelope.Should().BeNull();
   }
 
@@ -344,7 +344,7 @@ public class EnvelopeEndpointTests
     var handler = new GetEnvelopeTransactionCount.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetEnvelopeTransactionCount.Query(envelope.Id), CancellationToken.None);
+    GetEnvelopeTransactionCount.Response result = await handler.Handle(new GetEnvelopeTransactionCount.Query(envelope.Id), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -371,7 +371,7 @@ public class EnvelopeEndpointTests
     var command = new ImportEnvelopes.Command(csvContent);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    ImportEnvelopes.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();

@@ -23,11 +23,7 @@ public static class LoadTransactionImportsToUnassigned
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       // Get the Unassigned envelope
-      var unassigned = await Shared.GetEnvelopeByType.Get(db, EnvelopeTypes.Unassigned, cancellationToken);
-      if (unassigned is null)
-      {
-        throw new InvalidOperationException("Unassigned envelope not found");
-      }
+      var unassigned = await Shared.GetEnvelopeByType.Get(db, EnvelopeTypes.Unassigned, cancellationToken) ?? throw new InvalidOperationException("Unassigned envelope not found");
 
       // Get non-duplicate transaction imports
       var nonDuplicates = await db.TransactionImports
@@ -40,7 +36,7 @@ public static class LoadTransactionImportsToUnassigned
       }
 
 
-      List<OneTransactionDetail> transactionsToAdd = new List<OneTransactionDetail>();
+      List<OneTransactionDetail> transactionsToAdd = [];
 
       // Process each transaction import
       foreach (var rec in nonDuplicates)

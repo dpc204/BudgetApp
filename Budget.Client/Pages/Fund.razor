@@ -68,8 +68,8 @@
 
 <PageTitle>Fund</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-1" Style="padding-left: 0; padding-right: 0;">
-  <MudText Typo="Typo.h4" Class="mb-1">Fund Envelopes</MudText>
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-1"  Style="padding-left: 0; padding-right: 0;">
+  <MudText Typo="Typo.h5" Class="mb-1">Fund Envelopes</MudText>
 
   @if (_loading)
   {
@@ -82,9 +82,9 @@
       <MudProgressLinear Indeterminate="true"/>
     }
 
-    <MudPaper Class="pa-4 mb-4">
-      <MudStack Spacing="2">
-        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Style="width: fit-content;">
+    <MudPaper Class="pa-4 mb-4"  Style="width: fit-content" >
+      <MudStack Spacing="2" AlignItems="AlignItems.Baseline">
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Start">
           <MudSelect T="DateTime"
                      Value="@_selectedMonth"
                      ValueChanged="@OnMonthChanged"
@@ -96,28 +96,27 @@
               <MudSelectItem Value="@month">@month.ToString("MMM yy")</MudSelectItem>
             }
           </MudSelect>
-
-          <MudPaper Outlined="true"  Class="pa-2" Style="border: 2px solid var(--mud-palette-secondary);">
-            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-              <MudSelect T="FillAmounts"
-                         Value="@_selectedFillType"
-                         ValueChanged="@SetFillAmount"
-                         Variant="Variant.Outlined"
-                         AnchorOrigin="Origin.BottomCenter"
-                         Style="min-width: 200px;">
-                <MudSelectItem Value="@FillAmounts.OneHundredPercent">@GetDisplayName(FillAmounts.OneHundredPercent)</MudSelectItem>
-                <MudSelectItem Value="@FillAmounts.FiftyPercent">@GetDisplayName(FillAmounts.FiftyPercent)</MudSelectItem>
-                <MudSelectItem Value="@FillAmounts.FillToBudget">@GetDisplayName(FillAmounts.FillToBudget)</MudSelectItem>
-              </MudSelect>
-              <MudButton Variant="Variant.Filled"
-                         Color="Color.Primary"
-                         Size="Size.Medium"
-                         OnCLick="AllocateFill"
-                         Disabled="HideFundButton">
-                Allocate Funds
-              </MudButton>
-            </MudStack>
-          </MudPaper>
+          <MudSpacer/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+            <MudSelect T="FillAmounts"
+                       Value="@_selectedFillType"
+                       ValueChanged="@SetFillAmount"
+                       Variant="Variant.Outlined"
+                       AnchorOrigin="Origin.BottomCenter"
+                       Style="min-width: 200px;">
+              <MudSelectItem Value="@FillAmounts.OneHundredPercent">@GetDisplayName(FillAmounts.OneHundredPercent)</MudSelectItem>
+              <MudSelectItem Value="@FillAmounts.FiftyPercent">@GetDisplayName(FillAmounts.FiftyPercent)</MudSelectItem>
+              <MudSelectItem Value="@FillAmounts.FillToBudget">@GetDisplayName(FillAmounts.FillToBudget)</MudSelectItem>
+            </MudSelect>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Medium"
+                       OnCLick="AllocateFill"
+                       Disabled="HideFundButton">
+              Allocate Funds
+            </MudButton>
+          </MudStack>
         </MudStack>
 
         <MudStack Row="true">
@@ -141,15 +140,13 @@
     <div class="fund-table-wrapper">
       <MudTable Items="@_envelopeRows" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None" Class="fund-table">
         <HeaderContent>
-          <MudTh Class="display-column" border-left: 2px solid var(--mud-palette-lines-default);>Envelope Name</MudTh>
-          <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>Current Balance</MudTh>
-          <MudTh Class="display-column" Style="text-align: right;" border-left: 2px solid var(--mud-palette-lines-default);>
+          <MudTh Class="display-column" Style="border-left: 2px solid var(--mud-palette-lines-default);">Envelope Name</MudTh>
+          <MudTh Class="display-column" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">Current Balance</MudTh>
+          <MudTh Class="display-column" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
             Total Budget: @_totalBudget.ToString("C2")<br/>Budget
           </MudTh>
           <MudTh Class="display-column"
-                 Style="text-align: right;"
-
-                 border-left: 2px solid var(--mud-palette-lines-default);>
+                 Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);">
             <span style="color: @(_availableToFund < 0 ? "red" : "inherit")">Available: @_availableToFund.ToString("C2")</span><br />
             Fund Amount
           </MudTh>

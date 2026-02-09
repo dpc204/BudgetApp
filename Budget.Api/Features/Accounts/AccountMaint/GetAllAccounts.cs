@@ -5,7 +5,7 @@ public static class GetAllAccounts
   public sealed record Query : IRequest<IEnumerable<Response>>;
   public sealed record Response(int Id, string Name, decimal Balance, AccountTypes AccountType);
 
-  public class Handler(BudgetContext db, ILogger<Handler> logger) : IRequestHandler<Query, IEnumerable<Response>>
+  public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {
     public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken)
     {

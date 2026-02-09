@@ -9,7 +9,7 @@ namespace Budget.Api.Features.UserOptions;
 /// </summary>
 public static class GetUserById
 {
-  public sealed record Query(int id) : IRequest<Response>;
+  public sealed record Query(int Id) : IRequest<Response>;
 
   public sealed record Response(UserDetailDto? User);
 
@@ -23,7 +23,7 @@ public static class GetUserById
 
       var user = await db.Users
         .IgnoreQueryFilters()
-        .Where(u => u.Id == request.id)
+        .Where(u => u.Id == request.Id)
         .Select(u => new UserDetailDto(
           u.Id,
           u.Email,

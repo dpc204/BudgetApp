@@ -78,7 +78,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
     if (fundData == null || fundData.Count == 0)
       return [];
 
-    return fundData.Values
+    return [.. fundData.Values
       .OrderBy(e => e.SortOrder)
       .Select(envelope => new FundDisplayRow
       {
@@ -88,8 +88,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
         Budget = envelope.Budget,
         FundAmount = envelope.FundAmount,
         UpdateCounter = 0
-      })
-      .ToList();
+      })];
   }
 }
 

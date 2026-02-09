@@ -246,7 +246,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return null;
+      return new TransactionAddResult();
     }
   }
 
@@ -269,7 +269,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return null;
+      return new TransactionAddResult();
     }
   }
 

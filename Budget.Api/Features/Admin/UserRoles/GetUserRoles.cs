@@ -51,7 +51,7 @@ public static class GetUserRoles
       return new Response(request.UserId, rolesDto);
     }
 
-    private string GetName(User? srcAssignedBy)
+    private static string GetName(User? srcAssignedBy)
     {
 
       if (srcAssignedBy == null)

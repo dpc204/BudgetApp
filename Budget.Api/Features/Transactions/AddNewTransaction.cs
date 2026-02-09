@@ -5,7 +5,7 @@ public static class AddNewTransaction
   public sealed record Command(OneTransactionDetail Trans) : IRequest<TransactionAddResult>;
 
 
-  public class Handler(BudgetContext db, IInsertTransactions inserter) : IRequestHandler<Command, TransactionAddResult>
+  public class Handler( IInsertTransactions inserter) : IRequestHandler<Command, TransactionAddResult>
   {
     public async Task<TransactionAddResult> Handle(Command request, CancellationToken cancellationToken)
     {

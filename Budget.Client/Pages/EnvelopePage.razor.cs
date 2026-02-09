@@ -10,7 +10,7 @@ public partial class EnvelopePage(
 {
   [CascadingParameter] private IUserAndOptions UserOptions { get; set; } = default!;
 
-  public List<EnvelopeResult> AllEnvelopeData  { get; set; }
+  public List<EnvelopeResult> AllEnvelopeData  { get; set; } = [];
   public List<EnvelopeResult> SelectedEnvelopeData { get; set; } = [];
   public List<TransactionDto> TransactionData { get; set; } = [];
 
@@ -25,7 +25,7 @@ public partial class EnvelopePage(
       _selectedEnvelope = value;
 
       // Use InvokeAsync to ensure we're on the UI thread and queue the async work
-      InvokeAsync(async () => await OnSelectedEnvelopeChangedAsync(value));
+    //  InvokeAsync(async () => await OnSelectedEnvelopeChangedAsync(value));
     }
   }
 
@@ -43,7 +43,6 @@ public partial class EnvelopePage(
   private bool _loading = true;
   private string? _loadError;
   private bool _afterRenderInit;
-  private DateTime dummy = DateTime.Now;
 
   // Counter to force child grids to refresh by changing their @key
   private int _childGridRefreshKey = 0;
@@ -113,34 +112,33 @@ public partial class EnvelopePage(
     _selectedEnvelope = args.Item;
   }
 
-  private async Task OnSelectedItemChanged(EnvelopeResult? item)
-  {
-    if (item is null)
-    {
-      _selectedEnvelope = null;
-      TransactionData = [];
-      StateHasChanged();
-      return;
-    }
+ // private async Task OnSelectedItemChanged(EnvelopeResult? item)
+ // {
+ //   if (item is null)
+ //   {
+ //     _selectedEnvelope = null;
+ //     TransactionData = [];
+ //     StateHasChanged();
+ //     return;
+ //   }
 
-    // Avoid reloading if it's already selected
-    if (ReferenceEquals(_selectedEnvelope, item)) return;
+ //   // Avoid reloading if it's already selected
+ //   if (ReferenceEquals(_selectedEnvelope, item)) return;
 
-    _selectedEnvelope = item;
+ //   _selectedEnvelope = item;
 
-    // Load transactions for the selected envelope
-    await OnSelectedEnvelopeChangedAsync(item);
-  }
+ //   // Load transactions for the selected envelope
+ ////   await OnSelectedEnvelopeChangedAsync(item);
+ // }
 
 
   private void ApplyCategorySelection()
   {
-    SelectedEnvelopeData = dataService.ApplyCategoryFilter(
+    SelectedEnvelopeData = [.. dataService.ApplyCategoryFilter(
       AllEnvelopeData,
       CategoriesForSelect,
       SelectedCategoryId)
-      .Where(a=> a.EnvelopeType == EnvelopeTypes.Standard)
-      .ToList();
+      .Where(a=> a.EnvelopeType == EnvelopeTypes.Standard)];
 
     if (_selectedEnvelope is not null && SelectedEnvelopeData.All(e => e.EnvelopeId != _selectedEnvelope.EnvelopeId))
     {
@@ -152,8 +150,7 @@ public partial class EnvelopePage(
   private List<Cat> CategoriesForSelect { get; set; } = [];
 
   public string? SelectedCategoryId { get; set; }
-  public MudDataGrid<EnvelopeResult> EnvGrid { get; set; }
-
+  public MudDataGrid<EnvelopeResult> EnvGrid { get; set; } = null!;
   private async Task CatChanged(string? value)
   {
     var selected = value ?? "0";
@@ -187,7 +184,7 @@ public partial class EnvelopePage(
 
 
 
-  private async Task LoadTransactionsForRightGrid()
+  private static async Task LoadTransactionsForRightGrid()
   {
     // DISABLED - This loads data for the RIGHT-SIDE transaction grid (line 89 in razor)
     // Keeping this method for when we re-enable the right-side grid later
@@ -207,20 +204,11 @@ public partial class EnvelopePage(
     await Task.CompletedTask; // Keep method async for future use
   }
 
-  private async Task OnSelectedEnvelopeChangedAsync(EnvelopeResult? envelope)
-  {
-    await Task.CompletedTask;
-    return;
-    if (envelope is null)
-    {
-      TransactionData = [];
-      await InvokeAsync(StateHasChanged);
-      return;
-    }
-
-    TransactionData = await transactionService.LoadTransactionsAsync(envelope.EnvelopeId);
-    await InvokeAsync(StateHasChanged);
-  }
+  //private static async Task OnSelectedEnvelopeChangedAsync(EnvelopeResult? envelope)
+  //{
+  //  await Task.CompletedTask;
+  
+  //}
 
   private async Task NewTransactionAsync(EnvelopeResult? envelope)
   {
@@ -280,13 +268,13 @@ public partial class EnvelopePage(
       if (token.IsCancellationRequested)
       {
         logger.LogDebug("ServerData request cancelled before starting for envelope {EnvelopeId}", envelope?.EnvelopeId);
-        return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+        return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
       }
 
       var envelopeId = envelope?.EnvelopeId ?? 0;
       if (envelopeId == 0)
       {
-        return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+        return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
       }
 
       var transactions = await transactionService.LoadFullTransactionsAsync(
@@ -307,12 +295,12 @@ public partial class EnvelopePage(
       // This is expected when virtualization cancels requests
       logger.LogDebug("ServerData request was cancelled for envelope {EnvelopeId} (normal virtualization behavior)",
         envelope?.EnvelopeId);
-      return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+      return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
     }
     catch (Exception ex)
     {
       logger.LogError(ex, "Error loading server data for transactions.");
-      return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+      return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
     }
   }
 
@@ -327,13 +315,13 @@ public partial class EnvelopePage(
       if (token.IsCancellationRequested)
       {
         logger.LogDebug("ServerData request cancelled before starting for envelope {EnvelopeId}", envelope?.EnvelopeId);
-        return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+        return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
       }
 
       var envelopeId = envelope?.EnvelopeId ?? 0;
       if (envelopeId == 0)
       {
-        return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+        return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
       }
 
       var transactions = await transactionService.LoadFullTransactionsAsync(
@@ -354,12 +342,12 @@ public partial class EnvelopePage(
       // This is expected when virtualization cancels requests
       logger.LogDebug("ServerData request was cancelled for envelope {EnvelopeId} (normal virtualization behavior)",
         envelope?.EnvelopeId);
-      return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+      return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
     }
     catch (Exception ex)
     {
       logger.LogError(ex, "Error loading server data for transactions.");
-      return new GridData<EnvelopeTransactionListItem> { Items = Array.Empty<EnvelopeTransactionListItem>(), TotalItems = 0 };
+      return new GridData<EnvelopeTransactionListItem> { Items = [], TotalItems = 0 };
     }
   }
 

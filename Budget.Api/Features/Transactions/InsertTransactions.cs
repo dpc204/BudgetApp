@@ -19,14 +19,14 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   /// <summary>
   /// _transactions holds a list of all added transactions that will be added via a bulk insert
   /// </summary>
-  private readonly List<Transaction> _transactions = new List<Transaction>();
+  private readonly List<Transaction> _transactions = [];
 
   private bool _inBatch = false;
 
   /// <summary>
   /// The final result of the transaction with details of the updaetd envelope changes so the screen can be updated without a refresh
   /// </summary>
-  private TransactionAddResult _InsertTransactionResult = new TransactionAddResult();
+  private readonly TransactionAddResult _InsertTransactionResult = new();
 
   public async Task BeginBatchAsync()
   {
@@ -157,7 +157,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     return trans;
   }
 
-  private List<EnvelopeUpdate> _envelopeChanges = [];
+  private readonly List<EnvelopeUpdate> _envelopeChanges = [];
 
   private async Task UpdateOneEnvelope(IGrouping<int, EnvelopeUpdate> grp)
   {
@@ -182,5 +182,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   {
     await EndBatchAsync();
     await db.DisposeAsync();
+
+    GC.SuppressFinalize(this);
   }
 }

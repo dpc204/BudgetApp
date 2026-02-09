@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace Budget.DB.Migrations
 {
@@ -68,7 +67,7 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Roles",
-                columns: new[] { "Id", "CreatedAt", "Description", "ModifiedAt", "Name" },
+                columns: ["Id", "CreatedAt", "Description", "ModifiedAt", "Name"],
                 values: new object[,]
                 {
                     { 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Full system access including user and role management", null, "Admin" },
@@ -79,7 +78,7 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "UserRoles",
-                columns: new[] { "RoleId", "UserId", "AssignedAt", "AssignedByUserId" },
+                columns: ["RoleId", "UserId", "AssignedAt", "AssignedByUserId"],
                 values: new object[,]
                 {
                     { 1, 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null },

@@ -27,7 +27,7 @@ public partial class UsersIndex
     try
     {
       var users = await MaintApi.GetUsersAsync();
-      Users = users.ToList();
+      Users = [.. users];
     }
     catch (Exception ex)
     {
@@ -60,7 +60,8 @@ public partial class UsersIndex
     var dialog = await DialogService.ShowAsync<UserEditDialog>("Edit User", parameters, options);
     var result = await dialog.Result;
 
-    if (!result.Canceled)
+    if(result is { Canceled: false })
+
     {
       await LoadUsers();
       Snackbar.Add("User updated successfully", Severity.Success);
@@ -87,7 +88,7 @@ public partial class UsersIndex
     var dialog = await DialogService.ShowAsync<UserRoleDialog>("Manage User Roles", parameters, options);
     var result = await dialog.Result;
 
-    if (!result.Canceled)
+    if (result is { Canceled: false })
     {
       await LoadUsers();
       Snackbar.Add("User roles updated successfully", Severity.Success);

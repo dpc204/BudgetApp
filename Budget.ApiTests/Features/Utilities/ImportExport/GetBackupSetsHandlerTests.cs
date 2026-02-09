@@ -1,20 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Azure;
+﻿using Azure;
 using Azure.Data.Tables;
 using Budget.Api.Features.Utilities.ImportExport;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Utilities.ImportExport.UnitTests;
+namespace Budget.ApiTests.Features.Utilities.ImportExport;
 
 
 /// <summary>
@@ -53,8 +43,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -99,8 +89,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -159,8 +149,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -221,8 +211,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -270,8 +260,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -316,8 +306,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -347,8 +337,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -420,7 +410,7 @@ public class GetBackupSetsHandlerTests
         var mockTableClient = new Mock<TableClient>();
         var mockLogger = new Mock<ILogger<GetBackupSets.Handler>>();
         var cancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = cancellationTokenSource.Token;
+    CancellationToken cancellationToken = cancellationTokenSource.Token;
 
         mockTableServiceClient
             .Setup(x => x.GetTableClient("TableBackups"))
@@ -492,8 +482,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -543,8 +533,8 @@ public class GetBackupSetsHandlerTests
         var handler = new GetBackupSets.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSets.Query();
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSets.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -556,39 +546,31 @@ public class GetBackupSetsHandlerTests
     /// <summary>
     /// Helper class to provide test data for AsyncPageable enumeration.
     /// </summary>
-    private class TestAsyncPageable<T> : AsyncPageable<T>
+    private class TestAsyncPageable<T>(IEnumerable<T> items) : AsyncPageable<T> where T : notnull
     {
-        private readonly IEnumerable<T> _items;
+        private readonly IEnumerable<T> _items = items;
 
-        public TestAsyncPageable(IEnumerable<T> items)
-        {
-            _items = items;
-        }
-
-        public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
+    public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
         {
             await Task.CompletedTask;
-            yield return Page<T>.FromValues(_items.ToList(), null, Mock.Of<Response>());
+            yield return Page<T>.FromValues([.. _items], null, Mock.Of<Response>());
         }
     }
 
     /// <summary>
     /// Helper class to simulate an AsyncPageable that throws an exception during enumeration.
     /// </summary>
-    private class ThrowingAsyncPageable<T> : AsyncPageable<T>
+    private class ThrowingAsyncPageable<T>(Exception exception) : AsyncPageable<T> where T : notnull
     {
-        private readonly Exception _exception;
+        private readonly Exception _exception = exception;
 
-        public ThrowingAsyncPageable(Exception exception)
-        {
-            _exception = exception;
-        }
-
-        public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
+    public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
         {
             await Task.CompletedTask;
             throw _exception;
-            yield break;
-        }
+#pragma warning disable CS0162 // Unreachable code detected
+      yield break;
+#pragma warning restore CS0162 // Unreachable code detected
+    }
     }
 }

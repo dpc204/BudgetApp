@@ -2,8 +2,8 @@ namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
 
 public static class UpdateEnvelope
 {
-  public sealed record Command(EnvelopeUpdateDto envelope) : IRequest<Response?>;
-  public sealed record Response(EnvelopeUpdateDto envelope);
+  public sealed record Command(EnvelopeUpdateDto Envelope) : IRequest<Response?>;
+  public sealed record Response(EnvelopeUpdateDto Envelope);
 
   public class Handler(BudgetContext db) : IRequestHandler<Command, Response?>
   {
@@ -11,11 +11,11 @@ public static class UpdateEnvelope
     {
       try
       {
-        var entity = await db.Envelopes.FirstOrDefaultAsync(e => e.Id == request.envelope.Id, cancellationToken);
+        var entity = await db.Envelopes.FirstOrDefaultAsync(e => e.Id == request.Envelope.Id, cancellationToken);
         if (entity is null) return null;
 
 
-        request.envelope.Adapt(entity);
+        request.Envelope.Adapt(entity);
 
         await db.SaveChangesAsync(cancellationToken);
 

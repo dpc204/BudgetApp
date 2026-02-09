@@ -212,7 +212,7 @@ public static class ExportAll
       return false;
     }
 
-    private async Task<string> ExportTableDataAsync(BudgetContext db, string tableName, CancellationToken cancellationToken)
+    private static async Task<string> ExportTableDataAsync(BudgetContext db, string tableName, CancellationToken cancellationToken)
     {
       // Query all data from the table using raw SQL
       var connectionString = db.Database.GetConnectionString();

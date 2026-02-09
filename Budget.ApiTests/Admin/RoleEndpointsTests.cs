@@ -36,17 +36,17 @@ public class RoleEndpointsTests
     var handler = new GetRoles.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetRoles.Query(), CancellationToken.None);
+    GetRoles.Response result = await handler.Handle(new GetRoles.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     result.Roles.Should().HaveCount(2);
-    
-    var adminRole = result.Roles.Should().ContainSingle(r => r.Name == "Admin").Subject;
+
+    GetRoles.RoleDto adminRole = result.Roles.Should().ContainSingle(r => r.Name == "Admin").Subject;
     adminRole.UserCount.Should().Be(1);
     adminRole.Description.Should().Be("Administrator");
-    
-    var userRole = result.Roles.Should().ContainSingle(r => r.Name == "User").Subject;
+
+    GetRoles.RoleDto userRole = result.Roles.Should().ContainSingle(r => r.Name == "User").Subject;
     userRole.UserCount.Should().Be(0);
   }
 
@@ -70,7 +70,7 @@ public class RoleEndpointsTests
     var handler = new GetRole.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetRole.Query(1), CancellationToken.None);
+    GetRole.Response? result = await handler.Handle(new GetRole.Query(1), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -88,7 +88,7 @@ public class RoleEndpointsTests
     var handler = new GetRole.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetRole.Query(999), CancellationToken.None);
+    GetRole.Response? result = await handler.Handle(new GetRole.Query(999), CancellationToken.None);
 
     // Assert
     result.Should().BeNull();
@@ -100,10 +100,10 @@ public class RoleEndpointsTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
     var handler = new CreateRole.Handler(context);
-    var beforeCreate = DateTime.UtcNow;
+    DateTime beforeCreate = DateTime.UtcNow;
 
     // Act
-    var result = await handler.Handle(
+    CreateRole.Response result = await handler.Handle(
       new CreateRole.Command("PowerUser", "Power User Description"),
       CancellationToken.None);
 
@@ -111,8 +111,8 @@ public class RoleEndpointsTests
     result.Should().NotBeNull();
     result.Name.Should().Be("PowerUser");
     result.Description.Should().Be("Power User Description");
-    
-    var savedRole = await context.Roles.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
+
+    Role? savedRole = await context.Roles.FindAsync([result.Id], TestContext.Current.CancellationToken);
     savedRole.Should().NotBeNull();
     savedRole!.Name.Should().Be("PowerUser");
     savedRole.CreatedAt.Should().BeOnOrAfter(beforeCreate);
@@ -124,8 +124,8 @@ public class RoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
-    var originalCreatedAt = DateTime.UtcNow.AddDays(-1);
+
+    DateTime originalCreatedAt = DateTime.UtcNow.AddDays(-1);
     context.Roles.Add(new Role 
     { 
       Id = 1, 
@@ -136,18 +136,18 @@ public class RoleEndpointsTests
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateRole.Handler(context);
-    var beforeUpdate = DateTime.UtcNow;
+    DateTime beforeUpdate = DateTime.UtcNow;
 
     // Act
-    var result = await handler.Handle(
+    UpdateRole.Response? result = await handler.Handle(
       new UpdateRole.Command(1, "Admin", "New Description"),
       CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     result!.Description.Should().Be("New Description");
-    
-    var updatedRole = await context.Roles.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken);
+
+    Role? updatedRole = await context.Roles.FindAsync([1], TestContext.Current.CancellationToken);
     updatedRole!.Description.Should().Be("New Description");
     updatedRole.CreatedAt.Should().Be(originalCreatedAt);
     updatedRole.ModifiedAt.Should().NotBeNull();
@@ -162,7 +162,7 @@ public class RoleEndpointsTests
     var handler = new UpdateRole.Handler(context);
 
     // Act
-    var result = await handler.Handle(
+    UpdateRole.Response? result = await handler.Handle(
       new UpdateRole.Command(999, "Admin", "Description"),
       CancellationToken.None);
 
@@ -182,13 +182,13 @@ public class RoleEndpointsTests
     var handler = new DeleteRole.Handler(context);
 
     // Act
-    var result = await handler.Handle(new DeleteRole.Command(1), CancellationToken.None);
+    DeleteRole.Response result = await handler.Handle(new DeleteRole.Command(1), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     result.Success.Should().BeTrue();
     result.ErrorMessage.Should().BeNull();
-    (await context.Roles.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken)).Should().BeNull();
+    (await context.Roles.FindAsync([1], TestContext.Current.CancellationToken)).Should().BeNull();
   }
 
   [Fact]
@@ -210,7 +210,7 @@ public class RoleEndpointsTests
     var handler = new DeleteRole.Handler(context);
 
     // Act
-    var result = await handler.Handle(new DeleteRole.Command(1), CancellationToken.None);
+    DeleteRole.Response result = await handler.Handle(new DeleteRole.Command(1), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -218,7 +218,7 @@ public class RoleEndpointsTests
     result.ErrorMessage.Should().Contain("Cannot delete role");
     result.ErrorMessage.Should().Contain("TestRole");
     
-    (await context.Roles.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken)).Should().NotBeNull();
+    (await context.Roles.FindAsync([1], TestContext.Current.CancellationToken)).Should().NotBeNull();
   }
 
   [Fact]
@@ -229,7 +229,7 @@ public class RoleEndpointsTests
     var handler = new DeleteRole.Handler(context);
 
     // Act
-    var result = await handler.Handle(new DeleteRole.Command(999), CancellationToken.None);
+    DeleteRole.Response result = await handler.Handle(new DeleteRole.Command(999), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();

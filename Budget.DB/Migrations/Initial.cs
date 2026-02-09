@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace Budget.DB.Migrations
 {
@@ -288,13 +287,13 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Families",
-                columns: new[] { "Id", "CreatedDate", "Name" },
-                values: new object[] { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Default Family" });
+                columns: ["Id", "CreatedDate", "Name"],
+                values: [1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Default Family"]);
 
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "BankAccounts",
-                columns: new[] { "Id", "AccountType", "Balance", "FamilyId", "LastTransactionDate", "LastTransactionId", "Name" },
+                columns: ["Id", "AccountType", "Balance", "FamilyId", "LastTransactionDate", "LastTransactionId", "Name"],
                 values: new object[,]
                 {
                     { 1, 0, 0m, 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Citizens" },
@@ -304,7 +303,7 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Categories",
-                columns: new[] { "Id", "CategoryType", "Description", "FamilyId", "Name", "SortOrder" },
+                columns: ["Id", "CategoryType", "Description", "FamilyId", "Name", "SortOrder"],
                 values: new object[,]
                 {
                     { -1, 1, "", 1, "System", 0 },
@@ -317,7 +316,7 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Users",
-                columns: new[] { "Id", "Email", "FamilyId", "FirstName", "LastName" },
+                columns: ["Id", "Email", "FamilyId", "FirstName", "LastName"],
                 values: new object[,]
                 {
                     { 1, "", 1, "Patrick", "Connelly" },
@@ -327,7 +326,7 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Envelopes",
-                columns: new[] { "Id", "Balance", "Budget", "CategoryId", "Description", "EnvelopeType", "FamilyId", "FundAmount", "LastTransactionDate", "LastTransactionId", "LastTransactionLineId", "Name", "SortOrder" },
+                columns: ["Id", "Balance", "Budget", "CategoryId", "Description", "EnvelopeType", "FamilyId", "FundAmount", "LastTransactionDate", "LastTransactionId", "LastTransactionLineId", "Name", "SortOrder"],
                 values: new object[,]
                 {
                     { -1, 0m, null, -1, "", 0, 1, 0m, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, "UnAllocated", 6 },
@@ -385,7 +384,7 @@ namespace Budget.DB.Migrations
                 name: "IX_Envelopes_LastTransactionId_LastTransactionLineId",
                 schema: "budget",
                 table: "Envelopes",
-                columns: new[] { "LastTransactionId", "LastTransactionLineId" });
+                columns: ["LastTransactionId", "LastTransactionLineId"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Favorites_FamilyId",
@@ -453,10 +452,10 @@ namespace Budget.DB.Migrations
                 name: "FK_Envelopes_TransactionDetails_LastTransactionId_LastTransactionLineId",
                 schema: "budget",
                 table: "Envelopes",
-                columns: new[] { "LastTransactionId", "LastTransactionLineId" },
+                columns: ["LastTransactionId", "LastTransactionLineId"],
                 principalSchema: "budget",
                 principalTable: "TransactionDetails",
-                principalColumns: new[] { "TransactionId", "LineId" },
+                principalColumns: ["TransactionId", "LineId"],
                 onDelete: ReferentialAction.SetNull);
         }
 

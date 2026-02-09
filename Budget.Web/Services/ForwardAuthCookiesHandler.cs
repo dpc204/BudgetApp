@@ -143,7 +143,7 @@ public sealed class ForwardAuthCookiesHandler(
     {
       return await base.SendAsync(request, cancellationToken);
     }
-    catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
+    catch when (cancellationToken.IsCancellationRequested)
     {
       // Request was explicitly cancelled via the token
       logger.LogDebug("HTTP request to {Url} was cancelled", request.RequestUri);

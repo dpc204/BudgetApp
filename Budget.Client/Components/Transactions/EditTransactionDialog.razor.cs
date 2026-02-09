@@ -241,7 +241,7 @@ public partial class EditTransactionDialog
     [Required] public int AccountId { get; set; }
 
     [Required] public DateTime Date { get; set; } = DateTime.Today;
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     public decimal TotalAmount { get; set; }
   }

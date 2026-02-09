@@ -53,7 +53,6 @@
                    Dense="true"
                    Hover="true"
                    Bordered="true"
-                   Sortable="true"
                    FixedHeader="true"
                    Style="height: 100%; overflow: auto; width: auto;">
       @*   <ColGroup>
@@ -65,8 +64,8 @@
           <col style="width: 50px;"/>
         </ColGroup> *@
         <ToolBarContent >
-           <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Elevation="0" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
-          <MudButton OnClick="ImportAsync" Disabled="Busy || Preview.Count == 0  " Class="border-solid border-2 mud-border-primary ma-4" Elevation="0">Import Transactions</MudButton>
+           <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
+          <MudButton OnClick="ImportAsync" Disabled="Busy || Preview.Count == 0  " Class="border-solid border-2 mud-border-primary ma-4">Import Transactions</MudButton>
         </ToolbarContent>
         <Columns>
           <PropertyColumn Property="x => x.Date"

@@ -5,8 +5,8 @@ namespace Budget.Api.Features.Transactions;
 
 public static class GetUnassignedVirtual
 {
-  public sealed record Query(AssignQuery assignQuery) : IRequest<Result<Response>>;
-  public sealed record Response(AssignQueryResult assignResult);
+  public sealed record Query(AssignQuery AssignQuery) : IRequest<Result<Response>>;
+  public sealed record Response(AssignQueryResult AssignResult);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, Result<Response>>
   {
@@ -35,20 +35,20 @@ public static class GetUnassignedVirtual
         }).AsNoTracking();
 
 
-      query = query.ApplyFilters(request.assignQuery.Filters);
+      query = query.ApplyFilters(request.AssignQuery.Filters);
 
-      if (!string.IsNullOrEmpty(request.assignQuery.Sort))
+      if (!string.IsNullOrEmpty(request.AssignQuery.Sort))
       {
-        query = request.assignQuery.Descending
-          ? query.OrderByDescendingDynamic(request.assignQuery.Sort)
-          : query.OrderByDynamic(request.assignQuery.Sort);
+        query = request.AssignQuery.Descending
+          ? query.OrderByDescendingDynamic(request.AssignQuery.Sort)
+          : query.OrderByDynamic(request.AssignQuery.Sort);
       }
 
       var totalCount = await query.CountAsync(cancellationToken);
       
       query = query
-        .Skip(request.assignQuery.StartIndex)
-        .Take(request.assignQuery.Count);
+        .Skip(request.AssignQuery.StartIndex)
+        .Take(request.AssignQuery.Count);
 
       var items = await query
         .ToListAsync(cancellationToken);
@@ -73,7 +73,7 @@ public static class GetUnassignedVirtual
       {
         var result = await sender.Send(new Query(assignQuery));
         return result.IsSuccess
-          ? Results.Ok(result.Value.assignResult)
+          ? Results.Ok(result.Value.AssignResult)
           : Results.BadRequest(result.Errors);
       }).RequireAuthorization();
     }

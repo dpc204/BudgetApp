@@ -1,6 +1,5 @@
 using Budget.Api.Features.UserOptions;
 using Budget.Shared.Enums;
-using FluentResults;
 
 namespace Budget.ApiTests;
 
@@ -27,24 +26,25 @@ public class UserOptionsEndpointsTests
   public async Task SaveUserOptions_Should_Save_Options_To_Database()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
     var userId = 1;
     var options = new Budget.Shared.Services.UserOptions
     {
       FillAmountType = FillAmounts.FiftyPercent
     };
+    
     var command = new SaveUserOptions.Command(userId, options);
     var handler = new SaveUserOptions.Handler(db);
 
     // Act
-    var response = await handler.Handle(command, CancellationToken.None);
+    SaveUserOptions.Response response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     response.Success.Should().Be(true);
-    
+
 
     // Verify in database
-    var savedOptions = await db.SavedUserOptions.FindAsync(new object[] { userId }, TestContext.Current.CancellationToken);
+    SavedUserOptions? savedOptions = await db.SavedUserOptions.FindAsync([userId], TestContext.Current.CancellationToken);
     savedOptions.Should().NotBeNull();
     savedOptions!.UserId.Should().Be(userId);
     savedOptions.JsonOptions.Should().Contain("\"FillAmountType\":2");
@@ -58,15 +58,15 @@ public class UserOptionsEndpointsTests
   {
     // Arrange
     var userId = 1;
-    
+
     // First, save initial options
-    var db = GetTestDBContext();
-      db.SavedUserOptions.Add(new SavedUserOptions
-      {
-        UserId = userId,
-        JsonOptions = "{\"FillAmountType\":1}"
-      });
-      await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+    BudgetContext db = GetTestDBContext();
+    db.SavedUserOptions.Add(new SavedUserOptions
+    {
+      UserId = userId,
+      JsonOptions = "{\"FillAmountType\":1}"
+    });
+    await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var updatedOptions = new Budget.Shared.Services.UserOptions
     {
@@ -76,13 +76,13 @@ public class UserOptionsEndpointsTests
     var handler = new SaveUserOptions.Handler(db);
 
     // Act
-    var response = handler.Handle(command, CancellationToken.None);
+    SaveUserOptions.Response response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.IsCompletedSuccessfully.Should().Be(true);
+    response.Success.Should().Be(true);
 
     // Verify in database
-    var savedOptions = await db.SavedUserOptions.FindAsync(new object[] { userId }, TestContext.Current.CancellationToken);
+    SavedUserOptions? savedOptions = await db.SavedUserOptions.FindAsync([userId], TestContext.Current.CancellationToken);
     savedOptions.Should().NotBeNull();
     savedOptions!.JsonOptions.Should().Contain("\"FillAmountType\":3");
   }
@@ -94,18 +94,16 @@ public class UserOptionsEndpointsTests
   public async Task GetUserOptions_Should_Return_Saved_Options()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
     var userId = 1;
-    
-    // First, save some options
 
-      db.SavedUserOptions.Add(new SavedUserOptions
-      {
-        UserId = userId,
-        JsonOptions = "{\"FillAmountType\":2}"
-      });
-      await db.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+    // First, save some options
+    db.SavedUserOptions.Add(new SavedUserOptions
+    {
+      UserId = userId,
+      JsonOptions = "{\"FillAmountType\":2}"
+    });
+    await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     // Act
     var command = new SaveUserOptions.Command(userId, new Budget.Shared.Services.UserOptions()
@@ -115,11 +113,11 @@ public class UserOptionsEndpointsTests
     });
     var handler = new SaveUserOptions.Handler(db);
 
-    var response = handler.Handle(command, CancellationToken.None);
+      SaveUserOptions.Response response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    response.Result.Success.Should().Be(true);
-    var rslt = await db.SavedUserOptions.FindAsync(new object[] { userId }, TestContext.Current.CancellationToken);
+    response.Success.Should().Be(true);
+    SavedUserOptions? rslt = await db.SavedUserOptions.FindAsync([userId], TestContext.Current.CancellationToken);
     rslt.Should().NotBeNull();
     rslt!.JsonOptions.Should().Contain("\"FillAmountType\":1");
   }
@@ -131,16 +129,16 @@ public class UserOptionsEndpointsTests
   public async Task GetUserOptions_Should_Return_Null_For_NonExistent_User()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
     var userId = 1;
 
     var command = new GetUserOptions.Query(userId);
     var handler = new GetUserOptions.Handler(db, new NullLogger<GetUserOptions.Handler>());
     // Act
-    var response = handler.Handle(command, CancellationToken.None);
+    GetUserOptions.Response response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    (await response).Options.Should().BeNull();
+    response.Options.Should().BeNull();
   }
 
   private class TestCurrentFamilyService : ICurrentFamilyService

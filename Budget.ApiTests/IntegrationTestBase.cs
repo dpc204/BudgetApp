@@ -92,10 +92,10 @@ public class IntegrationTestBase
   //}
 
 
-  public  DbContextOptions<BudgetContext> CreateInMemoryOptions()
+  public static DbContextOptions<BudgetContext> CreateInMemoryOptions()
   {
 
-    var bld = new DbContextOptionsBuilder<BudgetContext>()
+    DbContextOptionsBuilder<BudgetContext> bld = new DbContextOptionsBuilder<BudgetContext>()
       .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
       .EnableServiceProviderCaching(false); // Disable caching to ensure fresh database per test
 
@@ -104,7 +104,7 @@ public class IntegrationTestBase
 return bld.Options;
   }
 
-protected  BudgetContext GetTestDBContext(int familyId = 1)
+  protected static BudgetContext GetTestDBContext(int familyId = 1)
   {
     var db = new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService(familyId));
     
@@ -123,18 +123,18 @@ protected  BudgetContext GetTestDBContext(int familyId = 1)
     public static string GetSecret(string key)
     {
       // Locate the user secrets file
-      var userSecretsId = typeof(UserSecretsReader).Assembly.GetCustomAttribute<UserSecretsIdAttribute>().UserSecretsId;
+      var userSecretsId = typeof(UserSecretsReader).Assembly.GetCustomAttribute<UserSecretsIdAttribute>()?.UserSecretsId;
       if(string.IsNullOrEmpty(userSecretsId))
       {
         throw new InvalidOperationException("User Secrets ID is not defined.");
       }
       var secretsPath = PathHelper.GetSecretsPathFromSecretsId(userSecretsId);
       // Load the secrets file
-      var configuration = new ConfigurationBuilder()
+      IConfigurationRoot configuration = new ConfigurationBuilder()
         .AddJsonFile(secretsPath)
         .Build();
       // Retrieve the secret value by key
-      return configuration[key];
+      return configuration[key] ?? string.Empty;
     }
   }
   public static class PathHelper

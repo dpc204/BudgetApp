@@ -1,3 +1,4 @@
+
 namespace Budget.Web.Middleware;
 
 /// <summary>
@@ -9,8 +10,7 @@ public class AuthCookieValidationMiddleware(RequestDelegate next, ILogger<AuthCo
 {
   // Track which users have been checked this app instance (by user ID hash)
   private static readonly HashSet<string> _checkedUsers = [];
-  private static readonly object _lock = new();
-  private static DateTime _appStartTime = DateTime.UtcNow;
+  private static readonly Lock _lock = new();
 
   public async Task InvokeAsync(HttpContext context)
   {
@@ -26,21 +26,17 @@ public class AuthCookieValidationMiddleware(RequestDelegate next, ILogger<AuthCo
       bool shouldCheck = false;
       lock (_lock)
       {
-        // Check if we've already validated this user in this app instance
-        if (!_checkedUsers.Contains(userHash))
-        {
-          _checkedUsers.Add(userHash);
-          shouldCheck = true;
-        }
+        // Try to add the user hash; if it was not present, Add returns true
+        shouldCheck = _checkedUsers.Add(userHash);
       }
       
       if (shouldCheck)
       {
         // Check how old the cookie is - if it predates the app start, it's stale
-        logger.LogInformation("First request for user (hash: {UserHash}) after app startup - validating authentication state", userHash.Substring(0, 8));
+        logger.LogInformation("First request for user (hash: {UserHash}) after app startup - validating authentication state", userHash[..8]);
         
         // Clear the stale authentication cookie
-        logger.LogWarning("Clearing stale authentication cookie for user (hash: {UserHash}) to force fresh sign-in", userHash.Substring(0, 8));
+        logger.LogWarning("Clearing stale authentication cookie for user (hash: {UserHash}) to force fresh sign-in", userHash[..8]);
         
         context.Response.Cookies.Delete(".AspNetCore.Cookies", new CookieOptions 
         { 
@@ -74,9 +70,8 @@ public class AuthCookieValidationMiddleware(RequestDelegate next, ILogger<AuthCo
   
   private static string GetCookieHash(string cookie)
   {
-    using var sha256 = System.Security.Cryptography.SHA256.Create();
     var bytes = System.Text.Encoding.UTF8.GetBytes(cookie);
-    var hash = sha256.ComputeHash(bytes);
+    var hash = System.Security.Cryptography.SHA256.HashData(bytes);
     return Convert.ToBase64String(hash);
   }
 }

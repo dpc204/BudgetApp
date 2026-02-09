@@ -14,3 +14,26 @@ dotnet_diagnostic.IDE0079.severity = none
 
 # CA1873: Avoid potentially expensive logging
 dotnet_diagnostic.CA1873.severity = none
+
+# Suppress all warnings for generated code (Blazor, Razor, etc.)
+[**/*.{designer,generated,g}.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.CS8669.severity = none
+
+[*.{razor.g.cs,cshtml.g.cs}]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.CS8669.severity = none
+
+[**/obj/**/*.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.CS8669.severity = none
+
+# Suppress CS8669 specifically for generated Razor files
+[**/obj/**/Microsoft.CodeAnalysis.Razor.Compiler/**/*.cs]
+dotnet_diagnostic.CS8669.severity = none
+
+[**/obj/**/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/**/*.cs]
+dotnet_diagnostic.CS8669.severity = none

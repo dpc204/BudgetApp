@@ -29,11 +29,7 @@ public static class AssignRole
       }
 
       // Check if role exists
-      var role = await db.Roles.FindAsync([request.RoleId], cancellationToken);
-      if (role == null)
-      {
-        throw new InvalidOperationException($"Role with ID {request.RoleId} not found");
-      }
+      var role = await db.Roles.FindAsync([request.RoleId], cancellationToken) ?? throw new InvalidOperationException($"Role with ID {request.RoleId} not found");
 
       // Check if assignment already exists
       var existingAssignment = await db.UserRoles
@@ -52,7 +48,7 @@ public static class AssignRole
       {
         var currentUser = await db.Users
           .IgnoreQueryFilters()
-          .FirstOrDefaultAsync(u => u.Email == currentUserEmail.ToUpper(), cancellationToken);
+          .FirstOrDefaultAsync(u => u.Email.Equals(currentUserEmail, StringComparison.InvariantCultureIgnoreCase), cancellationToken);
         assignedByUserId = currentUser?.Id;
       }
 

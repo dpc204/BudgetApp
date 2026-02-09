@@ -65,8 +65,8 @@ public static class ImportTransactions
         }
         else
         {
-          dto.Vendor = dto.Description.Substring(0, idx).Trim();
-          dto.Description = dto.Description.Substring(idx + 1).Trim();
+          dto.Vendor = dto.Description[..idx].Trim();
+          dto.Description = dto.Description[(idx + 1)..].Trim();
         }
       }
     }

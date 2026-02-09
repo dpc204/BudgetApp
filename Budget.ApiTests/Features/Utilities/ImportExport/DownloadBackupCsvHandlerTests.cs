@@ -1,22 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿using System.IO;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Budget.Api.Features.Utilities.ImportExport;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Utilities.UnitTests;
+namespace Budget.ApiTests.Features.Utilities.ImportExport;
 
 
 /// <summary>
@@ -39,7 +29,7 @@ public class DownloadBackupCsvHandlerTests
         var mockBlobClient = new Mock<BlobClient>();
         var mockExistsResponse = new Mock<Response<bool>>();
         var mockDownloadResponse = new Mock<Response<BlobDownloadInfo>>();
-        var mockBlobDownloadInfo = BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream());
+    BlobDownloadInfo mockBlobDownloadInfo = BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream());
 
         mockExistsResponse.Setup(x => x.Value).Returns(true);
         mockExistsResponse.Setup(x => x.GetRawResponse()).Returns(Mock.Of<Response>());
@@ -66,8 +56,8 @@ public class DownloadBackupCsvHandlerTests
         var handler = new DownloadBackupCsv.Handler(mockBlobServiceClient.Object, mockLogger.Object);
         var query = new DownloadBackupCsv.Query(blobName);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    DownloadBackupCsv.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -117,8 +107,8 @@ public class DownloadBackupCsvHandlerTests
         var handler = new DownloadBackupCsv.Handler(mockBlobServiceClient.Object, mockLogger.Object);
         var query = new DownloadBackupCsv.Query(blobName);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    DownloadBackupCsv.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -160,8 +150,8 @@ public class DownloadBackupCsvHandlerTests
         var handler = new DownloadBackupCsv.Handler(mockBlobServiceClient.Object, mockLogger.Object);
         var query = new DownloadBackupCsv.Query(blobName);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    DownloadBackupCsv.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -196,7 +186,7 @@ public class DownloadBackupCsvHandlerTests
         var mockBlobClient = new Mock<BlobClient>();
         var mockExistsResponse = new Mock<Response<bool>>();
         var mockDownloadResponse = new Mock<Response<BlobDownloadInfo>>();
-        var mockBlobDownloadInfo = BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream());
+    BlobDownloadInfo mockBlobDownloadInfo = BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream());
 
         mockExistsResponse.Setup(x => x.Value).Returns(true);
         mockExistsResponse.Setup(x => x.GetRawResponse()).Returns(Mock.Of<Response>());
@@ -223,8 +213,8 @@ public class DownloadBackupCsvHandlerTests
         var handler = new DownloadBackupCsv.Handler(mockBlobServiceClient.Object, mockLogger.Object);
         var query = new DownloadBackupCsv.Query(blobName);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    DownloadBackupCsv.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -260,8 +250,8 @@ public class DownloadBackupCsvHandlerTests
         var handler = new DownloadBackupCsv.Handler(mockBlobServiceClient.Object, mockLogger.Object);
         var query = new DownloadBackupCsv.Query(blobName);
 
-        // Act
-        var result = await handler.Handle(query, cts.Token);
+    // Act
+    DownloadBackupCsv.Response result = await handler.Handle(query, cts.Token);
 
         // Assert
         result.Should().NotBeNull();
@@ -307,8 +297,8 @@ public class DownloadBackupCsvHandlerTests
         var handler = new DownloadBackupCsv.Handler(mockBlobServiceClient.Object, mockLogger.Object);
         var query = new DownloadBackupCsv.Query(blobName);
 
-        // Act
-        var result = await handler.Handle(query, cts.Token);
+    // Act
+    DownloadBackupCsv.Response result = await handler.Handle(query, cts.Token);
 
         // Assert
         result.Should().NotBeNull();
@@ -331,7 +321,7 @@ public class DownloadBackupCsvHandlerTests
         var mockBlobClient = new Mock<BlobClient>();
         var mockExistsResponse = new Mock<Response<bool>>();
         var mockDownloadResponse = new Mock<Response<BlobDownloadInfo>>();
-        var mockBlobDownloadInfo = BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream());
+    BlobDownloadInfo mockBlobDownloadInfo = BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream());
 
         mockExistsResponse.Setup(x => x.Value).Returns(true);
         mockExistsResponse.Setup(x => x.GetRawResponse()).Returns(Mock.Of<Response>());

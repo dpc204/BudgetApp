@@ -29,7 +29,7 @@ public class EnvelopeDataServiceTests
         _mockState = new Mock<EnvelopeState>(null!, null!, null!);
         _mockUserOptions = new Mock<IUserAndOptions>();
         _mockApiClient = new Mock<IBudgetApiClient>();
-        _service = new EnvelopeDataService(_mockState.Object, _mockApiClient.Object, _mockUserOptions.Object);
+        _service = new EnvelopeDataService( _mockApiClient.Object, _mockUserOptions.Object);
     }
 
     [Fact]
@@ -38,27 +38,26 @@ public class EnvelopeDataServiceTests
         // Arrange
         var categoryDtos = new List<CategoryDto>
     {
-      new CategoryDto { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 },
-      new CategoryDto { CategoryId = "2", Name = "Transport", CatType = CatTypes.User, SortOrder = 2 }
+      new() { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 },
+      new() { CategoryId = "2", Name = "Transport", CatType = CatTypes.User, SortOrder = 2 }
     };
 
         var envelopeDtos = new List<EnvelopeDto>
     {
-      new EnvelopeDto { Id = 1, Name = "Groceries", CategoryId = "1", Balance = 100m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard },
-      new EnvelopeDto { Id = 2, Name = "Gas", CategoryId = "2", Balance = 50m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard }
+      new() { Id = 1, Name = "Groceries", CategoryId = "1", Balance = 100m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard },
+      new() { Id = 2, Name = "Gas", CategoryId = "2", Balance = 50m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard }
     };
 
         var envelopes = new List<EnvelopeResult>
     {
-      new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
-      new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "Gas", CategoryId = "2", Balance = 50m }
+      new() { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
+      new() { EnvelopeId = 2, EnvelopeName = "Gas", CategoryId = "2", Balance = 50m }
     };
 
         _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
         _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>())).ReturnsAsync(envelopeDtos);
         _mockState.Setup(s => s.IsLoaded).Returns(true);
         _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
-        _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions { SelectedCategoryType = "1" });
 
         // Act
         var result = await _service.LoadEnvelopeDataAsync(false, TestContext.Current.CancellationToken);
@@ -76,24 +75,23 @@ public class EnvelopeDataServiceTests
         // Arrange
         var categoryDtos = new List<CategoryDto>
     {
-      new CategoryDto { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 }
+      new() { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 }
     };
 
         var envelopeDtos = new List<EnvelopeDto>
     {
-      new EnvelopeDto { Id = 1, Name = "Groceries", CategoryId = "1", Balance = 100m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard }
+      new() { Id = 1, Name = "Groceries", CategoryId = "1", Balance = 100m, SortOrder = 1, EnvelopeType = EnvelopeTypes.Standard }
     };
 
         var envelopes = new List<EnvelopeResult>
     {
-      new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m }
+      new() { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m }
     };
 
         _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
         _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>())).ReturnsAsync(envelopeDtos);
         _mockState.Setup(s => s.IsLoaded).Returns(false);
         _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
-        _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions { SelectedCategoryType = "0" });
 
         // Act
         var result = await _service.LoadEnvelopeDataAsync(false , TestContext.Current.CancellationToken);
@@ -109,7 +107,7 @@ public class EnvelopeDataServiceTests
         // Arrange
         var categoryDtos = new List<CategoryDto>
     {
-      new CategoryDto { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 }
+      new() { CategoryId = "1", Name = "Food", CatType = CatTypes.User, SortOrder = 1 }
     };
 
         var envelopeDtos = new List<EnvelopeDto>();
@@ -117,8 +115,7 @@ public class EnvelopeDataServiceTests
         _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
         _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>())).ReturnsAsync(envelopeDtos);
         _mockState.Setup(s => s.IsLoaded).Returns(true);
-        _mockState.Setup(s => s.AllEnvelopeData).Returns(new List<EnvelopeResult>());
-        _mockUserOptions.Setup(u => u.Options).Returns(new UserOptions());
+        _mockState.Setup(s => s.AllEnvelopeData).Returns([]);
 
         // Act
         var result = await _service.LoadEnvelopeDataAsync(forceRefresh: true, TestContext.Current.CancellationToken);
@@ -134,15 +131,15 @@ public class EnvelopeDataServiceTests
         // Arrange
         var categories = new List<Cat>
     {
-      new Cat { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 },
-      new Cat { CategoryId = "2", CategoryName = "Transport", CatType = CatTypes.User, SortOrder = 2 }
+      new() { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 },
+      new() { CategoryId = "2", CategoryName = "Transport", CatType = CatTypes.User, SortOrder = 2 }
     };
 
         var allEnvelopes = new List<EnvelopeResult>
     {
-      new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
-      new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "Gas", CategoryId = "2", Balance = 50m },
-      new EnvelopeResult { EnvelopeId = 3, EnvelopeName = "System", CategoryId = "99", Balance = 200m }
+      new() { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
+      new() { EnvelopeId = 2, EnvelopeName = "Gas", CategoryId = "2", Balance = 50m },
+      new() { EnvelopeId = 3, EnvelopeName = "System", CategoryId = "99", Balance = 200m }
     };
 
         // Act
@@ -161,15 +158,15 @@ public class EnvelopeDataServiceTests
         // Arrange
         var categories = new List<Cat>
     {
-      new Cat { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 },
-      new Cat { CategoryId = "2", CategoryName = "Transport", CatType = CatTypes.User, SortOrder = 2 }
+      new() { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 },
+      new() { CategoryId = "2", CategoryName = "Transport", CatType = CatTypes.User, SortOrder = 2 }
     };
 
         var allEnvelopes = new List<EnvelopeResult>
     {
-      new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
-      new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "Gas", CategoryId = "2", Balance = 50m },
-      new EnvelopeResult { EnvelopeId = 3, EnvelopeName = "Dining", CategoryId = "1", Balance = 75m }
+      new() { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
+      new() { EnvelopeId = 2, EnvelopeName = "Gas", CategoryId = "2", Balance = 50m },
+      new() { EnvelopeId = 3, EnvelopeName = "Dining", CategoryId = "1", Balance = 75m }
     };
 
         // Act
@@ -188,13 +185,13 @@ public class EnvelopeDataServiceTests
         // Arrange
         var categories = new List<Cat>
     {
-      new Cat { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 }
+      new() { CategoryId = "1", CategoryName = "Food", CatType = CatTypes.User, SortOrder = 1 }
     };
 
         var allEnvelopes = new List<EnvelopeResult>
     {
-      new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
-      new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "System", CategoryId = "99", Balance = 50m }
+      new() { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m },
+      new() { EnvelopeId = 2, EnvelopeName = "System", CategoryId = "99", Balance = 50m }
     };
 
         // Act
@@ -211,19 +208,19 @@ public class EnvelopeDataServiceTests
         // Arrange
         var envelopes = new List<EnvelopeResult>
     {
-      new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", Balance = 100m },
-      new EnvelopeResult { EnvelopeId = 2, EnvelopeName = "Gas", Balance = 100m }
+      new() { EnvelopeId = 1, EnvelopeName = "Groceries", Balance = 100m },
+      new() { EnvelopeId = 2, EnvelopeName = "Gas", Balance = 100m }
     };
 
         _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
 
         var tranResult = new TransactionAddResult();
 
-        tranResult.EnvelopeUpdates = new List<EnvelopeUpdate>
-    {
-      new EnvelopeUpdate( 1, -150m ),
-      new EnvelopeUpdate ( 2,   -75m )
-    };
+        tranResult.EnvelopeUpdates =
+    [
+      new( 1, -150m ),
+      new( 2,   -75m )
+    ];
 
         // Act
         _service.UpdateClientSideEnvelopeBalances(tranResult, envelopes);
@@ -239,7 +236,7 @@ public class EnvelopeDataServiceTests
         // Arrange
         var envelopes = new List<EnvelopeResult>
     {
-      new EnvelopeResult { EnvelopeId = 1, EnvelopeName = "Groceries", Balance = 100m }
+      new() { EnvelopeId = 1, EnvelopeName = "Groceries", Balance = 100m }
     };
 
         _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
@@ -248,10 +245,10 @@ public class EnvelopeDataServiceTests
 
 
         // Non-existent envelope ID
-        tranResult.EnvelopeUpdates = new List<EnvelopeUpdate>
-    {
-      new EnvelopeUpdate( 999, 200m )
-    };
+        tranResult.EnvelopeUpdates =
+    [
+      new( 999, 200m )
+    ];
         
 
 

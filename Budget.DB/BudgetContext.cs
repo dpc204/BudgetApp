@@ -63,6 +63,13 @@ namespace Budget.DB
         modelBuilder.Entity<TransactionImport>().HasQueryFilter(e => e.FamilyId == _currentFamilyService.GetCurrentFamilyId());
       }
 
+      modelBuilder.Entity<User>()
+        .Property(u => u.Email)
+        .HasConversion(
+          v => v.ToUpperInvariant(), // To database
+          v => v.ToUpperInvariant()  // From database
+        );
+
 #if DEBUG
       var envelopeType = modelBuilder.Model.FindEntityType(typeof(Envelope));
       if (envelopeType != null)

@@ -17,7 +17,7 @@ public sealed class TokenCacheValidationMiddleware(
 {
   private static readonly HashSet<string> _validatedSessions = [];
   private static readonly HashSet<string> _failedSessions = []; // Track sessions that failed validation
-  private static readonly object _lock = new();
+  private static readonly Lock _lock = new();
 
   /// <summary>
   /// Clears validation state for a session (call after successful re-auth)
@@ -50,7 +50,7 @@ public sealed class TokenCacheValidationMiddleware(
         context.Request.Path.StartsWithSegments("/_blazor") ||
         context.Request.Path.StartsWithSegments("/health") ||
         context.Request.Path.StartsWithSegments("/api") ||
-        context.Request.Path.Value?.Contains(".") == true) // Static files have extensions
+        context.Request.Path.Value?.Contains('.') == true) // Static files have extensions
     {
       await next(context);
       return;
@@ -168,7 +168,7 @@ public sealed class TokenCacheValidationMiddleware(
     await next(context);
   }
 
-  private void MarkSessionFailed(string sessionId)
+  private static void MarkSessionFailed(string sessionId)
   {
     lock (_lock)
     {

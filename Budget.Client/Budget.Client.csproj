@@ -7,6 +7,8 @@
     <IsPackable>false</IsPackable>
     <RazorLangVersion>Latest</RazorLangVersion>
     <UserSecretsId>a0c2c5b7-5de1-4612-bd4e-43b30e547427</UserSecretsId>
+    <!-- Suppress compiler warnings from generated Razor files -->
+    <NoWarn>$(NoWarn);CS8669;CS0414</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

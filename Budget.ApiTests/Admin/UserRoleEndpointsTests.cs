@@ -35,9 +35,9 @@ public class UserRoleEndpointsTests
     var userRole = new Role { Id = 2, Name = "User", Description = "Standard User", CreatedAt = DateTime.UtcNow };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
     var assignedBy = new User { Id = 2, Email = "ADMIN@TEST.COM", FirstName = "Admin", LastName = "User", FamilyId = 1 };
-    
-    var assignedAt1 = DateTime.UtcNow.AddDays(-2);
-    var assignedAt2 = DateTime.UtcNow.AddDays(-1);
+
+    DateTime assignedAt1 = DateTime.UtcNow.AddDays(-2);
+    DateTime assignedAt2 = DateTime.UtcNow.AddDays(-1);
     
     context.Families.Add(family);
     context.Roles.AddRange(adminRole, userRole);
@@ -51,14 +51,14 @@ public class UserRoleEndpointsTests
     var handler = new GetUserRoles.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUserRoles.Query(1), CancellationToken.None);
+    GetUserRoles.Response result = await handler.Handle(new GetUserRoles.Query(1), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     result.UserId.Should().Be(1);
     result.Roles.Should().HaveCount(2);
-    
-    var adminAssignment = result.Roles.Should().ContainSingle(r => r.RoleName == "Admin").Subject;
+
+    GetUserRoles.RoleDto adminAssignment = result.Roles.Should().ContainSingle(r => r.RoleName == "Admin").Subject;
     adminAssignment.RoleId.Should().Be(1);
     adminAssignment.AssignedAt.Should().Be(assignedAt1);
     adminAssignment.AssignedByUserId.Should().Be(2);
@@ -73,7 +73,7 @@ public class UserRoleEndpointsTests
     var handler = new GetUserRoles.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUserRoles.Query(999), CancellationToken.None);
+    GetUserRoles.Response result = await handler.Handle(new GetUserRoles.Query(999), CancellationToken.None);
 
     // Assert
     result.Roles.Should().BeEmpty();
@@ -99,18 +99,18 @@ public class UserRoleEndpointsTests
     {
       HttpContext = new DefaultHttpContext
       {
-        User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-        {
+        User = new ClaimsPrincipal(new ClaimsIdentity(
+        [
           new Claim(ClaimTypes.Email, "ADMIN@TEST.COM")
-        }, "TestAuth"))
+        ], "TestAuth"))
       }
     };
 
     var handler = new AssignRole.Handler(context, httpContextAccessor);
-    var beforeAssign = DateTime.UtcNow;
+    DateTime beforeAssign = DateTime.UtcNow;
 
     // Act
-    var result = await handler.Handle(new AssignRole.Command(1, 1), CancellationToken.None);
+    AssignRole.Response result = await handler.Handle(new AssignRole.Command(1, 1), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -118,8 +118,8 @@ public class UserRoleEndpointsTests
     result.RoleId.Should().Be(1);
     result.RoleName.Should().Be("Admin");
     result.AssignedAt.Should().BeOnOrAfter(beforeAssign);
-    
-    var assignment = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
+
+    UserRole? assignment = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
     assignment.Should().NotBeNull();
     assignment!.AssignedByUserId.Should().Be(2);
   }
@@ -144,7 +144,7 @@ public class UserRoleEndpointsTests
     var handler = new AssignRole.Handler(context, httpContextAccessor);
 
     // Act
-    var act = async () => await handler.Handle(new AssignRole.Command(1, 1), CancellationToken.None);
+    Func<Task<AssignRole.Response>> act = async () => await handler.Handle(new AssignRole.Command(1, 1), CancellationToken.None);
 
     // Assert
     await act.Should().ThrowAsync<InvalidOperationException>()
@@ -165,7 +165,7 @@ public class UserRoleEndpointsTests
     var handler = new AssignRole.Handler(context, httpContextAccessor);
 
     // Act
-    var act = async () => await handler.Handle(new AssignRole.Command(999, 1), CancellationToken.None);
+    Func<Task<AssignRole.Response>> act = async () => await handler.Handle(new AssignRole.Command(999, 1), CancellationToken.None);
 
     // Assert
     await act.Should().ThrowAsync<InvalidOperationException>()

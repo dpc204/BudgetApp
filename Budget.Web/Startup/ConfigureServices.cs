@@ -205,7 +205,7 @@ public static class ConfigureServices
       logger.LogInformation("Connection string source: {Source}",
         connectionStringProvider != null ? "ConnectionStringProvider" : "Configuration");
       logger.LogInformation("Connection string (first 50 chars): {ConnString}",
-        sqlConnection.Substring(0, Math.Min(50, sqlConnection.Length)));
+        sqlConnection[..Math.Min(50, sqlConnection.Length)]);
 
       builder.Services.AddDistributedSqlServerCache(options =>
       {

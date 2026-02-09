@@ -54,7 +54,8 @@ var assembly = typeof(Budget.Api.Program).Assembly;
 Misc.SetupConfigurationSources(builder, assembly, logger);
 
 // Log all configuration settings with their provider sources
-Misc.LogAllConfigurationSettings(builder, logger);
+
+//Misc.LogAllConfigurationSettings(builder);
 
 // Add Custom Mediator
 builder.Services.AddFantumMediator();
@@ -76,7 +77,8 @@ var isTest = AppDomain.CurrentDomain.GetAssemblies()
                                    || a.FullName.StartsWith("Microsoft.VisualStudio.TestPlatform")));
 
 // Register connection string provider as a singleton
-IConnectionStringProvider connectionStringProvider;
+// Change the type of 'connectionStringProvider' from the interface to the concrete type for improved performance
+ConnectionStringProvider connectionStringProvider;
 if (isTest)
 {
   connectionStringProvider = new ConnectionStringProvider("TestConnection", "TestConnection", useAzureDatabase: false);
@@ -92,7 +94,6 @@ var budgetConnectionString = connectionStringProvider.BudgetConnectionString;
 var identityConnectionString = connectionStringProvider.IdentityConnectionString;
 
 var isDev = builder.Environment.IsDevelopment();
-
 
 // Configure BudgetContext
 builder.Services.AddDbContext<BudgetContext>(options =>
@@ -203,11 +204,11 @@ if (isEntraConfigured)
     // v1: https://sts.windows.net/{tenantId}/
     // v2: https://login.microsoftonline.com/{tenantId}/v2.0
     var tenantId = azureAdSection["TenantId"];
-    options.TokenValidationParameters.ValidIssuers = new[]
-    {
+    options.TokenValidationParameters.ValidIssuers =
+    [
       $"https://sts.windows.net/{tenantId}/",
       $"https://login.microsoftonline.com/{tenantId}/v2.0"
-    };
+    ];
     
     logger.LogWarning("✅ Configured Entra JWT with RoleClaimType = 'roles' and valid issuers for tenant {TenantId}", tenantId);
     
@@ -227,7 +228,7 @@ if (isEntraConfigured)
           .ToList();
 
         logger.LogInformation("🔍 Role claims after mapping: {Roles}", 
-          roleClaims != null && roleClaims.Any() ? string.Join(", ", roleClaims) : "NONE");
+          roleClaims != null && roleClaims.Count != 0 ? string.Join(", ", roleClaims) : "NONE");
 
         var familyId = context.Principal?.FindFirst("FamilyId")?.Value;
         logger.LogInformation("🔍 FamilyId claim from token: {FamilyId}", familyId ?? "NOT FOUND");
@@ -267,7 +268,7 @@ authBuilder.AddPolicyScheme(DynamicScheme, "Smart JWT Selector", options =>
       return isEntraConfigured ? EntraScheme : LocalScheme;
     }
 
-    var token = authHeader.Substring("Bearer ".Length).Trim();
+    var token = authHeader["Bearer ".Length..].Trim();
     
     // Quick inspection: decode the token header to determine issuer
     try
@@ -478,17 +479,17 @@ if (app.Environment.IsDevelopment())
         .ToList();
     
     var allClaims = user.Claims.Select(c => new {
-      Type = c.Type,
-      Value = c.Value,
+      c.Type,
+      c.Value,
         TypeFriendly = c.Type.Split('/').Last()
     }).ToList();
     
     return Results.Ok(new { 
         IsAuthenticated = user.Identity?.IsAuthenticated ?? false,
-        AuthenticationType = user.Identity?.AuthenticationType,
-        Name = user.Identity?.Name,
+      user.Identity?.AuthenticationType,
+      user.Identity?.Name,
         HasAuthorizationHeader = !string.IsNullOrEmpty(authHeader),
-        AuthorizationHeaderPreview = authHeader?.Length > 20 ? authHeader.Substring(0, 20) + "..." : authHeader,
+        AuthorizationHeaderPreview = authHeader?.Length > 20 ? authHeader[..20] + "..." : authHeader,
         CookieNames = cookies,
         Roles = roles,
         RoleCount = roles.Count,
@@ -513,16 +514,16 @@ if (app.Environment.IsDevelopment())
         .Select(c => c.Value)
         .ToList();
     
-    var allClaims = user.Claims.Select(c => new { 
-        Type = c.Type, 
-        Value = c.Value,
+    var allClaims = user.Claims.Select(c => new {
+      c.Type,
+      c.Value,
         TypeFriendly = c.Type.Split('/').Last()
     }).ToList();
     
     return Results.Ok(new { 
         IsAuthenticated = user.Identity?.IsAuthenticated ?? false,
-        AuthenticationType = user.Identity?.AuthenticationType,
-        Name = user.Identity?.Name,
+      user.Identity?.AuthenticationType,
+      user.Identity?.Name,
         Roles = roles,
         RoleCount = roles.Count,
         HasAdminRole = user.IsInRole("Admin"),

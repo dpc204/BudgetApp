@@ -238,9 +238,6 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       Severity.Info);
   }
 
-  private async Task CalculateFund()
-  {
-  }
 
 
   /// <summary>

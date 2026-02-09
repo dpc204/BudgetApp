@@ -2,17 +2,16 @@
 
 public class UserOptions
 {
-  private string? _selectedCategoryType;
+  private string? _selectedCategoryType = "ALL";
   private FillAmounts _fillAmountType;
   private int _previousImportAccount;
 
   public UserOptions()
   {
-    _selectedCategoryType = "ALL";
   }
 
-  [System.Text.Json.Serialization.JsonIgnore]
-  public IUserAndOptions UserAndOptions { get; set; }
+
+
 
   public int UserId { get; set; }
   

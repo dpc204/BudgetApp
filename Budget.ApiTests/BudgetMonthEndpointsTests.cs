@@ -41,7 +41,7 @@ public class BudgetMonthEndpointsTests
     var acctPeriod = year * 100 + month;
 
     // Act
-    var result = await handler.Handle(new GetBudgetMonth.Query(acctPeriod), CancellationToken.None);
+    IEnumerable<GetBudgetMonth.Response> result = await handler.Handle(new GetBudgetMonth.Query(acctPeriod), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -58,7 +58,7 @@ public class BudgetMonthEndpointsTests
     var handler = new CheckDraftBudgets.Handler(context);
 
     // Act
-    var result = await handler.Handle(new CheckDraftBudgets.Query(), CancellationToken.None);
+    CheckDraftBudgets.Response result = await handler.Handle(new CheckDraftBudgets.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -84,7 +84,7 @@ public class BudgetMonthEndpointsTests
     var command = new UpdateBudgetDraft.Command(202412, 1, 100.50m);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateBudgetDraft.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -117,7 +117,7 @@ public class BudgetMonthEndpointsTests
     var handler = new ApplyDraftValuesToBudget.Handler(context);
 
     // Act
-    var result = await handler.Handle(new ApplyDraftValuesToBudget.Command(), CancellationToken.None);
+    ApplyDraftValuesToBudget.Response result = await handler.Handle(new ApplyDraftValuesToBudget.Command(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -133,7 +133,7 @@ public class BudgetMonthEndpointsTests
     
     var family = new Family { Id = 1, Name = "Test Family" };
     // Use a future date to ensure it gets cleared
-    var futureDate = DateTime.Now.AddMonths(1);
+    DateTime futureDate = DateTime.Now.AddMonths(1);
     var futureAcctPeriod = futureDate.Year * 100 + futureDate.Month;
     var budgetMonth = new BudgetMonth 
     { 
@@ -150,7 +150,7 @@ public class BudgetMonthEndpointsTests
     var handler = new ClearDraftBudgets.Handler(context);
 
     // Act
-    var result = await handler.Handle(new ClearDraftBudgets.Command(), CancellationToken.None);
+    ClearDraftBudgets.Response result = await handler.Handle(new ClearDraftBudgets.Command(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -185,7 +185,7 @@ public class BudgetMonthEndpointsTests
     var command = new CopyBudgetToNextMonth.Command(202411, false, true);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    CopyBudgetToNextMonth.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -216,7 +216,7 @@ public class BudgetMonthEndpointsTests
     var command = new ClearMonthBudgets.Command(202412);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    ClearMonthBudgets.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -247,7 +247,7 @@ public class BudgetMonthEndpointsTests
     var command = new ClearMonthDrafts.Command(202412);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    ClearMonthDrafts.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -279,7 +279,7 @@ public class BudgetMonthEndpointsTests
     var command = new ClearMonthBoth.Command(202412);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -310,7 +310,7 @@ public class BudgetMonthEndpointsTests
     var command = new ApplyMonthDrafts.Command(202412);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    ApplyMonthDrafts.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();

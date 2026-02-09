@@ -2,7 +2,6 @@
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace Budget.DB.Migrations
 {
@@ -88,7 +87,7 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Categories",
-                columns: new[] { "CategoryId", "CategoryType", "Description", "FamilyId", "Name", "SortOrder" },
+                columns: ["CategoryId", "CategoryType", "Description", "FamilyId", "Name", "SortOrder"],
                 values: new object[,]
                 {
                     { "-1", 1, "", 1, "System", 0 },
@@ -245,7 +244,7 @@ namespace Budget.DB.Migrations
             migrationBuilder.InsertData(
                 schema: "budget",
                 table: "Categories",
-                columns: new[] { "Id", "CategoryType", "Description", "FamilyId", "Name", "SortOrder" },
+                columns: ["Id", "CategoryType", "Description", "FamilyId", "Name", "SortOrder"],
                 values: new object[,]
                 {
                     { -1, 1, "", 1, "System", 0 },

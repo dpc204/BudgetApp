@@ -40,7 +40,7 @@ public partial class BackupRestoreIndex : IDisposable
     }
     catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
     {
-      Logger.LogError(ex,ex.Message + "**** Unauthorized error loading backup sets - user may need to re-authenticate");
+      Logger.LogError(ex,  "**** Unauthorized error loading backup sets - user may need to re-authenticate: {message}", ex.Message);
       Snackbar.Add("Authentication required. Please sign out and sign back in to grant API access.", Severity.Warning);
       _backupSets = [];
     }
@@ -264,13 +264,14 @@ public partial class BackupRestoreIndex : IDisposable
     while (len >= 1024 && order < sizes.Length - 1)
     {
       order++;
-      len = len / 1024;
+      len /= 1024;
     }
     return $"{len:0.##} {sizes[order]}";
   }
 
-  public void Dispose()
+  void IDisposable.Dispose()
   {
     StopStatusPolling();
+    GC.SuppressFinalize(this);
   }
 }

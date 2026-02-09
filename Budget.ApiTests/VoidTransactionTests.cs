@@ -16,13 +16,13 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Reverse_BankAccount_Balance()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
 
     // Create test data
-    var account = TestHelpers.CreateTestAccount(id: 100, balance: 1000m);
+    BankAccount account = TestHelpers.CreateTestAccount(id: 100, balance: 1000m);
     db.BankAccounts.Add(account);
 
-    var envelope = TestHelpers.CreateTestEnvelope(id: 100, categoryId: "1", balance: 500m);
+    Envelope envelope = TestHelpers.CreateTestEnvelope(id: 100, categoryId: "1", balance: 500m);
     db.Envelopes.Add(envelope);
 
     var details = new List<TransactionDetail>
@@ -35,7 +35,7 @@ public class VoidTransactionTests : IntegrationTestBase
         notes: "Test transaction")
     };
 
-    var transaction = TestHelpers.CreateTestTransaction(
+    Transaction transaction = TestHelpers.CreateTestTransaction(
       id: 100,
       accountId: account.Id,
       vendor: "Test Vendor",
@@ -52,20 +52,19 @@ public class VoidTransactionTests : IntegrationTestBase
     await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var initialAccountBalance = account.Balance;
-    var initialEnvelopeBalance = envelope.Balance;
 
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
 
     var handler = new VoidTransaction.Handler(db);
 
-    var response = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeDto>> response = await handler.Handle(command, CancellationToken.None);
 
 
     // Assert
 
     // Verify the response contains the updated envelope data
-    var result = response.Value;
+    List<EnvelopeDto> result = response.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(1);
     result![0].Id.Should().Be(envelope.Id);
@@ -75,8 +74,8 @@ public class VoidTransactionTests : IntegrationTestBase
     db.ChangeTracker.Clear();
 
     // Reload entities from database
-    var updatedAccount = await db.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
-    var updatedTransaction = await db.Transactions.FindAsync(new object[] { transaction.Id }, TestContext.Current.CancellationToken);
+    BankAccount? updatedAccount = await db.BankAccounts.FindAsync([account.Id], TestContext.Current.CancellationToken);
+    Transaction? updatedTransaction = await db.Transactions.FindAsync([transaction.Id], TestContext.Current.CancellationToken);
 
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Balance.Should().Be(initialAccountBalance + transaction.TotalAmount);
@@ -93,13 +92,13 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Reverse_Envelope_Balance()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
 
     // Create test data
-    var account = TestHelpers.CreateTestAccount(id: 101, balance: 2000m);
+    BankAccount account = TestHelpers.CreateTestAccount(id: 101, balance: 2000m);
     db.BankAccounts.Add(account);
 
-    var envelope = TestHelpers.CreateTestEnvelope(id: 101, categoryId: "1", balance: 800m);
+    Envelope envelope = TestHelpers.CreateTestEnvelope(id: 101, categoryId: "1", balance: 800m);
     db.Envelopes.Add(envelope);
 
     var details = new List<TransactionDetail>
@@ -112,7 +111,7 @@ public class VoidTransactionTests : IntegrationTestBase
         notes: "Test transaction detail")
     };
 
-    var transaction = TestHelpers.CreateTestTransaction(
+    Transaction transaction = TestHelpers.CreateTestTransaction(
       id: 101,
       accountId: account.Id,
       vendor: "Test Vendor 2",
@@ -133,14 +132,14 @@ public class VoidTransactionTests : IntegrationTestBase
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
    var handler = new VoidTransaction.Handler(db);
-   var response =await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeDto>> response =await handler.Handle(command, CancellationToken.None);
 
     // Assert
     response.Value.Should().NotBeNull();
     // Clear change tracker to force reload from database
     db.ChangeTracker.Clear();
 
-    var result = response.Value;
+    List<EnvelopeDto> result = response.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(1);
     result![0].Balance.Should().Be(initialEnvelopeBalance + 75m);
@@ -154,16 +153,16 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Reverse_Multiple_Envelope_Balances()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
 
     // Create test data
-    var account = TestHelpers.CreateTestAccount(id: 102, balance: 3000m);
+    BankAccount account = TestHelpers.CreateTestAccount(id: 102, balance: 3000m);
     db.BankAccounts.Add(account);
 
-    var envelope1 = TestHelpers.CreateTestEnvelope(id: 102, categoryId: "1", balance: 1000m);
+    Envelope envelope1 = TestHelpers.CreateTestEnvelope(id: 102, categoryId: "1", balance: 1000m);
     db.Envelopes.Add(envelope1);
 
-    var envelope2 = TestHelpers.CreateTestEnvelope(id: 103, categoryId: "1", balance: 500m);
+    Envelope envelope2 = TestHelpers.CreateTestEnvelope(id: 103, categoryId: "1", balance: 500m);
     db.Envelopes.Add(envelope2);
 
     var details = new List<TransactionDetail>
@@ -182,7 +181,7 @@ public class VoidTransactionTests : IntegrationTestBase
         notes: "Second detail")
     };
 
-    var transaction = TestHelpers.CreateTestTransaction(
+    Transaction transaction = TestHelpers.CreateTestTransaction(
       id: 102,
       accountId: account.Id,
       vendor: "Test Vendor 3",
@@ -202,7 +201,7 @@ public class VoidTransactionTests : IntegrationTestBase
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
     var handler = new VoidTransaction.Handler(db);
-    var response = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeDto>> response = await handler.Handle(command, CancellationToken.None);
 
 
     // Assert
@@ -210,12 +209,12 @@ public class VoidTransactionTests : IntegrationTestBase
     // Clear change tracker to force reload from database
     db.ChangeTracker.Clear();
 
-    var result = response.Value;
+    List<EnvelopeDto> result = response.Value;
     result.Should().NotBeNull();
     result.Should().HaveCount(2);
 
-    var env1Result = result!.FirstOrDefault(e => e.Id == envelope1.Id);
-    var env2Result = result!.FirstOrDefault(e => e.Id == envelope2.Id);
+    EnvelopeDto? env1Result = result!.FirstOrDefault(e => e.Id == envelope1.Id);
+    EnvelopeDto? env2Result = result!.FirstOrDefault(e => e.Id == envelope2.Id);
 
     env1Result.Should().NotBeNull();
     env1Result!.Balance.Should().Be(1000m); // Back to original
@@ -224,7 +223,7 @@ public class VoidTransactionTests : IntegrationTestBase
     env2Result!.Balance.Should().Be(500m); // Back to original
 
     // Verify account balance
-    var updatedAccount = await db.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
+    BankAccount? updatedAccount = await db.BankAccounts.FindAsync([account.Id], TestContext.Current.CancellationToken);
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Balance.Should().Be(3000m); // Back to original
   }
@@ -236,14 +235,14 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Return_Conflict_When_Already_Voided()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
 
 
     // Create test data with an already voided transaction
-    var account = TestHelpers.CreateTestAccount(id: 103, balance: 1500m);
+    BankAccount account = TestHelpers.CreateTestAccount(id: 103, balance: 1500m);
     db.BankAccounts.Add(account);
 
-    var envelope = TestHelpers.CreateTestEnvelope(id: 104, categoryId: "1", balance: 600m);
+    Envelope envelope = TestHelpers.CreateTestEnvelope(id: 104, categoryId: "1", balance: 600m);
     db.Envelopes.Add(envelope);
 
     var details = new List<TransactionDetail>
@@ -256,7 +255,7 @@ public class VoidTransactionTests : IntegrationTestBase
         notes: "Already voided transaction")
     };
 
-    var transaction = TestHelpers.CreateTestTransaction(
+    Transaction transaction = TestHelpers.CreateTestTransaction(
       id: 103,
       accountId: account.Id,
       vendor: "Test Vendor 4",
@@ -273,7 +272,7 @@ public class VoidTransactionTests : IntegrationTestBase
     // Act
     var command = new VoidTransaction.Command(transaction.Id);
     var handler = new VoidTransaction.Handler(db);
-    var response = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeDto>> response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     response.IsSuccess.Should().BeFalse();
@@ -284,8 +283,8 @@ public class VoidTransactionTests : IntegrationTestBase
     db.ChangeTracker.Clear();
 
     // Verify balances haven't changed
-    var updatedAccount = await db.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
-    var updatedEnvelope = await db.Envelopes.FindAsync(new object[] { envelope.Id }, TestContext.Current.CancellationToken);
+    BankAccount? updatedAccount = await db.BankAccounts.FindAsync([account.Id], TestContext.Current.CancellationToken);
+    Envelope? updatedEnvelope = await db.Envelopes.FindAsync([envelope.Id], TestContext.Current.CancellationToken);
 
     updatedAccount!.Balance.Should().Be(initialAccountBalance);
     updatedEnvelope!.Balance.Should().Be(initialEnvelopeBalance);
@@ -298,12 +297,12 @@ public class VoidTransactionTests : IntegrationTestBase
   public async Task VoidTransaction_Should_Return_NotFound_For_NonExistent_Transaction()
   {
     // Arrange
-    var db = GetTestDBContext();
+    BudgetContext db = GetTestDBContext();
 
     // Act
     var command = new VoidTransaction.Command(99999);
     var handler = new VoidTransaction.Handler(db);
-    var response = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeDto>> response = await handler.Handle(command, CancellationToken.None);
 
 
     // Assert

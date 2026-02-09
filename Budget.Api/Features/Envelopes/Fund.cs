@@ -55,7 +55,7 @@ public static class Fund
         }
 
         // add the new assign transactions using the AddMultipleTransactions handler
-        var addMultipleHandler = new AddMultipleTransaction.Handler(db, insertTransactions);
+        var addMultipleHandler = new AddMultipleTransaction.Handler(insertTransactions);
         await addMultipleHandler.Handle(new AddMultipleTransaction.Command(_newAssignTransactions), cancellationToken);
       }
       catch (Exception e)
@@ -71,8 +71,8 @@ public static class Fund
     {
       ArgumentNullException.ThrowIfNull(incomeEnvelope, nameof(incomeEnvelope));
 
-
-      ArgumentNullException.ThrowIfNull(fundingAccount, "Funding account not found");
+      if(!fundingAccount.HasValue)
+        throw new ArgumentNullException(nameof(fundingAccount));
 
       var rslt = new OneTransactionDetail()
       {
@@ -85,21 +85,19 @@ public static class Fund
       };
 
 
-      rslt.Details = new List<TransactionDetailDto>
-      {
-        new TransactionDetailDto
-        {
+      rslt.Details =
+      [
+        new() {
           EnvelopeId = env.Id,
           Amount = env.FundAmount,
           LineId = 1
         },
-        new TransactionDetailDto
-        {
+        new() {
           EnvelopeId = incomeEnvelope!.Id,
           Amount = -env.FundAmount,
           LineId = 2
         }
-      };
+      ];
 
       return rslt;
     }

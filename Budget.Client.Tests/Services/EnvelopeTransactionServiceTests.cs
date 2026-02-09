@@ -34,8 +34,8 @@ public class EnvelopeTransactionServiceTests
     var envelopeId = 1;
     var transactions = new List<TransactionDto>
     {
-      new TransactionDto { TransactionId = 1, Vendor = "Store A", Amount = 50m },
-      new TransactionDto { TransactionId = 2, Vendor = "Store B", Amount = 75m }
+      new() { TransactionId = 1, Vendor = "Store A", Amount = 50m },
+      new() { TransactionId = 2, Vendor = "Store B", Amount = 75m }
     };
 
     _mockApi
@@ -80,10 +80,10 @@ public class EnvelopeTransactionServiceTests
     };
 
     var updatedEnvelopes = new TransactionAddResult() {
-      EnvelopeUpdates = new List<EnvelopeUpdate>
-      {
-        new EnvelopeUpdate( 1, 150m )
-      }
+      EnvelopeUpdates =
+      [
+        new( 1, 150m )
+      ]
     };
 
     _mockApi
@@ -210,10 +210,10 @@ public class EnvelopeTransactionServiceTests
   {
     // Arrange
     var envelopeId = 1;
-    var updatedEnvelopes = new TransactionAddResult(){EnvelopeUpdates = new List<EnvelopeUpdate>
-    {
-      new EnvelopeUpdate( envelopeId, 150m )
-    }};
+    var updatedEnvelopes = new TransactionAddResult(){EnvelopeUpdates =
+    [
+      new( envelopeId, 150m )
+    ]};
 
     var mockDialogReference = new Mock<IDialogReference>();
     var dialogResult = DialogResult.Ok(updatedEnvelopes);

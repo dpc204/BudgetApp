@@ -11,7 +11,7 @@ namespace Budget.ApiTests.Admin;
 
 public class UserEndpointsTests : IntegrationTestBase
 {
-  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+    private new static DbContextOptions<BudgetContext> CreateInMemoryOptions()
     => new DbContextOptionsBuilder<BudgetContext>()
       .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
       .Options;
@@ -20,7 +20,7 @@ public class UserEndpointsTests : IntegrationTestBase
   public async Task GetUsers_ReturnsAllUsers_WithRoles_AcrossFamilies()
   {
     // Arrange
-    await using var context = GetTestDBContext(1);
+    await using BudgetContext context = GetTestDBContext(1);
 
 
     var family1 = new Family { Id = 1, Name = "Family 1" };
@@ -43,18 +43,18 @@ public class UserEndpointsTests : IntegrationTestBase
     var handler = new GetUsers.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUsers.Query(), CancellationToken.None);
+    GetUsers.Response result = await handler.Handle(new GetUsers.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     result.Users.Should().HaveCount(2);
-    
-    var adminUser = result.Users.Should().ContainSingle(u => u.Email == "ADMIN@TEST.COM").Subject;
+
+    GetUsers.UserDto adminUser = result.Users.Should().ContainSingle(u => u.Email == "ADMIN@TEST.COM").Subject;
     adminUser.FirstName.Should().Be("Admin");
     adminUser.FamilyId.Should().Be(1);
     adminUser.Roles.Should().ContainSingle().Which.Should().Be("Admin");
-    
-    var regularUser = result.Users.Should().ContainSingle(u => u.Email == "USER@TEST.COM").Subject;
+
+    GetUsers.UserDto regularUser = result.Users.Should().ContainSingle(u => u.Email == "USER@TEST.COM").Subject;
     regularUser.FamilyId.Should().Be(2);
     regularUser.Roles.Should().ContainSingle().Which.Should().Be("User");
   }
@@ -75,7 +75,7 @@ public class UserEndpointsTests : IntegrationTestBase
     var handler = new GetUsers.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUsers.Query(), CancellationToken.None);
+    GetUsers.Response result = await handler.Handle(new GetUsers.Query(), CancellationToken.None);
 
     // Assert
     result.Users.Should().ContainSingle();
@@ -105,7 +105,7 @@ public class UserEndpointsTests : IntegrationTestBase
     var handler = new GetUser.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUser.Query(1), CancellationToken.None);
+    GetUser.Response? result = await handler.Handle(new GetUser.Query(1), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -126,7 +126,7 @@ public class UserEndpointsTests : IntegrationTestBase
     var handler = new GetUser.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUser.Query(999), CancellationToken.None);
+    GetUser.Response? result = await handler.Handle(new GetUser.Query(999), CancellationToken.None);
 
     // Assert
     result.Should().BeNull();
@@ -156,7 +156,7 @@ public class UserEndpointsTests : IntegrationTestBase
     var handler = new UpdateUser.Handler(context);
 
     // Act
-    var result = await handler.Handle(
+    UpdateUser.Response? result = await handler.Handle(
       new UpdateUser.Command(1, "NEW@TEST.COM", "New", "Name", 2),
       CancellationToken.None);
 
@@ -166,8 +166,8 @@ public class UserEndpointsTests : IntegrationTestBase
     result.FirstName.Should().Be("New");
     result.LastName.Should().Be("Name");
     result.FamilyId.Should().Be(2);
-    
-    var updatedUser = await context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == 1, TestContext.Current.CancellationToken);
+
+    User updatedUser = await context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == 1, TestContext.Current.CancellationToken);
     updatedUser.Email.Should().Be("NEW@TEST.COM");
     updatedUser.FirstName.Should().Be("New");
     updatedUser.LastName.Should().Be("Name");
@@ -182,7 +182,7 @@ public class UserEndpointsTests : IntegrationTestBase
     var handler = new UpdateUser.Handler(context);
 
     // Act
-    var result = await handler.Handle(
+    UpdateUser.Response? result = await handler.Handle(
       new UpdateUser.Command(999, "TEST@TEST.COM", "Test", "User", 1),
       CancellationToken.None);
 
@@ -208,7 +208,7 @@ public class UserEndpointsTests : IntegrationTestBase
     var handler = new GetUsers.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUsers.Query(), CancellationToken.None);
+    GetUsers.Response result = await handler.Handle(new GetUsers.Query(), CancellationToken.None);
 
     // Assert
     result.Users.Should().HaveCount(3);

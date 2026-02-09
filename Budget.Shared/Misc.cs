@@ -146,23 +146,19 @@ public static class Misc
   /// <summary>
   /// Logs all configuration settings with their keys, values, and provider sources
   /// </summary>
-  public static void LogAllConfigurationSettings(WebApplicationBuilder webApplicationBuilder, ILogger logger)
+  public static void LogAllConfigurationSettings(WebApplicationBuilder webApplicationBuilder)
   {
     if (!Debugger.IsAttached)
       return;
 
-    return;
-    
     if (webApplicationBuilder.Configuration is IConfigurationRoot configRoot)
     {
       var headerMessage = "===================== Configuration Settings by Provider === === === === === === === === === === === === === === === === === === === === === === === === === === === ";
-      logger.LogInformation(headerMessage);
       Debug.WriteLine(headerMessage);
 
       foreach(var provider in configRoot.Providers.Reverse())
       {
         var providerMessage = $"Provider: {provider.GetType().Name}";
-        logger.LogInformation(providerMessage);
         Debug.WriteLine(providerMessage);
 
         LoadProviderData(provider);
@@ -172,22 +168,18 @@ public static class Misc
           if (provider.TryGet(key, out var value))
           {
             // Mask sensitive values
-            var displayValue = IsSensitiveKey(key) ? "***REDACTED***" : value;
             var keyValueMessage = $"  xKey: {key}, Value: {value}";
-            logger.LogInformation(keyValueMessage);
             Debug.WriteLine(keyValueMessage);
           }
         }
       }
       
       var footerMessage = "=== End Configuration Settings ===";
-      logger.LogInformation(footerMessage);
       Debug.WriteLine(footerMessage);
     }
     else
     {
       var warningMessage = "Configuration is not IConfigurationRoot, cannot enumerate providers";
-      logger.LogWarning(warningMessage);
       Debug.WriteLine(warningMessage);
     }
   }
@@ -198,7 +190,7 @@ public static class Misc
     provider.Load();
   }
 
-  private static IEnumerable<string> GetAllKeys(IConfigurationProvider provider)
+  private static List<string> GetAllKeys(IConfigurationProvider provider)
   {
     var keys = new List<string>();
     GetKeysRecursive(provider, null, keys);

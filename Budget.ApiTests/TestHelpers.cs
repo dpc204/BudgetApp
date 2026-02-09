@@ -83,7 +83,7 @@ public static class TestHelpers
 
         if (details != null)
         {
-            foreach (var detail in details)
+            foreach (TransactionDetail detail in details)
             {
                 detail.TransactionId = transactionId;
                 transaction.Details.Add(detail);

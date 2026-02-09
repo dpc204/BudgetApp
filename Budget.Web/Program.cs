@@ -66,7 +66,7 @@ ConfigureIdentity.AddIdentityCore(builder);
 
 var app = builder.Build();
 
-Misc.LogAllConfigurationSettings(builder, logger);
+//Misc.LogAllConfigurationSettings(builder);
 
 
 // Initialize ServiceAccessor with built service provider for parameterless constructors
@@ -77,7 +77,7 @@ ServiceAccessor.Configure(app.Services);
 try
 {
   var budgetConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
-  logger.LogInformation("Identity database connection string configured: {ConnectionString}", budgetConnectionString?.Substring(0, Math.Min(50, budgetConnectionString?.Length ?? 0)) + "...");
+  logger.LogInformation("Identity database connection string configured: {ConnectionString}", budgetConnectionString?[..Math.Min(50, budgetConnectionString?.Length ?? 0)] + "...");
 }
 catch (InvalidOperationException ex) when (ex.Message.Contains("Connection string"))
 {

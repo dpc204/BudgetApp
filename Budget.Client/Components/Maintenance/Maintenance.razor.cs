@@ -54,5 +54,6 @@ public partial class Maintenance : IDisposable
   public void Dispose()
   {
     // No resources to dispose
+    GC.SuppressFinalize(this);
   }
 }

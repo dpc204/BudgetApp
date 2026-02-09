@@ -40,22 +40,22 @@ public class AccountEndpointsTests
     context.BankAccounts.AddRange(account1, account2);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-    var handler = new GetAll.Handler(context, NullLogger<GetAll.Handler>.Instance);
+    var handler = new GetAll.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetAll.Query(), CancellationToken.None);
+    IEnumerable<GetAll.Response> result = await handler.Handle(new GetAll.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     var resultList = result.ToList();
     resultList.Should().HaveCount(2);
 
-    var acct1 = resultList.Should().ContainSingle(a => a.Id == 300).Subject;
+    GetAll.Response acct1 = resultList.Should().ContainSingle(a => a.Id == 300).Subject;
     acct1.Name.Should().Be("Checking");
     acct1.Balance.Should().Be(1000m);
     acct1.AccountType.Should().Be(AccountTypes.Checking);
 
-    var acct2 = resultList.Should().ContainSingle(a => a.Id == 301).Subject;
+    GetAll.Response acct2 = resultList.Should().ContainSingle(a => a.Id == 301).Subject;
     acct2.Name.Should().Be("Credit Card");
     acct2.Balance.Should().Be(5000m);
     acct2.AccountType.Should().Be(AccountTypes.Credit);
@@ -78,7 +78,7 @@ public class AccountEndpointsTests
       AccountType: AccountTypes.Checking);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    InsertAccount.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -88,7 +88,7 @@ public class AccountEndpointsTests
     result.Id.Should().BeGreaterThan(0);
 
     // Verify in database
-    var savedAccount = await context.BankAccounts.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
+    BankAccount? savedAccount = await context.BankAccounts.FindAsync([result.Id], TestContext.Current.CancellationToken);
     savedAccount.Should().NotBeNull();
     savedAccount!.Name.Should().Be("New Account");
     savedAccount.Balance.Should().Be(2500m);
@@ -122,7 +122,7 @@ public class AccountEndpointsTests
       AccountType: AccountTypes.Credit);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateAccount.Response? result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -133,7 +133,7 @@ public class AccountEndpointsTests
 
     // Verify in database
     context.ChangeTracker.Clear();
-    var updatedAccount = await context.BankAccounts.FindAsync(new object[] { 302 }, TestContext.Current.CancellationToken);
+    BankAccount? updatedAccount = await context.BankAccounts.FindAsync([302], TestContext.Current.CancellationToken);
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Name.Should().Be("Updated Name");
     updatedAccount.Balance.Should().Be(1500m);
@@ -154,7 +154,7 @@ public class AccountEndpointsTests
       AccountType: AccountTypes.Checking);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateAccount.Response? result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().BeNull();
@@ -190,7 +190,7 @@ public class AccountEndpointsTests
 
     // Verify deletion in database
     context.ChangeTracker.Clear();
-    var deletedAccount = await context.BankAccounts.FindAsync(new object[] { 304 }, TestContext.Current.CancellationToken);
+    BankAccount? deletedAccount = await context.BankAccounts.FindAsync([304], TestContext.Current.CancellationToken);
     deletedAccount.Should().BeNull();
   }
 
@@ -214,10 +214,10 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    var handler = new GetAll.Handler(context, NullLogger<GetAll.Handler>.Instance);
+    var handler = new GetAll.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetAll.Query(), CancellationToken.None);
+    IEnumerable<GetAll.Response> result = await handler.Handle(new GetAll.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -241,10 +241,10 @@ public class AccountEndpointsTests
       AccountType: AccountTypes.Checking);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    InsertAccount.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    var savedAccount = await context.BankAccounts.FindAsync(new object[] { result.Id }, TestContext.Current.CancellationToken);
+    BankAccount? savedAccount = await context.BankAccounts.FindAsync([result.Id], TestContext.Current.CancellationToken);
     savedAccount.Should().NotBeNull();
     savedAccount!.FamilyId.Should().Be(1); // Default family from CurrentUser context
   }
@@ -277,11 +277,11 @@ public class AccountEndpointsTests
       AccountType: AccountTypes.Credit);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateAccount.Response? result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     context.ChangeTracker.Clear();
-    var updatedAccount = await context.BankAccounts.FindAsync(new object[] { 305 }, TestContext.Current.CancellationToken);
+    BankAccount? updatedAccount = await context.BankAccounts.FindAsync([305], TestContext.Current.CancellationToken);
     updatedAccount!.FamilyId.Should().Be(1); // FamilyId should remain unchanged
   }
 }

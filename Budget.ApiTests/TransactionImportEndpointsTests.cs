@@ -26,7 +26,7 @@ public class TransactionImportEndpointsTests
   [Fact]
   public async Task ImportTransactions_Should_Bulk_Import_To_Staging_Table()
   {
-    await using var context = GetTestDBContext();
+    await using BudgetContext context = GetTestDBContext();
 
 
     // Arrange
@@ -66,8 +66,8 @@ public class TransactionImportEndpointsTests
     response.Should().Be(2);
 
     // Verify data in database
-    
-    var imports = await context.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
+
+    List<TransactionImport> imports = await context.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
     imports.Should().HaveCount(2);
     imports[0].Vendor.Should().Be("Test Vendor 1");
     imports[1].Vendor.Should().Be("Test Vendor 2");
@@ -79,7 +79,7 @@ public class TransactionImportEndpointsTests
   [Fact]
   public async Task GetTransactionImports_Should_Return_Staged_Imports()
   {
-    await using var db = GetTestDBContext();
+    await using BudgetContext db = GetTestDBContext();
 
 
     // Arrange - insert test data directly
@@ -119,7 +119,7 @@ public class TransactionImportEndpointsTests
     var handler = new GetTransactionImports.Handler(db);
 
     // Act
-    var imports = await handler.Handle(query, CancellationToken.None);
+    List<TransactionImportDto> imports = await handler.Handle(query, CancellationToken.None);
 
     // Assert
     imports.Should().NotBeNull();
@@ -136,7 +136,7 @@ public class TransactionImportEndpointsTests
   public async Task ClearTransactionImports_Should_Clear_All_Staged_Imports()
   {
     // Arrange - insert test data
-    var arrangeDb = GetTestDBContext();
+    BudgetContext arrangeDb = GetTestDBContext();
 
     var import1 = new TransactionImport
     {
@@ -167,7 +167,7 @@ public class TransactionImportEndpointsTests
 
     // Verify data is cleared
 
-    var imports = await arrangeDb.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
+    List<TransactionImport> imports = await arrangeDb.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
     imports.Should().BeEmpty();
   }
 
@@ -178,12 +178,12 @@ public class TransactionImportEndpointsTests
   public async Task ImportTransactions_Should_Detect_Duplicates()
   {
     // Arrange - Create an existing transaction
-    var arrangeDb = GetTestDBContext();
+    BudgetContext arrangeDb = GetTestDBContext();
 
-    var account = TestHelpers.CreateTestAccount(id: 300, balance: 1000m);
+    BankAccount account = TestHelpers.CreateTestAccount(id: 300, balance: 1000m);
     arrangeDb.BankAccounts.Add(account);
 
-    var envelope = TestHelpers.CreateTestEnvelope(id: 300, categoryId: "1", balance: 500m);
+    Envelope envelope = TestHelpers.CreateTestEnvelope(id: 300, categoryId: "1", balance: 500m);
     arrangeDb.Envelopes.Add(envelope);
 
     var existingTransaction = new Transaction
@@ -229,7 +229,7 @@ public class TransactionImportEndpointsTests
     // Act
     var response = await handler.Handle(command, CancellationToken.None);
     // Assert
-    var imports = await arrangeDb.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
+    List<TransactionImport> imports = await arrangeDb.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
     
     imports.Should().HaveCount(2);
     imports.First(i => i.Vendor == "Duplicate Vendor").Duplicate.Should().BeTrue();
@@ -243,7 +243,7 @@ public class TransactionImportEndpointsTests
   public async Task UpdateTransactionImport_Should_Update_Duplicate_Flag()
   {
     // Arrange
-    var arrangeDb = GetTestDBContext();
+    BudgetContext arrangeDb = GetTestDBContext();
 
     var import = new TransactionImport
     {
@@ -268,10 +268,10 @@ public class TransactionImportEndpointsTests
     var command = new UpdateTransactionImport.Command(importId, true, false);
 
     // Act - Update to mark as duplicate
-    var response = await handler.Handle(command, CancellationToken.None);
+    _ = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    var updatedImport = await arrangeDb.TransactionImports.FindAsync(new object[] { importId }, TestContext.Current.CancellationToken);
+    TransactionImport? updatedImport = await arrangeDb.TransactionImports.FindAsync([importId], TestContext.Current.CancellationToken);
     
     updatedImport.Should().NotBeNull();
     updatedImport!.Duplicate.Should().BeTrue();

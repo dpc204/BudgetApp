@@ -13,8 +13,8 @@ public sealed partial class AuthStateSync : ComponentBase
   [CascadingParameter] private IUserAndOptions UserAndOptions { get; set; } = null!;
   [Inject] private EnvelopeState EnvelopeState { get; set; } = null!;
   [Inject] private IBudgetApiClient ApiClient { get; set; } = null!;
-  [Inject] public required BudgetContext db { get; set; } 
-  [Inject] public required ILogger<AuthStateSync> logger { get; set; }
+  [Inject] public required BudgetContext Db { get; set; }
+  [Inject] public required ILogger<AuthStateSync> Logger { get; set; }
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (!firstRender)
@@ -36,28 +36,17 @@ public sealed partial class AuthStateSync : ComponentBase
       if (!UserAndOptions.HasInfo)
       { 
         UserAndOptions.User = MapToDto(user!);
-        
-        
-        
-        UserAndOptions.SetUserEmail(GetEmail(user));
 
-        
-
+        // Fix: Ensure 'user' is not null before calling GetEmail
+        if (user != null)
+        {
+          UserAndOptions.SetUserEmail(GetEmail(user));
+        }
 
         await UserAndOptions.SetupAsync(CancellationToken.None);
 
         // Don't load options here - too early in auth pipeline
         // Components that need options should call: await UserAndOptions.EnsureOptionsLoadedAsync()
-        
-        //try
-        //{
-        //  await EnvelopeState.RefreshAsync();
-        //}
-        //catch (Exception ex)
-        //{
-        //  // Log but don't fail
-        //  Console.WriteLine($"Failed to refresh envelope state: {ex.Message}");
-        //}
       }
     }
     else
@@ -78,7 +67,7 @@ public sealed partial class AuthStateSync : ComponentBase
 
 
 
-  private string GetEmail(ClaimsPrincipal user)
+  private static string GetEmail(ClaimsPrincipal user)
   {
     var id = GetStableUserId(user);
     var email = user.FindFirstValue(ClaimTypes.Email);
@@ -104,12 +93,13 @@ public sealed partial class AuthStateSync : ComponentBase
                ?? id
                ?? string.Empty;
     var roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+    name = name?.ToUpper();
+    var dbUser = Db.Users.FirstOrDefault(a => a.Email == name!);
 
-    var dbUser = db.Users.FirstOrDefault(a => a.Email.ToUpper() == name!.ToUpper());
-
-    if (dbUser == null)
+    if(dbUser == null)
     {
-      logger.LogError("User with email {Email} not found in database.", email);
+      email = email?.ToUpper();
+      Logger.LogError("User with email {Email} not found in database.", email);
       throw new InvalidOperationException($"User with email {email}  not found in database.");
     }
 
@@ -118,7 +108,7 @@ public sealed partial class AuthStateSync : ComponentBase
       Id = dbUser.Id,
       Email = name,
       FamilyId = dbUser.FamilyId,
-      Name =   dbUser.FirstName,  
+      Name = dbUser.FirstName,
       Roles = roles
     };
   }

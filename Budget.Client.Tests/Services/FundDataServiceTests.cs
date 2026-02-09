@@ -167,33 +167,31 @@ public class FundDataServiceTests
   public void BuildDisplayRows_SortsEnvelopesBySortOrder()
   {
     // Arrange
-    var fundData = new Dictionary<int, FundEnvelopeData>();
-    fundData[1] = new FundEnvelopeData
-    {
-      EnvelopeId = 1,
-      EnvelopeName = "Gas",
-      SortOrder = 3,
-      Budget = 300m,
-      CurrentBalance = 100m,
-      FundAmount = 50m
-    };
-    fundData[2] = new FundEnvelopeData
-    {
-      EnvelopeId = 2,
-      EnvelopeName = "Groceries",
-      SortOrder = 1,
-      Budget = 500m,
-      CurrentBalance = 200m,
-      FundAmount = 100m
-    };
-    fundData[3] = new FundEnvelopeData
-    {
-      EnvelopeId = 3,
-      EnvelopeName = "Utilities",
-      SortOrder = 2,
-      Budget = 200m,
-      CurrentBalance = 50m,
-      FundAmount = 75m
+    var fundData = new Dictionary<int, FundEnvelopeData> {
+      [1] = new FundEnvelopeData {
+        EnvelopeId = 1,
+        EnvelopeName = "Gas",
+        SortOrder = 3,
+        Budget = 300m,
+        CurrentBalance = 100m,
+        FundAmount = 50m
+      },
+      [2] = new FundEnvelopeData {
+        EnvelopeId = 2,
+        EnvelopeName = "Groceries",
+        SortOrder = 1,
+        Budget = 500m,
+        CurrentBalance = 200m,
+        FundAmount = 100m
+      },
+      [3] = new FundEnvelopeData {
+        EnvelopeId = 3,
+        EnvelopeName = "Utilities",
+        SortOrder = 2,
+        Budget = 200m,
+        CurrentBalance = 50m,
+        FundAmount = 75m
+      }
     };
 
     // Act
@@ -236,15 +234,15 @@ public class FundDataServiceTests
   public void BuildDisplayRows_MapsAllPropertiesCorrectly()
   {
     // Arrange
-    var fundData = new Dictionary<int, FundEnvelopeData>();
-    fundData[1] = new FundEnvelopeData
-    {
-      EnvelopeId = 1,
-      EnvelopeName = "Groceries",
-      SortOrder = 1,
-      Budget = 500m,
-      CurrentBalance = 200m,
-      FundAmount = 100m
+    var fundData = new Dictionary<int, FundEnvelopeData> {
+      [1] = new FundEnvelopeData {
+        EnvelopeId = 1,
+        EnvelopeName = "Groceries",
+        SortOrder = 1,
+        Budget = 500m,
+        CurrentBalance = 200m,
+        FundAmount = 100m
+      }
     };
 
     // Act

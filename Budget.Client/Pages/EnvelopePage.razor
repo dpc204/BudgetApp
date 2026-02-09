@@ -16,7 +16,7 @@ else if (!string.IsNullOrEmpty(_loadError))
 else
 {
   <MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100%; overflow: hidden;">
-    <MudPaper Elevation="0" Class="sb-property-border" Style="flex-shrink: 0;">
+    <MudPaper Class="sb-property-border" Style="flex-shrink: 0;">
       <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="pa-2">
         <MudSelect T="string?" Label="Choose Category" Variant="Variant.Outlined" dense="true"
                    @bind-Value="SelectedCategoryId" @bind-Value:after="@(() => _ = CatChanged(SelectedCategoryId))">
@@ -57,7 +57,7 @@ else
           </TemplateColumn >
           <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Filterable="false" Title="Category" HeaderStyle="min-width: 16rem;" />
           <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
-          <PropertyColumn Property="x => x.Balance" Format="#,0.00" Title="Balance" Filterable="false" HeaderStyle="min-width: 16rem; text-align: right;"
+          <PropertyColumn Property="x => x != null ? x.Balance : 0" Format="#,0.00" Title="Balance" Filterable="false" HeaderStyle="min-width: 16rem; text-align: right;"
                           CellStyle="text-align: right;"/>
         </Columns >
         <ChildRowContent Context="context">

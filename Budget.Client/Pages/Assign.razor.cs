@@ -13,7 +13,7 @@ public partial class Assign : ComponentBase
 
 
   public List<TransactionDto> Transactions { get; set; } = [];
-  public MudDataGrid<TransactionDto> Grid { get; set; }
+  public MudDataGrid<TransactionDto> Grid { get; set; } = null!;
   public int ProgressValue { get; set; }
   public int ProgressMax { get; set; }
 
@@ -48,7 +48,7 @@ public partial class Assign : ComponentBase
 
     //  _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
 
-      _unassignedEnvelope = await MonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
+    //  _unassignedEnvelope = await MonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
 
 
 
@@ -91,7 +91,7 @@ public partial class Assign : ComponentBase
       where e.EnvelopeType == EnvelopeTypes.Standard || e.EnvelopeType == EnvelopeTypes.Income
       select new EnvelopeIdName(e.Id, c.Name, e.Name, c.SortOrder, e.SortOrder);
 
-    return result.ToList();
+    return [.. result];
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -105,7 +105,7 @@ public partial class Assign : ComponentBase
     }
   }
 
-  private string? GetEnvelopeNameOnly(EnvelopeIdName? e)
+  private static string? GetEnvelopeNameOnly(EnvelopeIdName? e)
   {
     if (e == null)
       return null;
@@ -113,7 +113,7 @@ public partial class Assign : ComponentBase
     return e.EnvelopeName;
   }
 
-  private string? GetCatAndEnvName(EnvelopeIdName? e)
+  private static string? GetCatAndEnvName(EnvelopeIdName? e)
   {
     if (e == null)
       return null;
@@ -121,18 +121,18 @@ public partial class Assign : ComponentBase
     return e.CategoryName + " - " + e.EnvelopeName;
   }
 
-  private EnvelopeIdName? GetCurrentEnvelope(TransactionDto transaction)
-  {
-    return null;
-  }
+  //private static EnvelopeIdName? GetCurrentEnvelope(TransactionDto transaction)
+  //{
+  //  return null;
+  //}
 
-  bool CaseInsensitiveContains(string? source, string? search)
-  {
-    if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(search))
-      return false;
+  //bool CaseInsensitiveContains(string? source, string? search)
+  //{
+  //  if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(search))
+  //    return false;
 
-    return source.Contains(search, StringComparison.OrdinalIgnoreCase);
-  }
+  //  return source.Contains(search, StringComparison.OrdinalIgnoreCase);
+  //}
 
   private async Task<GridData<TransactionDto>> LoadServerData(GridState<TransactionDto> gridState,
     CancellationToken cancellationToken)
@@ -153,17 +153,16 @@ public partial class Assign : ComponentBase
         Count = gridState.PageSize,
         Sort = gridState.SortDefinitions.FirstOrDefault()?.SortBy,
         Descending = gridState.SortDefinitions.FirstOrDefault()?.Descending ?? false,
-        Filters = gridState.FilterDefinitions
+        Filters = [.. gridState.FilterDefinitions
           .Select(f => new FilterItem
           {
             Column = f.Column?.PropertyName,
             Operator = f.Operator,
             Value = f.Value?.ToString()
-          })
-          .ToList()
+          })]
       };
 
-      var response = await Api.GetUnassignedVirtualAsync(query);
+      var response = await Api.GetUnassignedVirtualAsync(query, cancellationToken);
 
       Logger.LogInformation("Loading server data: Received {ItemCount} items, Total: {TotalCount}",
         response.Items.Count, response.TotalCount);
@@ -307,25 +306,25 @@ public partial class Assign : ComponentBase
     }
   }
 
-  private int _selectedCount;
-  private HashSet<TransactionImportDto> _selectedItems = new();
+  //private int _selectedCount;
+  //private HashSet<TransactionImportDto> _selectedItems = [];
 
-  private string _transactionSearch = string.Empty;
-  private EnvelopeDto? _unassignedEnvelope;
+  //private string _transactionSearch = string.Empty;
+  //private readonly EnvelopeDto? _unassignedEnvelope;
 
-  private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
-  {
-    _selectedItems = items;
-    _selectedCount = items.Count;
-  }
+  //private void OnSelectedItemsChanged(HashSet<TransactionImportDto> items)
+  //{
+  //  _selectedItems = items;
+  //  _selectedCount = items.Count;
+  //}
 
-  private bool FilterTransactions(TransactionDto transaction, string search)
-  {
-    if (string.IsNullOrWhiteSpace(search))
-      return true;
+  //private bool FilterTransactions(TransactionDto transaction, string search)
+  //{
+  //  if (string.IsNullOrWhiteSpace(search))
+  //    return true;
 
-    // Use case-insensitive comparison across relevant string fields
-    return (transaction.Vendor ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
-           || (transaction.Description ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase);
-  }
+  //  // Use case-insensitive comparison across relevant string fields
+  //  return (transaction.Vendor ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
+  //         || (transaction.Description ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase);
+  //}
 }

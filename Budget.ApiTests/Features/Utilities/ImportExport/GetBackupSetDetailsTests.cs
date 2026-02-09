@@ -1,21 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Azure;
+﻿using Azure;
 using Azure.Data.Tables;
 using Budget.Api.Features.Utilities.ImportExport;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Utilities.ImportExport.UnitTests;
+namespace Budget.ApiTests.Features.Utilities.ImportExport;
 
 
 /// <summary>
@@ -55,8 +44,8 @@ public class GetBackupSetDetailsTests
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -88,13 +77,13 @@ public class GetBackupSetDetailsTests
             It.IsAny<int?>(),
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity>()));
+          .Returns(new TestAsyncPageable<TableEntity>([]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -122,8 +111,8 @@ public class GetBackupSetDetailsTests
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -161,13 +150,13 @@ public class GetBackupSetDetailsTests
             It.IsAny<int?>(),
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity> { entity }));
+          .Returns(new TestAsyncPageable<TableEntity>([entity]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -190,7 +179,7 @@ public class GetBackupSetDetailsTests
         var mockLogger = new Mock<ILogger<GetBackupSetDetails.Handler>>();
 
         var partitionKey = "backup-2024-01-15";
-        var entity = CreateTableEntity("SingleTable", "single-blob.json", 5000, new DateTime(2024, 1, 15, 12, 0, 0), partitionKey);
+    TableEntity entity = CreateTableEntity("SingleTable", "single-blob.json", 5000, new DateTime(2024, 1, 15, 12, 0, 0), partitionKey);
 
         mockTableServiceClient.Setup(x => x.GetTableClient("TableBackups")).Returns(mockTableClient.Object);
         mockTableClient.Setup(x => x.CreateIfNotExistsAsync(It.IsAny<CancellationToken>()))
@@ -200,13 +189,13 @@ public class GetBackupSetDetailsTests
             It.IsAny<int?>(),
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity> { entity }));
+          .Returns(new TestAsyncPageable<TableEntity>([entity]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -244,13 +233,13 @@ public class GetBackupSetDetailsTests
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
           .Callback<string, int?, IEnumerable<string>, CancellationToken>((filter, maxPerPage, select, ct) => capturedFilter = filter)
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity>()));
+          .Returns(new TestAsyncPageable<TableEntity>([]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         capturedFilter.Should().Be($"PartitionKey eq '{partitionKey}'");
@@ -278,13 +267,13 @@ public class GetBackupSetDetailsTests
             It.IsAny<int?>(),
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity>()));
+          .Returns(new TestAsyncPageable<TableEntity>([]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -303,7 +292,7 @@ public class GetBackupSetDetailsTests
         var mockLogger = new Mock<ILogger<GetBackupSetDetails.Handler>>();
 
         var partitionKey = "backup-2024-01-15";
-        var entity = CreateTableEntity("LargeTable", "large-blob.json", int.MaxValue, new DateTime(2024, 1, 15, 10, 0, 0), partitionKey);
+    TableEntity entity = CreateTableEntity("LargeTable", "large-blob.json", int.MaxValue, new DateTime(2024, 1, 15, 10, 0, 0), partitionKey);
 
         mockTableServiceClient.Setup(x => x.GetTableClient("TableBackups")).Returns(mockTableClient.Object);
         mockTableClient.Setup(x => x.CreateIfNotExistsAsync(It.IsAny<CancellationToken>()))
@@ -313,13 +302,13 @@ public class GetBackupSetDetailsTests
             It.IsAny<int?>(),
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity> { entity }));
+          .Returns(new TestAsyncPageable<TableEntity>([entity]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -343,7 +332,7 @@ public class GetBackupSetDetailsTests
 
         var partitionKey = "backup-2024-01-15";
         var exportedAt = DateTime.Parse(dateTimeString);
-        var entity = CreateTableEntity("TestTable", "test-blob.json", 1000, exportedAt, partitionKey);
+    TableEntity entity = CreateTableEntity("TestTable", "test-blob.json", 1000, exportedAt, partitionKey);
 
         mockTableServiceClient.Setup(x => x.GetTableClient("TableBackups")).Returns(mockTableClient.Object);
         mockTableClient.Setup(x => x.CreateIfNotExistsAsync(It.IsAny<CancellationToken>()))
@@ -353,13 +342,13 @@ public class GetBackupSetDetailsTests
             It.IsAny<int?>(),
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity> { entity }));
+          .Returns(new TestAsyncPageable<TableEntity>([entity]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -398,8 +387,8 @@ public class GetBackupSetDetailsTests
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         mockLogger.Verify(
@@ -445,7 +434,7 @@ public class GetBackupSetDetailsTests
             It.IsAny<int?>(),
             It.IsAny<IEnumerable<string>>(),
             It.IsAny<CancellationToken>()))
-          .Returns(new TestAsyncPageable<TableEntity>(new List<TableEntity>()));
+          .Returns(new TestAsyncPageable<TableEntity>([]));
 
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
@@ -478,8 +467,8 @@ public class GetBackupSetDetailsTests
         var handler = new GetBackupSetDetails.Handler(mockTableServiceClient.Object, mockLogger.Object);
         var query = new GetBackupSetDetails.Query(partitionKey);
 
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+    // Act
+    GetBackupSetDetails.Response result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -491,26 +480,22 @@ public class GetBackupSetDetailsTests
     /// </summary>
     private static TableEntity CreateTableEntity(string tableName, string blobName, int sizeBytes, DateTime exportedAt, string partitionKey)
     {
-        var entity = new TableEntity(partitionKey, tableName);
-        entity["BlobName"] = blobName;
-        entity["SizeBytes"] = sizeBytes;
-        entity["ExportedAt"] = exportedAt;
+        var entity = new TableEntity(partitionKey, tableName) {
+          ["BlobName"] = blobName,
+          ["SizeBytes"] = sizeBytes,
+          ["ExportedAt"] = exportedAt
+        };
         return entity;
     }
 
     /// <summary>
     /// Test helper class to create AsyncPageable from a list for testing purposes
     /// </summary>
-    private class TestAsyncPageable<T> : AsyncPageable<T>
+    private class TestAsyncPageable<T>(IEnumerable<T> items) : AsyncPageable<T> where T : notnull
     {
-        private readonly IEnumerable<T> _items;
+        private readonly IEnumerable<T> _items = items;
 
-        public TestAsyncPageable(IEnumerable<T> items)
-        {
-            _items = items;
-        }
-
-        public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
+    public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
         {
             await Task.Yield();
             yield return new TestPage<T>(_items);
@@ -520,16 +505,11 @@ public class GetBackupSetDetailsTests
     /// <summary>
     /// Test helper class to create a Page for testing purposes
     /// </summary>
-    private class TestPage<T> : Page<T>
+    private class TestPage<T>(IEnumerable<T> items) : Page<T>
     {
-        private readonly IEnumerable<T> _items;
+        private readonly IEnumerable<T> _items = items;
 
-        public TestPage(IEnumerable<T> items)
-        {
-            _items = items;
-        }
-
-        public override IReadOnlyList<T> Values => _items.ToList();
+    public override IReadOnlyList<T> Values => [.. _items];
 
         public override string? ContinuationToken => null;
 

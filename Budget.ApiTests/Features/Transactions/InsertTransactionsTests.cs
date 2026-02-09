@@ -1,17 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.Transactions;
-using Budget.DB;
-using Budget.Shared.Models;
-using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Transactions.UnitTests;
+namespace Budget.ApiTests.Features.Transactions;
 
 
 /// <summary>
@@ -112,8 +101,8 @@ public partial class InsertTransactionsTests
     [Fact]
     public async Task EndBatchAsync_AfterMultipleBeginCalls_CompletesSuccessfully()
     {
-        // Arrange
-        var options = new DbContextOptionsBuilder<BudgetContext>()
+    // Arrange
+    DbContextOptions<BudgetContext> options = new DbContextOptionsBuilder<BudgetContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
@@ -156,8 +145,8 @@ public partial class InsertTransactionsTests
     [Fact]
     public async Task EndBatchAsync_CompleteBatchLifecycle_CompletesSuccessfully()
     {
-        // Arrange
-        var options = new DbContextOptionsBuilder<BudgetContext>()
+    // Arrange
+    DbContextOptions<BudgetContext> options = new DbContextOptionsBuilder<BudgetContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
@@ -181,8 +170,8 @@ public partial class InsertTransactionsTests
     [Fact]
     public async Task EndBatchAsync_AllowsNewBatchAfterCompletion_SuccessfullyStartsNewBatch()
     {
-        // Arrange
-        var options = new DbContextOptionsBuilder<BudgetContext>()
+    // Arrange
+    DbContextOptions<BudgetContext> options = new DbContextOptionsBuilder<BudgetContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
@@ -216,8 +205,8 @@ public partial class InsertTransactionsTests
         // Act
         await inserter.EndBatchAsync();
 
-        // Assert - should complete without error and without adding any transactions
-        var transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
+    // Assert - should complete without error and without adding any transactions
+    List<Transaction> transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
         transactions.Should().BeEmpty();
     }
 
@@ -229,8 +218,8 @@ public partial class InsertTransactionsTests
     [Fact]
     public async Task EndBatchAsync_WhenInBatchWithNoTransactions_ShouldCommitEmptyBatch()
     {
-        // Arrange
-        var options = new DbContextOptionsBuilder<BudgetContext>()
+    // Arrange
+    DbContextOptions<BudgetContext> options = new DbContextOptionsBuilder<BudgetContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .ConfigureWarnings(x => x.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
@@ -244,8 +233,8 @@ public partial class InsertTransactionsTests
         // Act
         await inserter.EndBatchAsync();
 
-        // Assert - should complete without error
-        var transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
+    // Assert - should complete without error
+    List<Transaction> transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
         transactions.Should().BeEmpty();
 
         // Verify we can begin a new batch (proving _inBatch was reset to false)
@@ -272,8 +261,8 @@ public partial class InsertTransactionsTests
         await inserter.EndBatchAsync();
         await inserter.EndBatchAsync();
 
-        // Assert - should complete without error
-        var transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
+    // Assert - should complete without error
+    List<Transaction> transactions = await context.Transactions.ToListAsync(TestContext.Current.CancellationToken);
         transactions.Should().BeEmpty();
     }
 
@@ -291,8 +280,8 @@ public partial class InsertTransactionsTests
 
         var inserter = new InsertTransactions(context, mockFamilyService.Object);
 
-        // Act
-        var act = async () => await inserter.DisposeAsync();
+    // Act
+    Func<Task> act = async () => await inserter.DisposeAsync();
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -314,7 +303,7 @@ public partial class InsertTransactionsTests
 
         // Act
         await inserter.DisposeAsync();
-        var act = async () => await inserter.DisposeAsync();
+    Func<Task> act = async () => await inserter.DisposeAsync();
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -337,8 +326,8 @@ public partial class InsertTransactionsTests
         // Act
         await inserter.DisposeAsync();
 
-        // Assert
-        var act = async () => await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    // Assert
+    Func<Task<int>> act = async () => await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         await act.Should().ThrowAsync<ObjectDisposedException>("because the context should be disposed");
     }
 

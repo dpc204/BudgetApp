@@ -11,7 +11,7 @@ public static class GetAllEnvelopes
     decimal? Budget,
     string CategoryId,
     int SortOrder,
-    EnvelopeTypes envelopeType);
+    EnvelopeTypes EnvelopeType);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {

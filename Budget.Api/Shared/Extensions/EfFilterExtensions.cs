@@ -33,30 +33,17 @@ public static class EfFilterExtensions
 
 
       // Choose operator 
-      switch (filter.Operator)
-      {
-        case "contains":
-        case "Contains":
-          predicate = Expression.Call(left, typeof(string).GetMethod("Contains", new[] { typeof(string) })!,
-            right);
-          break;
-        case "starts":
-        case "StartsWith":
-          predicate = Expression.Call(left, typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!,
-            right);
-          break;
-        case "ends":
-        case "EndsWith":
-          predicate = Expression.Call(left, typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!,
-            right);
-          break;
-        default:
+      predicate = filter.Operator switch {
+        "contains" or "Contains" => Expression.Call(left, typeof(string).GetMethod("Contains", [typeof(string)])!,
+                    right),
+        "starts" or "StartsWith" => Expression.Call(left, typeof(string).GetMethod("StartsWith", [typeof(string)])!,
+                    right),
+        "ends" or "EndsWith" => Expression.Call(left, typeof(string).GetMethod("EndsWith", [typeof(string)])!,
+                    right),
+        _ => Expression.Equal(left, right),
+      };
 
-          predicate = Expression.Equal(left, right);
-          break;
-      }
-
-// Build lambda: x => x.Property == value
+      // Build lambda: x => x.Property == value
 
       var lambda = Expression.Lambda<Func<T, bool>>(predicate!, parameter);
 

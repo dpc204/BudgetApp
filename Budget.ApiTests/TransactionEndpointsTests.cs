@@ -71,18 +71,18 @@ public class TransactionEndpointsTests : IntegrationTestBase
      
     var mockFamilyService = new TestCurrentFamilyService(1);
     var inserter = new InsertTransactions(context, mockFamilyService);
-    var handler = new AddNewTransaction.Handler(context, inserter);
+    var handler = new AddNewTransaction.Handler( inserter);
     var command = new AddNewTransaction.Command(transactionDetail);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    TransactionAddResult result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     
     context.ChangeTracker.Clear();
-    var updatedAccount = await context.BankAccounts.FindAsync(new object[] { account.Id }, TestContext.Current.CancellationToken);
-    var updatedEnvelope = await context.Envelopes.FindAsync(new object[] { envelope.Id }, TestContext.Current.CancellationToken);
+    BankAccount? updatedAccount = await context.BankAccounts.FindAsync([account.Id], TestContext.Current.CancellationToken);
+    Envelope? updatedEnvelope = await context.Envelopes.FindAsync([envelope.Id], TestContext.Current.CancellationToken);
 
     updatedAccount.Should().NotBeNull();
     updatedAccount!.Balance.Should().Be(900m); // 1000 - 100
@@ -144,7 +144,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var handler = new GetUnassigned.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetUnassigned.Query(), CancellationToken.None);
+    Result<IEnumerable<GetUnassigned.Response>> result = await handler.Handle(new GetUnassigned.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -207,7 +207,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var handler = new GetByEnvelopeId.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetByEnvelopeId.Query(202), CancellationToken.None);
+    IEnumerable<GetByEnvelopeId.Response> result = await handler.Handle(new GetByEnvelopeId.Query(202), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -270,15 +270,19 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var handler = new GetOneTransactionDetail.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetOneTransactionDetail.Query(500), CancellationToken.None);
+    GetOneTransactionDetail.Response? result = await handler.Handle(new GetOneTransactionDetail.Query(500), CancellationToken.None);
 
     // Assert
-    result.Should().NotBeNull();
-    result.Id.Should().Be(500);
-    result.AccountId.Should().Be(203);
-    result.Vendor.Should().Be("Test Vendor");
-    result.Details.Should().HaveCount(1);
-    result.Details[0].Amount.Should().Be(100m);
+
+      result.Should().NotBeNull();
+    if(result != null)
+    {
+      result?.Id.Should().Be(500);
+      result?.AccountId.Should().Be(203);
+      result?.Vendor.Should().Be("Test Vendor");
+      result?.Details.Should().HaveCount(1);
+      result?.Details[0].Amount.Should().Be(100m);
+    }
   }
 
   [Fact]
@@ -352,7 +356,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     result.Should().BeTrue();
     
     context.ChangeTracker.Clear();
-    var updatedDetail = await context.TransactionDetails.FindAsync(new object[] { 600, 1 }, TestContext.Current.CancellationToken);
+    TransactionDetail? updatedDetail = await context.TransactionDetails.FindAsync([600, 1], TestContext.Current.CancellationToken);
     updatedDetail.Should().NotBeNull();
     updatedDetail!.EnvelopeId.Should().Be(204);
   }
@@ -430,16 +434,16 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var command = new UpdateTransaction.Command( updatedTransaction);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeDto>> result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    var testResult = result.Value.FirstOrDefault();
-    testResult.Should().NotBeNull();
-    testResult.Balance.Should().Be(350);
-    testResult.Id.Should().Be(205);
+    EnvelopeDto? testResult = result.Value.FirstOrDefault();
+    testResult?.Should().NotBeNull();
+    testResult?.Balance.Should().Be(350);
+    testResult?.Id.Should().Be(205);
     
     context.ChangeTracker.Clear();
-    var updatedTx = await context.Transactions.FindAsync(new object[] { 700 }, TestContext.Current.CancellationToken);
+    Transaction? updatedTx = await context.Transactions.FindAsync([700], TestContext.Current.CancellationToken);
     updatedTx.Should().NotBeNull();
     updatedTx!.Vendor.Should().Be("Updated Vendor");
     updatedTx.TotalAmount.Should().Be(150m);
@@ -464,7 +468,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var command = new UpdateTransaction.Command(transaction);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeDto>> result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.IsFailed.Should().Be(true);

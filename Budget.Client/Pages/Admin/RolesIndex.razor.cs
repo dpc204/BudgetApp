@@ -27,7 +27,7 @@ public partial class RolesIndex
     try
     {
       var roles = await MaintApi.GetRolesAsync();
-      RolesList = roles.ToList();
+      RolesList = [.. roles];
     }
     catch (Exception ex)
     {
@@ -56,7 +56,9 @@ public partial class RolesIndex
     var dialog = await DialogService.ShowAsync<RoleDialog>("Create Role", parameters, options);
     var result = await dialog.Result;
 
-    if (!result.Canceled)
+    if (result == null || result.Canceled)
+      Snackbar.Add("Unable to add role");
+    else
     {
       await LoadRoles();
       Snackbar.Add("Role created successfully", Severity.Success);
@@ -83,7 +85,7 @@ public partial class RolesIndex
     var dialog = await DialogService.ShowAsync<RoleDialog>("Edit Role", parameters, options);
     var result = await dialog.Result;
 
-    if (!result.Canceled)
+    if (result is { Canceled: false })
     {
       await LoadRoles();
       Snackbar.Add("Role updated successfully", Severity.Success);

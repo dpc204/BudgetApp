@@ -5,18 +5,13 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests to verify multi-tenancy isolation by FamilyId using query filters
 /// </summary>
-public class MultiTenancyIsolationTests : IntegrationTestBase
+public class MultiTenancyIsolationTests(ITestOutputHelper output) : IntegrationTestBase
 {
-  private readonly ITestOutputHelper _output;
+  private readonly ITestOutputHelper _output = output;
 
-  public MultiTenancyIsolationTests(ITestOutputHelper output)
-  {
-    _output = output;
-  }
-
-// Use a more unique database name to prevent collisions across parallel test runs
-// Also ensure each test gets a completely isolated database by using NewGuid for every call
-private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
+  // Use a more unique database name to prevent collisions across parallel test runs
+  // Also ensure each test gets a completely isolated database by using NewGuid for every call
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
     => new DbContextOptionsBuilder<BudgetContext>()
       .UseInMemoryDatabase(databaseName: $"MultiTenancy_{testName}_{Guid.NewGuid()}")
       .EnableSensitiveDataLogging()
@@ -88,9 +83,9 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     context.ChangeTracker.Clear();
 
     // Act: Query all envelopes (should only get family 10 due to query filter)
-    var envelopes = await context.Envelopes.Where(e => e.Id >= 500).ToListAsync(TestContext.Current.CancellationToken);
+    List<Envelope> envelopes = await context.Envelopes.Where(e => e.Id >= 500).ToListAsync(TestContext.Current.CancellationToken);
 
-    foreach (var env in envelopes)
+    foreach (Envelope? env in envelopes)
     {
       _output.WriteLine($"{env.Id}  Family: {env.FamilyId}");
     }
@@ -156,7 +151,7 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     context.ChangeTracker.Clear();
 
     // Act
-    var transactions = await context.Transactions.Where(t => t.Id >= 600).ToListAsync(TestContext.Current.CancellationToken);
+    List<Transaction> transactions = await context.Transactions.Where(t => t.Id >= 600).ToListAsync(TestContext.Current.CancellationToken);
     
     // Assert
     transactions.Should().HaveCount(1, "query filter should only return Family 10 transactions");
@@ -185,7 +180,7 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
     // Act
-    var accounts = await context.BankAccounts.Where(a => a.Id >= 300).ToListAsync(TestContext.Current.CancellationToken);
+    List<BankAccount> accounts = await context.BankAccounts.Where(a => a.Id >= 300).ToListAsync(TestContext.Current.CancellationToken);
     
     // Assert
     accounts.Should().HaveCount(1, "query filter should only return Family 10 accounts");
@@ -215,7 +210,7 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
     context.ChangeTracker.Clear();
 
     // Act
-    var categories = await context.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync(TestContext.Current.CancellationToken);
+    List<Category> categories = await context.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync(TestContext.Current.CancellationToken);
     
     // Assert
     categories.Should().HaveCount(1, "query filter should only return Family 10 categories");
@@ -226,7 +221,7 @@ private static DbContextOptions<BudgetContext> CreateInMemoryOptions([System.Run
   /// <summary>
   /// Test helper class to provide current family context for multi-tenancy filtering
   /// </summary>
-  private class TestCurrentFamilyService : ICurrentFamilyService
+    private new class TestCurrentFamilyService : ICurrentFamilyService
   {
     public int FamilyId { get; set; } = 1;
     public int GetCurrentFamilyId() => FamilyId;

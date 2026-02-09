@@ -14,12 +14,7 @@ public class CurrentFamilyService(IHttpContextAccessor httpContextAccessor) : IC
   /// <exception cref="UnauthorizedAccessException">Thrown when user is not authenticated or FamilyId is missing/invalid</exception>
   public int GetCurrentFamilyId()
   {
-    var httpContext = httpContextAccessor.HttpContext;
-    if (httpContext == null)
-    {
-      throw new UnauthorizedAccessException("HttpContext is not available.");
-    }
-
+    var httpContext = httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException("HttpContext is not available.");
     var user = httpContext.User;
     if (user?.Identity?.IsAuthenticated != true)
     {

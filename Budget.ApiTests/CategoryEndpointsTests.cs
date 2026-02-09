@@ -54,14 +54,14 @@ public class CategoryEndpointsTests
     var handler = new GetAllCategories.Handler(context);
 
     // Act
-    var result = await handler.Handle(new GetAllCategories.Query(), CancellationToken.None);
+    IEnumerable<GetAllCategories.Response> result = await handler.Handle(new GetAllCategories.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
     var resultList = result.ToList();
     resultList.Should().HaveCount(2);
 
-    var cat1 = resultList.Should().ContainSingle(c => c.CategoryId == "500").Subject;
+    GetAllCategories.Response cat1 = resultList.Should().ContainSingle(c => c.CategoryId == "500").Subject;
     cat1.Name.Should().Be("Food");
     cat1.Description.Should().Be("Food expenses");
     cat1.SortOrder.Should().Be(1);
@@ -91,7 +91,7 @@ public class CategoryEndpointsTests
     var handler = new CategoryGetByEnvelopeId.Handler(context);
 
     // Act
-    var result = await handler.Handle(new CategoryGetByEnvelopeId.Query(), CancellationToken.None);
+    IEnumerable<CategoryGetByEnvelopeId.Response> result = await handler.Handle(new CategoryGetByEnvelopeId.Query(), CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -118,7 +118,7 @@ public class CategoryEndpointsTests
       SortOrder: 10);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    InsertCategory.Response result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -128,7 +128,7 @@ public class CategoryEndpointsTests
     result.CategoryId.Should().NotBeNullOrEmpty();
 
     // Verify in database
-    var savedCategory = await context.Categories.FindAsync(new object[] { result.CategoryId }, TestContext.Current.CancellationToken);
+    Category? savedCategory = await context.Categories.FindAsync([result.CategoryId], TestContext.Current.CancellationToken);
     savedCategory.Should().NotBeNull();
     savedCategory!.Name.Should().Be("New Category");
     savedCategory.Description.Should().Be("Test description");
@@ -163,7 +163,7 @@ public class CategoryEndpointsTests
       SortOrder: 5);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateCategory.Response? result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -174,7 +174,7 @@ public class CategoryEndpointsTests
 
     // Verify in database
     context.ChangeTracker.Clear();
-    var updatedCategory = await context.Categories.FindAsync(new object[] { "503" }, TestContext.Current.CancellationToken);
+    Category? updatedCategory = await context.Categories.FindAsync(["503"], TestContext.Current.CancellationToken);
     updatedCategory.Should().NotBeNull();
     updatedCategory!.Name.Should().Be("Updated Name");
     updatedCategory.Description.Should().Be("Updated description");
@@ -194,7 +194,7 @@ public class CategoryEndpointsTests
       SortOrder: 1);
 
     // Act
-    var result = await handler.Handle(command, CancellationToken.None);
+    UpdateCategory.Response? result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().BeNull();
@@ -231,7 +231,7 @@ public class CategoryEndpointsTests
 
     // Verify deletion in database
     context.ChangeTracker.Clear();
-    var deletedCategory = await context.Categories.FindAsync(new object[] { "505" }, TestContext.Current.CancellationToken);
+    Category? deletedCategory = await context.Categories.FindAsync(["505"], TestContext.Current.CancellationToken);
     deletedCategory.Should().BeNull();
   }
 
