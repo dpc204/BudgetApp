@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Budget.Api.Shared.Extensions;
+﻿using Budget.Api.Shared.Extensions;
 using Budget.Shared.Models.Queries;
-using Xunit;
 
-
-namespace Budget.Api.Shared.Extensions.UnitTests;
+namespace Budget.ApiTests.Shared.Extensions;
 
 /// <summary>
 /// Tests for the EfFilterExtensions class.
@@ -686,7 +681,7 @@ public class EfFilterExtensionsTests
         var result = query.ApplyFilters(filters);
 
         // Assert - query not materialized yet
-        Assert.IsAssignableFrom<IQueryable<TestEntity>>(result);
+        Assert.IsType<IQueryable<TestEntity>>(result, exactMatch: false);
 
         // Materialize and verify
         var materializedResult = result.ToList();

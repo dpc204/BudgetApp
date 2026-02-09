@@ -1,21 +1,6 @@
 ﻿//using Budget.Shared.Services;
-using Budget.Api.Features.Transactions;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Budget.Api.Features.Transactions.UnitTests;
+namespace Budget.ApiTests.Features.Transactions;
 /// <summary>
 /// Unit tests for GetOneTransactionDetail.Handler
 /// </summary>

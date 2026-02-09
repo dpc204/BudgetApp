@@ -1,18 +1,7 @@
-﻿using System;
-
-using Budget.Api.Features.Transactions;
-using Budget.DB;
-using Budget.Shared.Enums;
-using Budget.Shared.Models;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
+﻿using Fantum.Mediator;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Transactions.UnitTests;
+namespace Budget.ApiTests.Features.Transactions;
 
 
 /// <summary>

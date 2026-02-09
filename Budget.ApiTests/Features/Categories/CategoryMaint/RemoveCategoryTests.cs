@@ -1,20 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.Categories.CategoryMaint;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
+﻿using Budget.Api.Features.Categories.CategoryMaint;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Categories.CategoryMaint.UnitTests;
+namespace Budget.ApiTests.Features.Categories.CategoryMaint;
 
 
 /// <summary>

@@ -1,16 +1,6 @@
 ﻿using Budget.Api.Features.BudgetMonths;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.BudgetMonths.UnitTests;
+namespace Budget.ApiTests.Features.BudgetMonths;
 
 
 /// <summary>
@@ -56,7 +46,7 @@ public class ClearMonthBothTests
         result.Message.Should().Contain("Cleared budget and draft values for 1 records");
         result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget.Should().NotBeNull();
         updatedBudget!.Budget.Should().BeNull();
         updatedBudget.BudgetDraft.Should().BeNull();
@@ -66,15 +56,15 @@ public class ClearMonthBothTests
     /// Tests that invalid month values return failure response with appropriate error message
     /// </summary>
     /// <param name="acctPeriod">The accounting period with invalid month component</param>
-    /// <param name="description">Description of the test case</param>
+    /// 
     [Theory]
-    [InlineData(202400, "month zero")]
-    [InlineData(202413, "month thirteen")]
-    [InlineData(202499, "month ninety-nine")]
-    [InlineData(202300, "month zero in different year")]
-    [InlineData(190000, "month zero at boundary year")]
-    public async Task Handle_InvalidMonth_ReturnsFailure(int acctPeriod, string description)
-    {
+    [InlineData(202400)]
+    [InlineData(202413)]
+    [InlineData(202499)]
+    [InlineData(202300)]
+    [InlineData(190000)]
+    public async Task Handle_InvalidMonth_ReturnsFailure(int acctPeriod)
+  {
         // Arrange
         await using var context = new BudgetContext(CreateInMemoryOptions(), null);
         var handler = new ClearMonthBoth.Handler(context);
@@ -175,7 +165,8 @@ public class ClearMonthBothTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(0);
 
-        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202401, 1],TestContext.Current.CancellationToken);
+        
         unchangedBudget.Should().NotBeNull();
         unchangedBudget!.Budget.Should().Be(100.50m);
         unchangedBudget.BudgetDraft.Should().Be(200.75m);
@@ -239,15 +230,15 @@ public class ClearMonthBothTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(2);
 
-        BudgetMonth? clearedBudget1 = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? clearedBudget1 = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         clearedBudget1!.Budget.Should().BeNull();
         clearedBudget1.BudgetDraft.Should().BeNull();
 
-        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync(202401, 2);
+        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202401, 2], TestContext.Current.CancellationToken);
         unchangedBudget!.Budget.Should().Be(200m);
         unchangedBudget.BudgetDraft.Should().Be(250m);
 
-        BudgetMonth? clearedBudget2 = await context.BudgetMonths.FindAsync(202401, 3);
+        BudgetMonth? clearedBudget2 = await context.BudgetMonths.FindAsync([202401, 3], TestContext.Current.CancellationToken);
         clearedBudget2!.Budget.Should().BeNull();
         clearedBudget2.BudgetDraft.Should().BeNull();
     }
@@ -289,7 +280,7 @@ public class ClearMonthBothTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget.Should().NotBeNull();
         updatedBudget!.Budget.Should().BeNull();
         updatedBudget.BudgetDraft.Should().BeNull();
@@ -380,7 +371,7 @@ public class ClearMonthBothTests
         result.RecordsUpdated.Should().Be(3);
         result.Message.Should().Contain("Cleared budget and draft values for 3 records");
 
-        List<BudgetMonth> allBudgets = await context.BudgetMonths.Where(b => b.AcctPeriod == 202401).ToListAsync();
+        List<BudgetMonth> allBudgets = await context.BudgetMonths.Where(b => b.AcctPeriod == 202401).ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
         allBudgets.Should().HaveCount(3);
         allBudgets.Should().OnlyContain(b => b.Budget == null && b.BudgetDraft == null);
     }
@@ -432,11 +423,11 @@ public class ClearMonthBothTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth? clearedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? clearedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         clearedBudget!.Budget.Should().BeNull();
         clearedBudget.BudgetDraft.Should().BeNull();
 
-        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync(202402, 1);
+        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202402, 1], TestContext.Current.CancellationToken);
         unchangedBudget!.Budget.Should().Be(200m);
         unchangedBudget.BudgetDraft.Should().Be(250m);
     }

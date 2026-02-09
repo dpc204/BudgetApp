@@ -1,21 +1,6 @@
 ﻿using Budget.Api.Features.Admin.UserRoles;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Budget.Api.Features.Admin.UserRoles.UnitTests;
+namespace Budget.ApiTests.Features.Admin.UserRoles;
 /// <summary>
 /// Unit tests for RemoveRole.Handler
 /// </summary>
@@ -74,7 +59,7 @@ public partial class RemoveRoleTests
         bool result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().BeTrue();
-        UserRole? removedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? removedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         removedUserRole.Should().BeNull();
     }
 
@@ -139,7 +124,7 @@ public partial class RemoveRoleTests
         bool result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().BeFalse();
-        UserRole? existingUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? existingUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         existingUserRole.Should().NotBeNull();
     }
 
@@ -188,7 +173,7 @@ public partial class RemoveRoleTests
         bool result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().BeFalse();
-        UserRole? existingUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? existingUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         existingUserRole.Should().NotBeNull();
     }
 
@@ -265,11 +250,11 @@ public partial class RemoveRoleTests
         bool result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().BeTrue();
-        UserRole? removedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? removedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         removedUserRole.Should().BeNull();
-        UserRole? userRole2Remaining = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 2);
+        UserRole? userRole2Remaining = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 2, TestContext.Current.CancellationToken);
         userRole2Remaining.Should().NotBeNull();
-        UserRole? userRole3Remaining = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 2 && ur.RoleId == 1);
+        UserRole? userRole3Remaining = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 2 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         userRole3Remaining.Should().NotBeNull();
     }
 

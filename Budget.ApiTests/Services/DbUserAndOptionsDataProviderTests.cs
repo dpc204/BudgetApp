@@ -1,19 +1,9 @@
-﻿using Budget.Api.Services;
-using Budget.DB;
-using Budget.Shared.Enums;
-using Budget.Shared.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Budget.Api.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Budget.Api.Services.UnitTests;
+namespace Budget.ApiTests.Services;
 /// <summary>
 /// Unit tests for DbUserAndOptionsDataProvider.LoadUserOptionsAsync method.
 /// </summary>
@@ -46,7 +36,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int nonExistentUserId = 999;
         // Act
-        var result = await _provider.LoadUserOptionsAsync(nonExistentUserId);
+        var result = await _provider.LoadUserOptionsAsync(nonExistentUserId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -62,9 +52,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = 2;
         _context.SavedUserOptions.Add(new SavedUserOptions { UserId = userId, JsonOptions = null });
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
         _mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
@@ -81,9 +71,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = 3;
         _context.SavedUserOptions.Add(new SavedUserOptions { UserId = userId, JsonOptions = string.Empty });
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
         _mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
@@ -100,9 +90,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = 4;
         _context.SavedUserOptions.Add(new SavedUserOptions { UserId = userId, JsonOptions = "   " });
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
         _mockLogger.Verify(x => x.Log(LogLevel.Error, It.IsAny<EventId>(), It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Failed to deserialize user options for user {userId}")), It.IsAny<JsonException>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
@@ -120,9 +110,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         const int userId = 5;
         const string invalidJson = "{this is not valid json}";
         _context.SavedUserOptions.Add(new SavedUserOptions { UserId = userId, JsonOptions = invalidJson });
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
         _mockLogger.Verify(x => x.Log(LogLevel.Error, It.IsAny<EventId>(), It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Failed to deserialize user options for user {userId}")), It.IsAny<JsonException>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
@@ -140,9 +130,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         const int userId = 6;
         const string malformedJson = "{\"UserId\":1,\"SelectedCategoryType\":}";
         _context.SavedUserOptions.Add(new SavedUserOptions { UserId = userId, JsonOptions = malformedJson });
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
         _mockLogger.Verify(x => x.Log(LogLevel.Error, It.IsAny<EventId>(), It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to deserialize user options for user")), It.IsAny<JsonException>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
@@ -174,7 +164,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = 0;
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -190,7 +180,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = -1;
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -206,7 +196,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = int.MinValue;
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -222,7 +212,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = int.MaxValue;
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -238,7 +228,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         // Arrange
         const int userId = 999;
         // Act
-        var result = await _provider.LoadUserOptionsAsync(userId);
+        var result = await _provider.LoadUserOptionsAsync(userId, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
         _mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
@@ -302,9 +292,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         context.Users.Add(user);
         context.Roles.AddRange(role1, role2);
         context.UserRoles.AddRange(userRole1, userRole2);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await provider.LoadUserByIdAsync(1);
+        var result = await provider.LoadUserByIdAsync(1, TestContext.Current.CancellationToken);
         // Assert
         Assert.NotNull(result);
         Assert.Equal(1, result.Id);
@@ -338,9 +328,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
             FamilyId = 200
         };
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await provider.LoadUserByIdAsync(2);
+        var result = await provider.LoadUserByIdAsync(2, TestContext.Current.CancellationToken);
         // Assert
         Assert.NotNull(result);
         Assert.Equal(2, result.Id);
@@ -364,7 +354,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         var mockLogger = new Mock<ILogger<DbUserAndOptionsDataProvider>>();
         var provider = new DbUserAndOptionsDataProvider(context, mockLogger.Object);
         // Act
-        var result = await provider.LoadUserByIdAsync(999);
+        var result = await provider.LoadUserByIdAsync(999, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -382,7 +372,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         var mockLogger = new Mock<ILogger<DbUserAndOptionsDataProvider>>();
         var provider = new DbUserAndOptionsDataProvider(context, mockLogger.Object);
         // Act
-        var result = await provider.LoadUserByIdAsync(0);
+        var result = await provider.LoadUserByIdAsync(0, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -400,7 +390,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         var mockLogger = new Mock<ILogger<DbUserAndOptionsDataProvider>>();
         var provider = new DbUserAndOptionsDataProvider(context, mockLogger.Object);
         // Act
-        var result = await provider.LoadUserByIdAsync(-1);
+        var result = await provider.LoadUserByIdAsync(-1, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -418,7 +408,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         var mockLogger = new Mock<ILogger<DbUserAndOptionsDataProvider>>();
         var provider = new DbUserAndOptionsDataProvider(context, mockLogger.Object);
         // Act
-        var result = await provider.LoadUserByIdAsync(int.MaxValue);
+        var result = await provider.LoadUserByIdAsync(int.MaxValue, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -436,7 +426,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         var mockLogger = new Mock<ILogger<DbUserAndOptionsDataProvider>>();
         var provider = new DbUserAndOptionsDataProvider(context, mockLogger.Object);
         // Act
-        var result = await provider.LoadUserByIdAsync(int.MinValue);
+        var result = await provider.LoadUserByIdAsync(int.MinValue, TestContext.Current.CancellationToken);
         // Assert
         Assert.Null(result);
     }
@@ -462,7 +452,7 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
             FamilyId = 500
         };
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var cts = new CancellationTokenSource();
         cts.Cancel();
         // Act & Assert
@@ -506,9 +496,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
             FamilyId = 3
         };
         context.Users.AddRange(user1, user2, user3);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await provider.LoadUserByIdAsync(20);
+        var result = await provider.LoadUserByIdAsync(20, TestContext.Current.CancellationToken);
         // Assert
         Assert.NotNull(result);
         Assert.Equal(20, result.Id);
@@ -554,9 +544,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
         context.Users.Add(user);
         context.Roles.Add(role);
         context.UserRoles.Add(userRole);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await provider.LoadUserByIdAsync(7);
+        var result = await provider.LoadUserByIdAsync(7, TestContext.Current.CancellationToken);
         // Assert
         Assert.NotNull(result);
         Assert.Single(result.Roles);
@@ -585,9 +575,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
             FamilyId = 800
         };
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await provider.LoadUserByIdAsync(8);
+        var result = await provider.LoadUserByIdAsync(8, TestContext.Current.CancellationToken);
         // Assert
         Assert.NotNull(result);
         Assert.Equal(string.Empty, result.Email);
@@ -616,9 +606,9 @@ public sealed class DbUserAndOptionsDataProviderTests : IAsyncDisposable
             FamilyId = 900
         };
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Act
-        var result = await provider.LoadUserByIdAsync(9);
+        var result = await provider.LoadUserByIdAsync(9, TestContext.Current.CancellationToken);
         // Assert
         Assert.NotNull(result);
         Assert.Equal("TEST+SPECIAL@EXAMPLE.COM", result.Email);

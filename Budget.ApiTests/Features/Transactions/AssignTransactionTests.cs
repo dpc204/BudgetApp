@@ -1,22 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.Transactions;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
-
-namespace Budget.Api.Features.Transactions.UnitTests;
+﻿namespace Budget.ApiTests.Features.Transactions;
 
 
 /// <summary>
@@ -47,7 +29,7 @@ public partial class MoveEnvelopeBalanceTests
 
         var family = new Family { Id = 1, Name = "Test Family" };
         context.Families.Add(family);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -71,7 +53,7 @@ public partial class MoveEnvelopeBalanceTests
         var fromEnvelope = new Envelope { Id = 1, Balance = 500m, FamilyId = 1, Name = "From" };
         var toEnvelope = new Envelope { Id = 2, Balance = 200m, FamilyId = 1, Name = "To" };
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -79,8 +61,8 @@ public partial class MoveEnvelopeBalanceTests
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 100m);
 
         // Assert
-        var updatedFrom = await context.Envelopes.FindAsync(1);
-        var updatedTo = await context.Envelopes.FindAsync(2);
+        var updatedFrom = await context.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
+        var updatedTo = await context.Envelopes.FindAsync([2], TestContext.Current.CancellationToken);
         Assert.NotNull(updatedFrom);
         Assert.NotNull(updatedTo);
         Assert.Equal(400m, updatedFrom.Balance);
@@ -99,7 +81,7 @@ public partial class MoveEnvelopeBalanceTests
         await using var context = new BudgetContext(CreateInMemoryOptions(), null);
         var toEnvelope = new Envelope { Id = 2, Balance = 200m, FamilyId = 1, Name = "To" };
         context.Envelopes.Add(toEnvelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -121,7 +103,7 @@ public partial class MoveEnvelopeBalanceTests
         await using var context = new BudgetContext(CreateInMemoryOptions(), null);
         var fromEnvelope = new Envelope { Id = 1, Balance = 500m, FamilyId = 1, Name = "From" };
         context.Envelopes.Add(fromEnvelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -162,7 +144,7 @@ public partial class MoveEnvelopeBalanceTests
         var fromEnvelope = new Envelope { Id = 1, Balance = 500m, FamilyId = 1, Name = "From" };
         var toEnvelope = new Envelope { Id = 2, Balance = 200m, FamilyId = 1, Name = "To" };
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -170,8 +152,8 @@ public partial class MoveEnvelopeBalanceTests
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 0m);
 
         // Assert
-        var updatedFrom = await context.Envelopes.FindAsync(1);
-        var updatedTo = await context.Envelopes.FindAsync(2);
+        var updatedFrom = await context.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
+        var updatedTo = await context.Envelopes.FindAsync([2], TestContext.Current.CancellationToken);
         Assert.NotNull(updatedFrom);
         Assert.NotNull(updatedTo);
         Assert.Equal(500m, updatedFrom.Balance);
@@ -192,7 +174,7 @@ public partial class MoveEnvelopeBalanceTests
         var fromEnvelope = new Envelope { Id = 1, Balance = 50m, FamilyId = 1, Name = "From" };
         var toEnvelope = new Envelope { Id = 2, Balance = 200m, FamilyId = 1, Name = "To" };
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -200,8 +182,8 @@ public partial class MoveEnvelopeBalanceTests
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 100m);
 
         // Assert
-        var updatedFrom = await context.Envelopes.FindAsync(1);
-        var updatedTo = await context.Envelopes.FindAsync(2);
+        var updatedFrom = await context.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
+        var updatedTo = await context.Envelopes.FindAsync([2], TestContext.Current.CancellationToken);
         Assert.NotNull(updatedFrom);
         Assert.NotNull(updatedTo);
         Assert.Equal(-50m, updatedFrom.Balance);
@@ -220,7 +202,7 @@ public partial class MoveEnvelopeBalanceTests
         await using var context = new BudgetContext(CreateInMemoryOptions(), null);
         var envelope = new Envelope { Id = 1, Balance = 500m, FamilyId = 1, Name = "Same" };
         context.Envelopes.Add(envelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -228,7 +210,7 @@ public partial class MoveEnvelopeBalanceTests
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 1, amountToMove: 100m);
 
         // Assert
-        var updated = await context.Envelopes.FindAsync(1);
+        var updated = await context.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
         Assert.NotNull(updated);
         Assert.Equal(500m, updated.Balance);
     }
@@ -250,7 +232,7 @@ public partial class MoveEnvelopeBalanceTests
         var fromEnvelope = new Envelope { Id = 1, Balance = 2000000000m, FamilyId = 1, Name = "From" };
         var toEnvelope = new Envelope { Id = 2, Balance = 2000000000m, FamilyId = 1, Name = "To" };
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -258,8 +240,8 @@ public partial class MoveEnvelopeBalanceTests
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove);
 
         // Assert
-        var updatedFrom = await context.Envelopes.FindAsync(1);
-        var updatedTo = await context.Envelopes.FindAsync(2);
+        var updatedFrom = await context.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
+        var updatedTo = await context.Envelopes.FindAsync([2], TestContext.Current.CancellationToken);
         Assert.NotNull(updatedFrom);
         Assert.NotNull(updatedTo);
         Assert.Equal(2000000000m - amountToMove, updatedFrom.Balance);
@@ -281,7 +263,7 @@ public partial class MoveEnvelopeBalanceTests
             var fromEnvelope = new Envelope { Id = 1, Balance = 500m, FamilyId = 1, Name = "From" };
             var toEnvelope = new Envelope { Id = 2, Balance = 200m, FamilyId = 1, Name = "To" };
             context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var service = new MoveEnvelopeBalance();
 
@@ -290,15 +272,13 @@ public partial class MoveEnvelopeBalanceTests
         }
 
         // Assert - verify changes persist in a new context
-        await using (var verifyContext = new BudgetContext(options, null))
-        {
-            var updatedFrom = await verifyContext.Envelopes.FindAsync(1);
-            var updatedTo = await verifyContext.Envelopes.FindAsync(2);
-            Assert.NotNull(updatedFrom);
-            Assert.NotNull(updatedTo);
-            Assert.Equal(400m, updatedFrom.Balance);
-            Assert.Equal(300m, updatedTo.Balance);
-        }
+        await using var verifyContext = new BudgetContext(options, null);
+        var updatedFrom = await verifyContext.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
+        var updatedTo = await verifyContext.Envelopes.FindAsync([2], TestContext.Current.CancellationToken);
+        Assert.NotNull(updatedFrom);
+        Assert.NotNull(updatedTo);
+        Assert.Equal(400m, updatedFrom.Balance);
+        Assert.Equal(300m, updatedTo.Balance);
     }
 
     /// <summary>
@@ -314,7 +294,7 @@ public partial class MoveEnvelopeBalanceTests
         var fromEnvelope = new Envelope { Id = 1, Balance = 100.123456789m, FamilyId = 1, Name = "From" };
         var toEnvelope = new Envelope { Id = 2, Balance = 50.987654321m, FamilyId = 1, Name = "To" };
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -322,8 +302,8 @@ public partial class MoveEnvelopeBalanceTests
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 0.123456789m);
 
         // Assert
-        var updatedFrom = await context.Envelopes.FindAsync(1);
-        var updatedTo = await context.Envelopes.FindAsync(2);
+        var updatedFrom = await context.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
+        var updatedTo = await context.Envelopes.FindAsync([2], TestContext.Current.CancellationToken);
         Assert.NotNull(updatedFrom);
         Assert.NotNull(updatedTo);
         Assert.Equal(100m, updatedFrom.Balance);
@@ -344,7 +324,7 @@ public partial class MoveEnvelopeBalanceTests
         var envelope2 = new Envelope { Id = 2, Balance = 500m, FamilyId = 1, Name = "Envelope2" };
         var envelope3 = new Envelope { Id = 3, Balance = 250m, FamilyId = 1, Name = "Envelope3" };
         context.Envelopes.AddRange(envelope1, envelope2, envelope3);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var service = new MoveEnvelopeBalance();
 
@@ -354,9 +334,9 @@ public partial class MoveEnvelopeBalanceTests
         await service.MoveBalance(context, fromEnvelopeId: 3, toEnvelopeId: 1, amountToMove: 25m);
 
         // Assert
-        var updated1 = await context.Envelopes.FindAsync(1);
-        var updated2 = await context.Envelopes.FindAsync(2);
-        var updated3 = await context.Envelopes.FindAsync(3);
+        var updated1 = await context.Envelopes.FindAsync([1], TestContext.Current.CancellationToken);
+        var updated2 = await context.Envelopes.FindAsync([2], TestContext.Current.CancellationToken);
+        var updated3 = await context.Envelopes.FindAsync([3], TestContext.Current.CancellationToken);
         Assert.NotNull(updated1);
         Assert.NotNull(updated2);
         Assert.NotNull(updated3);

@@ -634,7 +634,7 @@ public class GetBackupSetsHandlerTests
         result.Should().NotBeNull();
         result.BackupSets.Should().HaveCount(3);
         result.BackupSets.Should().OnlyContain(x => x.BackupDate == sameDate);
-        result.BackupSets.Select(x => x.PartitionKey).Should().Contain(new[] { "backup-A", "backup-B", "backup-C" });
+        result.BackupSets.Select(x => x.PartitionKey).Should().Contain(["backup-A", "backup-B", "backup-C"]);
     }
 
     /// <summary>

@@ -1,23 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.Envelopes;
-using Budget.DB;
+﻿using Budget.Api.Features.Envelopes;
 using Budget.Shared.Enums;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Envelopes.UnitTests;
+namespace Budget.ApiTests.Features.Envelopes;
 
 
 /// <summary>
@@ -97,7 +81,7 @@ public class GetAllEnvelopesHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(3);
-        result.Select(r => r.Id).Should().BeEquivalentTo(new[] { 1, 2, 3 });
+        result.Select(r => r.Id).Should().BeEquivalentTo([1, 2, 3]);
     }
 
     /// <summary>
@@ -390,7 +374,7 @@ public class GetAllEnvelopesHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(3);
-        List<GetAllEnvelopes.Response> resultList = result.ToList();
+        List<GetAllEnvelopes.Response> resultList = [.. result];
         resultList[0].Name.Should().Be("First");
         resultList[0].SortOrder.Should().Be(10);
         resultList[1].Name.Should().Be("Second");
@@ -587,7 +571,7 @@ public class GetAllEnvelopesHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(3);
-        List<GetAllEnvelopes.Response> resultList = result.ToList();
+        List<GetAllEnvelopes.Response> resultList = [.. result];
 
         // Verify order is ascending by SortOrder
         for (int i = 0; i < resultList.Count - 1; i++)

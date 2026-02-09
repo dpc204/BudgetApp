@@ -51,7 +51,7 @@ public partial class GetUserEndpointTests
         var mockServiceProvider = new Mock<IServiceProvider>();
         var mockDataSource = new Mock<EndpointDataSource>();
         mockApp.Setup(a => a.ServiceProvider).Returns(mockServiceProvider.Object);
-        mockApp.Setup(a => a.DataSources).Returns(new List<EndpointDataSource> { mockDataSource.Object });
+        mockApp.Setup(a => a.DataSources).Returns([mockDataSource.Object]);
         // Note: Full endpoint behavior testing (including authorization, tags, and handler logic)
         // requires integration testing with WebApplicationFactory. This unit test verifies
         // that the registration method executes without errors.
@@ -76,7 +76,7 @@ public partial class GetUserEndpointTests
     {
         // Arrange
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUser.Response(id, "test@example.com", "John", "Doe", 1, new List<GetUser.RoleDto> { new(1, "Admin") });
+        var expectedResponse = new GetUser.Response(id, "test@example.com", "John", "Doe", 1, [new(1, "Admin")]);
         mockSender.Setup(s => s.Send(It.Is<GetUser.Query>(q => q.Id == id), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUser.Query(id), CancellationToken.None);
@@ -120,7 +120,7 @@ public partial class GetUserEndpointTests
     {
         // Arrange
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUser.Response(1, "test@example.com", "Jane", "Smith", 2, new List<GetUser.RoleDto>());
+        var expectedResponse = new GetUser.Response(1, "test@example.com", "Jane", "Smith", 2, []);
         mockSender.Setup(s => s.Send(It.Is<GetUser.Query>(q => q.Id == 1), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUser.Query(1), CancellationToken.None);
@@ -172,7 +172,7 @@ public partial class GetUserEndpointTests
     {
         // Arrange
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUser.Response(1, email, firstName, lastName, 1, new List<GetUser.RoleDto>());
+        var expectedResponse = new GetUser.Response(1, email, firstName, lastName, 1, []);
         mockSender.Setup(s => s.Send(It.IsAny<GetUser.Query>(), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUser.Query(1), CancellationToken.None);
@@ -228,7 +228,7 @@ public sealed class GetUserHandlerTests
         context.Users.Add(user);
         context.Roles.AddRange(role1, role2);
         context.UserRoles.AddRange(new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow }, new UserRole { UserId = 1, RoleId = 2, AssignedAt = DateTime.UtcNow });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var handler = new GetUser.Handler(context);
         // Act
         GetUser.Response? result = await handler.Handle(new GetUser.Query(1), CancellationToken.None);
@@ -267,7 +267,7 @@ public sealed class GetUserHandlerTests
         };
         context.Families.Add(family);
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var handler = new GetUser.Handler(context);
         // Act
         GetUser.Response? result = await handler.Handle(new GetUser.Query(1), CancellationToken.None);
@@ -388,7 +388,7 @@ public sealed class GetUserHandlerTests
         context.Users.Add(user);
         context.Roles.Add(role);
         context.UserRoles.Add(new UserRole { UserId = 5, RoleId = 10, AssignedAt = DateTime.UtcNow });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var handler = new GetUser.Handler(context);
         // Act
         GetUser.Response? result = await handler.Handle(new GetUser.Query(5), CancellationToken.None);
@@ -422,7 +422,7 @@ public sealed class GetUserHandlerTests
         };
         context.Families.Add(family);
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var handler = new GetUser.Handler(context);
         var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -481,7 +481,7 @@ public sealed class GetUserHandlerTests
         context.Users.Add(user);
         context.Roles.AddRange(roles);
         context.UserRoles.AddRange(new UserRole { UserId = 10, RoleId = 1, AssignedAt = DateTime.UtcNow }, new UserRole { UserId = 10, RoleId = 2, AssignedAt = DateTime.UtcNow }, new UserRole { UserId = 10, RoleId = 3, AssignedAt = DateTime.UtcNow });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var handler = new GetUser.Handler(context);
         // Act
         GetUser.Response? result = await handler.Handle(new GetUser.Query(10), CancellationToken.None);
@@ -516,7 +516,7 @@ public sealed class GetUserHandlerTests
         };
         context.Families.Add(family);
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         var handler = new GetUser.Handler(context);
         // Act
         GetUser.Response? result = await handler.Handle(new GetUser.Query(100), CancellationToken.None);

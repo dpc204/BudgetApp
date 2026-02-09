@@ -1,17 +1,9 @@
 ﻿using Budget.Api.Features.Utilities.Backup;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Utilities.Backup.UnitTests;
+namespace Budget.ApiTests.Features.Utilities.Backup;
 
 
 /// <summary>
@@ -46,7 +38,7 @@ public partial class EndpointTests
 
         mockRouteBuilder
             .Setup(x => x.DataSources)
-            .Returns(new List<EndpointDataSource>());
+            .Returns([]);
 
         var endpoint = new DownloadBackup.Endpoint();
 

@@ -555,7 +555,7 @@ public partial class InsertTransactionsTests
         // Act
         await service.EndBatchAsync();
         // Assert
-        int transactionCount = await context.Transactions.CountAsync();
+        int transactionCount = await context.Transactions.CountAsync(cancellationToken: TestContext.Current.CancellationToken);
         transactionCount.Should().Be(0, "no transactions should be added in an empty batch");
         // Verify state allows starting a new batch
         Func<Task> act = async () => await service.BeginBatchAsync();
@@ -722,14 +722,14 @@ public partial class InsertTransactionsTests
             Description = "Test Description",
             UserId = 1,
             TransactionType = TransactionTypes.Expense,
-            Details = new List<TransactionDetailDto>
-            {
+            Details =
+            [
                 new() {
                     EnvelopeId = 1,
                     Amount = 100.00m,
                     Notes = "Test"
                 }
-            }
+            ]
         };
         var list = new List<OneTransactionDetail>
         {
@@ -767,14 +767,14 @@ public partial class InsertTransactionsTests
                 Description = "Transaction 1",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 50.00m,
                         Notes = "Detail 1"
                     }
-                }
+                ]
             },
             new() {
                 AccountId = 2,
@@ -783,14 +783,14 @@ public partial class InsertTransactionsTests
                 Description = "Transaction 2",
                 UserId = 1,
                 TransactionType = TransactionTypes.Income,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 2,
                         Amount = 100.00m,
                         Notes = "Detail 2"
                     }
-                }
+                ]
             },
             new() {
                 AccountId = 1,
@@ -799,8 +799,8 @@ public partial class InsertTransactionsTests
                 Description = "Transaction 3",
                 UserId = 2,
                 TransactionType = TransactionTypes.Transfer,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = -75.00m,
@@ -811,7 +811,7 @@ public partial class InsertTransactionsTests
                         Amount = 75.00m,
                         Notes = "Transfer in"
                     }
-                }
+                ]
             }
         };
         // Act
@@ -845,7 +845,7 @@ public partial class InsertTransactionsTests
             Description = "Transaction with no details",
             UserId = 1,
             TransactionType = TransactionTypes.Expense,
-            Details = new List<TransactionDetailDto>()
+            Details = []
         };
         var list = new List<OneTransactionDetail>
         {
@@ -883,13 +883,13 @@ public partial class InsertTransactionsTests
                 Description = "Min Date Transaction",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 10.00m
                     }
-                }
+                ]
             },
             new() {
                 AccountId = 1,
@@ -898,13 +898,13 @@ public partial class InsertTransactionsTests
                 Description = "Max Date Transaction",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 20.00m
                     }
-                }
+                ]
             }
         };
         // Act
@@ -938,13 +938,13 @@ public partial class InsertTransactionsTests
                 Description = "Zero amount transaction",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 0m
                     }
-                }
+                ]
             },
             new() {
                 AccountId = 1,
@@ -953,13 +953,13 @@ public partial class InsertTransactionsTests
                 Description = "Negative amount transaction",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = -100.00m
                     }
-                }
+                ]
             },
             new() {
                 AccountId = 1,
@@ -968,13 +968,13 @@ public partial class InsertTransactionsTests
                 Description = "Large amount transaction",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 999999999.99m
                     }
-                }
+                ]
             }
         };
         // Act
@@ -1008,14 +1008,14 @@ public partial class InsertTransactionsTests
                 Description = string.Empty,
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 50.00m,
                         Notes = string.Empty
                     }
-                }
+                ]
             },
             new() {
                 AccountId = 1,
@@ -1024,14 +1024,14 @@ public partial class InsertTransactionsTests
                 Description = "   ",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 50.00m,
                         Notes = "   "
                     }
-                }
+                ]
             }
         };
         // Act
@@ -1068,13 +1068,13 @@ public partial class InsertTransactionsTests
                 Description = $"{transactionType} Transaction",
                 UserId = 1,
                 TransactionType = transactionType,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 100.00m
                     }
-                }
+                ]
             }
         };
         // Act
@@ -1108,8 +1108,8 @@ public partial class InsertTransactionsTests
                 Description = "Transaction with multiple details",
                 UserId = 1,
                 TransactionType = TransactionTypes.Expense,
-                Details = new List<TransactionDetailDto>
-                {
+                Details =
+                [
                     new() {
                         EnvelopeId = 1,
                         Amount = 25.00m,
@@ -1125,7 +1125,7 @@ public partial class InsertTransactionsTests
                         Amount = 45.00m,
                         Notes = "Detail 3"
                     }
-                }
+                ]
             }
         };
         // Act

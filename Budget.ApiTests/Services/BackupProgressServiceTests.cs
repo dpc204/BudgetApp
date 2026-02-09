@@ -1,9 +1,6 @@
-﻿using System;
+﻿using Budget.Api.Services;
 
-using Budget.Api.Services;
-using Xunit;
-
-namespace Budget.Api.Services.UnitTests;
+namespace Budget.ApiTests.Services;
 
 
 /// <summary>

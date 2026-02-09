@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.Envelopes.EnvelopeMaint;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
+﻿using Budget.Api.Features.Envelopes.EnvelopeMaint;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Envelopes.EnvelopeMaint.UnitTests;
+namespace Budget.ApiTests.Features.Envelopes.EnvelopeMaint;
 
 
 /// <summary>

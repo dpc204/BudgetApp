@@ -1,17 +1,6 @@
 ﻿using Budget.Api.Features.Admin.Roles;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Admin.Roles.UnitTests;
+namespace Budget.ApiTests.Features.Admin.Roles;
 
 
 /// <summary>
@@ -45,7 +34,7 @@ public partial class DeleteRoleHandlerTests
             CreatedAt = DateTime.UtcNow
         };
         context.Roles.Add(role);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new DeleteRole.Handler(context);
         var command = new DeleteRole.Command(1);
@@ -58,7 +47,7 @@ public partial class DeleteRoleHandlerTests
         result.Success.Should().BeTrue();
         result.ErrorMessage.Should().BeNull();
 
-        Role? deletedRole = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1);
+        Role? deletedRole = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1, TestContext.Current.CancellationToken);
         deletedRole.Should().BeNull();
     }
 
@@ -121,7 +110,7 @@ public partial class DeleteRoleHandlerTests
             RoleId = 1,
             AssignedAt = DateTime.UtcNow
         });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new DeleteRole.Handler(context);
         var command = new DeleteRole.Command(1);
@@ -134,7 +123,7 @@ public partial class DeleteRoleHandlerTests
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Be("Cannot delete role 'Admin' because it has 1 user(s) assigned to it.");
 
-        Role? roleStillExists = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1);
+        Role? roleStillExists = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1, TestContext.Current.CancellationToken);
         roleStillExists.Should().NotBeNull();
     }
 
@@ -169,7 +158,7 @@ public partial class DeleteRoleHandlerTests
             new UserRole { UserId = 2, RoleId = 1, AssignedAt = DateTime.UtcNow },
             new UserRole { UserId = 3, RoleId = 1, AssignedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new DeleteRole.Handler(context);
         var command = new DeleteRole.Command(1);
@@ -182,7 +171,7 @@ public partial class DeleteRoleHandlerTests
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Be("Cannot delete role 'PowerUser' because it has 3 user(s) assigned to it.");
 
-        Role? roleStillExists = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1);
+        Role? roleStillExists = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1, TestContext.Current.CancellationToken);
         roleStillExists.Should().NotBeNull();
     }
 
@@ -293,7 +282,7 @@ public partial class DeleteRoleHandlerTests
             CreatedAt = DateTime.UtcNow
         };
         context.Roles.Add(role);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new DeleteRole.Handler(context);
         var command = new DeleteRole.Command(1);
@@ -325,7 +314,7 @@ public partial class DeleteRoleHandlerTests
             UserRoles = []
         };
         context.Roles.Add(role);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new DeleteRole.Handler(context);
         var command = new DeleteRole.Command(1);
@@ -338,7 +327,7 @@ public partial class DeleteRoleHandlerTests
         result.Success.Should().BeTrue();
         result.ErrorMessage.Should().BeNull();
 
-        Role? deletedRole = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1);
+        Role? deletedRole = await context.Roles.FirstOrDefaultAsync(r => r.Id == 1, TestContext.Current.CancellationToken);
         deletedRole.Should().BeNull();
     }
 }

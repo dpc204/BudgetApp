@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Security.Principal;
 using Budget.Api.Services;
-using Budget.DB;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Moq;
-using Xunit;
 
-
-namespace Budget.Api.Services.UnitTests;
+namespace Budget.ApiTests.Services;
 
 /// <summary>
 /// Unit tests for CurrentFamilyService
@@ -46,7 +41,7 @@ public class CurrentFamilyServiceTests
         // Arrange
         var mockAccessor = new Mock<IHttpContextAccessor>();
         var mockHttpContext = new Mock<HttpContext>();
-        mockHttpContext.Setup(x => x.User).Returns((ClaimsPrincipal?)null);
+        mockHttpContext.Setup(x => x.User).Returns((ClaimsPrincipal)null!);
         mockAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
         var service = new CurrentFamilyService(mockAccessor.Object);
 
@@ -469,7 +464,7 @@ public class CurrentFamilyServiceTests
         var mockHeaders = new Mock<IHeaderDictionary>();
         var mockIdentity = new Mock<IIdentity>();
         mockIdentity.Setup(x => x.IsAuthenticated).Returns(true);
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>(), "TestAuth"));
+        var user = new ClaimsPrincipal(new ClaimsIdentity([], "TestAuth"));
 
         var headerValue = StringValues.Empty;
         mockHeaders.Setup(x => x.TryGetValue("X-FamilyId", out headerValue)).Returns(false);

@@ -119,7 +119,6 @@ public class GetBackupSetDetailsTests
         var mockServiceProvider = new Mock<IServiceProvider>();
         var mockRouteHandlerBuilder = new Mock<IEndpointConventionBuilder>();
 
-        Delegate? capturedHandler = null;
         mockApp
             .Setup(x => x.CreateApplicationBuilder())
             .Returns(Mock.Of<IApplicationBuilder>());
@@ -128,7 +127,7 @@ public class GetBackupSetDetailsTests
             .Returns(mockServiceProvider.Object);
         mockApp
             .Setup(x => x.DataSources)
-            .Returns(new List<EndpointDataSource>());
+            .Returns([]);
 
         var endpoint = new GetBackupSetDetails.Endpoint();
 

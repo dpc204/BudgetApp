@@ -1,19 +1,31 @@
-﻿using Budget.Api.Features.Authentication;
-using Budget.Shared;
+﻿using Budget.Shared;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
-using Xunit;
 
-namespace Budget.Api.Features.Authentication.UnitTests;
+namespace Budget.ApiTests.Features.Authentication;
 /// <summary>
 /// Unit tests for the UserInfoEndpoints class.
 /// </summary>
 public sealed partial class UserInfoEndpointsTests
 {
+    /// <summary>
+    /// Creates a mock UserManager instance with all required dependencies properly configured.
+    /// </summary>
+    private static Mock<UserManager<BudgetUser>> CreateMockUserManager()
+    {
+        return new Mock<UserManager<BudgetUser>>(
+            Mock.Of<IUserStore<BudgetUser>>(),
+            Mock.Of<Microsoft.Extensions.Options.IOptions<IdentityOptions>>(),
+            Mock.Of<IPasswordHasher<BudgetUser>>(),
+            Array.Empty<IUserValidator<BudgetUser>>(),
+            Array.Empty<IPasswordValidator<BudgetUser>>(),
+            Mock.Of<ILookupNormalizer>(),
+            Mock.Of<IdentityErrorDescriber>(),
+            Mock.Of<IServiceProvider>(),
+            Mock.Of<Microsoft.Extensions.Logging.ILogger<UserManager<BudgetUser>>>());
+    }
     /// <summary>
     /// Tests that AddRoutes returns early without registering routes when UserManager cannot be resolved from the service provider.
     /// Input: IEndpointRouteBuilder with a service provider that returns null for UserManager service.
@@ -29,7 +41,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
         // Setup the service scope to return null for UserManager<BudgetUser>
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
-        mockServiceProvider.Setup(x => x.GetService(typeof(UserManager<BudgetUser>))).Returns(null);
+        mockServiceProvider.Setup(x => x.GetService(typeof(UserManager<BudgetUser>))).Returns((object?)null);
         // Setup the service scope factory
         mockServiceScopeFactory.Setup(x => x.CreateScope()).Returns(mockServiceScope.Object);
         mockServiceProvider.Setup(x => x.GetService(typeof(IServiceScopeFactory))).Returns(mockServiceScopeFactory.Object);
@@ -91,7 +103,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -104,7 +116,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup the endpoint route builder's service provider
         mockEndpointRouteBuilder.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         
         var endpoints = new UserInfoEndpoints();
         
@@ -132,7 +144,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -145,7 +157,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup the endpoint route builder's service provider
         mockEndpointRouteBuilder.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         
         var endpoints = new UserInfoEndpoints();
         
@@ -173,7 +185,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -186,7 +198,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup the endpoint route builder's service provider
         mockEndpointRouteBuilder.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         
         var endpoints = new UserInfoEndpoints();
         
@@ -214,7 +226,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -227,7 +239,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup the endpoint route builder's service provider
         mockEndpointRouteBuilder.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         
         var endpoints = new UserInfoEndpoints();
         
@@ -255,7 +267,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -268,7 +280,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup the endpoint route builder's service provider
         mockEndpointRouteBuilder.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         
         var endpoints = new UserInfoEndpoints();
         
@@ -296,7 +308,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -309,7 +321,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup the endpoint route builder's service provider
         mockEndpointRouteBuilder.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         
         var endpoints = new UserInfoEndpoints();
         
@@ -337,7 +349,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -350,7 +362,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup the endpoint route builder's service provider
         mockEndpointRouteBuilder.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         
         var endpoints = new UserInfoEndpoints();
         
@@ -378,7 +390,7 @@ public sealed partial class UserInfoEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         // Setup the service scope to return a valid UserManager
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockServiceProvider.Setup(x => x.GetService(typeof(UserManager<BudgetUser>))).Returns(mockUserManager.Object);
@@ -390,7 +402,7 @@ public sealed partial class UserInfoEndpointsTests
         // Setup MapGroup to return a mock RouteGroupBuilder
         var mockRouteGroupBuilder = new Mock<IEndpointRouteBuilder>();
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         var endpoints = new UserInfoEndpoints();
         // Act - verify that AddRoutes executes without throwing
         var exception = Record.Exception(() => endpoints.AddRoutes(mockEndpointRouteBuilder.Object));

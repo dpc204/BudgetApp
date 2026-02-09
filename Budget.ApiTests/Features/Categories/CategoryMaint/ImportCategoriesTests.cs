@@ -1,22 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.Categories.CategoryMaint;
-using Budget.DB;
-using Budget.Shared.Enums;
-using Carter;
+﻿using Budget.Api.Features.Categories.CategoryMaint;
 using Fantum.Mediator;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Categories.CategoryMaint.UnitTests;
+namespace Budget.ApiTests.Features.Categories.CategoryMaint;
 
 
 /// <summary>
@@ -54,7 +41,7 @@ public partial class EndpointTests
     {
         // Arrange
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new ImportCategories.Response(5, new List<string>());
+        var expectedResponse = new ImportCategories.Response(5, []);
         var request = new ImportCategories.ImportRequest { CsvContent = "Name\nCategory1" };
 
         mockSender
@@ -124,7 +111,7 @@ public partial class EndpointTests
     {
         // Arrange
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new ImportCategories.Response(0, new List<string>());
+        var expectedResponse = new ImportCategories.Response(0, []);
         var request = new ImportCategories.ImportRequest { CsvContent = string.Empty };
         ImportCategories.Command? capturedCommand = null;
 
@@ -153,7 +140,7 @@ public partial class EndpointTests
     {
         // Arrange
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new ImportCategories.Response(0, new List<string>());
+        var expectedResponse = new ImportCategories.Response(0, []);
         var request = new ImportCategories.ImportRequest { CsvContent = "   \t\n  " };
         ImportCategories.Command? capturedCommand = null;
 
@@ -183,7 +170,7 @@ public partial class EndpointTests
         // Arrange
         var mockSender = new Mock<ISender>();
         var largeCsv = new string('A', 100000); // 100KB of data
-        var expectedResponse = new ImportCategories.Response(100, new List<string>());
+        var expectedResponse = new ImportCategories.Response(100, []);
         var request = new ImportCategories.ImportRequest { CsvContent = largeCsv };
 
         mockSender
@@ -216,7 +203,7 @@ public partial class EndpointTests
         // Arrange
         var mockSender = new Mock<ISender>();
         var csvContent = "Name,Description\nTest1,Description1\nTest2,Description2";
-        var expectedResponse = new ImportCategories.Response(2, new List<string>());
+        var expectedResponse = new ImportCategories.Response(2, []);
         var request = new ImportCategories.ImportRequest { CsvContent = csvContent };
         ImportCategories.Command? capturedCommand = null;
 
@@ -320,7 +307,7 @@ public sealed class ImportCategoriesHandlerTests : IDisposable
         Assert.Equal(1, result.ImportedCount);
         Assert.Empty(result.Errors);
 
-        Assert.Equal(1, await context.Categories.CountAsync());
+        Assert.Equal(1, await context.Categories.CountAsync(TestContext.Current.CancellationToken));
     }
 
     /// <summary>
@@ -352,7 +339,7 @@ public sealed class ImportCategoriesHandlerTests : IDisposable
         Assert.Equal(3, result.ImportedCount);
         Assert.Empty(result.Errors);
 
-        Assert.Equal(3, await context.Categories.CountAsync());
+        Assert.Equal(3, await context.Categories.CountAsync(TestContext.Current.CancellationToken));
     }
 
     /// <summary>

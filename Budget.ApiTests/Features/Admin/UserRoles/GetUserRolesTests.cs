@@ -1,22 +1,8 @@
 ﻿using Budget.Api.Features.Admin.UserRoles;
-using Budget.DB;
-using Carter;
 using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OpenApi.Generated;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Moq.Language;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Budget.Api.Features.Admin.UnitTests;
+namespace Budget.ApiTests.Features.Admin.UserRoles;
 /// <summary>
 /// Unit tests for the GetUserRoles.Endpoint class
 /// </summary>
@@ -47,7 +33,7 @@ public sealed class GetUserRolesEndpointTests
         // Arrange
         var userId = 123;
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUserRoles.Response(userId, new System.Collections.Generic.List<GetUserRoles.RoleDto>());
+        var expectedResponse = new GetUserRoles.Response(userId, []);
         mockSender.Setup(x => x.Send(It.Is<GetUserRoles.Query>(q => q.UserId == userId), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUserRoles.Query(userId), CancellationToken.None);
@@ -68,7 +54,7 @@ public sealed class GetUserRolesEndpointTests
         // Arrange
         var userId = 0;
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUserRoles.Response(userId, new System.Collections.Generic.List<GetUserRoles.RoleDto>());
+        var expectedResponse = new GetUserRoles.Response(userId, []);
         mockSender.Setup(x => x.Send(It.Is<GetUserRoles.Query>(q => q.UserId == 0), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUserRoles.Query(userId), CancellationToken.None);
@@ -88,7 +74,7 @@ public sealed class GetUserRolesEndpointTests
         // Arrange
         var userId = -1;
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUserRoles.Response(userId, new System.Collections.Generic.List<GetUserRoles.RoleDto>());
+        var expectedResponse = new GetUserRoles.Response(userId, []);
         mockSender.Setup(x => x.Send(It.Is<GetUserRoles.Query>(q => q.UserId == -1), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUserRoles.Query(userId), CancellationToken.None);
@@ -108,7 +94,7 @@ public sealed class GetUserRolesEndpointTests
         // Arrange
         var userId = int.MaxValue;
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUserRoles.Response(userId, new System.Collections.Generic.List<GetUserRoles.RoleDto>());
+        var expectedResponse = new GetUserRoles.Response(userId, []);
         mockSender.Setup(x => x.Send(It.Is<GetUserRoles.Query>(q => q.UserId == int.MaxValue), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUserRoles.Query(userId), CancellationToken.None);
@@ -128,7 +114,7 @@ public sealed class GetUserRolesEndpointTests
         // Arrange
         var userId = int.MinValue;
         var mockSender = new Mock<ISender>();
-        var expectedResponse = new GetUserRoles.Response(userId, new System.Collections.Generic.List<GetUserRoles.RoleDto>());
+        var expectedResponse = new GetUserRoles.Response(userId, []);
         mockSender.Setup(x => x.Send(It.Is<GetUserRoles.Query>(q => q.UserId == int.MinValue), It.IsAny<CancellationToken>())).ReturnsAsync(expectedResponse);
         // Act
         var result = await mockSender.Object.Send(new GetUserRoles.Query(userId), CancellationToken.None);

@@ -1,15 +1,6 @@
 ﻿using Budget.Api.Features.Envelopes;
-using Budget.DB;
-using Budget.Shared.Enums;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Envelopes.UnitTests;
+namespace Budget.ApiTests.Features.Envelopes;
 
 
 /// <summary>

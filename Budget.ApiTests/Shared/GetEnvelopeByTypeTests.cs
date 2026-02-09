@@ -1,13 +1,7 @@
-﻿using Budget.Api.Features.Admin.Roles;
-using Budget.Api.Features.Envelopes;
-using Budget.Api.Shared;
-using Budget.DB;
+﻿using Budget.Api.Shared;
 using Budget.Shared.Enums;
-using Budget.Shared.Models;
-using Microsoft.EntityFrameworkCore;
-using Xunit;
 
-namespace Budget.Api.Shared.UnitTests
+namespace Budget.ApiTests.Shared
 {
     /// <summary>
     /// Unit tests for the GetEnvelopeByType class.
@@ -33,7 +27,7 @@ namespace Budget.Api.Shared.UnitTests
         {
             // Arrange
             await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-            await context.Database.EnsureCreatedAsync();
+            await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
             var envelope = new Budget.DB.Envelope
             {
                 Id = 100,
@@ -43,7 +37,7 @@ namespace Budget.Api.Shared.UnitTests
                 FamilyId = 1
             };
             context.Envelopes.Add(envelope);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
             // Act
             var result = await GetEnvelopeByType.Get(context, EnvelopeTypes.Income, CancellationToken.None);
             // Assert
@@ -64,7 +58,7 @@ namespace Budget.Api.Shared.UnitTests
         {
             // Arrange
             await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-            await context.Database.EnsureCreatedAsync();
+            await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
             var envelope = new Budget.DB.Envelope
             {
                 Id = (int)envelopeType,
@@ -74,7 +68,7 @@ namespace Budget.Api.Shared.UnitTests
                 FamilyId = 1
             };
             context.Envelopes.Add(envelope);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken );
             // Act
             var result = await GetEnvelopeByType.Get(context, envelopeType, CancellationToken.None);
             // Assert
@@ -94,7 +88,7 @@ namespace Budget.Api.Shared.UnitTests
         {
             // Arrange
             await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-            await context.Database.EnsureCreatedAsync();
+            await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
             var envelope = new Budget.DB.Envelope
             {
                 Id = 1,
@@ -104,7 +98,7 @@ namespace Budget.Api.Shared.UnitTests
                 FamilyId = 1
             };
             context.Envelopes.Add(envelope);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var invalidEnvelopeType = (EnvelopeTypes)999;
             // Act
             var result = await GetEnvelopeByType.Get(context, invalidEnvelopeType, CancellationToken.None);
@@ -122,7 +116,7 @@ namespace Budget.Api.Shared.UnitTests
         {
             // Arrange
             await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-            await context.Database.EnsureCreatedAsync();
+            await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
             var envelope = new Budget.DB.Envelope
             {
                 Id = 100,
@@ -132,7 +126,7 @@ namespace Budget.Api.Shared.UnitTests
                 FamilyId = 1
             };
             context.Envelopes.Add(envelope);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.Cancel();
             // Act & Assert
@@ -164,7 +158,7 @@ namespace Budget.Api.Shared.UnitTests
         {
             // Arrange
             await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-            await context.Database.EnsureCreatedAsync();
+            await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
             var envelope = new Budget.DB.Envelope
             {
                 Id = 100,
@@ -176,7 +170,7 @@ namespace Budget.Api.Shared.UnitTests
                 FamilyId = 1
             };
             context.Envelopes.Add(envelope);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
             // Act
             var result = await GetEnvelopeByType.Get(context, EnvelopeTypes.Standard, CancellationToken.None);
             // Assert

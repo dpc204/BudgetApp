@@ -1,19 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-
-using Budget.Api.Features.Authentication;
 using Budget.Shared;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Authentication.UnitTests;
+namespace Budget.ApiTests.Features.Authentication;
 
 
 /// <summary>

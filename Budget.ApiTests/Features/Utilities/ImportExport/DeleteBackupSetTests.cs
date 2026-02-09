@@ -1,24 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Azure;
+﻿using Azure;
 using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
 using Azure.Storage.Blobs;
 using Budget.Api.Features.Utilities.ImportExport;
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Utilities.ImportExport.UnitTests;
+namespace Budget.ApiTests.Features.Utilities.ImportExport;
 
 
 /// <summary>
@@ -764,19 +752,14 @@ public class DeleteBackupSetHandlerTests
     /// Test helper class to create an AsyncPageable from a list of entities.
     /// Enables testing of async enumerable behavior without complex mocking.
     /// </summary>
-    private class TestAsyncPageable<T> : AsyncPageable<T>
+    private class TestAsyncPageable<T>(IEnumerable<T> items) : AsyncPageable<T> where T : notnull 
     {
-        private readonly IEnumerable<T> _items;
+        private readonly IEnumerable<T> _items = items ?? [];
 
-        public TestAsyncPageable(IEnumerable<T> items)
-        {
-            _items = items ?? Enumerable.Empty<T>();
-        }
-
-        public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
+    public override async IAsyncEnumerable<Page<T>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
         {
             await Task.Yield();
-            yield return Page<T>.FromValues(_items.ToList(), null, Mock.Of<Response>());
+            yield return Page<T>.FromValues([.. _items], null, Mock.Of<Response>());
         }
     }
 }

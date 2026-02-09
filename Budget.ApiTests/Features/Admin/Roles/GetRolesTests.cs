@@ -1,13 +1,6 @@
 ﻿using Budget.Api.Features.Admin.Roles;
-using Budget.DB;
-using Carter;
-using FluentAssertions;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Admin.Roles.UnitTests;
+namespace Budget.ApiTests.Features.Admin.Roles;
 
 
 /// <summary>
@@ -42,7 +35,7 @@ public partial class GetRolesHandlerTests
         context.Roles.AddRange(role1, role2);
         context.Users.Add(user);
         context.UserRoles.Add(new UserRole { UserId = 1, RoleId = 1, AssignedAt = DateTime.UtcNow });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -97,7 +90,7 @@ public partial class GetRolesHandlerTests
         var role3 = new Role { Id = 3, Name = "Viewer", Description = "Read Only", CreatedAt = DateTime.UtcNow };
 
         context.Roles.AddRange(role1, role2, role3);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -136,7 +129,7 @@ public partial class GetRolesHandlerTests
         };
 
         context.Roles.Add(role);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -182,7 +175,7 @@ public partial class GetRolesHandlerTests
           new UserRole { UserId = 2, RoleId = 1, AssignedAt = DateTime.UtcNow },
           new UserRole { UserId = 3, RoleId = 1, AssignedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -213,7 +206,7 @@ public partial class GetRolesHandlerTests
         var role2 = new Role { Id = 2, Name = "Role2", Description = "Second Role", CreatedAt = createdAt, ModifiedAt = modifiedAt };
 
         context.Roles.AddRange(role1, role2);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -245,7 +238,7 @@ public partial class GetRolesHandlerTests
 
         var role = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
         context.Roles.Add(role);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync( TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
         var cancellationTokenSource = new CancellationTokenSource();
@@ -293,7 +286,7 @@ public partial class GetRolesHandlerTests
           new UserRole { UserId = 5, RoleId = 3, AssignedAt = DateTime.UtcNow },
           new UserRole { UserId = 6, RoleId = 3, AssignedAt = DateTime.UtcNow }
         );
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync( TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -325,7 +318,7 @@ public partial class GetRolesHandlerTests
         var role2 = new Role { Id = 2, Name = "Role@#$", Description = "Description with \"quotes\" and 'apostrophes'", CreatedAt = DateTime.UtcNow };
 
         context.Roles.AddRange(role1, role2);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -355,7 +348,7 @@ public partial class GetRolesHandlerTests
         var role2 = new Role { Id = 2, Name = "MaxDate", Description = "Role with max date", CreatedAt = DateTime.MaxValue };
 
         context.Roles.AddRange(role1, role2);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 
@@ -388,7 +381,7 @@ public partial class GetRolesHandlerTests
         var role2 = new Role { Id = 1, Name = "NormalId", Description = "Role with normal ID", CreatedAt = DateTime.UtcNow };
 
         context.Roles.AddRange(role1, role2);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetRoles.Handler(context);
 

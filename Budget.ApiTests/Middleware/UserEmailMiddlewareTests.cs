@@ -1,19 +1,13 @@
-﻿using Budget.Api.Middleware;
+﻿using System.Security.Claims;
+using System.Security.Principal;
+using Budget.Api.Middleware;
 using Budget.Shared.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Security.Principal;
-using System.Threading.Tasks;
-using Xunit;
 
-
-namespace Budget.Api.Middleware.UnitTests;
+namespace Budget.ApiTests.Middleware;
 
 /// <summary>
 /// Unit tests for the <see cref="UserEmailMiddleware"/> class.

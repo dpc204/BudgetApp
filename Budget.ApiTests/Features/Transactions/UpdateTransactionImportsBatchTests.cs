@@ -1,23 +1,4 @@
-﻿using Budget.Api.Features.Transactions;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OpenApi.Generated;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Moq.Language;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-
-namespace Budget.Api.Features.Transactions.UnitTests;
+﻿namespace Budget.ApiTests.Features.Transactions;
 /// <summary>
 /// Tests for UpdateTransactionImportsBatch Handler
 /// </summary>
@@ -84,7 +65,7 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(1);
-        TransactionImport? updatedImport = await context.TransactionImports.FindAsync(1);
+        TransactionImport? updatedImport = await context.TransactionImports.FindAsync([1], TestContext.Current.CancellationToken);
         updatedImport.Should().NotBeNull();
         updatedImport!.Duplicate.Should().BeTrue();
     }
@@ -156,7 +137,7 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(3);
-        List<TransactionImport> updatedImports = await context.TransactionImports.ToListAsync();
+        List<TransactionImport> updatedImports = await context.TransactionImports.ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
         updatedImports.Should().HaveCount(3);
         updatedImports.Should().OnlyContain(i => i.Duplicate == true);
     }
@@ -229,8 +210,8 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(2);
-        TransactionImport? updatedImport1 = await context.TransactionImports.FindAsync(1);
-        TransactionImport? updatedImport2 = await context.TransactionImports.FindAsync(2);
+        TransactionImport? updatedImport1 = await context.TransactionImports.FindAsync([1], TestContext.Current.CancellationToken);
+        TransactionImport? updatedImport2 = await context.TransactionImports.FindAsync([2], TestContext.Current.CancellationToken);
         updatedImport1.Should().NotBeNull();
         updatedImport1!.Duplicate.Should().BeTrue();
         updatedImport2.Should().NotBeNull();
@@ -274,7 +255,7 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(1);
-        TransactionImport? updatedImport = await context.TransactionImports.FindAsync(1);
+        TransactionImport? updatedImport = await context.TransactionImports.FindAsync([1], TestContext.Current.CancellationToken);
         updatedImport.Should().NotBeNull();
         updatedImport!.Duplicate.Should().BeTrue();
     }
@@ -316,7 +297,7 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(1);
-        TransactionImport? updatedImport = await context.TransactionImports.FindAsync(1);
+        TransactionImport? updatedImport = await context.TransactionImports.FindAsync([1], TestContext.Current.CancellationToken);
         updatedImport.Should().NotBeNull();
         updatedImport!.Duplicate.Should().BeFalse();
     }
@@ -399,7 +380,7 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(1);
-        TransactionImport? updatedImport = await context.TransactionImports.FindAsync(int.MaxValue);
+        TransactionImport? updatedImport = await context.TransactionImports.FindAsync([int.MaxValue], TestContext.Current.CancellationToken);
         updatedImport.Should().NotBeNull();
         updatedImport!.Duplicate.Should().BeTrue();
     }
@@ -463,7 +444,7 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(100);
-        List<TransactionImport> updatedImports = await context.TransactionImports.ToListAsync();
+        List<TransactionImport> updatedImports = await context.TransactionImports.ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
         updatedImports.Should().HaveCount(100);
         updatedImports.Should().OnlyContain(i => i.Duplicate == true);
     }
@@ -505,7 +486,7 @@ public partial class UpdateTransactionImportsBatchTests
         int result = await handler.Handle(command, CancellationToken.None);
         // Assert
         result.Should().Be(1);
-        TransactionImport? updatedImport = await context.TransactionImports.FindAsync(1);
+        TransactionImport? updatedImport = await context.TransactionImports.FindAsync([1], TestContext.Current.CancellationToken);
         updatedImport.Should().NotBeNull();
         updatedImport!.Duplicate.Should().BeTrue();
     }

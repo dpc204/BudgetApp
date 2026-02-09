@@ -1,23 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Budget.Shared.Enums;
 
-using Budget.Api.Features.Envelopes.EnvelopeMaint;
-using Budget.DB;
-using Budget.Shared.Enums;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
-
-namespace Budget.Api.Features.Envelopes.EnvelopeMaint.UnitTests;
+namespace Budget.ApiTests.Features.Envelopes.EnvelopeMaint;
 
 
 /// <summary>
@@ -44,8 +27,8 @@ public class HandlerTests
     {
         // Arrange
         await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -80,8 +63,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -153,8 +136,8 @@ public class HandlerTests
         context.Envelopes.AddRange(envelopes);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -192,8 +175,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -235,8 +218,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -275,8 +258,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -312,8 +295,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -353,8 +336,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -399,8 +382,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -438,8 +421,8 @@ public class HandlerTests
         }
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -476,8 +459,8 @@ public class HandlerTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new GetAll.Handler(context);
-        var query = new GetAll.Query();
+        var handler = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Handler(context);
+        var query = new Api.Features.Envelopes.EnvelopeMaint.GetAll.Query();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

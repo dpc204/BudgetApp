@@ -1,22 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Budget.Api.Features.Admin.Roles;
 
-using Budget.Api.Features.Admin.Roles;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
-
-namespace Budget.Api.Features.Admin.Roles.UnitTests;
+namespace Budget.ApiTests.Features.Admin.Roles;
 
 
 /// <summary>
@@ -55,7 +39,8 @@ public partial class CreateRoleHandlerTests
         result.Description.Should().Be("Test Description");
         result.Id.Should().BeGreaterThan(0);
 
-        Role? savedRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "TestRole");
+        Role? savedRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "TestRole", cancellationToken: TestContext.Current.CancellationToken);
+
         savedRole.Should().NotBeNull();
         savedRole!.Name.Should().Be("TestRole");
         savedRole.Description.Should().Be("Test Description");
@@ -202,7 +187,7 @@ public partial class CreateRoleHandlerTests
         DateTime afterCreation = DateTime.UtcNow;
 
         // Assert
-        Role? savedRole = await context.Roles.FindAsync(result.Id);
+        Role? savedRole = await context.Roles.FindAsync([result.Id], TestContext.Current.CancellationToken);
         savedRole.Should().NotBeNull();
         savedRole!.CreatedAt.Should().BeOnOrAfter(beforeCreation);
         savedRole.CreatedAt.Should().BeOnOrBefore(afterCreation);
@@ -234,7 +219,7 @@ public partial class CreateRoleHandlerTests
         result2.Id.Should().NotBe(result3.Id);
         result1.Id.Should().NotBe(result3.Id);
 
-        int roleCount = await context.Roles.CountAsync();
+        int roleCount = await context.Roles.CountAsync(TestContext.Current.CancellationToken);
         roleCount.Should().BeGreaterThanOrEqualTo(3);
     }
 
@@ -255,7 +240,7 @@ public partial class CreateRoleHandlerTests
         // Assert
         Role? roleFromDb = await context.Roles
           .Where(r => r.Id == result.Id)
-          .FirstOrDefaultAsync();
+          .FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
         roleFromDb.Should().NotBeNull();
         roleFromDb!.Name.Should().Be("PersistedRole");

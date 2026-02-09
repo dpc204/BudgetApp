@@ -1,20 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Budget.Api.Features.Envelopes;
 
-using Budget.Api.Features.Envelopes;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
-
-namespace Budget.Api.Features.Envelopes.UnitTests;
+namespace Budget.ApiTests.Features.Envelopes;
 
 
 /// <summary>
@@ -57,7 +43,7 @@ public partial class UpdateFundAmountHandlerTests
         result.Success.Should().BeTrue();
         result.Message.Should().Be("Fund amount updated successfully");
 
-        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1);
+        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1, TestContext.Current.CancellationToken);
         updatedEnvelope.Should().NotBeNull();
         updatedEnvelope!.FundAmount.Should().Be(100.50m);
     }
@@ -106,7 +92,7 @@ public partial class UpdateFundAmountHandlerTests
         result.Success.Should().BeTrue();
         result.Message.Should().Be("Fund amount updated successfully");
 
-        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1);
+        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1, TestContext.Current.CancellationToken);
         updatedEnvelope.Should().NotBeNull();
         updatedEnvelope!.FundAmount.Should().Be(0m);
     }
@@ -134,7 +120,7 @@ public partial class UpdateFundAmountHandlerTests
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
 
-        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1);
+        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1, TestContext.Current.CancellationToken);
         updatedEnvelope.Should().NotBeNull();
         updatedEnvelope!.FundAmount.Should().Be(0m);
     }
@@ -162,7 +148,7 @@ public partial class UpdateFundAmountHandlerTests
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
 
-        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1);
+        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1, TestContext.Current.CancellationToken);
         updatedEnvelope.Should().NotBeNull();
         updatedEnvelope!.FundAmount.Should().Be(-50.25m);
     }
@@ -194,7 +180,7 @@ public partial class UpdateFundAmountHandlerTests
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
 
-        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1);
+        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1, TestContext.Current.CancellationToken);
         updatedEnvelope.Should().NotBeNull();
         updatedEnvelope!.FundAmount.Should().Be(fundAmount);
     }
@@ -226,7 +212,7 @@ public partial class UpdateFundAmountHandlerTests
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
 
-        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == envelopeId);
+        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == envelopeId, TestContext.Current.CancellationToken);
         updatedEnvelope.Should().NotBeNull();
         updatedEnvelope!.FundAmount.Should().Be(100m);
     }
@@ -278,7 +264,7 @@ public partial class UpdateFundAmountHandlerTests
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
 
-        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1);
+        Envelope? updatedEnvelope = await context.Envelopes.FirstOrDefaultAsync(e => e.Id == 1, TestContext.Current.CancellationToken);
         updatedEnvelope.Should().NotBeNull();
         updatedEnvelope!.FundAmount.Should().Be(250.75m);
     }

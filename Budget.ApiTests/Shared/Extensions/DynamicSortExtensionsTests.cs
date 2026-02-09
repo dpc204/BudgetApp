@@ -1,10 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using Budget.Api.Shared.Extensions;
 
-using Budget.Api.Shared.Extensions;
-using Xunit;
-
-namespace Budget.Api.Shared.Extensions.UnitTests
+namespace Budget.ApiTests.Shared.Extensions
 {
     public class DynamicSortExtensionsTests
     {

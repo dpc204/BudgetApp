@@ -1,19 +1,9 @@
 ﻿using Budget.Api.Features.Envelopes;
-using Budget.Api.Features.Transactions;
-using Budget.DB;
-using Budget.Shared.Enums;
-using Budget.Shared.Models;
 using Budget.Shared.Services;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using FluentResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
+using Budget.Shared.Enums;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 using UserInfoDto = Budget.Shared.Models.UserInfoDto;
 
@@ -447,7 +437,7 @@ public class FundTests
         var mockUserAndOptions = new Mock<IUserAndOptions>();
         mockUserAndOptions.Setup(u => u.User).Returns(new UserInfoDto { Email = "test@test.com", Id = 1, Name = "Test User", Roles = ["Admin"] });
         mockUserAndOptions.Setup(u => u.HasInfo).Returns(true);
-        mockUserAndOptions.Setup(u => u.Options).Returns(new UserOptions() { UserId = 1, FillAmountType = FillAmounts.OneHundredPercent, SelectedCategoryType = "CatTypes.User" });
+        mockUserAndOptions.Setup(u => u.Options).Returns(new Budget.Shared.Services.UserOptions() { UserId = 1, FillAmountType = FillAmounts.OneHundredPercent, SelectedCategoryType = "CatTypes.User" });
         return mockUserAndOptions;
     }
 

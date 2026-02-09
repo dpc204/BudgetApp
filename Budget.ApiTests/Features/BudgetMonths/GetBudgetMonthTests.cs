@@ -1,24 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.BudgetMonths;
-using Budget.DB;
+﻿using Budget.Api.Features.BudgetMonths;
 using Budget.Shared.Enums;
-using Carter;
 using Fantum.Mediator;
-using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.BudgetMonths.UnitTests;
+namespace Budget.ApiTests.Features.BudgetMonths;
 
 
 /// <summary>
@@ -68,7 +56,7 @@ public partial class EndpointTests
         endpoint.AddRoutes(mockApp.Object);
 
         var handlerMethod = capturedHandler!.Method;
-        var result = handlerMethod.Invoke(capturedHandler.Target, new object[] { mockSender.Object, year, month });
+        var result = handlerMethod.Invoke(capturedHandler.Target, [mockSender.Object, year, month]);
         var task = result as Task<IResult>;
         await task!;
 
@@ -127,7 +115,7 @@ public partial class EndpointTests
         endpoint.AddRoutes(mockApp.Object);
 
         var handlerMethod = capturedHandler!.Method;
-        var result = handlerMethod.Invoke(capturedHandler.Target, new object[] { mockSender.Object, largeYear, month });
+        var result = handlerMethod.Invoke(capturedHandler.Target, [mockSender.Object, largeYear, month]);
         var task = result as Task<IResult>;
         await task!;
 
@@ -403,7 +391,7 @@ public partial class GetBudgetMonthTests
         result.Should().NotBeNull();
         result.Should().HaveCount(3);
 
-        List<GetBudgetMonth.Response> resultList = result.ToList();
+        List<GetBudgetMonth.Response> resultList = [.. result];
         resultList[0].EnvelopeName.Should().Be("Envelope A");
         resultList[0].SortOrder.Should().Be(1);
         resultList[1].EnvelopeName.Should().Be("Envelope B");

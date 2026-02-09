@@ -1,22 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Budget.Api.Features.BudgetMonths;
 
-using Budget.Api.Features.BudgetMonths;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
-
-namespace Budget.Api.Features.BudgetMonths.UnitTests;
+namespace Budget.ApiTests.Features.BudgetMonths;
 
 
 /// <summary>
@@ -51,7 +35,7 @@ public class ApplyDraftValuesToBudgetTests
 
         context.Families.Add(family);
         context.Envelopes.AddRange(envelope1, envelope2);
-        context.BudgetMonths.AddRange(
+        context.BudgetMonths.AddRange([
           new BudgetMonth
           {
               AcctPeriod = 202401,
@@ -70,7 +54,7 @@ public class ApplyDraftValuesToBudgetTests
               IsBudgetLocked = false,
               FamilyId = 1
           }
-        );
+        ]);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new ApplyDraftValuesToBudget.Handler(context);
@@ -85,12 +69,12 @@ public class ApplyDraftValuesToBudgetTests
         result.RecordsUpdated.Should().Be(2);
         result.Message.Should().Be("Applied draft values to 2 budget records");
 
-        BudgetMonth updatedBudget1 = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget1 = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget1.Should().NotBeNull();
         updatedBudget1!.Budget.Should().Be(150.00m);
         updatedBudget1.BudgetDraft.Should().BeNull();
 
-        BudgetMonth updatedBudget2 = await context.BudgetMonths.FindAsync(202401, 2);
+        BudgetMonth? updatedBudget2 = await context.BudgetMonths.FindAsync([202401, 2], TestContext.Current.CancellationToken);
         updatedBudget2.Should().NotBeNull();
         updatedBudget2!.Budget.Should().Be(250.00m);
         updatedBudget2.BudgetDraft.Should().BeNull();
@@ -112,8 +96,8 @@ public class ApplyDraftValuesToBudgetTests
         var envelope2 = new Envelope { Id = 2, Name = "Envelope 2", FamilyId = 1 };
 
         context.Families.Add(family);
-        context.Envelopes.AddRange(envelope1, envelope2);
-        context.BudgetMonths.AddRange(
+        context.Envelopes.AddRange([envelope1, envelope2]);
+        context.BudgetMonths.AddRange([
           new BudgetMonth
           {
               AcctPeriod = 202401,
@@ -132,7 +116,7 @@ public class ApplyDraftValuesToBudgetTests
               IsBudgetLocked = true,
               FamilyId = 1
           }
-        );
+        ]);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new ApplyDraftValuesToBudget.Handler(context);
@@ -147,12 +131,12 @@ public class ApplyDraftValuesToBudgetTests
         result.RecordsUpdated.Should().Be(2);
         result.Message.Should().Be("Applied draft values to 2 budget records");
 
-        BudgetMonth unlockedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? unlockedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         unlockedBudget.Should().NotBeNull();
         unlockedBudget!.Budget.Should().Be(150.00m);
         unlockedBudget.BudgetDraft.Should().BeNull();
 
-        BudgetMonth lockedBudget = await context.BudgetMonths.FindAsync(202401, 2);
+        BudgetMonth? lockedBudget = await context.BudgetMonths.FindAsync([202401, 2], TestContext.Current.CancellationToken);
         lockedBudget.Should().NotBeNull();
         lockedBudget!.Budget.Should().Be(200.00m);
         lockedBudget.BudgetDraft.Should().Be(250.00m);
@@ -265,7 +249,7 @@ public class ApplyDraftValuesToBudgetTests
         result.RecordsUpdated.Should().Be(1);
         result.Message.Should().Be("Applied draft values to 1 budget records");
 
-        BudgetMonth lockedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? lockedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         lockedBudget.Should().NotBeNull();
         lockedBudget!.Budget.Should().Be(100.00m);
         lockedBudget.BudgetDraft.Should().Be(150.00m);
@@ -311,7 +295,7 @@ public class ApplyDraftValuesToBudgetTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth updatedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget.Should().NotBeNull();
         updatedBudget!.Budget.Should().Be(150.00m);
         updatedBudget.BudgetDraft.Should().BeNull();
@@ -357,7 +341,7 @@ public class ApplyDraftValuesToBudgetTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth updatedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget.Should().NotBeNull();
         updatedBudget!.Budget.Should().Be(0.00m);
         updatedBudget.BudgetDraft.Should().BeNull();
@@ -403,7 +387,7 @@ public class ApplyDraftValuesToBudgetTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth updatedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget.Should().NotBeNull();
         updatedBudget!.Budget.Should().Be(-50.00m);
         updatedBudget.BudgetDraft.Should().BeNull();
@@ -449,7 +433,7 @@ public class ApplyDraftValuesToBudgetTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth updatedBudget = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget.Should().NotBeNull();
         updatedBudget!.Budget.Should().Be(999999999999.99m);
         updatedBudget.BudgetDraft.Should().BeNull();
@@ -504,12 +488,12 @@ public class ApplyDraftValuesToBudgetTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(2);
 
-        BudgetMonth updatedBudget1 = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget1 = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
         updatedBudget1.Should().NotBeNull();
         updatedBudget1!.Budget.Should().Be(150.00m);
         updatedBudget1.BudgetDraft.Should().BeNull();
 
-        BudgetMonth updatedBudget2 = await context.BudgetMonths.FindAsync(202402, 1);
+        BudgetMonth? updatedBudget2 = await context.BudgetMonths.FindAsync([202402, 1], TestContext.Current.CancellationToken);
         updatedBudget2.Should().NotBeNull();
         updatedBudget2!.Budget.Should().Be(250.00m);
         updatedBudget2.BudgetDraft.Should().BeNull();
@@ -587,12 +571,12 @@ public class ApplyDraftValuesToBudgetTests
         result.Success.Should().BeTrue();
         result.RecordsUpdated.Should().Be(2);
 
-        BudgetMonth updatedBudget1 = await context.BudgetMonths.FindAsync(202401, 1);
+        BudgetMonth? updatedBudget1 = await context.BudgetMonths.FindAsync([202401, 1],TestContext.Current.CancellationToken);
         updatedBudget1.Should().NotBeNull();
         updatedBudget1!.Budget.Should().Be(150.00m);
         updatedBudget1.BudgetDraft.Should().BeNull();
 
-        BudgetMonth updatedBudget2 = await context.BudgetMonths.FindAsync(202401, 2);
+        BudgetMonth? updatedBudget2 = await context.BudgetMonths.FindAsync([202401, 2], TestContext.Current.CancellationToken);
         updatedBudget2.Should().NotBeNull();
         updatedBudget2!.Budget.Should().Be(250.00m);
         updatedBudget2.BudgetDraft.Should().BeNull();

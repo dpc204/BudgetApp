@@ -1,17 +1,8 @@
 ﻿using Budget.Api.Features.Admin.Users;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Admin.Users.UnitTests;
+namespace Budget.ApiTests.Features.Admin.Users;
 
 
 /// <summary>
@@ -50,7 +41,7 @@ public partial class EndpointTests
 
         mockRouteBuilder
             .Setup(x => x.DataSources)
-            .Returns(new List<EndpointDataSource>());
+            .Returns([]);
 
         var endpoint = new UpdateUser.Endpoint();
 

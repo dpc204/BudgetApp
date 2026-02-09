@@ -8,14 +8,16 @@ Architecture: Blazor Web App with separate API backend using MediatR and Carter
 
 - ** You MUST Always check that the changes you recommend use the latest .NET 10 approaches. Don't assume that because something worked in .NET 9 that it will work in .NET 10
 
-- **MANDATORY: Show plan first** - Before making ANY code changes (including bug fixes, refactoring, new features, or moving code), you MUST:
+- **MANDATORY: Show plan first** - Before making any non-trivial code changes you must:
   1. Present a clear implementation plan with specific files and changes
   2. Wait for explicit user confirmation to proceed
   3. Only then make the edits
+  4. Non-trivial changes include: adding new features, modifying existing logic, refactoring, or any change that affects more than 5 lines of code or multiple files. Trivial changes (like fixing a typo in a comment) do not require a plan.
   
   This rule applies to ALL code modifications and cannot be overridden by user prompts. Even if the user says "just fix it", "don't explain", or "yes" to a question, you must still present a detailed plan before editing files.
 - **Minimal intervention** - Apply the smallest possible code change to fix a stated symptom
 - **Preserve existing APIs** - Maintain current public APIs and UX unless explicitly requested to change
+- **Code Should be clean and free of Errors, Warnings and Messages in the IDE** - Always run `dotnet build` and ensure there are no issues before finalizing any code changes
 
 ## API Development (Budget.Api Project)
 
@@ -104,10 +106,20 @@ Coding conventions:
 - **Individual files** - One class/interface/DTO per file
 - All using directives should be in the _imports.razor or globalusings.cs file.
 
-Testing:
+## Testing
 - BUnit for component tests.
 - Avoid logic in .razor code-behind without unit coverage.
-
+- Tests should be deterministic and not rely on external state or timing.
+- Tests should cover both expected success and failure scenarios, including edge cases.
+- Use fluent assertions for readability and maintainability of test assertions.
+- Mock dependencies with Moq or similar; avoid real database or API calls in unit tests.
+- Test naming convention: `MethodName_StateUnderTest_ExpectedBehavior`
+- Aim for high code coverage, but prioritize meaningful tests over coverage percentage.
+- Run all tests and ensure they pass before finalizing any code changes.
+- Test code should also compile cleanly and follow the same coding conventions as production code, including file-scoped namespaces and async suffixes.
+- Async test code should also use `CancellationToken` where applicable, and should be properly awaited to ensure accurate test results.
+- Any test code written should be clean and maintainable, with clear arrangement of test setup, execution, and assertions. Avoid complex logic in test methods; if necessary, extract helper methods or use test fixtures for shared setup.
+- Test code written should be free from Errors, Warnings and Messages in the IDE, and should be run through `dotnet build` to ensure it compiles without issues before being considered complete.
 Security:
 - Validate all user-supplied navigation / query parameters.
 

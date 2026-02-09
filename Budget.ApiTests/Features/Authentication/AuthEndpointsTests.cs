@@ -1,14 +1,10 @@
-﻿using Budget.Api.Features.Authentication;
-using Budget.Shared;
-using Carter;
+﻿using Budget.Shared;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Authentication.UnitTests;
+namespace Budget.ApiTests.Features.Authentication;
 /// <summary>
 /// Tests for <see cref = "AuthEndpoints"/>.
 /// Note: The AddRoutes method configures ASP.NET Core routing infrastructure using extension methods
@@ -17,6 +13,22 @@ namespace Budget.Api.Features.Authentication.UnitTests;
 /// </summary>
 public sealed partial class AuthEndpointsTests
 {
+    /// <summary>
+    /// Creates a mock UserManager instance with all required dependencies properly configured.
+    /// </summary>
+    private static Mock<UserManager<BudgetUser>> CreateMockUserManager()
+    {
+        return new Mock<UserManager<BudgetUser>>(
+            Mock.Of<IUserStore<BudgetUser>>(),
+            Mock.Of<Microsoft.Extensions.Options.IOptions<IdentityOptions>>(),
+            Mock.Of<IPasswordHasher<BudgetUser>>(),
+            Array.Empty<IUserValidator<BudgetUser>>(),
+            Array.Empty<IPasswordValidator<BudgetUser>>(),
+            Mock.Of<ILookupNormalizer>(),
+            Mock.Of<IdentityErrorDescriber>(),
+            Mock.Of<IServiceProvider>(),
+            Mock.Of<Microsoft.Extensions.Logging.ILogger<UserManager<BudgetUser>>>());
+    }
     /// <summary>
     /// Tests that AddRoutes can be invoked with a valid IEndpointRouteBuilder without throwing exceptions
     /// when UserManager is not available in the service provider.
@@ -88,7 +100,7 @@ public sealed partial class AuthEndpointsTests
         var mockServiceScope = new Mock<IServiceScope>();
         var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
         var mockEndpointRouteBuilder = new Mock<IEndpointRouteBuilder>();
-        var mockUserManager = new Mock<UserManager<BudgetUser>>(Mock.Of<IUserStore<BudgetUser>>(), null, null, null, null, null, null, null, null);
+        var mockUserManager = CreateMockUserManager();
         // Setup: CreateScope extension method behavior
         mockServiceScopeFactory.Setup(x => x.CreateScope()).Returns(mockServiceScope.Object);
         mockServiceScope.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
@@ -102,7 +114,7 @@ public sealed partial class AuthEndpointsTests
         // Note: We cannot verify actual route registration in unit tests, but we can verify
         // that the method executes without throwing when infrastructure is properly configured
         mockEndpointRouteBuilder.Setup(x => x.CreateApplicationBuilder()).Returns(Mock.Of<IApplicationBuilder>());
-        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns(new List<EndpointDataSource>());
+        mockEndpointRouteBuilder.Setup(x => x.DataSources).Returns([]);
         var authEndpoints = new AuthEndpoints();
         // Act
         authEndpoints.AddRoutes(mockEndpointRouteBuilder.Object);

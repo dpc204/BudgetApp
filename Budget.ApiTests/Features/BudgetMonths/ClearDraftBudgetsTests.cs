@@ -1,21 +1,10 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.BudgetMonths;
-using Budget.DB;
-using Carter;
+﻿using Budget.Api.Features.BudgetMonths;
 using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.BudgetMonths.UnitTests;
+namespace Budget.ApiTests.Features.BudgetMonths;
 
 
 /// <summary>
@@ -48,7 +37,7 @@ public partial class EndpointTests
 
         mockEndpointRouteBuilder
             .Setup(x => x.DataSources)
-            .Returns(new System.Collections.Generic.List<EndpointDataSource> { mockDataSource.Object });
+            .Returns([mockDataSource.Object]);
 
         var endpoint = new ClearDraftBudgets.Endpoint();
 

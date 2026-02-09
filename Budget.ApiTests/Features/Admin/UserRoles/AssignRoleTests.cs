@@ -1,22 +1,9 @@
-﻿using System;
-using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿using System.Security.Claims;
 using Budget.Api.Features.Admin.UserRoles;
-using Budget.DB;
-using Carter;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Admin.UserRoles.UnitTests;
+namespace Budget.ApiTests.Features.Admin.UserRoles;
 
 
 /// <summary>
@@ -69,7 +56,7 @@ public partial class AssignRoleTests
         result.RoleName.Should().Be("Admin");
         result.AssignedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
 
-        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         savedUserRole.Should().NotBeNull();
         savedUserRole!.AssignedByUserId.Should().BeNull();
     }
@@ -197,7 +184,7 @@ public partial class AssignRoleTests
         // Assert
         result.Should().NotBeNull();
 
-        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         savedUserRole.Should().NotBeNull();
         savedUserRole!.AssignedByUserId.Should().Be(2);
     }
@@ -239,7 +226,7 @@ public partial class AssignRoleTests
         // Assert
         result.Should().NotBeNull();
 
-        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         savedUserRole.Should().NotBeNull();
         savedUserRole!.AssignedByUserId.Should().BeNull();
     }
@@ -281,7 +268,7 @@ public partial class AssignRoleTests
         // Assert
         result.Should().NotBeNull();
 
-        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         savedUserRole.Should().NotBeNull();
         savedUserRole!.AssignedByUserId.Should().BeNull();
     }
@@ -324,7 +311,7 @@ public partial class AssignRoleTests
         // Assert
         result.Should().NotBeNull();
 
-        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         savedUserRole.Should().NotBeNull();
         savedUserRole!.AssignedByUserId.Should().Be(2);
     }
@@ -602,7 +589,7 @@ public partial class AssignRoleTests
         // Assert
         result.Should().NotBeNull();
 
-        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         savedUserRole.Should().NotBeNull();
         savedUserRole!.AssignedByUserId.Should().BeNull();
     }
@@ -644,7 +631,7 @@ public partial class AssignRoleTests
         // Assert
         result.Should().NotBeNull();
 
-        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1);
+        UserRole? savedUserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == 1 && ur.RoleId == 1, TestContext.Current.CancellationToken);
         savedUserRole.Should().NotBeNull();
         savedUserRole!.AssignedByUserId.Should().BeNull();
     }

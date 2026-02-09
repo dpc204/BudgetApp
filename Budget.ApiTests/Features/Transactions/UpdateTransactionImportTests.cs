@@ -1,19 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Budget.Api.Features.Transactions;
-using Budget.DB;
-using Fantum.Mediator;
-using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Routing;
 using Moq;
-using Xunit;
 
-namespace Budget.Api.Features.Transactions.UnitTests;
+namespace Budget.ApiTests.Features.Transactions;
 
 
 /// <summary>
@@ -33,7 +21,7 @@ public partial class EndpointTests
         var dataSource = new Mock<EndpointDataSource>();
         
         routeBuilder.Setup(x => x.ServiceProvider).Returns(Mock.Of<IServiceProvider>());
-        routeBuilder.Setup(x => x.DataSources).Returns(new[] { dataSource.Object });
+        routeBuilder.Setup(x => x.DataSources).Returns([dataSource.Object]);
         
         // Act
         endpoint.AddRoutes(routeBuilder.Object);
