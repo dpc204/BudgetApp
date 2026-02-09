@@ -16,17 +16,15 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public event Action? OptionsLoaded;
 
-  private UserOptions _options;
-
   public UserAndOptions()
   {
-    _options = new UserOptions() {  UserId = -1 };
+    _options = new UserOptions() { UserAndOptions = this, UserId = -1 };
     // Parameterless constructor for cases where data provider is not available
   }
 
   public UserAndOptions(IUserAndOptionsDataProvider dataProvider)
   {
-    _options = new UserOptions() {  UserId = -2 };
+    _options = new UserOptions() { UserAndOptions = this, UserId = -2 };
     _dataProvider = dataProvider;
     WireUpOptionsChangeHandler();
   }
@@ -51,12 +49,11 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public UserInfoDto GetUser()
   {
-    if (!_hasUserInfo && !_userLoadAttempted && _dataProvider != null && !string.IsNullOrWhiteSpace(_userEmail))
+    if(!_hasUserInfo && !_userLoadAttempted && _dataProvider != null && !string.IsNullOrWhiteSpace(_userEmail))
     {
-          _userLoadAttempted = true;
-        // Fix: Await the nullable result and assign a non-null value
-        _loadUserTask = LoadUserInternalAsync().ContinueWith(t => t.Result ?? new UserInfoDto());
-        _ = _loadUserTask; // fire-and-forget
+      _userLoadAttempted = true;
+      _loadUserTask = LoadUserInternalAsync().ContinueWith(t => t.Result ?? new UserInfoDto());
+      _ = _loadUserTask; // fire-and-forget
     }
 
     return User;
@@ -74,19 +71,19 @@ public class UserAndOptions : IUserAndOptions
   /// </summary>
   public async Task<UserInfoDto> GetUserAsync(CancellationToken cancellationToken = default)
   {
-    if (User.Id <= 0)
+    if(User.Id <= 0)
       return User;
 
-    if (_userLoadAttempted && _loadUserTask != null)
+    if(_userLoadAttempted && _loadUserTask != null)
     {
       var rslt = await _loadUserTask.ConfigureAwait(false);
       return rslt ?? User;
     }
 
-    if (!_userLoadAttempted && _dataProvider != null)
+    if(!_userLoadAttempted && _dataProvider != null)
     {
       _userLoadAttempted = true;
-      _loadUserTask = LoadUserInternalAsync(cancellationToken)!;
+      _loadUserTask = LoadUserInternalAsync(cancellationToken).ContinueWith(t => t.Result ?? new UserInfoDto());
       var rslt = await _loadUserTask.ConfigureAwait(false);
       return rslt ?? User;
     }
@@ -108,8 +105,7 @@ public class UserAndOptions : IUserAndOptions
   public void SetUserIdAndFamilyId(int userId, int familyId)
   {
     // Set user info directly from headers - no database lookup needed
-    User = new UserInfoDto
-    {
+    User = new UserInfoDto {
       Id = userId,
       FamilyId = familyId,
       Email = _userEmail,
@@ -134,13 +130,13 @@ public class UserAndOptions : IUserAndOptions
   public async Task EnsureOptionsLoadedAsync()
   {
     // Already loaded or load in progress
-    if (_optionsLoadAttempted && _loadOptionsTask != null)
+    if(_optionsLoadAttempted && _loadOptionsTask != null)
     {
       return;
     }
 
     // First call - start loading
-    if (!_optionsLoadAttempted && _dataProvider != null && User.Id != 0)
+    if(!_optionsLoadAttempted && _dataProvider != null && User.Id != 0)
     {
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
@@ -165,12 +161,12 @@ public class UserAndOptions : IUserAndOptions
   {
     try
     {
-      if (HasInfo)
+      if(HasInfo)
         return Options;
 
       Loading = true;
       var loaded = await _dataProvider!.LoadUserOptionsAsync(User.Id);
-      if (loaded != null)
+      if(loaded != null)
       {
         Options = loaded;
       }
@@ -180,7 +176,7 @@ public class UserAndOptions : IUserAndOptions
       HasInfo = true;
       return Options;
     }
-    catch (Exception)
+    catch(Exception)
     {
       // Return default options on error
       return Options;
@@ -200,13 +196,12 @@ public class UserAndOptions : IUserAndOptions
     {
       var response = await _dataProvider!.LoadUserByIdAsync(_user.Id, cancellationToken);
 
-      if (response is null)
+      if(response is null)
         return null;
 
       var name = string.Join(' ', response.FirstName, response.LastName);
 
-      var rslt = new UserInfoDto
-      {
+      var rslt = new UserInfoDto {
         Id = response.Id,
         Email = response.Email,
         Name = name,
@@ -220,7 +215,7 @@ public class UserAndOptions : IUserAndOptions
 
       return rslt;
     }
-    catch (Exception)
+    catch(Exception)
     {
       // Return default options on error
       return new UserInfoDto();
@@ -232,13 +227,13 @@ public class UserAndOptions : IUserAndOptions
     User = new UserInfoDto();
 
     // Unwire old handlers before creating new Options
-    if (Options != null)
+    if(Options != null)
     {
       Options.PropertyChanged -= OnOptionsChanged;
       Options.PropertyRead -= OnOptionsPropertyRead;
     }
 
-        Options = new UserOptions() ;
+    Options = new UserOptions();
     WireUpOptionsChangeHandler();
     HasInfo = false;
 
@@ -251,6 +246,8 @@ public class UserAndOptions : IUserAndOptions
   {
     return HasInfo && User.Roles.Contains("Admin");
   }
+
+  private UserOptions _options = new();
 
   /// <summary>
   /// Gets or sets user options. 
@@ -269,12 +266,13 @@ public class UserAndOptions : IUserAndOptions
     {
       _options = value;
       WireUpOptionsChangeHandler();
+      _options.UserAndOptions = this;
     }
   }
 
   private void WireUpOptionsChangeHandler()
   {
-    if (_options != null)
+    if(_options != null)
     {
       _options.PropertyChanged -= OnOptionsChanged; // Prevent duplicate subscriptions
       _options.PropertyChanged += OnOptionsChanged;
@@ -289,7 +287,7 @@ public class UserAndOptions : IUserAndOptions
   {
     // When any property is read, ensure options are loaded
     // This makes lazy loading completely transparent
-    if (!_optionsLoadAttempted && _dataProvider != null && HasInfo && User.Id != 0)
+    if(!_optionsLoadAttempted && _dataProvider != null && HasInfo && User.Id != 0)
     {
       _optionsLoadAttempted = true;
       _loadOptionsTask = LoadOptionsInternalAsync();
@@ -299,12 +297,12 @@ public class UserAndOptions : IUserAndOptions
 
   private async void OnOptionsChanged()
   {
-    if (_dataProvider != null && User.Id != 0 && !Loading)
+    if(_dataProvider != null && User.Id != 0 && !Loading)
     {
       try
       {
         // Ensure UserId is set
-        if (Options.UserId == 0)
+        if(Options.UserId == 0)
         {
           Options.UserId = User.Id;
         }
