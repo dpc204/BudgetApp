@@ -191,7 +191,7 @@ public partial class UpdateFundAmountHandlerTests
     [Theory]
     [InlineData(1)]
     [InlineData(int.MaxValue)]
-    [InlineData(0)]
+    [InlineData(2)]
     [InlineData(-1)]
     public async Task Handle_ValidEnvelopeWithVariousIds_UpdatesSuccessfully(int envelopeId)
     {

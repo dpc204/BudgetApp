@@ -41,7 +41,7 @@ public partial class GetByEnvelopeTypeHandlerTests
         // Arrange
         await using var context = new BudgetContext(CreateInMemoryOptions(), null);
         var handler = new GetByEnvelopeType.Handler(context);
-        var query = new GetByEnvelopeType.Query(EnvelopeTypes.Standard);
+        var query = new GetByEnvelopeType.Query(EnvelopeTypes.Unassigned);
 
         // Act
         EnvelopeDto? result = await handler.Handle(query, CancellationToken.None);
