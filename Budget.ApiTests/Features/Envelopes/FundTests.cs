@@ -109,7 +109,7 @@ public class FundTests
         Transaction? groceryTransaction = transactions.FirstOrDefault(t => t.Description.Contains("Groceries"));
         groceryTransaction.Should().NotBeNull();
         groceryTransaction!.TransactionType.Should().Be(TransactionTypes.Funding);
-        groceryTransaction.Vendor.Should().Be("System");
+        groceryTransaction.Vendor.Should().Be("Fantum Budget - Fund");
         groceryTransaction.Details.Should().HaveCount(2);
         groceryTransaction.Details.Should().Contain(d => d.EnvelopeId == 2 && d.Amount == 200m);
         groceryTransaction.Details.Should().Contain(d => d.EnvelopeId == 1 && d.Amount == -200m);
@@ -414,8 +414,8 @@ public class FundTests
         transaction.Should().NotBeNull();
         transaction!.FamilyId.Should().Be(1);
         transaction.TransactionType.Should().Be(TransactionTypes.Funding);
-        transaction.Description.Should().Be("Funding envelope Test Envelope");
-        transaction.Vendor.Should().Be("System");
+        transaction.Description.Should().Be("Fund: Test Envelope");
+        transaction.Vendor.Should().Be("Fantum Budget - Fund");
         transaction.Date.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
 
         // Verify detail lines

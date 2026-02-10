@@ -78,10 +78,10 @@ public static class Fund
       {
         Date = DateTime.UtcNow,
         TransactionType = TransactionTypes.Funding,
-        Description = $"Funding envelope {env.Name}",
+        Description = $"Fund: {env.Name}",
         UserId =  userAndOptions.User.Id,
         AccountId = fundingAccount.Value,
-        Vendor = "System"
+        Vendor = "Fantum Budget - Fund"
       };
 
 

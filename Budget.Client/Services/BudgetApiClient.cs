@@ -148,7 +148,9 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
   public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId,
     CancellationToken cancellationToken = default)
-    => await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);
+  {
+   return await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);
+  }
 
   public async Task<EnvelopeDto> GetEnvelopeByIdAsync(int envelopeId, CancellationToken cancellationToken = default)
     => await GetAsync<EnvelopeDto>($"envelopes/{envelopeId}", cancellationToken);

@@ -6,10 +6,10 @@ namespace Budget.Shared.Enums
 {
   public enum TransactionTypes
   {
-    Expense,
-    Income,
-    Refund,
-    Transfer,
-    Funding
+    Expense =0,
+    Income=1,
+    Refund=2,
+    Transfer=3,
+    Funding=4
   }
 }

@@ -35,6 +35,7 @@ public static class GetOneTransactionDetail
           AccountId = t.AccountId,
           Date = t.Date,
           Vendor = t.Vendor,
+          Description = t.Description,
           TotalAmount = t.TotalAmount,
 #pragma warning disable CA1845 // Use span-based 'string.Concat' - cannot use spans in expression trees
           UserInitials = t.User.FirstName.Substring(0, 1) + t.User.LastName.Substring(0, 1),

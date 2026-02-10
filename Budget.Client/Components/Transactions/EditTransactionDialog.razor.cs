@@ -14,6 +14,19 @@ public partial class EditTransactionDialog
   private List<EnvelopeDto> Envelopes = [];
   private List<BankAccountDto> Accounts = [];
 
+  //private bool EditNotAllowed
+  //{
+  //  get
+  //  {
+  //    if (!IsEditMode)
+  //      return false;
+      
+  //    UserOptions.IsAdminUser() == false || IsEditMode;
+  //  }
+  //}
+
+  
+
   /// <summary>
   /// Stores the transaction ID when editing
   /// </summary>
@@ -69,11 +82,14 @@ public partial class EditTransactionDialog
       _header.AccountId = Accounts.Min(e => e.Id);
     }
 
+  //  NotAdmin = !UserOptions.IsAdminUser();
+    
     // If editing an existing transaction, pre-populate the form
     if (ExistingTransaction is not null)
     {
       _transactionId = ExistingTransaction.Id; // Store the transaction ID
       _header.AccountId = ExistingTransaction.AccountId;
+      _header.Description = ExistingTransaction.Description;
       _header.Vendor = ExistingTransaction.Vendor;
       _header.Date = ExistingTransaction.Date;
       _header.TotalAmount = ExistingTransaction.TotalAmount;
@@ -133,7 +149,7 @@ public partial class EditTransactionDialog
 
   private void Recalc()
   {
-    if(!IsEditMode)
+    //if(!IsEditMode)
     _header.TotalAmount = _lines.Sum(l => l.Amount);
     EditTotalAmount = _lines.Sum(l => l.Amount);
     StateHasChanged();
