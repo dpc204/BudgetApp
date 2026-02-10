@@ -5,7 +5,7 @@ namespace Budget.Client.Services;
 /// <summary>
 /// Service for loading and transforming envelope data
 /// </summary>
-public class EnvelopeDataService( IBudgetApiClient api, IUserAndOptions userOptions)
+public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesApiClient categoriesApi, IUserAndOptions userOptions)
   : IEnvelopeDataService
 {
   /// <summary>
@@ -17,8 +17,8 @@ public class EnvelopeDataService( IBudgetApiClient api, IUserAndOptions userOpti
   public async Task<EnvelopeDataResult> LoadEnvelopeDataAsync(bool forceRefresh = false,
     CancellationToken cancellationToken = default)
   {
-    var categories = await api.GetCategoriesAsync(cancellationToken);
-    var envelopes = await api.GetEnvelopesAsync(cancellationToken: cancellationToken);
+    var categories = await categoriesApi.GetCategoriesAsync(cancellationToken);
+    var envelopes = await envelopesApi.GetEnvelopesAsync(cancellationToken: cancellationToken);
 
 
     var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c);

@@ -6,7 +6,7 @@ namespace Budget.Client.Services;
 /// Service for managing envelope transaction operations
 /// </summary>
 public class EnvelopeTransactionService(
-  IBudgetApiClient api,
+  ITransactionsApiClient api,
   IDialogService dialogService,
   IUserAndOptions userOptions,
   ILogger<EnvelopeTransactionService> logger) : IEnvelopeTransactionService

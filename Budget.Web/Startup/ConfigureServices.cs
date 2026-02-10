@@ -119,37 +119,103 @@ public static class ConfigureServices
       options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(timeoutSeconds * 2);
     }
 
-    // Budget API Client - uses Aspire service discovery
-    var budgetApiClientBuilder = builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
+    // Feature-aligned API clients using Aspire service discovery
+#pragma warning disable EXTEXP0001
+
+    // Envelopes API Client
+    var envelopesApiClientBuilder = builder.Services.AddHttpClient<IEnvelopesApiClient, EnvelopesApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    // Only add resilience handlers in non-development environments
     if (!isDevelopment)
     {
-      budgetApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+      envelopesApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
 
-    // Budget Maintenance API Client - uses Aspire service discovery with extended timeouts
-#pragma warning disable EXTEXP0001
-    var budgetMaintApiClientBuilder = builder.Services.AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>(client =>
+    // Categories API Client
+    var categoriesApiClientBuilder = builder.Services.AddHttpClient<ICategoriesApiClient, CategoriesApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    // Only add resilience handlers in non-development environments
     if (!isDevelopment)
     {
-      budgetMaintApiClientBuilder
+      categoriesApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+    }
+
+    // Transactions API Client
+    var transactionsApiClientBuilder = builder.Services.AddHttpClient<ITransactionsApiClient, TransactionsApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout;
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    if (!isDevelopment)
+    {
+      transactionsApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+    }
+
+    // Accounts API Client
+    var accountsApiClientBuilder = builder.Services.AddHttpClient<IAccountsApiClient, AccountsApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout;
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    if (!isDevelopment)
+    {
+      accountsApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+    }
+
+    // Admin API Client
+    var adminApiClientBuilder = builder.Services.AddHttpClient<IAdminApiClient, AdminApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout;
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    if (!isDevelopment)
+    {
+      adminApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+    }
+
+    // UserOptions API Client
+    var userOptionsApiClientBuilder = builder.Services.AddHttpClient<IUserOptionsApiClient, UserOptionsApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout;
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    if (!isDevelopment)
+    {
+      userOptionsApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+    }
+
+    // Utilities API Client
+    var utilitiesApiClientBuilder = builder.Services.AddHttpClient<IUtilitiesApiClient, UtilitiesApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout;
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    if (!isDevelopment)
+    {
+      utilitiesApiClientBuilder
         .RemoveAllResilienceHandlers()
         .AddStandardResilienceHandler(ConfigureLongRunningResilience);
     }
 
+    // BudgetMonthly API Client
     var budgetMonthlyApiClientBuilder = builder.Services.AddHttpClient<IBudgetMonthlyApiClient, BudgetMonthlyApiClient>(client =>
       {
         client.BaseAddress = new Uri("https+http://budget-api");
@@ -157,7 +223,6 @@ public static class ConfigureServices
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    // Only add resilience handlers in non-development environments
     if (!isDevelopment)
     {
       budgetMonthlyApiClientBuilder
