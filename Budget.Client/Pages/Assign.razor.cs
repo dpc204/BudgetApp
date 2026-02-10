@@ -5,7 +5,9 @@ namespace Budget.Client.Pages;
 public partial class Assign : ComponentBase
 {
  // [Inject] private EnvelopeState State { get; set; } = default!;
-  [Inject] private IBudgetApiClient Api { get; set; } = default!;
+  [Inject] private ITransactionsApiClient Api { get; set; } = default!;
+  [Inject] private IEnvelopesApiClient EnvelopesApi { get; set; } = default!;
+  [Inject] private ICategoriesApiClient CategoriesApi { get; set; } = default!;
   [Inject] private IBudgetMonthlyApiClient MonthlyApi { get; set; } = default!;
 
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
@@ -81,9 +83,9 @@ public partial class Assign : ComponentBase
 
   private async Task< List<EnvelopeIdName>> SetAvailableEnvelopes()
   {
-    var envelopes = await Api.GetEnvelopesAsync();
+    var envelopes = await EnvelopesApi.GetEnvelopesAsync();
 
-    var categories= await Api.GetCategoriesAsync();
+    var categories= await CategoriesApi.GetCategoriesAsync();
 
     var result = from e in envelopes
       join c in categories

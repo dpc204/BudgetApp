@@ -1,4 +1,4 @@
-﻿using IBudgetApiClient = Budget.Shared.Services.IBudgetApiClient;
+﻿using ITransactionsApiClient = Budget.Shared.Services.ITransactionsApiClient;
 
 namespace Budget.Client.Components.Transactions;
 
@@ -58,7 +58,9 @@ public partial class EditTransactionDialog
   public bool IsBusy { get; set; }
 
   [Inject] private ISnackbar SnackBar { get; set; } = default!;
-  [Inject] private IBudgetApiClient Api { get; set; } = default!;
+  [Inject] private ITransactionsApiClient Api { get; set; } = default!;
+  [Inject] private IEnvelopesApiClient EnvelopesApi { get; set; } = default!;
+  [Inject] private IAccountsApiClient AccountsApi { get; set; } = default!;
   [Inject] private IDialogService DialogService { get; set; } = default!;
   private MudTextField<string>? _vendorField;
   private MudTextField<string>? _descriptionField;
@@ -73,12 +75,12 @@ public partial class EditTransactionDialog
   {
     if (Envelopes.Count == 0)
     {
-      Envelopes = await Api.GetEnvelopesAsync();
+      Envelopes = await EnvelopesApi.GetEnvelopesAsync();
     }
 
     if (Accounts.Count == 0)
     {
-      Accounts = await Api.GetAccountsAsync();
+      Accounts = await AccountsApi.GetAccountsAsync();
       _header.AccountId = Accounts.Min(e => e.Id);
     }
 
@@ -237,7 +239,7 @@ public partial class EditTransactionDialog
     {
       try
       {
-        var envelopes = await BudgetApi.VoidTransactionAsync(_transactionId);
+        var envelopes = await Api.VoidTransactionAsync(_transactionId);
         MudDialog.Close(DialogResult.Ok(envelopes));
       }
       catch (Exception ex)

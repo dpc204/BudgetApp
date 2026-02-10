@@ -45,7 +45,7 @@
 
 @code {
   [CascadingParameter] private MudBlazor.IMudDialogInstance MudDialog { get; set; } = default!;
-  [Inject] private IBudgetMaintApiClient MaintApi { get; set; } = null!;
+  [Inject] private IAdminApiClient MaintApi { get; set; } = null!;
 
 [Parameter] public bool IsEditMode { get; set; }
 [Parameter] public int RoleId { get; set; }

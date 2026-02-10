@@ -2,7 +2,7 @@ namespace Budget.Client.Components.Maintenance.BackupRestore;
 
 public partial class BackupRestoreIndex : IDisposable
 {
-  [Inject] private IBudgetMaintApiClient MaintApiClient { get; set; } = default!;
+  [Inject] private IUtilitiesApiClient MaintApiClient { get; set; } = default!;
   [Inject] private ISnackbar Snackbar { get; set; } = default!;
   [Inject] private IDialogService DialogService { get; set; } = default!;
   [Inject] private IJSRuntime JS { get; set; } = default!;

@@ -58,16 +58,16 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
     return result;
   }
 
-  public async Task<IEnumerable<BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<Budget.Shared.Models.BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default)
   {
-    var readOnlyList = await GetListAsync<BackupSetDto>("utilities/backup-sets", cancellationToken);
+    var readOnlyList = await GetListAsync<Budget.Shared.Models.BackupSetDto>("utilities/backup-sets", cancellationToken);
     return readOnlyList;
   }
 
-  public async Task<IEnumerable<BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<Budget.Shared.Models.BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default)
   {
     var encodedPartitionKey = Uri.EscapeDataString(partitionKey);
-    var readOnlyList = await GetListAsync<BackupTableDto>($"utilities/backup-sets/{encodedPartitionKey}/details", cancellationToken);
+    var readOnlyList = await GetListAsync<Budget.Shared.Models.BackupTableDto>($"utilities/backup-sets/{encodedPartitionKey}/details", cancellationToken);
     return readOnlyList;
   }
 

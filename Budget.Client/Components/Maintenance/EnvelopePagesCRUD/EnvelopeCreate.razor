@@ -1,4 +1,5 @@
-@inject IBudgetMaintApiClient MaintApi
+@inject IEnvelopesApiClient MaintApi
+@inject ICategoriesApiClient CategoriesApi
 
 <MudDialog>
   <DialogContent>
@@ -40,7 +41,7 @@
     protected override async Task OnInitializedAsync()
     {
         _envelope = new EnvelopeDto();
-        _categories = (await MaintApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
+        _categories = (await CategoriesApi.GetCategoriesAsync()).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToList();
         if (_categories.Count > 0)
             _envelope.CategoryId = _categories[0].CategoryId;
     }

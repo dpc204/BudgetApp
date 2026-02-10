@@ -6,7 +6,7 @@ namespace Budget.Client.Pages.Admin;
 
 public partial class UsersIndex
 {
-  [Inject] private IBudgetMaintApiClient MaintApi { get; set; } = null!;
+  [Inject] private IAdminApiClient MaintApi { get; set; } = null!;
   [Inject] private IDialogService DialogService { get; set; } = null!;
   [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
