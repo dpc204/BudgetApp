@@ -1,7 +1,8 @@
 @using Budget.Client.Components.Shared
 @using Budget.Shared.Utilities
 @using Mapster
-@inject IBudgetMaintApiClient MaintApi
+@inject IEnvelopesApiClient MaintApi
+@inject ICategoriesApiClient CategoriesApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -121,7 +122,7 @@
 
   private async Task LoadAsync()
   {
-    var categories = await MaintApi.GetCategoriesAsync();
+    var categories = await CategoriesApi.GetCategoriesAsync();
     _categoryLookup = categories.ToDictionary(c => c.CategoryId, c => c.Name);
     _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
     _originalEnvelopes = _envelopes.Select(CloneEnvelope).ToList();

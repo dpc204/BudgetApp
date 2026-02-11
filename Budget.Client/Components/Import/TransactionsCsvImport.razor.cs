@@ -3,7 +3,8 @@ namespace Budget.Client.Components.Import;
 public partial class TransactionsCsvImport : ComponentBase
 {
   [Inject] protected IUserAndOptions UserAndOptions { get; set; } = default!;
-  [Inject] protected IBudgetApiClient Api { get; set; } = default!;
+  [Inject] protected ITransactionsApiClient Api { get; set; } = default!;
+  [Inject] protected IAccountsApiClient AccountsApi { get; set; } = default!;
   [Inject] protected ISnackbar Snackbar { get; set; } = default!;
   [Inject] protected IBudgetMonthlyApiClient BudgetMonthlyApi { get; set; } = default!;
   [Inject] protected IDialogService DialogService { get; set; } = default!;
@@ -22,7 +23,7 @@ public partial class TransactionsCsvImport : ComponentBase
 
   protected override async Task OnInitializedAsync()
   {
-    var accounts = await Api.GetAccountsAsync();
+    var accounts = await AccountsApi.GetAccountsAsync();
     Accounts.Clear();
     Accounts.AddRange(accounts);
     SelectedAccountId = UserAndOptions.Options.PreviousImportAccount;

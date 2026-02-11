@@ -8,7 +8,7 @@ namespace Budget.Client.Tests.Services;
 /// </summary>
 public class EnvelopeTransactionServiceTests
 {
-  private readonly Mock<IBudgetApiClient> _mockApi;
+  private readonly Mock<ITransactionsApiClient> _mockApi;
   private readonly Mock<IDialogService> _mockDialogService;
   private readonly Mock<IUserAndOptions> _mockUserOptions;
   private readonly Mock<ILogger<EnvelopeTransactionService>> _mockLogger;
@@ -16,7 +16,7 @@ public class EnvelopeTransactionServiceTests
 
   public EnvelopeTransactionServiceTests()
   {
-    _mockApi = new Mock<IBudgetApiClient>();
+    _mockApi = new Mock<ITransactionsApiClient>();
     _mockDialogService = new Mock<IDialogService>();
     _mockUserOptions = new Mock<IUserAndOptions>();
     _mockLogger = new Mock<ILogger<EnvelopeTransactionService>>();

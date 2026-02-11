@@ -1,13 +1,13 @@
 using Mapster;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 /// <summary>
 /// Implementation of budget monthly API client
 /// </summary>
 public sealed class BudgetMonthlyApiClient(HttpClient http, ILogger<BudgetMonthlyApiClient> logger)
-  : Shared.Services.IBudgetMonthlyApiClient
+  : IBudgetMonthlyApiClient
 {
   public async Task<IEnumerable<BudgetMonthResponse>> GetBudgetMonthAsync(int year, int month, CancellationToken cancellationToken = default)
   {

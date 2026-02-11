@@ -20,14 +20,16 @@ public class EnvelopeDataServiceTests
   private readonly Mock<EnvelopeState> _mockState;
   private readonly Mock<IUserAndOptions> _mockUserOptions;
   private readonly EnvelopeDataService _service;
-  private readonly Mock<IBudgetApiClient> _mockApiClient = new();
+  private readonly Mock<IEnvelopesApiClient> _mockEnvelopesClient = new();
+  private readonly Mock<ICategoriesApiClient> _mockCategoriesClient = new();
 
   public EnvelopeDataServiceTests()
   {
     _mockState = new Mock<EnvelopeState>(null!, null!, null!);
     _mockUserOptions = new Mock<IUserAndOptions>();
-    _mockApiClient = new Mock<IBudgetApiClient>();
-    _service = new EnvelopeDataService(_mockApiClient.Object, _mockUserOptions.Object);
+    _mockEnvelopesClient = new Mock<IEnvelopesApiClient>();
+    _mockCategoriesClient = new Mock<ICategoriesApiClient>();
+    _service = new EnvelopeDataService(_mockEnvelopesClient.Object, _mockCategoriesClient.Object, _mockUserOptions.Object);
   }
 
   [Fact]
@@ -63,8 +65,8 @@ public class EnvelopeDataServiceTests
     //mock _mockUserOptions.Options to return "1" for SelectedCategoryId
     _mockUserOptions.Setup(uo => uo.Options).Returns(new UserOptions { SelectedCategoryType = "ALL" });
 
-    _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
-    _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>()))
+    _mockCategoriesClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
+    _mockEnvelopesClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>()))
       .ReturnsAsync(envelopeDtos);
     _mockState.Setup(s => s.IsLoaded).Returns(true);
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
@@ -102,8 +104,8 @@ public class EnvelopeDataServiceTests
       new() { EnvelopeId = 1, EnvelopeName = "Groceries", CategoryId = "1", Balance = 100m }
     };
 
-    _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
-    _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>()))
+    _mockCategoriesClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
+    _mockEnvelopesClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>()))
       .ReturnsAsync(envelopeDtos);
     _mockState.Setup(s => s.IsLoaded).Returns(false);
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
@@ -128,8 +130,8 @@ public class EnvelopeDataServiceTests
 
     var envelopeDtos = new List<EnvelopeDto>();
 
-    _mockApiClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
-    _mockApiClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>()))
+    _mockCategoriesClient.Setup(a => a.GetCategoriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(categoryDtos);
+    _mockEnvelopesClient.Setup(a => a.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>()))
       .ReturnsAsync(envelopeDtos);
     _mockState.Setup(s => s.IsLoaded).Returns(true);
     _mockState.Setup(s => s.AllEnvelopeData).Returns([]);

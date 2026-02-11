@@ -1,8 +1,8 @@
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 // Uses the typed HttpClient registered in Program.cs (line 41) via AddHttpClient<IBudgetMaintApiClient, BudgetMaintApiClient>
 public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApiClient> logger)
-  : Shared.Services.IBudgetMaintApiClient
+  : IBudgetMaintApiClient
 {
   // configured base address & handlers
 

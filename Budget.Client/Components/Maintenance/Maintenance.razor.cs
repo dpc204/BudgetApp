@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 
 public partial class Maintenance : IDisposable
 {
-  [Inject] private IBudgetMaintApiClient MaintApiClient { get; set; } = default!;
+  [Inject] private IUtilitiesApiClient MaintApiClient { get; set; } = default!;
   [Inject] private ISnackbar Snackbar { get; set; } = default!;
   [Inject] private NavigationManager Nav { get; set; } = default!;
   [Inject] private IJSRuntime JS { get; set; } = default!;

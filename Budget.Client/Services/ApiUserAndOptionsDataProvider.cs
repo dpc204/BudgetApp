@@ -5,7 +5,7 @@ namespace Budget.Client.Services;
 /// <summary>
 /// Frontend implementation that loads user data via API calls
 /// </summary>
-public sealed class ApiUserAndOptionsDataProvider(IBudgetApiClient apiClient, ILogger<ApiUserAndOptionsDataProvider> logger)
+public sealed class ApiUserAndOptionsDataProvider(IUserOptionsApiClient apiClient, ILogger<ApiUserAndOptionsDataProvider> logger)
   : IUserAndOptionsDataProvider
 {
   public async Task<UserDetailDto?> LoadUserByIdAsync(int id, CancellationToken cancellationToken = default)

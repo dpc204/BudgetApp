@@ -1,8 +1,8 @@
 using Budget.Shared.Models.Queries;
 
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
-public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> logger) : Shared.Services.IBudgetApiClient
+public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> logger) : IBudgetApiClient
 {
   public async Task<List<EnvelopeDto>> GetEnvelopesAsync(EnvelopeTypes envelopeType = EnvelopeTypes.All,
     CancellationToken cancellationToken = default)
