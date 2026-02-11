@@ -13,8 +13,8 @@ public interface IUtilitiesApiClient
   // Import/Export operations
   Task<ExportAllResponse> ExportAllTablesAsync(CancellationToken cancellationToken = default);
   Task<BackupStatusDto?> GetBackupStatusAsync(string backupId, CancellationToken cancellationToken = default);
-  Task<IEnumerable<Models.BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default);
-  Task<IEnumerable<Models.BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default);
+  Task<IEnumerable<BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default);
+  Task<IEnumerable<BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default);
   Task<bool> DeleteBackupSetAsync(string partitionKey, CancellationToken cancellationToken = default);
   Task<FileDownloadDto> DownloadBackupCsvAsync(string blobName, CancellationToken cancellationToken = default);
 }

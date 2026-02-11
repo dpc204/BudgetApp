@@ -58,7 +58,7 @@ public partial class EditTransactionDialog
   public bool IsBusy { get; set; }
 
   [Inject] private ISnackbar SnackBar { get; set; } = default!;
-  [Inject] private ITransactionsApiClient Api { get; set; } = default!;
+  [Inject] private ITransactionsApiClient TransactionApi { get; set; } = default!;
   [Inject] private IEnvelopesApiClient EnvelopesApi { get; set; } = default!;
   [Inject] private IAccountsApiClient AccountsApi { get; set; } = default!;
   [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -210,11 +210,11 @@ public partial class EditTransactionDialog
     List<EnvelopeDto> envelopes = [];
     if (IsEditMode)
     {
-      envelopes = await BudgetApi.UpdateTransactionAsync(result);
+      envelopes = await TransactionApi.UpdateTransactionAsync(result);
     }
     else
     {
-      addResult = await BudgetApi.AddTransactionAsync(result);
+      addResult = await TransactionApi.AddTransactionAsync(result);
     }
 
 
@@ -239,7 +239,7 @@ public partial class EditTransactionDialog
     {
       try
       {
-        var envelopes = await Api.VoidTransactionAsync(_transactionId);
+        var envelopes = await TransactionApi.VoidTransactionAsync(_transactionId);
         MudDialog.Close(DialogResult.Ok(envelopes));
       }
       catch (Exception ex)

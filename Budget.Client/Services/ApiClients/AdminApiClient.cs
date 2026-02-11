@@ -3,7 +3,7 @@ namespace Budget.Client.Services.ApiClients;
 /// <summary>
 /// Implementation of admin API client
 /// </summary>
-public sealed class AdminApiClient(HttpClient http, ILogger<AdminApiClient> logger) : IAdminApiClient
+public sealed class AdminApiClient(HttpClient http) : IAdminApiClient
 {
   // Role management
   public async Task<IEnumerable<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
@@ -19,14 +19,16 @@ public sealed class AdminApiClient(HttpClient http, ILogger<AdminApiClient> logg
   {
     var response = await http.PostAsJsonAsync("/api/admin/roles", request, cancellationToken);
     response.EnsureSuccessStatusCode();
-    return (await response.Content.ReadFromJsonAsync<RoleDto>(cancellationToken))!;
+    var result = await response.Content.ReadFromJsonAsync<RoleDto>(cancellationToken);
+    return result ?? throw new InvalidOperationException("Failed to deserialize role response");
   }
 
   public async Task<RoleDto> UpdateRoleAsync(int id, UpdateRoleRequest request, CancellationToken cancellationToken = default)
   {
     var response = await http.PutAsJsonAsync($"/api/admin/roles/{id}", request, cancellationToken);
     response.EnsureSuccessStatusCode();
-    return (await response.Content.ReadFromJsonAsync<RoleDto>(cancellationToken))!;
+    var result = await response.Content.ReadFromJsonAsync<RoleDto>(cancellationToken);
+    return result ?? throw new InvalidOperationException("Failed to deserialize role response");
   }
 
   public async Task<bool> DeleteRoleAsync(int id, CancellationToken cancellationToken = default)

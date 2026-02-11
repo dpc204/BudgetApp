@@ -160,21 +160,19 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     try
     {
       var result =
-        await resp.Content.ReadFromJsonAsync<Result<List<EnvelopeDto>>>(cancellationToken: cancellationToken);
+        await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
 
-      if (result?.IsSuccess == true)
+      if (result != null)
       {
-        return result.Value ?? [];
+        return result;
       }
-
-      logger.LogWarning("UpdateTransaction failed: {Error}", result?.Errors);
-      return [];
     }
     catch (Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for UpdateTransaction at {Url}", "/Transaction/Update");
-      return [];
     }
+
+    return [];
   }
 
   public async Task<List<EnvelopeDto>> VoidTransactionAsync(int transactionId,
