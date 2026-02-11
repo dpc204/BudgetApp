@@ -1,9 +1,9 @@
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 /// <summary>
 /// Implementation of categories API client
 /// </summary>
-public sealed class CategoriesApiClient(HttpClient http, ILogger<CategoriesApiClient> logger) : Shared.Services.ICategoriesApiClient
+public sealed class CategoriesApiClient(HttpClient http, ILogger<CategoriesApiClient> logger) : ICategoriesApiClient
 {
   // Read operations (runtime)
   public async Task<List<CategoryDto>> GetCategoriesAsync(CancellationToken cancellationToken = default)

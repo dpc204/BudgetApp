@@ -1,9 +1,9 @@
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 /// <summary>
 /// Implementation of envelope API client
 /// </summary>
-public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClient> logger) : Shared.Services.IEnvelopesApiClient
+public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClient> logger) : IEnvelopesApiClient
 {
   // Read operations (runtime)
   public async Task<List<EnvelopeDto>> GetEnvelopesAsync(EnvelopeTypes envelopeType = EnvelopeTypes.All,

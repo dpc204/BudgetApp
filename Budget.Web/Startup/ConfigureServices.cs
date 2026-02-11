@@ -1,4 +1,5 @@
 using Budget.Client.Services;
+using Budget.Client.Services.ApiClients;
 using Budget.Web.Services;
 using MudBlazor.Services;
 using Syncfusion.Blazor;
@@ -121,6 +122,19 @@ public static class ConfigureServices
 
     // Feature-aligned API clients using Aspire service discovery
 #pragma warning disable EXTEXP0001
+
+    // Legacy BudgetApiClient (used by EnvelopeState and other legacy components)
+    var budgetApiClientBuilder = builder.Services.AddHttpClient<IBudgetApiClient, BudgetApiClient>(client =>
+      {
+        client.BaseAddress = new Uri("https+http://budget-api");
+        client.Timeout = timeout;
+      })
+      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+
+    if (!isDevelopment)
+    {
+      budgetApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
+    }
 
     // Envelopes API Client
     var envelopesApiClientBuilder = builder.Services.AddHttpClient<IEnvelopesApiClient, EnvelopesApiClient>(client =>

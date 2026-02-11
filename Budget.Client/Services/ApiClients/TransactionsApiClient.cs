@@ -1,11 +1,11 @@
 using Budget.Shared.Models.Queries;
 
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 /// <summary>
 /// Implementation of transactions API client
 /// </summary>
-public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsApiClient> logger) : Shared.Services.ITransactionsApiClient
+public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsApiClient> logger) : ITransactionsApiClient
 {
   // Read operations
   public async Task<List<TransactionDto>> GetTransactionsByEnvelopeAsync(int envelopeId, int startIndex = 0,

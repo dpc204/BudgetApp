@@ -1,9 +1,9 @@
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 /// <summary>
 /// Implementation of accounts API client
 /// </summary>
-public sealed class AccountsApiClient(HttpClient http, ILogger<AccountsApiClient> logger) : Shared.Services.IAccountsApiClient
+public sealed class AccountsApiClient(HttpClient http, ILogger<AccountsApiClient> logger) : IAccountsApiClient
 {
   public async Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
   {

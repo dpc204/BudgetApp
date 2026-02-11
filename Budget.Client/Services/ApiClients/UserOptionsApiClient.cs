@@ -1,9 +1,9 @@
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 /// <summary>
 /// Implementation of user options API client
 /// </summary>
-public sealed class UserOptionsApiClient(HttpClient http, ILogger<UserOptionsApiClient> logger) : Shared.Services.IUserOptionsApiClient
+public sealed class UserOptionsApiClient(HttpClient http, ILogger<UserOptionsApiClient> logger) : IUserOptionsApiClient
 {
   public async Task<UserDetailDto?> GetUserByIdAsync(int id, CancellationToken cancellationToken = default)
   {

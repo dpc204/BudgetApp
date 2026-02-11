@@ -1,9 +1,9 @@
-namespace Budget.Client.Services;
+namespace Budget.Client.Services.ApiClients;
 
 /// <summary>
 /// Implementation of admin API client
 /// </summary>
-public sealed class AdminApiClient(HttpClient http, ILogger<AdminApiClient> logger) : Shared.Services.IAdminApiClient
+public sealed class AdminApiClient(HttpClient http, ILogger<AdminApiClient> logger) : IAdminApiClient
 {
   // Role management
   public async Task<IEnumerable<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
