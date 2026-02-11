@@ -12,3 +12,5 @@ global using Budget.Shared.Services;
 global using Budget.Shared.Models;
 global using Budget.Shared.Enums;
 global using FluentAssertions;
+global using Microsoft.Playwright;
+global using Microsoft.AspNetCore.Mvc.Testing;

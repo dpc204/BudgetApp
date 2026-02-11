@@ -17,10 +17,30 @@ public static class ConfigureIdentity
   /// </summary>
   public static void AddAuthentication(WebApplicationBuilder builder)
   {
-    // DIAGNOSTIC: Log all AzureAd configuration values to verify ClientSecret is loaded
-    var azureAdSection = builder.Configuration.GetSection("AzureAd");
     var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole().SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information));
     var logger = loggerFactory.CreateLogger("ConfigureIdentity");
+
+    // Check for test mode - skip Entra ID authentication for Playwright tests
+    var useTestAuth = builder.Configuration.GetValue<bool>("UseTestAuthentication") 
+                      || Environment.GetEnvironmentVariable("USE_TEST_AUTH") == "true";
+    
+    if (useTestAuth)
+    {
+      logger.LogWarning("?? TEST MODE: Using mock authentication instead of Entra ID");
+      builder.Services.AddAuthentication(Budget.Web.Authentication.TestAuthenticationHandler.AuthenticationScheme)
+        .AddScheme<AuthenticationSchemeOptions, Budget.Web.Authentication.TestAuthenticationHandler>(
+          Budget.Web.Authentication.TestAuthenticationHandler.AuthenticationScheme, 
+          options => { });
+      
+      // Still need to register controllers for the app to work
+      builder.Services.AddControllersWithViews();
+      
+      logger.LogInformation("? Test mode authentication configured with controllers");
+      return;
+    }
+
+    // DIAGNOSTIC: Log all AzureAd configuration values to verify ClientSecret is loaded
+    var azureAdSection = builder.Configuration.GetSection("AzureAd");
     
     logger.LogInformation("=== AzureAd Configuration at Authentication Setup ===");
     logger.LogInformation("Instance: {Instance}", azureAdSection["Instance"]);

@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Budget.Client.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Components\Pages\EnvelopePagesCRUD\**" />
     <Content Remove="Components\Pages\EnvelopePagesCRUD\**" />
     <EmbeddedResource Remove="Components\Pages\EnvelopePagesCRUD\**" />

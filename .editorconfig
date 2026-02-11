@@ -15,6 +15,9 @@ dotnet_diagnostic.IDE0079.severity = none
 # CA1873: Avoid potentially expensive logging
 dotnet_diagnostic.CA1873.severity = none
 
+# Disable xUnit1004: Test methods should not be skipped
+dotnet_diagnostic.xUnit1004.severity = none
+
 # Suppress all warnings for generated code (Blazor, Razor, etc.)
 [**/*.{designer,generated,g}.cs]
 generated_code = true

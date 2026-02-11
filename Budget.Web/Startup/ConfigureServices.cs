@@ -70,7 +70,15 @@ public static class ConfigureServices
   {
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSingleton<TokenCacheManager>();
-    builder.Services.AddTransient<ForwardAuthCookiesHandler>();
+    
+    // Only register ForwardAuthCookiesHandler when NOT in test mode
+    var useTestAuth = builder.Configuration.GetValue<bool>("UseTestAuthentication") 
+                      || Environment.GetEnvironmentVariable("USE_TEST_AUTH") == "true";
+    
+    if (!useTestAuth)
+    {
+      builder.Services.AddTransient<ForwardAuthCookiesHandler>();
+    }
 
     // Check if we're in development mode - skip resilience handlers for faster debugging
     var isDevelopment = builder.Environment.IsDevelopment();
@@ -124,8 +132,13 @@ public static class ConfigureServices
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
-      })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+      });
+    
+    // Only add auth forwarding when NOT in test mode
+    if (!useTestAuth)
+    {
+      budgetApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+    }
 
     // Only add resilience handlers in non-development environments
     if (!isDevelopment)
@@ -139,8 +152,13 @@ public static class ConfigureServices
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
-      })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+      });
+    
+    // Only add auth forwarding when NOT in test mode
+    if (!useTestAuth)
+    {
+      budgetMaintApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+    }
 
     // Only add resilience handlers in non-development environments
     if (!isDevelopment)
@@ -154,8 +172,13 @@ public static class ConfigureServices
       {
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
-      })
-      .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+      });
+    
+    // Only add auth forwarding when NOT in test mode
+    if (!useTestAuth)
+    {
+      budgetMonthlyApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+    }
 
     // Only add resilience handlers in non-development environments
     if (!isDevelopment)

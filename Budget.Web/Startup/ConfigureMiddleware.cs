@@ -64,9 +64,17 @@ public static class ConfigureMiddleware
     app.UseHttpsRedirection();
     app.UseAuthentication();
     
-    // Validate token cache after authentication but before authorization
-    // This prevents 401 errors when app restarts but browser cookie remains valid
-    app.UseMiddleware<TokenCacheValidationMiddleware>();
+    // Only use TokenCacheValidationMiddleware when NOT in test mode
+    // In test mode, we don't have ITokenAcquisition available
+    var useTestAuth = app.Configuration.GetValue<bool>("UseTestAuthentication") 
+                      || Environment.GetEnvironmentVariable("USE_TEST_AUTH") == "true";
+    
+    if (!useTestAuth)
+    {
+      // Validate token cache after authentication but before authorization
+      // This prevents 401 errors when app restarts but browser cookie remains valid
+      app.UseMiddleware<TokenCacheValidationMiddleware>();
+    }
     
     app.UseAuthorization();
     app.UseAntiforgery();

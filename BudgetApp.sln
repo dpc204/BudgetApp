@@ -25,6 +25,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Budget.Client.Tests", "Budg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantum.Mediator", "Fantum.Mediator\Fantum.Mediator.csproj", "{CFF6BA7A-4E5F-52F8-7957-5BD3C129B99B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DFE7F4F6-7B8B-45F9-8D84-3E79D535D979}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -172,7 +177,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {6B8EC95F-77EE-4F1A-89EF-337ABD7C5860}
 		FileExplorer = Documentation\
+		SolutionGuid = {6B8EC95F-77EE-4F1A-89EF-337ABD7C5860}
 	EndGlobalSection
 EndGlobal
