@@ -23,14 +23,14 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
   }
 
   // Fund operations (budget planning)
-  public async Task<FundEnvelopesResponse> FundEnvelopesAsync(CancellationToken cancellationToken)
+  public async Task<FBResult<int>> FundEnvelopesAsync(CancellationToken cancellationToken)
   {
     using var response = await http.PostAsync("envelopes/fund", null, cancellationToken);
 
     if (!response.IsSuccessStatusCode)
     {
       logger.LogWarning("FundEnvelopes failed with status {Status}", response.StatusCode);
-      return new FundEnvelopesResponse(false, "Failed to fund envelopes", 0);
+      return FBResult<int>.Failure( "Failed to fund envelopes");
     }
 
     try
@@ -38,27 +38,28 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
       var successResponse = await response.Content.ReadFromJsonAsync<FundSuccessResponse>(cancellationToken);
       if (successResponse?.FundedCount != null)
       {
-        return new FundEnvelopesResponse(
-          true,
-          $"Successfully funded {successResponse.FundedCount} envelopes",
-          successResponse.FundedCount);
+        return FBResult<int>.Success(successResponse.FundedCount);
       }
 
       var errorResponse = await response.Content.ReadFromJsonAsync<FundErrorResponse>(cancellationToken);
-      if (errorResponse?.Error != null)
-      {
-        logger.LogWarning("FundEnvelopes failed: {Error}", errorResponse.Error);
-        return new FundEnvelopesResponse(false, errorResponse.Error, 0);
-      }
+      //if (errorResponse?.Error != null)
+      //{
+      //  logger.LogWarning("FundEnvelopes failed: {Error}", errorResponse.Error);
+      //  return new FundEnvelopesResponse(false, errorResponse.Error, 0);
+      //}
 
-      logger.LogWarning("FundEnvelopes returned unexpected response format");
-      return new FundEnvelopesResponse(false, "Unexpected response format", 0);
+      //logger.LogWarning("FundEnvelopes returned unexpected response format");
+      //return new FundEnvelopesResponse(false, "Unexpected response format", 0);
+
+      throw new ArgumentException("");	
     }
     catch (Exception ex)
     {
       logger.LogError(ex, "Error deserializing FundEnvelopes response");
-      return new FundEnvelopesResponse(false, ex.Message, 0);
+      return null; //new FundEnvelopesResponse(false, ex.Message, 0);
     }
+
+    ;
   }
 
   public async Task<UpdateFundAmountResponse> UpdateFundAmountAsync(int envelopeId, decimal? fundAmount, CancellationToken cancellationToken = default)

@@ -231,7 +231,7 @@ public partial class EditTransactionDialog
   {
     var result = await DialogService.ShowMessageBoxAsync(
       "Confirm Void Transaction",
-      $"Are you sure you want to void this transaction? This will reverse the transaction in the budget and account balances.\n\nVendor: {_header.Vendor}\nAmount: {_header.TotalAmount:C}",
+      $"Are you sure you want to void this transaction? This will reverse the transaction in the envelope and account balances.\n\nVendor: {_header.Vendor}\nAmount: {_header.TotalAmount:C}",
       yesText: "Yes, Void Transaction",
       cancelText: "Cancel");
 

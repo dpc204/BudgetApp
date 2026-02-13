@@ -8,7 +8,7 @@ using static MudBlazor.Icons;
 
 namespace Budget.Shared.Models.Queries
 {
-  public class AssignQuery : IRequest<Result<AssignQueryResult>>
+  public class AssignQuery : IRequest<FBResult<AssignQueryResult>>
   {
     public int StartIndex { get; set; }
     public int Count { get; set; }

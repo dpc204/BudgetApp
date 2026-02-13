@@ -24,28 +24,39 @@ public static class Fund
     public async Task<Result<int>> Handle(Command request, CancellationToken cancellationToken)
     {
       List<Envelope> envelopesWithFunds = [];
-
+      var result = new Result<int>();
       try
       {
         var incomeEnvelope = await GetEnvelopeByType.Get(db, EnvelopeTypes.Income, cancellationToken);
 
-        // send a response if the income envelope is not found
-        if (incomeEnvelope is null)
+        if (incomeEnvelope == null)
         {
-          return Result.Fail("Income envelope not found. Cannot fund envelopes.");
-        }
-
+          result.WithError("No Envelope setup as the Income Envelope");
+          logger.LogError("No Envelope setup as the Income Envelope");
+        }     
         // Find all budget records with draft values in current or future months
         envelopesWithFunds = await db.Envelopes
           .Where(b => b.FundAmount != 0)
           .ToListAsync(cancellationToken);
 
+        if (envelopesWithFunds.Count == 0)
+          return Result.Ok().WithSuccess("There were no envelopes with a funding balance");
+
+
         var fundingAccount =
           (await db.BankAccounts.FirstOrDefaultAsync(a => a.AccountType == AccountTypes.Funding, cancellationToken))
           ?.Id;
 
+        if(fundingAccount is null)
+        {
+          result.WithError("FundingAccount was not setup correctly.");
+          logger.LogError("FundingAccount was not setup correctly.");
+        }
 
         var _newAssignTransactions = new List<OneTransactionDetail>();
+
+        if (result.IsFailed)
+          return result;
 
         // Move funds from Income to the standard envelopes
         foreach (var toEnvelope in envelopesWithFunds)
@@ -56,22 +67,22 @@ public static class Fund
 
         // add the new assign transactions using the AddMultipleTransactions handler
         var addMultipleHandler = new AddMultipleTransaction.Handler(insertTransactions);
-        await addMultipleHandler.Handle(new AddMultipleTransaction.Command(_newAssignTransactions), cancellationToken);
+       var addResult = await addMultipleHandler.Handle(new AddMultipleTransaction.Command(_newAssignTransactions), cancellationToken);
+
+       return result.WithValue(addResult.EnvelopeUpdates.Count).WithSuccess("Envelopes have been funded");
       }
       catch (Exception e)
       {
         logger.LogError(e, "Error funding envelopes");
         return Result.Fail(new ExceptionalError(e));
       }
-
-      return Result.Ok(envelopesWithFunds.Count);
     }
 
     private OneTransactionDetail MakeAssignTransaction(Envelope env, EnvelopeDto? incomeEnvelope, int? fundingAccount)
     {
       ArgumentNullException.ThrowIfNull(incomeEnvelope, nameof(incomeEnvelope));
 
-      if(!fundingAccount.HasValue)
+      if (!fundingAccount.HasValue)
         throw new ArgumentNullException(nameof(fundingAccount));
 
       var rslt = new OneTransactionDetail()
@@ -79,7 +90,7 @@ public static class Fund
         Date = DateTime.UtcNow,
         TransactionType = TransactionTypes.Funding,
         Description = $"Fund: {env.Name}",
-        UserId =  userAndOptions.User.Id,
+        UserId = userAndOptions.User.Id,
         AccountId = fundingAccount.Value,
         Vendor = "Fantum Budget - Fund"
       };
@@ -87,12 +98,14 @@ public static class Fund
 
       rslt.Details =
       [
-        new() {
+        new()
+        {
           EnvelopeId = env.Id,
           Amount = env.FundAmount,
           LineId = 1
         },
-        new() {
+        new()
+        {
           EnvelopeId = incomeEnvelope!.Id,
           Amount = -env.FundAmount,
           LineId = 2
@@ -115,12 +128,12 @@ public static class Fund
 
         if (result.IsSuccess)
         {
-          return Results.Ok(new { fundedCount = result.Value });
+          return Results.Ok(FBResult<int>.Success( result.Value ));
         }
 
         // Extract error messages into a simple string
         var errorMessage = string.Join("; ", result.Errors.Select(e => e.Message));
-        return Results.BadRequest(new { error = errorMessage });
+        return Results.BadRequest(FBResult<int>.Failure( errorMessage ));
       }).RequireAuthorization();
     }
   }

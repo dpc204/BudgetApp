@@ -159,7 +159,7 @@ public static class ConfigureServices
     // Only add auth forwarding when NOT in test mode
     if (!useTestAuth)
     {
-      budgetMaintApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
+      envelopesApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
     }
 
     if (!isDevelopment)

@@ -11,7 +11,7 @@ public interface IEnvelopesApiClient
   Task<EnvelopeDto> GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes envType, CancellationToken cancellationToken = default);
 
   // Fund operations (budget planning)
-  Task<FundEnvelopesResponse> FundEnvelopesAsync(CancellationToken cancellationToken);
+  Task<FBResult<int>> FundEnvelopesAsync(CancellationToken cancellationToken);
   Task<UpdateFundAmountResponse> UpdateFundAmountAsync(int envelopeId, decimal? fundAmount, CancellationToken cancellationToken = default);
   Task<ClearAllFundAmountsResponse> ClearAllFundAmountsAsync(CancellationToken cancellationToken = default);
 

@@ -192,14 +192,13 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     try
     {
       var result =
-        await resp.Content.ReadFromJsonAsync<Result<List<EnvelopeDto>>>(cancellationToken: cancellationToken);
+        await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
 
-      if (result?.IsSuccess == true)
+      if(result != null)
       {
-        return result.Value ?? [];
+        return result;
       }
 
-      logger.LogWarning("VoidTransaction failed: {Error}", result?.Errors);
       return [];
     }
     catch (Exception ex)

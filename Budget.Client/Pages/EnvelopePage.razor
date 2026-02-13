@@ -43,9 +43,9 @@ else
                    Class="envelopes-table"
                    Style="height: 100%; overflow: auto; width: auto;">
         <Columns >
-          <HierarchyColumn T="EnvelopeResult"  />
+          <HierarchyColumn T="EnvelopeResult"/>
 
-          <TemplateColumn Title="" 
+          <TemplateColumn Title=""
                           Filterable="false">
             <CellTemplate Context="ctx">
               <MudIconButton Icon="@Icons.Material.Filled.Add"
@@ -55,7 +55,7 @@ else
                              OnClick="@(() => NewTransactionAsync(ctx.Item))"/>
             </CellTemplate >
           </TemplateColumn >
-          <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Filterable="false" Title="Category" HeaderStyle="min-width: 16rem;" />
+          <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Filterable="false" Title="Category" HeaderStyle="min-width: 16rem;"/>
           <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
           <PropertyColumn Property="x => x != null ? x.Balance : 0" Format="#,0.00" Title="Balance" Filterable="false" HeaderStyle="min-width: 16rem; text-align: right;"
                           CellStyle="text-align: right;"/>
@@ -70,31 +70,37 @@ else
                        ItemSize="52.68f">
             <Columns>
               <PropertyColumn Property="x => x.Date" Title="Date" Format="d"/>
+
               <PropertyColumn Property="x => x.Vendor" Title="Vendor"/>
               <TemplateColumn T="EnvelopeTransactionListItem" Title="Tran Desc\Line Note">
                 <CellTemplate Context="cell">
                   <div>
+                     @if (cell.Item.IsVoided)
+                    {
+                      <div style="font-size: 0.875rem;" Class="mud-secondary-text">Voided</div>
+                    }
                     <div>@cell.Item.Description</div>
                     @if (!string.IsNullOrEmpty(cell.Item.Notes))
                     {
                       <div style="font-size: 0.875rem; color: var(--mud-palette-text-secondary);">@cell.Item.Notes</div>
                     }
+
                   </div>
                 </CellTemplate>
               </TemplateColumn>
 
-              <PropertyColumn Property="x => x.LineAmount" Format="#,#.##" HeaderStyle="min-width: 16rem; text-align: right;"  CellStyle="text-align: right;"/>
+              <PropertyColumn Property="x => x.LineAmount" Format="#,#.##" HeaderStyle="min-width: 16rem; text-align: right;" CellStyle="text-align: right;"/>
               <TemplateColumn Title="">
                 <CellTemplate Context="ctx">
                   <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye"
                                  Size="Size.Small"
                                  Variant="Variant.Outlined"
                                  Color="Color.Primary"
-                                 OnClick="@(() => OnTransactionRowClick(ctx.Item, true))" />
+                                 OnClick="@(() => OnTransactionRowClick(ctx.Item, false))"/>
                 </CellTemplate >
               </TemplateColumn >
 
-              </Columns>
+            </Columns>
             <NoRecordsContent>
               <MudText Typo="Typo.body2" Class="pa-4">No transactions found for this envelope.</MudText>
             </NoRecordsContent>
