@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿
+using System.Globalization;
+
 
 var stopWatch = Stopwatch.StartNew();
 
@@ -99,12 +101,3 @@ ConfigureMiddleware.MapEndpoints(app);
 logger.LogInformation("Program Startup Time: {time}ms", stopWatch.ElapsedMilliseconds);
 Debug.WriteLine($"Program Startup: {stopWatch.ElapsedMilliseconds}");
 app.Run();
-
-// Make Program accessible to test projects
-
-
-/// <summary>
-/// Marker class for WebApplicationFactory to reference the entry point assembly
-/// </summary>
-public class ProgramMarker { }
-

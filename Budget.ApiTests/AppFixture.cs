@@ -4,7 +4,7 @@ namespace Budget.ApiTests;
 
 public class AppFixture : IAsyncLifetime
 {
-  private Process _app;
+  private Process? _app;
   public string BaseUrl { get; private set; } = "http://localhost:5005";
 
   public async ValueTask InitializeAsync()
@@ -23,6 +23,7 @@ public class AppFixture : IAsyncLifetime
   public ValueTask DisposeAsync()
   {
     _app?.Kill();
+    GC.SuppressFinalize(this);
     return new ValueTask(Task.CompletedTask);
   }
 }

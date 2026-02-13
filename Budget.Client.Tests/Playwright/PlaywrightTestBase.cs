@@ -66,6 +66,8 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
 
     if (Factory != null)
       await Factory.DisposeAsync();
+    
+    GC.SuppressFinalize(this);
   }
 
   /// <summary>

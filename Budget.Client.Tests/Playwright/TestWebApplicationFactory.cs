@@ -1,3 +1,4 @@
+using Budget.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -11,19 +12,13 @@ namespace Budget.Client.Tests.Playwright;
 /// <summary>
 /// Custom WebApplicationFactory for hosting the Blazor app with mock authentication during tests
 /// </summary>
-public class TestWebApplicationFactory : WebApplicationFactory<ProgramMarker>
+public class TestWebApplicationFactory(string environment = "Development") : WebApplicationFactory<ProgramMarker>
 {
-  private readonly string _environment;
   private IHost? _host;
-
-  public TestWebApplicationFactory(string environment = "Development")
-  {
-    _environment = environment;
-  }
 
   protected override void ConfigureWebHost(IWebHostBuilder builder)
   {
-    builder.UseEnvironment(_environment);
+    builder.UseEnvironment(environment);
 
     builder.ConfigureTestServices(services =>
     {
@@ -54,7 +49,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<ProgramMarker>
       {
         webHostBuilder.UseKestrel();
         webHostBuilder.UseUrls("http://127.0.0.1:0"); // Use any available port
-        webHostBuilder.UseEnvironment(_environment);
+        webHostBuilder.UseEnvironment(environment);
         webHostBuilder.Configure(app =>
         {
           // Use the same configuration as the main app

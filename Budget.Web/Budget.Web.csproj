@@ -22,6 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="6.7.0" />
+    <PackageReference Include="FluentResults.Extensions.FluentAssertions" Version="2.2.1" />
     <PackageReference Include="Microsoft.Build" Version="18.0.2" />
     <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.1" />
@@ -53,7 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Syncfusion.Blazor" Version="31.2.10" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.10" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -56,7 +56,7 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
     catch (Exception ex)
     {
       logger.LogError(ex, "Error deserializing FundEnvelopes response");
-      return null; //new FundEnvelopesResponse(false, ex.Message, 0);
+      return FBResult<int>.Failure(ex.Message); //new FundEnvelopesResponse(false, ex.Message, 0);
     }
 
     ;

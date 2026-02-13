@@ -6,6 +6,7 @@
     <UserSecretsId>b3ae292f-d475-4054-85a4-16dcbf8f438e</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="6.7.0" />
     <PackageReference Include="FluentResults.Extensions.FluentAssertions" Version="2.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.1" />

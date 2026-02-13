@@ -9,16 +9,13 @@ namespace Budget.Web.Authentication;
 /// Test authentication handler that bypasses Entra ID for automated testing
 /// Only enabled when USE_TEST_AUTH environment variable is set to "true"
 /// </summary>
-public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestAuthenticationHandler(
+  IOptionsMonitor<AuthenticationSchemeOptions> options,
+  ILoggerFactory logger,
+  UrlEncoder encoder)
+  : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
   public const string AuthenticationScheme = "TestScheme";
-
-  public TestAuthenticationHandler(
-    IOptionsMonitor<AuthenticationSchemeOptions> options,
-    ILoggerFactory logger,
-    UrlEncoder encoder) : base(options, logger, encoder)
-  {
-  }
 
   protected override Task<AuthenticateResult> HandleAuthenticateAsync()
   {

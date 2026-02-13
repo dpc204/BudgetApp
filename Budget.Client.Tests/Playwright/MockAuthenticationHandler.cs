@@ -8,16 +8,13 @@ namespace Budget.Client.Tests.Playwright;
 /// <summary>
 /// Mock authentication handler that bypasses Entra ID authentication for testing
 /// </summary>
-public class MockAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class MockAuthenticationHandler(
+  IOptionsMonitor<AuthenticationSchemeOptions> options,
+  ILoggerFactory logger,
+  UrlEncoder encoder)
+  : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
   public const string AuthenticationScheme = "TestScheme";
-
-  public MockAuthenticationHandler(
-    IOptionsMonitor<AuthenticationSchemeOptions> options,
-    ILoggerFactory logger,
-    UrlEncoder encoder) : base(options, logger, encoder)
-  {
-  }
 
   protected override Task<AuthenticateResult> HandleAuthenticateAsync()
   {
