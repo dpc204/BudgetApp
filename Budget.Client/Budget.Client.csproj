@@ -14,11 +14,10 @@
   <ItemGroup>
     <PackageReference Include="FluentResults" Version="4.0.0" />
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageReference Include="MudBlazor" Version="9.0.0-preview.2" />
-    <PackageReference Include="Syncfusion.Blazor" Version="31.2.10" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.1" />
+    <PackageReference Include="Syncfusion.Blazor" Version="32.2.4" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="32.2.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.3" />
   </ItemGroup>
 
 

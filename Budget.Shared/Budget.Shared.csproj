@@ -13,8 +13,8 @@
     <PackageReference Include="Azure.Identity" Version="1.18.0-beta.2" />
     <PackageReference Include="FluentResults" Version="4.0.0" />
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="5.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
     <PackageReference Include="MudBlazor" Version="9.0.0-preview.2" />
   </ItemGroup>
 
