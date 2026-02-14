@@ -181,7 +181,7 @@ authBuilder.AddJwtBearer(LocalScheme, options =>
     ValidIssuer = jwtOpt.Issuer,
     ValidAudience = jwtOpt.Audience,
     IssuerSigningKey = key,
-    ClockSkew = TimeSpan.FromMinutes(1),
+    ClockSkew = TimeSpan.FromMinutes(10),
     RoleClaimType = "roles" // Map roles claim for local JWT too
   };
 });

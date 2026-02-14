@@ -37,6 +37,11 @@
     margin-top: 0 !important;
     height: 100%;
   }
+
+    .budget-scrollable-table tbody tr {
+      height: 20px; /* Adjust to desired height */
+    }
+  
   .budget-scrollable-table .mud-table-container {
     height: 100%;
   }
@@ -75,38 +80,43 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+  }
+
+  .category-column {
+    width:100px;
+    min-width: 50px;
+    max-width: 125px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>
 
 <PageTitle>Budget</PageTitle>
 
 <MudStack Spacing="2" Class="d-flex flex-column" Style="height: 100%; overflow: hidden;">
-<MudText Typo="Typo.h6" Style="flex-shrink: 0;">Budget Maintenance</MudText>
+  <MudText Typo="Typo.h6" Style="flex-shrink: 0;">Budget Maintenance</MudText>
 
-@if(_loading)
+  @if (_loading)
   {
-    <MudProgressLinear Indeterminate="true" />
+    <MudProgressLinear Indeterminate="false" Max="_totalMonths" Value="_MonthProgress"/>
   }
-  else if(_budgetData != null)
+  else if (_budgetData != null)
   {
-    @if (_processing)
-    {
-      <MudProgressLinear Indeterminate="true"  />
-    }
-
     <MudPaper Class="pa-1 mb-1" Style="@(_isSmallScreen ? "padding: 8px !important; flex-shrink: 0;" : "flex-shrink: 0;")">
       <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
         <MudStack Row="true" Spacing="@(_isSmallScreen ? 1 : 2)" AlignItems="AlignItems.Center">
           <MudTooltip Text="Prior Month">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" 
-                          OnClick="ScrollLeft" 
-                          Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
-                          Color="Color.Primary" />
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="ScrollLeft"
+                           Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
+                           Color="Color.Primary"/>
           </MudTooltip>
           @if (!_isSmallScreen)
           {
             <MudText Typo="Typo.h6">
-              @_displayMonths[_currentScrollPosition].ToString("MMM yyyy") - 
+              @_displayMonths[_currentScrollPosition].ToString("MMM yyyy") -
               @_displayMonths[_currentScrollPosition + MonthsToShow - 1].ToString("MMM yyyy")
             </MudText>
           }
@@ -117,153 +127,170 @@
             </MudText>
           }
           <MudTooltip Text="Next Month">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" 
-                          OnClick="ScrollRight" 
-                          Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
-                          Color="Color.Primary" />
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                           OnClick="ScrollRight"
+                           Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
+                           Color="Color.Primary"/>
           </MudTooltip>
         </MudStack>
         <MudStack Row="true" Spacing="@(_isSmallScreen ? 1 : 2)">
-          <MudButton Variant="Variant.Outlined" 
-                    Color="Color.Warning" 
-                    Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
-                    OnClick="ClearDrafts">
+          <MudButton Variant="Variant.Outlined"
+                     Color="Color.Warning"
+                     Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
+                     OnClick="ClearDrafts">
             @(_isSmallScreen ? "Clear" : "Clear Drafts")
           </MudButton>
-          <MudButton Variant="Variant.Filled" 
-                    Color="Color.Primary" 
-                    Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
-                    OnClick="ApplyDrafts">
+          <MudButton Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     Size="@(_isSmallScreen ? Size.Small : Size.Medium)"
+                     OnClick="ApplyDrafts">
             @(_isSmallScreen ? "Apply" : "Apply Drafts")
           </MudButton>
         </MudStack>
       </MudStack>
     </MudPaper>
-
+    @* Below is the budget table.*@
     <div class="budget-tables-wrapper" style="flex: 1; min-height: 0; overflow: hidden;">
       @* Fixed table with header and summary rows *@
       <div class="budget-fixed-section">
         <MudTable Items="@_summaryRows" dense="true" Hover="false" Striped="false" CustomHeader="true" Breakpoint="Breakpoint.None" Class="budget-fixed-table">
-        <HeaderContent>
-          <tr>
-            <th rowspan="2" class="envelope-column" style="vertical-align: bottom; padding: 8px;">Envelope</th>
-            @for (int i = 0; i < MonthsToShow; i++)
-            {
-              var monthIndex = _currentScrollPosition + i;
-              var isLastVisible = i == MonthsToShow - 1;
-              <th colspan="2" style="text-align: center; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                  <span>@_displayMonths[monthIndex].ToString("MMM yyyy")</span>
-                  @if (!isLastVisible)
-                  {
-                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" 
-                             Size="Size.Small" 
-                             dense="true" 
+          @* The first part is the Envelope Label, and the month headers*@
+          <HeaderContent>
+            <tr>
+              <th rowspan="2" class="category-column" style="vertical-align: bottom; padding: 8px;"></th>
+              <th rowspan="2" class="envelope-column" style="vertical-align: bottom; padding: 8px;">Envelope</th>
+
+              @for (int i = 0; i < MonthsToShow; i++)
+              {
+                var monthIndex = _currentScrollPosition + i;
+                var isLastVisible = i == MonthsToShow - 1;
+                <th colspan="2" style="text-align: center; padding: 8px; border-left: 2px solid var(--mud-palette-lines-default);">
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <span>@_displayMonths[monthIndex].ToString("MMM yyyy")</span>
+
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                             Size="Size.Small"
+                             dense="true"
                              AnchorOrigin="Origin.BottomCenter"
                              AriaLabel="Copy budget to next month options">
                       <MudMenuItem OnClick="@(() => ApplyMonthDrafts(monthIndex))">Copy Drafts To Budgets</MudMenuItem>
                       <MudMenuItem OnClick="@(() => ClearMonthBudgetValues(monthIndex, true))">Clear All Budgets</MudMenuItem>
                       <MudMenuItem OnClick="@(() => ClearMonthBudgetValues(monthIndex, false))">Clear All Drafts</MudMenuItem>
-                      <MudMenuItem OnClick="@(() => ClearMonthBoth(monthIndex))">Clear Both</MudMenuItem>ti
+                      <MudMenuItem OnClick="@(() => ClearMonthBoth(monthIndex))">Clear Both</MudMenuItem>
                       <MudDivider/>
-                      <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, true))">Copy Draft to Next Month</MudMenuItem>
-                      <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, false))">Copy Budget to Next Month</MudMenuItem>
+                      @if (!isLastVisible)
+                      {
+                        <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, true))">Copy Draft to Next Month</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => CopyToNextMonth(monthIndex, false))">Copy Budget to Next Month</MudMenuItem>
+                      }
                     </MudMenu>
-                  }
-                </div>
-              </th>
-            }
-          </tr>
-          <tr>
+
+                  </div>
+                </th>
+              }
+            </tr>
+            <tr>
+              @*This row is for the repeating "Budget" and "Draft" headers*@
+              @for (int i = 0; i < MonthsToShow; i++)
+              {
+                <th style="text-align: right; font-size: 0.85em; padding: 4px; border-left: 2px solid var(--mud-palette-lines-default);">Budget</th>
+                <th style="text-align: right; font-size: 0.85em; padding: 4px;">Draft</th>
+              }
+            </tr>
+          </HeaderContent>
+          <RowTemplate>
+            @*For the summary headers Net, Income and Expense*@
+            <MudTd Class="category-column"></MudTd>
+
+            <MudTd DataLabel="Envelope" Class="envelope-column">
+              <MudTooltip Text="@context.EnvelopeName">
+                <strong>@context.EnvelopeName</strong>
+              </MudTooltip>
+            </MudTd>
             @for (int i = 0; i < MonthsToShow; i++)
             {
-              <th style="text-align: right; font-size: 0.85em; padding: 4px; border-left: 2px solid var(--mud-palette-lines-default);">Budget</th>
-              <th style="text-align: right; font-size: 0.85em; padding: 4px;">Draft</th>
-            }
-          </tr>
-        </HeaderContent>
-        <RowTemplate>
-          <MudTd DataLabel="Envelope" Class="envelope-column">
-            <MudTooltip Text="@context.EnvelopeName">
-              <strong>@context.EnvelopeName</strong>
-            </MudTooltip>
-          </MudTd>
-          @for (int i = 0; i < MonthsToShow; i++)
-          {
-            var monthIndex = _currentScrollPosition + i;
-            var monthKey = _displayMonths[monthIndex];
-            var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
-            
-            @* Budget column (read-only) *@
+              var monthIndex = _currentScrollPosition + i;
+              var monthKey = _displayMonths[monthIndex];
+              var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
+
+              @* Budget column (read-only) *@
               <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);  padding: 4px;">
-              <div class="budget-with-lock" style="justify-content: flex-end;">
-                <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
-              </div>
-            </MudTd>
-            
-            @* Draft column (display only for summary rows) *@
+                <div class="budget-with-lock" style="justify-content: flex-end;">
+                  <strong>@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</strong>
+                </div>
+              </MudTd>
+
+              @* Draft column (display only for summary rows) *@
               <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding: 4px;">
-              <strong>@(cellData?.DraftDisplayValue ?? "$0.00")</strong>
-            </MudTd>
-          }
-        </RowTemplate>
-      </MudTable>
+                <strong>@(cellData?.DraftDisplayValue ?? "$0.00")</strong>
+              </MudTd>
+            }
+          </RowTemplate>
+        </MudTable>
       </div>
 
       @* Scrollable table with envelope rows *@
       <div class="budget-scrollable-section">
         <MudTable Items="@_envelopeRows" dense="true" Hover="true" Striped="true" CustomHeader="false" Breakpoint="Breakpoint.None" Class="budget-scrollable-table">
-        <RowTemplate>
-          <MudTd DataLabel="Envelope" Class="envelope-column">
-            <MudTooltip Text="@context.EnvelopeName">
-              @context.EnvelopeName
-            </MudTooltip>
-          </MudTd>
-          @for (int i = 0; i < MonthsToShow; i++)
-          {
-            var monthIndex = _currentScrollPosition + i;
-            var monthKey = _displayMonths[monthIndex];
-            var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
-            
-            @* Budget column (read-only) *@
-            <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);  padding: 4px;">
-              <div class="budget-with-lock" style="justify-content: flex-end; ">
-                <span >@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</span>
+          <RowTemplate>
+            <MudTd DataLabel="Category" Class="category-column">
+              <MudTooltip Text="@context.CategoryName">
+                @context.CategoryName
+              </MudTooltip>
+            </MudTd>
+            <MudTd DataLabel="Envelope" Class="envelope-column">
+              <MudTooltip Text="@context.EnvelopeName">
+                @context.EnvelopeName
+              </MudTooltip>
+            </MudTd>
+            @for (int i = 0; i < MonthsToShow; i++)
+            {
+              var monthIndex = _currentScrollPosition + i;
+              var monthKey = _displayMonths[monthIndex];
+              var cellData = context.MonthlyData.ContainsKey(monthKey) ? context.MonthlyData[monthKey] : null;
+
+              @* Budget column (read-only) *@
+              <MudTd DataLabel="@($"{monthKey:MMM} Budget")" Style="text-align: right; border-left: 2px solid var(--mud-palette-lines-default);  padding: 2px 4px;">
+                <div class="budget-with-lock" style="justify-content: flex-end; ">
+                  <span >@(cellData?.BudgetValue?.ToString("C2") ?? "$0.00")</span>
+                  @if (cellData != null)
+                  {
+                    <img src="@(cellData.IsLocked ? "/Locked.png" : "/Unlocked.png")"
+                         class="lock-icon"
+                         alt="@(cellData.IsLocked ? "Locked" : "Unlocked")"
+                         tabindex="0"
+                         role="button"
+                         @onclick="async () => await ToggleLock(context.EnvelopeId, monthKey)"
+                         @onkeydown="@(async (KeyboardEventArgs e) =>
+                                     {
+                                       if (e.Key == "Enter" || e.Key == " ") await ToggleLock(context.EnvelopeId, monthKey);
+                                     })"/>
+                  }
+                </div>
+              </MudTd>
+
+              @* Draft column (editable) *@
+              <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding:  2px 4px;">
                 @if (cellData != null)
                 {
-                  <img src="@(cellData.IsLocked ? "/Locked.png" : "/Unlocked.png")" 
-                       class="lock-icon" 
-                       alt="@(cellData.IsLocked ? "Locked" : "Unlocked")"
-                       tabindex="0"
-                       role="button"
-                       @onclick="async () => await ToggleLock(context.EnvelopeId, monthKey)"
-                       @onkeydown="@(async (KeyboardEventArgs e) => { if (e.Key == "Enter" || e.Key == " ") await ToggleLock(context.EnvelopeId, monthKey); })" />
+                  <div style="display: flex; justify-content: flex-end;">
+                    <MudNumericField @key="@cellData.UpdateCounter" T="decimal?"
+                                     Value="@cellData.DraftValue"
+                                     ValueChanged="@((decimal? val) => UpdateDraft(context.EnvelopeId, monthKey, val))"
+                                     Format="C2"
+                                     HideSpinButtons="true"
+                                     Class="draft-input-right"
+                                     Variant="Variant.Text"
+                                     Margin="Margin.Dense"
+                                     Immediate="false"
+                                     Disabled="@cellData.IsLocked"/>
+                  </div>
                 }
-              </div>
-            </MudTd>
-            
-            @* Draft column (editable) *@
-              <MudTd DataLabel="@($"{monthKey:MMM} Draft")" Style="text-align: right;  padding: 4px;">
-              @if (cellData != null)
-              {
-                <MudNumericField @key="@cellData.UpdateCounter" T="decimal?" 
-                                Value="@cellData.DraftValue" 
-                                ValueChanged="@((decimal? val) => UpdateDraft(context.EnvelopeId, monthKey, val))"
-                                Format="C2"
-                                HideSpinButtons="true"
-                                Class="draft-input-right"
-                                Variant="Variant.Text"
-                                Margin="Margin.Dense"
-                                Immediate="false"
-                                Disabled="@cellData.IsLocked" />
-              }
-            </MudTd>
-          }
-        </RowTemplate>
-      </MudTable>
+              </MudTd>
+            }
+          </RowTemplate>
+        </MudTable>
       </div>
     </div>
   }
 </MudStack>
-
-

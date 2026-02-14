@@ -6,7 +6,7 @@ namespace Budget.Client.Pages;
 public partial class Budget : ComponentBase
 {
   [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
-  private int MonthsToShow => _isSmallScreen ? 1 : 6;
+  private int MonthsToShow { get; set; }
 
   private const int SmallScreenBreakpoint = 768; // Bootstrap's md breakpoint
   private bool _isSmallScreen;
@@ -19,9 +19,13 @@ public partial class Budget : ComponentBase
   private readonly List<BudgetDisplayRow> _envelopeRows = [];
   private List<DateTime> _displayMonths = [];
   private int _currentScrollPosition;
-
+  private int _MonthProgress = 0;
+  private int _totalMonths = 0;
+  private const int DefaultScreenColumns = 3;
   protected override async Task OnInitializedAsync()
   {
+    
+    MonthsToShow= _isSmallScreen ? 1 : DefaultScreenColumns;
     await LoadBudgetData();
   }
 
@@ -81,7 +85,7 @@ public partial class Budget : ComponentBase
       // Generate 12 months starting from current month (buffer for scrolling)
       var currentDate = new DateTime(2025, 10, 1);
       //  var currentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-      _displayMonths = [.. Enumerable.Range(0, 12).Select(i => currentDate.AddMonths(i))];
+      _displayMonths = [.. Enumerable.Range(0, MonthsToShow).Select(i => currentDate.AddMonths(i))];
 
       // Check if there are any draft values
       if (checkForDrafts)
@@ -109,42 +113,22 @@ public partial class Budget : ComponentBase
       }
 
       // Load all months of data
-        _budgetData = [];
-
-        foreach (var month in _displayMonths)
-        {
-          var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(month.Year, month.Month);
-
-          foreach (var item in monthData)
-          {
-            if (!_budgetData.TryGetValue(item.EnvelopeId, out Dictionary<DateTime, BudgetMonthData>? value))
-            {
-              value = [];
-              _budgetData[item.EnvelopeId] = value;
-            }
-
-            value[month] = new BudgetMonthData
-            {
-              EnvelopeId = item.EnvelopeId,
-              EnvelopeName = item.EnvelopeName,
-              CategoryId = item.CategoryId,
-              CategoryName = item.CategoryName,
-              CategoryType = item.CategoryType,
-              SortOrder = item.SortOrder,
-              BudgetValue = item.Budget,
-              DraftValue = item.BudgetDraft,
-              IsBudgetLocked = item.IsBudgetLocked,
-              Month = month
-            };
-          }
-        
-
-        BuildDisplayRows();
+      _budgetData = [];
+      _processing = true;
+      _totalMonths = _displayMonths.Count;
+      _MonthProgress = 0;
+      foreach (var month in _displayMonths)
+      {
+        _MonthProgress++;
+        await LoadMonthDataAsync(month);
       }
+
+      BuildDisplayRows();
     }
     finally
     {
       _loading = false;
+      _processing = false;
     }
   }
 
@@ -211,6 +195,8 @@ public partial class Budget : ComponentBase
     var row = new BudgetDisplayRow
     {
       EnvelopeId = envelope.EnvelopeId,
+      CategoryId = envelope.CategoryId,
+      CategoryName = envelope.CategoryName,
       EnvelopeName = envelope.EnvelopeName,
       IsSummaryRow = false,
       MonthlyData = []
@@ -317,11 +303,8 @@ public partial class Budget : ComponentBase
       {
         // Validation error - show message and prevent navigation
         // Using InvokeAsync to ensure UI thread
-        await InvokeAsync(() =>
-        {
-          Snackbar.Add(response.Message ?? "Validation error", Severity.Warning);
-        });
-        
+        await InvokeAsync(() => { Snackbar.Add(response.Message ?? "Validation error", Severity.Warning); });
+
         // Set a flag that JavaScript can check to prevent navigation
         await JsRuntime.InvokeVoidAsync("setValidationError", true);
       }
@@ -329,7 +312,7 @@ public partial class Budget : ComponentBase
     catch (Exception ex)
     {
       Snackbar.Add($"Error updating draft: {ex.Message}", Severity.Error);
-      
+
       // Set validation error flag to prevent navigation
       await JsRuntime.InvokeVoidAsync("setValidationError", true);
     }
@@ -356,6 +339,7 @@ public partial class Budget : ComponentBase
       var lastMonth = _displayMonths.Last();
       var newMonth = lastMonth.AddMonths(1);
       _displayMonths.Add(newMonth);
+      MonthsToShow++;
       // Load data for new month asynchronously
       _ = LoadMonthDataAsync(newMonth);
     }
@@ -636,9 +620,11 @@ public partial class Budget : ComponentBase
   private class BudgetDisplayRow
   {
     public int EnvelopeId { get; init; }
+    public string CategoryName { get; set; }
     public string EnvelopeName { get; init; } = string.Empty;
     public bool IsSummaryRow { get; set; }
     public Dictionary<DateTime, MonthCellData> MonthlyData { get; init; } = [];
+    public string CategoryId { get; set; }
   }
 
   private class MonthCellData

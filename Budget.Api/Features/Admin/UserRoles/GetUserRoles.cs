@@ -53,10 +53,9 @@ public static class GetUserRoles
 
     private static string GetName(User? srcAssignedBy)
     {
-
       if (srcAssignedBy == null)
         return "AssignedBy is null";
-      
+
       return srcAssignedBy.FirstName + " " + srcAssignedBy.LastName;
     }
   }

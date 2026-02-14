@@ -110,6 +110,7 @@ public class RoleService(BudgetContext context, ILogger<RoleService> logger) : I
     // Query without global filter to find user by email across all families
     return await context.Users
       .IgnoreQueryFilters()
+      .TagWithCallSite()
       .FirstOrDefaultAsync(u => u.Email == inEmail, cancellationToken);
   }
 }

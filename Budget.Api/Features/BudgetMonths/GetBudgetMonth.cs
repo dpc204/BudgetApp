@@ -56,7 +56,7 @@ public static class GetBudgetMonth
           envelope.CategoryId,
           envelope.Category.Name,
           envelope.Category.CategoryType,
-          envelope.SortOrder,
+          envelope.Category.SortOrder * 1000 +envelope.SortOrder,
           budgetData?.Budget,
           budgetData?.BudgetDraft,
           budgetData?.IsBudgetLocked ?? false,

@@ -17,6 +17,7 @@ public static class DeleteRole
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
       var role = await db.Roles
+        .TagWithCallSite()
         .Include(r => r.UserRoles)
         .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken);
 
