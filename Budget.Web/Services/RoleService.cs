@@ -1,12 +1,13 @@
 using Budget.DB;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Budget.Web.Services;
 
 /// <summary>
 /// Service for managing user roles in the database
 /// </summary>
-public class RoleService(BudgetContext context, ILogger<RoleService> logger) : IRoleService
+public class RoleService(BudgetContext context, ILogger<RoleService> logger, HybridCache hybridCache) : IRoleService
 {
   public async Task<List<Role>> GetAllRolesAsync(CancellationToken cancellationToken = default)
   {
@@ -106,11 +107,12 @@ public class RoleService(BudgetContext context, ILogger<RoleService> logger) : I
   {
     var inEmail = email.ToUpper();
 
-    
-    // Query without global filter to find user by email across all families
-    return await context.Users
-      .IgnoreQueryFilters()
-      .TagWithCallSite()
-      .FirstOrDefaultAsync(u => u.Email == inEmail, cancellationToken);
+    return await hybridCache.GetOrCreateAsync<User?>($"UserByEmail:{email}", async ct =>
+    {
+      return await context.Users
+        .IgnoreQueryFilters()
+        .TagWithCallSite()
+        .FirstOrDefaultAsync(u => u.Email == inEmail, ct);
+    }, cancellationToken: cancellationToken);
   }
 }

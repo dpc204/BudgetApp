@@ -1,9 +1,4 @@
-﻿
-using System.Globalization;
-
-
-var stopWatch = Stopwatch.StartNew();
-
+﻿var stopWatch = Stopwatch.StartNew();
 var builder = WebApplication.CreateBuilder(args);
 var assembly = typeof(App).Assembly;
 
@@ -65,6 +60,10 @@ ConfigureIdentity.AddAuthorization(builder);
 
 // Add Identity services
 ConfigureIdentity.AddIdentityCore(builder);
+
+ConfigureHybridCache.ConfigureServices(builder);
+
+
 
 var app = builder.Build();
 

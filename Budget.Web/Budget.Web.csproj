@@ -25,6 +25,7 @@
     <PackageReference Include="FluentAssertions" Version="6.7.0" />
     <PackageReference Include="FluentResults.Extensions.FluentAssertions" Version="2.2.1" />
     <PackageReference Include="Microsoft.Build" Version="18.3.3" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.3.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.3" />
     <PackageReference Include="Microsoft.Identity.Web.TokenCache" Version="4.3.0" />
