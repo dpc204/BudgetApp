@@ -22,10 +22,10 @@ public partial class Budget : ComponentBase
   private int _MonthProgress = 0;
   private int _totalMonths = 0;
   private const int DefaultScreenColumns = 3;
+
   protected override async Task OnInitializedAsync()
   {
-    
-    MonthsToShow= _isSmallScreen ? 1 : DefaultScreenColumns;
+    MonthsToShow = _isSmallScreen ? 1 : DefaultScreenColumns;
     await LoadBudgetData();
   }
 
@@ -153,15 +153,6 @@ public partial class Budget : ComponentBase
     var incomeEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.Income).ToList();
     var expenseEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.User).ToList();
 
-    // Add Net Budget row to summary
-    var netBudgetRow = CreateSummaryRow("Net Budget", (month) =>
-    {
-      var (budget, draft) = CalculateTotals(incomeEnvelopes, month);
-      var expenseTotals = CalculateTotals(expenseEnvelopes, month);
-      return (budget - expenseTotals.budget, draft - expenseTotals.draft);
-    });
-    _summaryRows.Add(netBudgetRow);
-    _displayRows.Add(netBudgetRow);
 
     // Add Total Income to summary
     var totalIncomeRow = CreateSummaryRow("Total Income", (month) => CalculateTotals(incomeEnvelopes, month));
@@ -172,6 +163,16 @@ public partial class Budget : ComponentBase
     var totalExpensesRow = CreateSummaryRow("Total Expenses", (month) => CalculateTotals(expenseEnvelopes, month));
     _summaryRows.Add(totalExpensesRow);
     _displayRows.Add(totalExpensesRow);
+
+    // Add Net Budget row to summary
+    var netBudgetRow = CreateSummaryRow("Net Budget", (month) =>
+    {
+      var (budget, draft) = CalculateTotals(incomeEnvelopes, month);
+      var expenseTotals = CalculateTotals(expenseEnvelopes, month);
+      return (budget - expenseTotals.budget, draft - expenseTotals.draft);
+    });
+    _summaryRows.Add(netBudgetRow);
+    _displayRows.Add(netBudgetRow);
 
     // Add income envelopes to scrollable list
     foreach (var envelope in incomeEnvelopes)
@@ -295,6 +296,7 @@ public partial class Budget : ComponentBase
           cellData.UpdateCounter++;
         }
 
+        BuildDisplayRows();
         // Force a re-render to update the formatted display
         // This will show the currency format (e.g., $123.00) without disrupting focus
         await InvokeAsync(StateHasChanged);
