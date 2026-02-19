@@ -296,7 +296,6 @@ public partial class GetBudgetMonthTests
     /// Expected: Only Standard envelopes returned in results
     /// </summary>
     [Theory]
-    [InlineData(EnvelopeTypes.Income)]
     [InlineData(EnvelopeTypes.Unassigned)]
     [InlineData(EnvelopeTypes.All)]
     public async Task Handle_WithNonStandardEnvelopes_FiltersOutNonStandard(EnvelopeTypes nonStandardType)

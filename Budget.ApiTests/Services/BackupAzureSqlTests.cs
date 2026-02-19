@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using Budget.Api.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -54,7 +54,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 sasToken,
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -86,7 +86,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 sasToken,
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -118,7 +118,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 storageKey,
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -150,7 +150,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 sasToken,
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -181,7 +181,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 null!,
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -212,7 +212,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 string.Empty,
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -245,7 +245,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 cts.Token));
@@ -276,7 +276,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -307,7 +307,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -338,7 +338,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -369,7 +369,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -400,7 +400,7 @@ public partial class BackupAzureSqlTests
                 null!,
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -431,7 +431,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 null!,
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 "password",
                 CancellationToken.None));
@@ -493,7 +493,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 null!,
                 "password",
                 CancellationToken.None));
@@ -524,7 +524,7 @@ public partial class BackupAzureSqlTests
                 "server1",
                 "db1",
                 "storagekey",
-                "https://account.blob.core.windows.net/container/file.bacpac",
+                "http://127.0.0.1:10000/devstoreaccount1/container/file.bacpac",
                 "admin",
                 null!,
                 CancellationToken.None));
