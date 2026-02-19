@@ -147,6 +147,7 @@ public partial class Budget : ComponentBase
       .Select(monthDict => monthDict.GetValueOrDefault(sampleMonth))
       .Where(data => data != null)
       .OrderBy(data => data!.SortOrder)
+      .ThenBy(data => data!.EnvelopeName)
       .ToList();
 
     // Separate by category type
@@ -296,7 +297,9 @@ public partial class Budget : ComponentBase
           cellData.UpdateCounter++;
         }
 
-        BuildDisplayRows();
+        // Update only the summary rows without rebuilding the entire DOM structure
+        UpdateSummaryRows();
+
         // Force a re-render to update the formatted display
         // This will show the currency format (e.g., $123.00) without disrupting focus
         await InvokeAsync(StateHasChanged);
@@ -317,6 +320,70 @@ public partial class Budget : ComponentBase
 
       // Set validation error flag to prevent navigation
       await JsRuntime.InvokeVoidAsync("setValidationError", true);
+    }
+  }
+
+  /// <summary>
+  /// Updates only the summary row values without rebuilding the entire row structure.
+  /// This preserves DOM elements and maintains focus in input fields.
+  /// </summary>
+  private void UpdateSummaryRows()
+  {
+    if (_budgetData == null || _budgetData.Count == 0 || _summaryRows.Count == 0)
+      return;
+
+    // Get envelopes from the underlying data
+    var sampleMonth = _displayMonths.First();
+    var envelopes = _budgetData.Values
+      .Select(monthDict => monthDict.GetValueOrDefault(sampleMonth))
+      .Where(data => data != null)
+      .ToList();
+
+    var incomeEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.Income).ToList();
+    var expenseEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.User).ToList();
+
+    // Update Total Income row (index 0)
+    if (_summaryRows.Count > 0)
+    {
+      var totalIncomeRow = _summaryRows[0];
+      foreach (var month in _displayMonths)
+      {
+        if (totalIncomeRow.MonthlyData.TryGetValue(month, out var cellData))
+        {
+          var (budget, draft) = CalculateTotals(incomeEnvelopes, month);
+          cellData.DraftDisplayValue = draft.ToString("C2");
+        }
+      }
+    }
+
+    // Update Total Expenses row (index 1)
+    if (_summaryRows.Count > 1)
+    {
+      var totalExpensesRow = _summaryRows[1];
+      foreach (var month in _displayMonths)
+      {
+        if (totalExpensesRow.MonthlyData.TryGetValue(month, out var cellData))
+        {
+          var (budget, draft) = CalculateTotals(expenseEnvelopes, month);
+          cellData.DraftDisplayValue = draft.ToString("C2");
+        }
+      }
+    }
+
+    // Update Net Budget row (index 2)
+    if (_summaryRows.Count > 2)
+    {
+      var netBudgetRow = _summaryRows[2];
+      foreach (var month in _displayMonths)
+      {
+        if (netBudgetRow.MonthlyData.TryGetValue(month, out var cellData))
+        {
+          var (incomeBudget, incomeDraft) = CalculateTotals(incomeEnvelopes, month);
+          var (expenseBudget, expenseDraft) = CalculateTotals(expenseEnvelopes, month);
+          var netDraft = incomeDraft - expenseDraft;
+          cellData.DraftDisplayValue = netDraft.ToString("C2");
+        }
+      }
     }
   }
 

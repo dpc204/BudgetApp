@@ -124,7 +124,7 @@
   {
     var categories = await CategoriesApi.GetCategoriesAsync();
     _categoryLookup = categories.ToDictionary(c => c.CategoryId, c => c.Name);
-    _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).OrderBy(e => e.SortOrder).ThenBy(e => e.Name).ToList();
+    _envelopes = (await MaintApi.GetEnvelopesDtoAsync()).ToList();
     _originalEnvelopes = _envelopes.Select(CloneEnvelope).ToList();
     _changedEnvelopeIds.Clear();
   }

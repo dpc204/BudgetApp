@@ -46,9 +46,11 @@ public static class AssignRole
       
       if (!string.IsNullOrEmpty(currentUserEmail))
       {
+        currentUserEmail = currentUserEmail.ToUpper();
+
         var currentUser = await db.Users
           .IgnoreQueryFilters()
-          .FirstOrDefaultAsync(u => u.Email.Equals(currentUserEmail, StringComparison.InvariantCultureIgnoreCase), cancellationToken);
+          .FirstOrDefaultAsync(u => u.Email.Equals(currentUserEmail), cancellationToken);
         assignedByUserId = currentUser?.Id;
       }
 
