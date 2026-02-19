@@ -362,6 +362,8 @@ builder.Services.AddHttpClient<BackupAzureSql>();
 builder.Services.AddSingleton<IBackupProgressService, BackupProgressService>();
 
 // Configure Azure Storage (Blob and Table) for backup functionality
+var aspireBlobConnectionString = builder.Configuration.GetConnectionString("blobs");
+var aspireTableConnectionString = builder.Configuration.GetConnectionString("tables");
 var azureStorageConnectionString = builder.Configuration["AzureStorage:ConnectionString"];
 var storageBlobEndpoint = builder.Configuration["AZURE_STORAGE_BLOB_ENDPOINT"];
 var storageTableEndpoint = builder.Configuration["AZURE_STORAGE_TABLE_ENDPOINT"];
@@ -371,11 +373,21 @@ var isRunningOnAzure = AzureEnvironment.IsRunningOnAzure;
 
 logger.LogInformation("=== Azure Storage Configuration ===");
 logger.LogInformation("IsRunningOnAzure: {IsRunningOnAzure}", isRunningOnAzure);
+logger.LogInformation("Aspire BlobConnectionString: {HasAspire}", !string.IsNullOrWhiteSpace(aspireBlobConnectionString));
 logger.LogInformation("StorageBlobEndpoint: {Endpoint}", storageBlobEndpoint ?? "(not set)");
 logger.LogInformation("StorageTableEndpoint: {Endpoint}", storageTableEndpoint ?? "(not set)");
 logger.LogInformation("Has ConnectionString: {HasConnStr}", !string.IsNullOrWhiteSpace(azureStorageConnectionString));
 
-if (isRunningOnAzure && !string.IsNullOrWhiteSpace(storageBlobEndpoint))
+if (!string.IsNullOrWhiteSpace(aspireBlobConnectionString))
+{
+  // Aspire-injected connection string: Azurite when running locally, provisioned Azure Storage when deployed via Aspire
+  logger.LogInformation("Creating storage clients with Aspire-injected connection strings");
+  builder.Services.AddSingleton(sp => new Azure.Storage.Blobs.BlobServiceClient(aspireBlobConnectionString));
+  builder.Services.AddSingleton(sp => new Azure.Data.Tables.TableServiceClient(
+    aspireTableConnectionString ?? aspireBlobConnectionString));
+  logger.LogInformation("✓ Azure Storage configured via Aspire (Azurite locally / Azure Storage when deployed)");
+}
+else if (isRunningOnAzure && !string.IsNullOrWhiteSpace(storageBlobEndpoint))
 {
   // Use Managed Identity on Azure
   var blobUri = new Uri(storageBlobEndpoint);
