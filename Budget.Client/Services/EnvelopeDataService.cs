@@ -88,10 +88,7 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
     foreach (var env in updates)
     {
       var rec = allEnvelopeData?.Find(e => e.EnvelopeId == env.EnvelopeId);
-      if (rec != null)
-      {
-        rec.Balance += env.EnvelopeDelta;
-      }
+      rec?.Balance += env.EnvelopeDelta;
     }
   }
 

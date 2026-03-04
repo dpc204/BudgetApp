@@ -230,7 +230,9 @@ public partial class Budget : ComponentBase
       EnvelopeId = 0,
       EnvelopeName = name,
       IsSummaryRow = true,
-      MonthlyData = []
+      MonthlyData = [],
+      CategoryName = string.Empty,
+      CategoryId = string.Empty
     };
 
     foreach (var month in _displayMonths)
@@ -689,11 +691,11 @@ public partial class Budget : ComponentBase
   private class BudgetDisplayRow
   {
     public int EnvelopeId { get; init; }
-    public string CategoryName { get; set; }
+    public required string CategoryName { get; set; }
     public string EnvelopeName { get; init; } = string.Empty;
     public bool IsSummaryRow { get; set; }
     public Dictionary<DateTime, MonthCellData> MonthlyData { get; init; } = [];
-    public string CategoryId { get; set; }
+    public required string CategoryId { get; set; }
   }
 
   private class MonthCellData

@@ -47,7 +47,7 @@ public static class ImportTransactions
       return entities.Count;
     }
 
-    private string RemoveConsecutiveSpaces(string description)
+    private static string RemoveConsecutiveSpaces(string description)
     {
       if (string.IsNullOrWhiteSpace(description))
         return string.Empty;
