@@ -24,7 +24,8 @@ public static class ImportTransactions
       {
         Date = dto.Date,
         Vendor = dto.Vendor,
-        Description = dto.Description,
+        Description = RemoveConsecutiveSpaces(dto.Description),
+        Notes = dto.Notes,
         Amount = dto.Amount,
         EnvelopeId = dto.EnvelopeId,
         EnvelopeName = dto.EnvelopeName,
@@ -44,6 +45,14 @@ public static class ImportTransactions
       await DetectDuplicatesAsync(entities, cancellationToken);
 
       return entities.Count;
+    }
+
+    private string RemoveConsecutiveSpaces(string description)
+    {
+      if (string.IsNullOrWhiteSpace(description))
+        return string.Empty;
+
+      return string.Join(" ", description.Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
     private static void SetVendor(List<TransactionImport> entities)

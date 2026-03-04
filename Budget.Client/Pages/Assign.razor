@@ -4,104 +4,121 @@
 
 
 <h2>Unassigned Transactions</h2>
-@if (_loading)
+@if(_loading)
 {
   <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-4">
-    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
   </MudStack>
 }
-else if (!string.IsNullOrEmpty(_loadError))
+else if(!string.IsNullOrEmpty(_loadError))
 {
   <MudAlert Severity="Severity.Error">Failed to load: @_loadError</MudAlert>
 }
 else
 {
-  <MudProgressLinear Value="ProgressValue" Max="ProgressMax" Indeterminate="false" Color="Color.Primary"/>
+  <MudProgressLinear Value="ProgressValue" Max="ProgressMax" Indeterminate="false" Color="Color.Primary" />
 
   <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
-  <MudDataGrid T="TransactionDto"
-               @ref="Grid"
-               ReadOnly="false"
-               EditMode="DataGridEditMode.Cell"
-               Filterable="true"
-               FilterMode="DataGridFilterMode.ColumnFilterRow"
-               FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
-               Bordered="true"
-               SortMode="SortMode.Multiple"
-               Dense="true"
-               ColumnResizeMode="ResizeMode.Container"
+    <MudDataGrid T="TransactionDto"
+                 @ref="Grid"
+                 ReadOnly="false"
+                 EditMode="DataGridEditMode.Cell"
+                 Filterable="true"
+                 FilterMode="DataGridFilterMode.ColumnFilterRow"
+                 FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+                 Bordered="true"
+                 SortMode="SortMode.Multiple"
+                 Dense="true"
+                 ColumnResizeMode="ResizeMode.Container"
+                 ServerData="LoadServerData"
+                 FixedHeader="true"
+                 Height="calc(100vh - 250px)"
+                 MultiSelection="true"
+                 Virtualize="true"
+                 @bind-SelectedItems="_selectedTransactions"
+                 Class="envelopes-table"
+                 Style="height: 100%; overflow: auto; width: auto ;">
+      <Columns>
+        <SelectColumn T="TransactionDto" />
+        <PropertyColumn Property="x => x.Date"
+                        Title="Date"
+                        Format="d"
+                        Filterable="false"
+                        Sortable="true"
+                        HeaderStyle="min-width: 50px;"
+                        CellStyle="min-width: 50px;"
+                        Editable="false" />
 
-               ServerData="LoadServerData"
-               FixedHeader="true"
-               Height="calc(100vh - 250px)"
-               MultiSelection="true"
-               Virtualize="true"
-               
-               @bind-SelectedItems="_selectedTransactions"
-               Class="envelopes-table"
-               Style="height: 100%; overflow: auto; width: auto ;">
-               
+        <PropertyColumn Title="Notes"
+                        Editable="true"
+                        Sortable="false"
+                        Filterable="false"
+                        Resizable="true"
+                        ShowFilterIcon="false"
+                        Required="false"
+                        Property="x => x.Notes" />
+
+        <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
+          <EditTemplate>
+            <MudAutocomplete T="EnvelopeIdName"
+                             Value="@null"
+                             SearchFunc="@SearchEnvelopes"
+                             ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
+                             ToStringFunc="GetEnvelopeNameOnly"
+                             ResetValueOnEmptyText="false"
+                             CoerceText="false"
+                             CoerceValue="false"
+                             OpenOnFocus="true"
+                             Placeholder="Search Envelope"
+                             Immediate="true"
+                             AdornmentIcon="@Icons.Material.Filled.Search"
+                             AdornmentColor="Color.Primary"
+                             Variant="Variant.Outlined"
+                             dense="true"
+                             MaxItems="null"
+                             ShowProgressIndicator="true"
+                             ProgressIndicatorColor="Color.Primary" />
+          </EditTemplate>
+        </TemplateColumn>
+
+        <PropertyColumn Title="Vendor"
+                        Editable="true"
+                        Sortable="true"
+                        Filterable="true"
+                        ShowFilterIcon="false"
+                        SortBy="@(x => x.Vendor)"
+                        Property="x => x.Vendor" />
+
+        <PropertyColumn Title="Description"
+                        Editable="true"
+                        Sortable="true"
+                        Filterable="true"
+                        Resizable="true"
+                        ShowFilterIcon="false"
+                        SortBy="@(x => x.Description)"
+                        Property="x => x.Description" />
+ 
+        <PropertyColumn Title="Amount"
+                        Editable="false"
+                        Sortable="true"
+                        Filterable="false"
+                        SortBy="@(x => x.Amount)" Property="x => x.Amount" />
+      </Columns>
 
 
-    <ToolBarContent >
-      <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-        <MudAutocomplete T="EnvelopeIdName"
-                         Value="@_bulkEnvelope"
-                         SearchFunc="@SearchEnvelopes"
-                         ToStringFunc="GetCatAndEnvName"
-                         ResetValueOnEmptyText="false"
-                         CoerceText="false"
-                         CoerceValue="false"
-                         OpenOnFocus="true"
-                         ValueChanged="@OnBulkEnvelopeSelected"
-                         Placeholder="Select Envelope for Bulk Assignment" 
-                         Disabled="@(_selectedTransactions.Count == 0)"
-                         Immediate="true"
-                         AdornmentIcon="@Icons.Material.Filled.Search"
-                         AdornmentColor="Color.Primary"
-                         Variant="Variant.Outlined"
-                         dense="true"
-                         MaxItems="null"
-                         ShowProgressIndicator="true"
-                         ProgressIndicatorColor="Color.Primary"
-                         Style="min-width: 300px;"/>
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   Disabled="@(_selectedTransactions.Count == 0 || _bulkEnvelope is null)"
-                   OnClick="BulkAssignAsync">
-          Assign (@(_selectedTransactions.Count) selected)
-        </MudButton>
-      </MudStack>
-      <MudSpacer/>
-    </ToolBarContent>
-
-
-    <Columns >
-      <SelectColumn T="TransactionDto"/>
-
-
-      <PropertyColumn Property="x => x.Date"
-                      Title="Date"
-                      Format="d"
-                      Filterable="false"
-                      Sortable="true"
-                      HeaderStyle="min-width: 50px;"
-                      CellStyle="min-width: 50px;"
-                      Editable="false"/>
-
-
-      <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
-        <EditTemplate>
+      <ToolBarContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
           <MudAutocomplete T="EnvelopeIdName"
-                           Value="@null"
+                           Value="@_bulkEnvelope"
                            SearchFunc="@SearchEnvelopes"
-                           ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
-                           ToStringFunc="GetEnvelopeNameOnly"
+                           ToStringFunc="GetCatAndEnvName"
                            ResetValueOnEmptyText="false"
                            CoerceText="false"
                            CoerceValue="false"
                            OpenOnFocus="true"
-                           Placeholder="Search Envelope"
+                           ValueChanged="@OnBulkEnvelopeSelected"
+                           Placeholder="Select Envelope for Bulk Assignment"
+                           Disabled="@(_selectedTransactions.Count == 0)"
                            Immediate="true"
                            AdornmentIcon="@Icons.Material.Filled.Search"
                            AdornmentColor="Color.Primary"
@@ -109,38 +126,21 @@ else
                            dense="true"
                            MaxItems="null"
                            ShowProgressIndicator="true"
-                           ProgressIndicatorColor="Color.Primary"/>
-        </EditTemplate>
-      </TemplateColumn>
-
-      <PropertyColumn Title="Vendor"
-                      Editable="true"
-                      Sortable="true"
-                      Filterable="true"
-                      ShowFilterIcon="false"
-                      SortBy="@(x => x.Vendor)"
-                      Property="x => x.Vendor"/>
-      <PropertyColumn Title="Description"
-                      Editable="true"
-                      Sortable="true"
-                      Filterable="true"
-                      Resizable="true"
-
-                      ShowFilterIcon="false"
-                      SortBy="@(x => x.Description)"
-                      Property="x => x.Description"/>
-
-      <PropertyColumn Title="Amount"
-                      Editable="false"
-                      Sortable="true"
-                      Filterable="false"
-                      SortBy="@(x => x.Amount)" Property="x => x.Amount"/>
-    </Columns >
-    <PagerContent >
-      <MudDataGridPager T="TransactionDto" 
-                        
-                        PageSizeOptions="new []{ 50, 100, 200}"/>
-    </PagerContent>
-  </MudDataGrid>
+                           ProgressIndicatorColor="Color.Primary"
+                           Style="min-width: 300px;" />
+          <MudButton Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     Disabled="@(_selectedTransactions.Count == 0 || _bulkEnvelope is null)"
+                     OnClick="BulkAssignAsync">
+            Assign (@(_selectedTransactions.Count) selected)
+          </MudButton>
+        </MudStack>
+        <MudSpacer />
+      </ToolBarContent>
+      <PagerContent>
+        <MudDataGridPager T="TransactionDto"
+                          PageSizeOptions="new []{ 50, 100, 200}" />
+      </PagerContent>
+    </MudDataGrid>
   </div>
 }

@@ -58,7 +58,7 @@ public static class LoadTransactionImportsToUnassigned
               LineId = 0, // Will be set by backend
               EnvelopeId = unassigned.Id,
               Amount = rec.Amount,
-              Notes = rec.Description
+              Notes = rec.Notes
             }
           ]
         };

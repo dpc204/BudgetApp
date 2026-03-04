@@ -196,7 +196,7 @@ public partial class EditTransactionDialog
           TransactionId = _transactionId,
           EnvelopeId = l.EnvelopeId,
           Amount = l.Amount * -1,
-          Notes = l.Description?.Trim() ?? string.Empty
+          Notes = l.Notes?.Trim() ?? string.Empty
           // LineId intentionally left unset - will be assigned by backend
         })
       ],

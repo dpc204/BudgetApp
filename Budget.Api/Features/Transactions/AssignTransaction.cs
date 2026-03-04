@@ -4,7 +4,7 @@ namespace Budget.Api.Features.Transactions;
 
 public static class AssignTransaction
 {
-  public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Description) : IRequest<bool>;
+  public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Description, string Notes) : IRequest<bool>;
 
   public class Handler(BudgetContext db, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, bool>
   {
@@ -25,7 +25,7 @@ public static class AssignTransaction
       Debug.WriteLine(
         $"Assigning TransactionId {request.TransactionId} LineId {request.LineId} to EnvelopeId From {transactionDetail.EnvelopeId} to {request.EnvelopeId} and Description From {transactionDetail.Notes} to {request.Description}'");
       transactionDetail.EnvelopeId = request.EnvelopeId;
-      transactionDetail.Notes = request.Description;
+      transactionDetail.Notes = request.Notes;
       var toEnvelopeId = transactionDetail.EnvelopeId;
       // Now that the transaction detail is updated, we need to move the balance
       await moveBalance.MoveBalance(db, fromEnvelopeId, toEnvelopeId, transactionDetail.Amount);

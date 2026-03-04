@@ -9,6 +9,7 @@ public partial class Assign : ComponentBase
   [Inject] private IEnvelopesApiClient EnvelopesApi { get; set; } = default!;
   [Inject] private ICategoriesApiClient CategoriesApi { get; set; } = default!;
   [Inject] private IBudgetMonthlyApiClient MonthlyApi { get; set; } = default!;
+  [Inject] private IJSRuntime JS { get; set; } = default!;
 
   [Inject] private ILogger<EnvelopePage> Logger { get; set; } = default!;
   [CascadingParameter] private IUserAndOptions UserOptions { get; set; } = default!;
@@ -40,6 +41,8 @@ public partial class Assign : ComponentBase
   private bool Busy = true;
   private string? _loadError;
   private bool _afterRenderInit;
+  private int _focusRowIndexAfterReload = -2;
+  private bool _setInitialFocus = false;
 
   protected override async Task OnInitializedAsync()
   {
@@ -101,9 +104,22 @@ public partial class Assign : ComponentBase
     if (firstRender && !_afterRenderInit)
     {
       _afterRenderInit = true;
-      // Refresh envelope list after state is loaded
-
       StateHasChanged();
+    }
+
+    // Set initial focus on Notes column when page first loads
+    if (!_setInitialFocus && !_loading && Grid != null)
+    {
+      _setInitialFocus = true;
+      await SetFocusToNotesColumnAsync(0);
+    }
+
+    // Set focus after grid reload when envelope was changed
+    if (_focusRowIndexAfterReload >= -1)
+    {
+      var rowIndex = _focusRowIndexAfterReload;
+      _focusRowIndexAfterReload = -2;
+      await SetFocusToNotesColumnAsync(rowIndex);
     }
   }
 
@@ -197,7 +213,8 @@ public partial class Assign : ComponentBase
 
     // Call API to save the transaction envelope assignment
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Description);
+      transaction.Description,
+      transaction.Notes);
     await Grid.ReloadServerData();
     StateHasChanged();
   }
@@ -227,6 +244,10 @@ public partial class Assign : ComponentBase
     if (selectedEnvelope is null) return contextItem;
 
     await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
+
+    // Use -1 to signal JavaScript to use the last clicked row index
+    _focusRowIndexAfterReload = -1;
+
     return contextItem;
   }
 
@@ -250,7 +271,7 @@ public partial class Assign : ComponentBase
 
     // Call API to save the transaction description assignment
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Description);
+      transaction.Description, transaction.Notes);
 
     StateHasChanged();
   }
@@ -290,7 +311,9 @@ public partial class Assign : ComponentBase
           transaction.TransactionId,
           transaction.LineId,
           transaction.EnvelopeId,
-          transaction.Description);
+          transaction.Description,
+          transaction.Notes
+          );
 
         // Remove from the unassigned transactions list
         Transactions.Remove(transaction);
@@ -329,4 +352,17 @@ public partial class Assign : ComponentBase
   //  return (transaction.Vendor ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
   //         || (transaction.Description ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase);
   //}
+
+  private async Task SetFocusToNotesColumnAsync(int rowIndex)
+  {
+    try
+    {
+      await Task.Delay(100);
+      await JS.InvokeVoidAsync("setNotesColumnFocus", rowIndex);
+    }
+    catch (Exception ex)
+    {
+      Logger.LogWarning(ex, "Failed to set focus to Notes column at row {RowIndex}", rowIndex);
+    }
+  }
 }

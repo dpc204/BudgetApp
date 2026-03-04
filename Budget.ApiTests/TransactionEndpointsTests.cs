@@ -347,7 +347,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new AssignTransaction.Handler(context, new MoveEnvelopeBalance());
-    var command = new AssignTransaction.Command(600, 1, 204, "Reassigned");
+    var command = new AssignTransaction.Command(600, 1, 204, "Reassigned", "notes");
 
     // Act
     var result = await handler.Handle(command, CancellationToken.None);

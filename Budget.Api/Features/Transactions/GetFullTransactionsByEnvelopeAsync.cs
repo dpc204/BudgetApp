@@ -43,7 +43,7 @@ public static class GetFullTransactionsByEnvelopeAsync
           r.IsVoided,
           r.UserId,
           r.WasPotentialDuplicate,
-          detail.Amount,
+          detail.Amount, 
           detail.Notes,
           detail.EnvelopeId};
       

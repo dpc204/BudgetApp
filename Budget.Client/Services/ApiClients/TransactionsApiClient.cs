@@ -208,11 +208,11 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     }
   }
 
-  public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description,
+  public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description, string notes,
     CancellationToken cancellationToken = default)
   {
     var payload = new
-      { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Description = description };
+      { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Description = description , notes};
     using var resp = await http.PutAsJsonAsync("/transactions/assign", payload, cancellationToken);
     return resp.IsSuccessStatusCode;
   }
