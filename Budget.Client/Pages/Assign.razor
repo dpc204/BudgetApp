@@ -39,7 +39,7 @@ else
                  Class="envelopes-table"
                  Style="height: 100%; overflow: auto; width: auto ;">
       <Columns>
-        <SelectColumn T="TransactionDto" />
+        <SelectColumn T="TransactionDto"  />
         <PropertyColumn Property="x => x.Date"
                         Title="Date"
                         Format="d"
@@ -49,55 +49,87 @@ else
                         CellStyle="min-width: 50px;"
                         Editable="false" />
 
-        <PropertyColumn Title="Notes"
-                        Editable="true"
-                        Sortable="false"
-                        Filterable="false"
-                        Resizable="true"
-                        ShowFilterIcon="false"
-                        Required="false"
-                        Property="x => x.Notes" />
-
-        <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
+        <TemplateColumn Title="Notes" Sortable="false" Filterable="false">
+          <CellTemplate>
+            <div @onclick:stopPropagation>
+              @context.Item.Notes
+            </div>
+          </CellTemplate>
           <EditTemplate>
-            <MudAutocomplete T="EnvelopeIdName"
-                             Value="@null"
-                             SearchFunc="@SearchEnvelopes"
-                             ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
-                             ToStringFunc="GetEnvelopeNameOnly"
-                             ResetValueOnEmptyText="false"
-                             CoerceText="false"
-                             CoerceValue="false"
-                             OpenOnFocus="true"
-                             Placeholder="Search Envelope"
-                             Immediate="true"
-                             AdornmentIcon="@Icons.Material.Filled.Search"
-                             AdornmentColor="Color.Primary"
-                             Variant="Variant.Outlined"
-                             dense="true"
-                             MaxItems="null"
-                             ShowProgressIndicator="true"
-                             ProgressIndicatorColor="Color.Primary" />
+            <div @onclick:stopPropagation>
+              <MudTextField T="string"
+                            @bind-Value="context.Item.Notes"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            Immediate="true" />
+            </div>
           </EditTemplate>
         </TemplateColumn>
 
-        <PropertyColumn Title="Vendor"
-                        Editable="true"
-                        Sortable="true"
-                        Filterable="true"
-                        ShowFilterIcon="false"
-                        SortBy="@(x => x.Vendor)"
-                        Property="x => x.Vendor" />
+        <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
+          <CellTemplate>
+            <div @onclick:stopPropagation>
+              @context.Item.EnvelopeName
+            </div>
+          </CellTemplate>
+          <EditTemplate>
+            <div @onclick:stopPropagation>
+              <MudAutocomplete T="EnvelopeIdName"
+                               Value="@null"
+                               SearchFunc="@SearchEnvelopes"
+                               ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
+                               ToStringFunc="GetEnvelopeNameOnly"
+                               ResetValueOnEmptyText="false"
+                               CoerceText="false"
+                               CoerceValue="false"
+                               OpenOnFocus="true"
+                               Placeholder="Search Envelope"
+                               Immediate="true"
+                               AdornmentIcon="@Icons.Material.Filled.Search"
+                               AdornmentColor="Color.Primary"
+                               Variant="Variant.Outlined"
+                               dense="true"
+                               MaxItems="null"
+                               ShowProgressIndicator="true"
+                               ProgressIndicatorColor="Color.Primary" />
+            </div>
+          </EditTemplate>
+        </TemplateColumn>
 
-        <PropertyColumn Title="Description"
-                        Editable="true"
-                        Sortable="true"
-                        Filterable="true"
-                        Resizable="true"
-                        ShowFilterIcon="false"
-                        SortBy="@(x => x.Description)"
-                        Property="x => x.Description" />
- 
+        <TemplateColumn Title="Vendor" Sortable="true" Filterable="true">
+          <CellTemplate>
+            <div @onclick:stopPropagation>
+              @context.Item.Vendor
+            </div>
+          </CellTemplate>
+          <EditTemplate>
+            <div @onclick:stopPropagation>
+              <MudTextField T="string"
+                            @bind-Value="context.Item.Vendor"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            Immediate="true" />
+            </div>
+          </EditTemplate>
+        </TemplateColumn>
+
+        <TemplateColumn Title="Description" Sortable="true" Filterable="true" Resizable="true">
+          <CellTemplate>
+            <div @onclick:stopPropagation>
+              @context.Item.Description
+            </div>
+          </CellTemplate>
+          <EditTemplate>
+            <div @onclick:stopPropagation>
+              <MudTextField T="string"
+                            @bind-Value="context.Item.Description"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            Immediate="true" />
+            </div>
+          </EditTemplate>
+        </TemplateColumn>
+
         <PropertyColumn Title="Amount"
                         Editable="false"
                         Sortable="true"
