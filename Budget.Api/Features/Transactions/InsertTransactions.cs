@@ -85,8 +85,9 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
     ArgumentNullException.ThrowIfNull(request.Trans);
 
-    var rslt = await AddTransactionAsync(request.Trans);
-
+    Transaction? rslt = await AddTransactionAsync(request.Trans);
+    ArgumentNullException.ThrowIfNull(rslt);
+    
     _InsertTransactionResult.SingleAddedTransaction = rslt.Adapt<TransactionDto>();
     await UpdateEnvelopeBalancesAsync();
     await EndBatchAsync();
@@ -118,13 +119,37 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     return _InsertTransactionResult;
   }
 
-  private async Task<Transaction> AddTransactionAsync(OneTransactionDetail tran)
+  private async Task<Transaction?> AddTransactionAsync(OneTransactionDetail tran)
   {
     EnsureInBatch();
+
+    Transaction? updatedTransaction = null;
+    if (tran.PostingStatus == PostingStatuses.ToBeCleared)
+    {
+      ClearPendingTransaction(tran);
+    }
+    else
+    {
+      updatedTransaction = InsertTransaction(tran);
+      await UpdateAccountAsync(updatedTransaction);
+    }
+    
+    return updatedTransaction;
+  }
+
+  private void ClearPendingTransaction(OneTransactionDetail tran)
+  {
+    var tranToClear = db.Transactions.FirstAsync(a => a.Vendor == tran.Vendor && a.TotalAmount == tran.TotalAmount);
+    tranToClear.Result.PostingStatus = PostingStatuses.Posted;
+  }
+
+  private Transaction InsertTransaction(OneTransactionDetail tran)
+  {
     var trans = new Transaction
     {
       AccountId = tran.AccountId,
       Date = tran.Date,
+      PostingStatus = tran.PostingStatus,
       Vendor = tran.Vendor,
       Description = tran.Description,
       FamilyId = _currentFamilyService.GetCurrentFamilyId(),
@@ -151,9 +176,6 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     }
 
     _transactions.Add(trans);
-
-    await UpdateAccountAsync(trans);
-
     return trans;
   }
 

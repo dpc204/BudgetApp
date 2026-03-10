@@ -4,13 +4,14 @@ namespace Budget.Api.Features.Transactions;
 
 public static class AssignTransaction
 {
-  public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Description, string Notes) : IRequest<bool>;
+  public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Vendor, string Description, string Notes) : IRequest<bool>;
 
   public class Handler(BudgetContext db, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, bool>
   {
     public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
     {
       var transactionDetail = await db.TransactionDetails
+        .Include(td => td.Transaction)
         .FirstOrDefaultAsync(td => td.TransactionId == request.TransactionId && td.LineId == request.LineId,
           cancellationToken);
 
@@ -21,12 +22,19 @@ public static class AssignTransaction
 
       var fromEnvelopeId = transactionDetail.EnvelopeId;
 
-
       Debug.WriteLine(
-        $"Assigning TransactionId {request.TransactionId} LineId {request.LineId} to EnvelopeId From {transactionDetail.EnvelopeId} to {request.EnvelopeId} and Description From {transactionDetail.Notes} to {request.Description}'");
+        $"Assigning TransactionId {request.TransactionId} LineId {request.LineId} to EnvelopeId From {transactionDetail.EnvelopeId} to {request.EnvelopeId}");
+
+      // Update TransactionDetail properties
       transactionDetail.EnvelopeId = request.EnvelopeId;
       transactionDetail.Notes = request.Notes;
+
+      // Update Transaction properties (Vendor and Description)
+      transactionDetail.Transaction.Vendor = request.Vendor;
+      transactionDetail.Transaction.Description = request.Description;
+
       var toEnvelopeId = transactionDetail.EnvelopeId;
+
       // Now that the transaction detail is updated, we need to move the balance
       await moveBalance.MoveBalance(db, fromEnvelopeId, toEnvelopeId, transactionDetail.Amount);
       await db.SaveChangesAsync(cancellationToken);

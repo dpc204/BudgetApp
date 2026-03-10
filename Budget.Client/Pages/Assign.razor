@@ -58,10 +58,11 @@ else
           <EditTemplate>
             <div @onclick:stopPropagation>
               <MudTextField T="string"
-                            @bind-Value="context.Item.Notes"
+                            Value="@context.Item.Notes"
+                            ValueChanged="@(async (string val) => await OnNotesChanged(context.Item, val))"
                             Variant="Variant.Outlined"
                             Margin="Margin.Dense"
-                            Immediate="true" />
+                            Immediate="false" />
             </div>
           </EditTemplate>
         </TemplateColumn>
@@ -105,10 +106,11 @@ else
           <EditTemplate>
             <div @onclick:stopPropagation>
               <MudTextField T="string"
-                            @bind-Value="context.Item.Vendor"
+                            Value="@context.Item.Vendor"
+                            ValueChanged="@(async (string val) => await OnVendorChanged(context.Item, val))"
                             Variant="Variant.Outlined"
                             Margin="Margin.Dense"
-                            Immediate="true" />
+                            Immediate="false" />
             </div>
           </EditTemplate>
         </TemplateColumn>
@@ -122,10 +124,11 @@ else
           <EditTemplate>
             <div @onclick:stopPropagation>
               <MudTextField T="string"
-                            @bind-Value="context.Item.Description"
+                            Value="@context.Item.Description"
+                            ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
                             Variant="Variant.Outlined"
                             Margin="Margin.Dense"
-                            Immediate="true" />
+                            Immediate="false" />
             </div>
           </EditTemplate>
         </TemplateColumn>

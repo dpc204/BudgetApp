@@ -19,12 +19,11 @@ public interface IBudgetApiClient
    Task<TransactionAddResult> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeDto>> UpdateTransactionAsync(OneTransactionDetail transaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeDto>> VoidTransactionAsync(int transactionId, CancellationToken cancellationToken = default);
-  Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description, CancellationToken cancellationToken = default);
   Task<EnvelopeDto> GetEnvelopeByIdAsync(int envelopeId, CancellationToken cancellationToken = default);
   Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default);
  
   // Transaction Import
-  Task<int> ImportTransactionsAsync(List<TransactionImportDto> transactions, CancellationToken cancellationToken = default);
+  Task<int> ImportTransactionsToStagingAsync(List<TransactionImportDto> transactions, CancellationToken cancellationToken = default);
   Task<List<TransactionImportDto>> GetTransactionImportsAsync(CancellationToken cancellationToken = default);
   Task<int> ClearTransactionImportsAsync(CancellationToken cancellationToken = default);
   Task<bool> UpdateTransactionImportAsync(int id, bool duplicate, bool keepDuplicate, CancellationToken cancellationToken = default);

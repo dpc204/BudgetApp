@@ -4,6 +4,8 @@ public class TransactionImportDto
 {
   public int Id { get; set; }
   public DateTime Date { get; set; }
+  public PostingStatuses PostingStatus { get; set; }
+
   public string Vendor { get; set; } = string.Empty;
   public string Description { get; set; } = string.Empty;
   public string Notes { get; set; } = string.Empty;

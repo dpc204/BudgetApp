@@ -159,7 +159,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   public async Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default)
     => await GetListAsync<BankAccountDto>($"accounts/maint/getall", cancellationToken);
 
-  public async Task<int> ImportTransactionsAsync(List<TransactionImportDto> transactions,
+  public async Task<int> ImportTransactionsToStagingAsync(List<TransactionImportDto> transactions,
     CancellationToken cancellationToken = default)
   {
     var payload = new { Transactions = transactions };
@@ -342,15 +342,6 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       logger.LogDebug(ex, "No response body or invalid JSON for VoidTransaction at {Url}", "/Transaction/Void");
       return [];
     }
-  }
-
-  public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string description,
-    CancellationToken cancellationToken = default)
-  {
-    var payload = new
-      { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Description = description };
-    using var resp = await http.PutAsJsonAsync("/transactions/assign", payload, cancellationToken);
-    return resp.IsSuccessStatusCode;
   }
 
   public async Task<UserOptions?> GetUserOptionsAsync(int userId, CancellationToken cancellationToken = default)

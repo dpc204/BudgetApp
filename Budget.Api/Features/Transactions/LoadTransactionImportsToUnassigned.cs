@@ -45,6 +45,8 @@ public static class LoadTransactionImportsToUnassigned
         {
           AccountId = request.AccountId,
           Date = rec.Date,
+          PostingStatus = rec.PostingStatus,
+          TotalAmount = rec.Amount,
           Vendor = rec.Vendor,
           Description = rec.Description,
           UserId = request.UserId,

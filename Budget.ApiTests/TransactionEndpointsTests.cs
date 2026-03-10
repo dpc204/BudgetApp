@@ -347,14 +347,14 @@ public class TransactionEndpointsTests : IntegrationTestBase
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new AssignTransaction.Handler(context, new MoveEnvelopeBalance());
-    var command = new AssignTransaction.Command(600, 1, 204, "Reassigned", "notes");
+    var command = new AssignTransaction.Command(600, 1, 204, "Updated Vendor", "Reassigned", "notes");
 
     // Act
     var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().BeTrue();
-    
+
     context.ChangeTracker.Clear();
     TransactionDetail? updatedDetail = await context.TransactionDetails.FindAsync([600, 1], TestContext.Current.CancellationToken);
     updatedDetail.Should().NotBeNull();

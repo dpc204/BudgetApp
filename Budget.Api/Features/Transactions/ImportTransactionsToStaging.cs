@@ -7,7 +7,7 @@ namespace Budget.Api.Features.Transactions;
 /// <summary>
 /// Bulk import transactions to staging table
 /// </summary>
-public static class ImportTransactions
+public static class ImportTransactionsToStaging
 {
   public sealed record Command(List<TransactionImportDto> Transactions) : IRequest<int>;
 
@@ -23,6 +23,7 @@ public static class ImportTransactions
       var entities = request.Transactions.Select(dto => new TransactionImport
       {
         Date = dto.Date,
+        PostingStatus = dto.PostingStatus,
         Vendor = dto.Vendor,
         Description = RemoveConsecutiveSpaces(dto.Description),
         Notes = dto.Notes,
@@ -35,15 +36,18 @@ public static class ImportTransactions
         Duplicate = false
       }).ToList();
 
+
       SetVendor(entities);
 
 
       db.TransactionImports.AddRange(entities);
-      await db.SaveChangesAsync(cancellationToken);
 
       // Detect duplicates by comparing with existing transactions
       await DetectDuplicatesAsync(entities, cancellationToken);
+      await CheckForClearedPending(entities, cancellationToken);
 
+      await db.SaveChangesAsync(cancellationToken);
+      
       return entities.Count;
     }
 
@@ -62,6 +66,22 @@ public static class ImportTransactions
         if (!string.IsNullOrWhiteSpace(dto.Vendor))
           continue;
 
+        // if dto.Description starts with "POS DEBIT " or "POS CREDIT", remove it from description and set PostingStatus to Pending.  Otherwise, leave description alone and set posting status to Posted
+        if (dto.Description.StartsWith("POS DEBIT ", StringComparison.OrdinalIgnoreCase))
+        {
+          dto.Description = dto.Description[10..]; // Remove "POS DEBIT "
+          dto.PostingStatus = PostingStatuses.Pending;
+        }
+        else if (dto.Description.StartsWith("POS CREDIT ", StringComparison.OrdinalIgnoreCase))
+        {
+          dto.Description = dto.Description[11..]; // Remove "POS CREDIT "
+          dto.PostingStatus = PostingStatuses.Pending;
+        }
+        else
+        {
+          dto.PostingStatus = PostingStatuses.Posted;
+        }
+
         var idx = dto.Description.IndexOf(' ');
         if (idx < 6 && dto.Description.Length > 10)
           idx = dto.Description.IndexOf(' ', idx + 1);
@@ -78,6 +98,35 @@ public static class ImportTransactions
           dto.Description = dto.Description[(idx + 1)..].Trim();
         }
       }
+    }
+
+    private async Task CheckForClearedPending(List<TransactionImport> imports, CancellationToken cancellationToken)
+    {
+      // Get all existing transactions for the family to compare
+      var existingTransactions = await db.Transactions
+        .Where(t => !t.IsVoided && t.PostingStatus == PostingStatuses.Pending)
+        .Select(t => new { t.Date, t.Vendor, t.TotalAmount, t.PostingStatus })
+        .ToListAsync(cancellationToken);
+
+      // Mark imports as duplicates if they match existing transactions+
+      foreach (var import in imports)
+      {
+          
+        var isClearedPending = existingTransactions.Any(t =>
+          t.PostingStatus == PostingStatuses.Pending &&
+          Math.Abs((t.Date - import.Date).Days) < 8 &&
+          t.Vendor.Equals(import.Vendor, StringComparison.OrdinalIgnoreCase) &&
+          t.TotalAmount == import.Amount);
+        // how am I supposed to handle splitting the tips when they come after the initial transaction how are tips handled?
+        // Do oa comparison of an export from Transactions with the Cvs file
+        
+        if (isClearedPending)
+        {
+          import.Duplicate = false;
+          import.PostingStatus = PostingStatuses.ToBeCleared;
+        }
+      }
+
     }
 
     private async Task DetectDuplicatesAsync(List<TransactionImport> imports, CancellationToken cancellationToken)

@@ -99,7 +99,7 @@ public partial class TransactionsCsvImport : ComponentBase
       // Import to database in bulk
       if (transactionsToImport.Count > 0)
       {
-        var count = await Api.ImportTransactionsAsync(transactionsToImport);
+        var count = await Api.ImportTransactionsToStagingAsync(transactionsToImport);
         Status = $"Imported {count} rows to staging.";
 
         // Reload preview from database

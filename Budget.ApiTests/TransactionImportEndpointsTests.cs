@@ -54,8 +54,8 @@ public class TransactionImportEndpointsTests
       }
     };
 
-    var command = new ImportTransactions.Command(transactions);
-    var handler = new ImportTransactions.Handler(context, new TestCurrentFamilyService());
+    var command = new ImportTransactionsToStaging.Command(transactions);
+    var handler = new ImportTransactionsToStaging.Handler(context, new TestCurrentFamilyService());
 
     // Act
     var response = await handler.Handle(command, CancellationToken.None);
@@ -223,8 +223,8 @@ public class TransactionImportEndpointsTests
       }
     };
 
-    var command = new ImportTransactions.Command(transactions);
-    var handler = new ImportTransactions.Handler(arrangeDb, new TestCurrentFamilyService());
+    var command = new ImportTransactionsToStaging.Command(transactions);
+    var handler = new ImportTransactionsToStaging.Handler(arrangeDb, new TestCurrentFamilyService());
 
     // Act
     var response = await handler.Handle(command, CancellationToken.None);

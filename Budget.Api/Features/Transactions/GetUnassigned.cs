@@ -3,7 +3,16 @@
 public static class GetUnassigned
 {
   public sealed record Query : IRequest<Result<IEnumerable<Response>>>;
-  public sealed record Response(int TransactionId, int LineId, int EnvelopeId, string EnvelopeName,string Vendor, string Description, decimal Amount, DateTime Date);
+  public sealed record Response(
+    int TransactionId,
+    int LineId,
+    int EnvelopeId,
+    string EnvelopeName,
+    string Vendor,
+    string Description,
+    decimal Amount,
+    DateTime Date,
+    PostingStatuses postingStatus);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, Result<IEnumerable<Response>>>
   {
@@ -21,7 +30,7 @@ public static class GetUnassigned
           join t in db.Transactions on td.TransactionId equals t.Id
           join e in db.Envelopes on td.EnvelopeId equals e.Id
                           where td.EnvelopeId == unassignedEnvelope.Id
-          select new Response(t.Id, td.LineId, e.Id, e.Name, t.Vendor,td.Notes, td.Amount, t.Date))
+          select new Response(t.Id, td.LineId, e.Id, e.Name, t.Vendor,td.Notes, td.Amount, t.Date, t.PostingStatus))
         .ToListAsync(cancellationToken);
 
       return Result.Ok<IEnumerable<Response>>(result);

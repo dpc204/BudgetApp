@@ -213,8 +213,7 @@ public partial class Assign : ComponentBase
 
     // Call API to save the transaction envelope assignment
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Description,
-      transaction.Notes);
+      transaction.Vendor, transaction.Description, transaction.Notes);
     await Grid.ReloadServerData();
     StateHasChanged();
   }
@@ -264,14 +263,38 @@ public partial class Assign : ComponentBase
     return contextItem;
   }
 
+  private async Task OnNotesChanged(TransactionDto transaction, string newNotes)
+  {
+    // Update the transaction's notes
+    transaction.Notes = newNotes;
+
+    // Call API to save the transaction notes
+    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
+      transaction.Vendor, transaction.Description, transaction.Notes);
+
+    StateHasChanged();
+  }
+
+  private async Task OnVendorChanged(TransactionDto transaction, string newVendor)
+  {
+    // Update the transaction's vendor
+    transaction.Vendor = newVendor;
+
+    // Call API to save the transaction vendor
+    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
+      transaction.Vendor, transaction.Description, transaction.Notes);
+
+    StateHasChanged();
+  }
+
   private async Task OnDescriptionChanged(TransactionDto transaction, string newDescription)
   {
     // Update the transaction's description
     transaction.Description = newDescription;
 
-    // Call API to save the transaction description assignment
+    // Call API to save the transaction description
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Description, transaction.Notes);
+      transaction.Vendor, transaction.Description, transaction.Notes);
 
     StateHasChanged();
   }
@@ -311,6 +334,7 @@ public partial class Assign : ComponentBase
           transaction.TransactionId,
           transaction.LineId,
           transaction.EnvelopeId,
+          transaction.Vendor,
           transaction.Description,
           transaction.Notes
           );

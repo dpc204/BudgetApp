@@ -215,6 +215,7 @@ public partial class EditTransactionDialog
     else
     {
       addResult = await TransactionApi.AddTransactionAsync(result);
+      ArgumentNullException.ThrowIfNull(addResult);
     }
 
 

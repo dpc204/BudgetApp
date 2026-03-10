@@ -26,6 +26,7 @@ public static class GetUnassignedVirtual
         {
           TransactionId = t.Id,
           LineId = td.LineId,
+          PostingStatus = t.PostingStatus,
           EnvelopeId = e.Id,
           EnvelopeName = e.Name,
           Vendor = t.Vendor,
