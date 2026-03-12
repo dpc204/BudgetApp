@@ -12,7 +12,7 @@ public static class GetUnassigned
     string Description,
     decimal Amount,
     DateTime Date,
-    PostingStatuses postingStatus);
+    PostingStatuses PostingStatus);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, Result<IEnumerable<Response>>>
   {

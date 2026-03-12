@@ -87,7 +87,7 @@ public class TransactionImportEndpointsTests
 
     var import1 = new TransactionImport
     {
-      Date = DateTime.Today,
+      Date = DateTime.Today.AddDays(-3),
       Vendor = "Test Vendor A",
       Description = "Test Description A",
       Amount = 75.00m,

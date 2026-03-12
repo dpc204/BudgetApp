@@ -26,16 +26,16 @@ Console.WriteLine($"AZURE_STORAGE_ACCOUNT_NAME: {storageAccountName}");
 Console.WriteLine($"AZURE_STORAGE_BLOB_ENDPOINT: {storageBlobEndpoint}");
 Console.WriteLine($"AZURE_STORAGE_TABLE_ENDPOINT: {storageTableEndpoint}");
 
-// Add Azure Blob and Table Storage; RunAsEmulator starts Azurite locally, uses real Azure Storage when deployed
-var storage = builder.AddAzureStorage("storage").RunAsEmulator();
-var blobs = storage.AddBlobs("blobs");
-var tables = storage.AddTables("tables");
+//// Add Azure Blob and Table Storage; RunAsEmulator starts Azurite locally, uses real Azure Storage when deployed
+//var storage = builder.AddAzureStorage("storage"); //.RunAsEmulator();
+//var blobs = storage.AddBlobs("blobs");
+//var tables = storage.AddTables("tables");
 
 // Define the Budget API service with service discovery and environment configuration
 var budgetApi = builder.AddProject<Projects.Budget_Api>("budget-api")
-  .WithReference(blobs)
-  .WithReference(tables)
-  .WaitFor(storage)
+  //.WithReference(blobs)
+  //.WithReference(tables)
+  //.WaitFor(storage)
   .WithEnvironment("UseAzureDB", useAzureDb)
   .WithEnvironment("ASPNETCORE_ENVIRONMENT", aspnetEnv)
   .WithEnvironment("AZURE_CLIENT_ID", managedIdentityClientId)
