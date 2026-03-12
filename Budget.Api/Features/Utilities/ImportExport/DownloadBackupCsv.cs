@@ -42,9 +42,11 @@ public static class DownloadBackupCsv
 
         // Download blob content
         var downloadResponse = await blobClient.DownloadAsync(cancellationToken);
-        
+
         // Extract filename from blob name (e.g., "BackupSet-2024-01-06/TableName.csv" -> "TableName.csv")
-        var fileName = Path.GetFileName(request.BlobName);
+        var normalized = (request.BlobName ?? string.Empty).Replace('\\', '/');
+        var fileName = normalized.Split('/').LastOrDefault() ?? string.Empty;
+//        var fileName = Path.GetFileName(request.BlobName);
 
         log.LogInformation("Successfully downloaded blob: {BlobName}", request.BlobName);
         return new Response(downloadResponse.Value.Content, "text/csv", fileName);
