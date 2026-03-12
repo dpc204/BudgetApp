@@ -83,7 +83,7 @@ public partial class Budget : ComponentBase
     try
     {
       // Generate 12 months starting from current month (buffer for scrolling)
-      var currentDate = new DateTime(2025, 10, 1);
+      var currentDate = new DateTime(2025, 09, 1);
       //  var currentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
       _displayMonths = [.. Enumerable.Range(0, MonthsToShow).Select(i => currentDate.AddMonths(i))];
 
