@@ -64,41 +64,163 @@ h1:focus {
     font-weight: 700 !important;
 }
 
-/* MudDataGrid row height control - Global styles to override MudBlazor defaults */
-.envelopes-table .mud-table-row {
-    height: 160px !important;
-    max-height: 160px !important;
+/* ========================================
+   ENVELOPES TABLE STYLES - Assign Page
+   ======================================== */
+
+/* Table layout - Auto layout to allow column resizing */
+.envelopes-table table {
+  table-layout: auto;
 }
 
-.envelopes-table .mud-table-cell {
-    height: 160px !important;
-    max-height: 160px !important;
-    padding: 8px 12px !important;
+.envelopes-table .mud-table-container {
+  height: 100%;
+}
+
+/* Column widths */
+/* Column 1: SelectColumn (checkbox) */
+.envelopes-table .mud-table-head th:nth-child(1),
+.envelopes-table .mud-table-body td:nth-child(1) {
+  width: 35px !important;
+  min-width: 35px !important;
+  max-width: 35px !important;
+}
+
+/* Column 2: Date */
+.envelopes-table .mud-table-head th:nth-child(2),
+.envelopes-table .mud-table-body td:nth-child(2) {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+}
+
+/* Column 3: Notes - Resizable, no CSS constraints */
+
+/* Column 4: Envelope */
+.envelopes-table .mud-table-head th:nth-child(4),
+.envelopes-table .mud-table-body td:nth-child(4) {
+  width: 200px !important;
+  min-width: 150px !important;
+  max-width: 200px !important;
+}
+
+/* Column 5: Vendor */
+.envelopes-table .mud-table-head th:nth-child(5),
+.envelopes-table .mud-table-body td:nth-child(5) {
+  width: 150px !important;
+  min-width: 120px !important;
+  max-width: 150px !important;
+}
+
+/* Column 6: Description - Resizable, no CSS constraints */
+
+/* Column 7: Amount */
+.envelopes-table .mud-table-head th:nth-child(7),
+.envelopes-table .mud-table-body td:nth-child(7) {
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+  text-align: right;
+}
+
+/* Row heights - Data rows - Multiple specific selectors to override MudBlazor */
+.envelopes-table .mud-table-row,
+.envelopes-table.mud-table .mud-table-row,
+.envelopes-table .mud-table-body .mud-table-row,
+.envelopes-table.mud-data-grid .mud-table-body .mud-table-row {
+    height: 30px !important;
+    max-height: 30px !important;
+    min-height: 30px !important;
+}
+
+.envelopes-table .mud-table-cell,
+.envelopes-table.mud-table .mud-table-cell,
+.envelopes-table .mud-table-body .mud-table-cell,
+.envelopes-table .mud-table-body td.mud-table-cell,
+.envelopes-table .mud-table-body td.mud-table-cell.edit-mode-cell,
+.envelopes-table.mud-data-grid .mud-table-body td.mud-table-cell {
+    height: 30px !important;
+    max-height: 30px !important;
+    min-height: 30px !important;
+    padding: 4px 8px !important;
     vertical-align: middle !important;
     line-height: normal !important;
+    box-sizing: border-box !important;
 }
 
-/* Target header rows separately */
-.envelopes-table .mud-table-head .mud-table-row {
-    height: 148px !important;
+/* Row heights - Header rows - More specific selectors */
+.envelopes-table .mud-table-head .mud-table-row,
+.envelopes-table.mud-table .mud-table-head .mud-table-row,
+.envelopes-table.mud-data-grid .mud-table-head .mud-table-row {
+    height: 32px !important;
+    max-height: 32px !important;
+    min-height: 32px !important;
 }
 
-.envelopes-table .mud-table-head .mud-table-cell {
-    height: 148px !important;
-    padding: 8px 12px !important;
+.envelopes-table .mud-table-head .mud-table-cell,
+.envelopes-table .mud-table-head th.mud-table-cell,
+.envelopes-table.mud-table .mud-table-head th.mud-table-cell,
+.envelopes-table.mud-data-grid .mud-table-head th.mud-table-cell {
+    height: 32px !important;
+    max-height: 32px !important;
+    min-height: 32px !important;
+    padding: 4px 8px !important;
+    box-sizing: border-box !important;
 }
 
-/* For edit mode cells - ensure inputs fit properly */
-.envelopes-table .mud-table-cell .mud-input {
+/* Row selection highlight using theme Secondary color */
+.envelopes-table .mud-table-body .mud-table-row.row-selected-secondary,
+.envelopes-table .mud-table-body .mud-table-row.row-selected-secondary > td {
+  background-color: var(--mud-palette-secondary) !important;
+  color: var(--mud-palette-secondary-contrastText) !important;
+}
+
+/* Keep hover visible but not override selected */
+.envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover,
+.envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover > td {
+  filter: brightness(0.98);
+}
+
+/* Edit mode cells - ensure inputs fit in 30px rows with aggressive specificity */
+.envelopes-table .mud-table-cell .mud-input,
+.envelopes-table td.mud-table-cell .mud-input,
+.envelopes-table td.edit-mode-cell .mud-input,
+.envelopes-table .mud-table-body .mud-table-cell .mud-input {
     margin: 0 !important;
+    padding: 0 !important;
 }
 
-.envelopes-table .mud-table-cell .mud-input-control {
-    min-height: 140px !important;
+.envelopes-table .mud-table-cell .mud-input-control,
+.envelopes-table td.mud-table-cell .mud-input-control,
+.envelopes-table td.edit-mode-cell .mud-input-control,
+.envelopes-table .mud-table-body .mud-table-cell .mud-input-control,
+.envelopes-table .mud-table-cell .mud-input-root,
+.envelopes-table td.mud-table-cell .mud-input-root,
+.envelopes-table td.edit-mode-cell .mud-input-root {
+    min-height: 22px !important;
+    max-height: 22px !important;
+    height: 22px !important;
 }
 
-.envelopes-table .mud-table-cell .mud-autocomplete {
-    min-height: 140px !important;
+.envelopes-table .mud-table-cell .mud-autocomplete,
+.envelopes-table td.mud-table-cell .mud-autocomplete,
+.envelopes-table td.edit-mode-cell .mud-autocomplete,
+.envelopes-table .mud-table-body .mud-table-cell .mud-autocomplete {
+    min-height: 22px !important;
+    max-height: 22px !important;
+    height: 22px !important;
+}
+
+.envelopes-table .mud-table-cell .mud-input-outlined,
+.envelopes-table td.mud-table-cell .mud-input-outlined,
+.envelopes-table td.edit-mode-cell .mud-input-outlined {
+    min-height: 22px !important;
+    max-height: 22px !important;
+}
+
+.envelopes-table .mud-table-cell .mud-input-slot,
+.envelopes-table td.edit-mode-cell .mud-input-slot {
+    padding: 2px 4px !important;
 }
 
 /* Enhanced dialog styling for better visual separation from background */

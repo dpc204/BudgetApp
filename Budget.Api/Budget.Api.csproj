@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.93" />
+    <PackageReference Include="MudBlazor" Version="9.1.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.12.39" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />

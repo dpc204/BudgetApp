@@ -32,8 +32,8 @@
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.93" />
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
-    <ProjectReference Include="..\Budget.Client\Budget.Client.csproj" ReferenceOutputAssembly="true" SkipGetTargetFrameworkProperties="true" />
-    <!-- Aspire service defaults project reference for OpenTelemetry/service discovery -->
+    <!--<ProjectReference Include="..\Budget.Client\Budget.Client.csproj" ReferenceOutputAssembly="true" SkipGetTargetFrameworkProperties="true" />-->
+    <ProjectReference Include="..\Budget.Client\Budget.Client.csproj" />    <!-- Aspire service defaults project reference for OpenTelemetry/service discovery -->
     <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
     <PackageReference Include="Azure.Identity" Version="1.18.0-beta.2" />
@@ -52,15 +52,10 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="4.3.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.3.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
-    <PackageReference Include="MudBlazor" Version="9.0.0-preview.2" />
+    <PackageReference Include="MudBlazor" Version="9.1.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Syncfusion.Blazor" Version="32.2.4" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <HotReloadAutoRestart>true</HotReloadAutoRestart>
-  </PropertyGroup>
-
 
 </Project>

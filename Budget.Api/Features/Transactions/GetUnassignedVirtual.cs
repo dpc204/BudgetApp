@@ -30,7 +30,8 @@ public static class GetUnassignedVirtual
           EnvelopeId = e.Id,
           EnvelopeName = e.Name,
           Vendor = t.Vendor,
-          Description = td.Notes,
+          Description = t.Description,
+          Notes = td.Notes,
           Amount = td.Amount,
           Date = t.Date
         }).AsNoTracking();

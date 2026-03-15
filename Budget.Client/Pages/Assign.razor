@@ -29,7 +29,7 @@ else
                  Bordered="true"
                  SortMode="SortMode.Multiple"
                  Dense="true"
-                 ColumnResizeMode="ResizeMode.Container"
+                 ColumnResizeMode="ResizeMode.Column"
                  ServerData="LoadServerData"
                  FixedHeader="true"
                  Height="calc(100vh - 250px)"
@@ -45,11 +45,9 @@ else
                         Format="d"
                         Filterable="false"
                         Sortable="true"
-                        HeaderStyle="min-width: 50px;"
-                        CellStyle="min-width: 50px;"
-                        Editable="false" />
+                        Editable="false" Resizable="true" />
 
-        <TemplateColumn Title="Notes" Sortable="false" Filterable="false">
+        <TemplateColumn Title="Notes" Sortable="false" Filterable="false" Resizable="true">
           <CellTemplate>
             <div @onclick:stopPropagation>
               @context.Item.Notes
@@ -62,7 +60,7 @@ else
                             ValueChanged="@(async (string val) => await OnNotesChanged(context.Item, val))"
                             Variant="Variant.Outlined"
                             Margin="Margin.Dense"
-                            Immediate="false" />
+                            Immediate="false"  />
             </div>
           </EditTemplate>
         </TemplateColumn>
@@ -137,6 +135,9 @@ else
                         Editable="false"
                         Sortable="true"
                         Filterable="false"
+                        Format="N2"
+                        CellStyle="text-align: right;"
+                        HeaderStyle="text-align: right;"
                         SortBy="@(x => x.Amount)" Property="x => x.Amount" />
       </Columns>
 
