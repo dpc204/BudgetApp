@@ -144,7 +144,7 @@ h1:focus {
     min-height: 30px !important;
     padding: 4px 8px !important;
     vertical-align: middle !important;
-    line-height: normal !important;
+    line-height: 30px !important;
     box-sizing: border-box !important;
 }
 
@@ -221,6 +221,20 @@ h1:focus {
 .envelopes-table .mud-table-cell .mud-input-slot,
 .envelopes-table td.edit-mode-cell .mud-input-slot {
     padding: 2px 4px !important;
+}
+
+/* Vertically center all inner content - make inner divs fill cell height and center */
+.envelopes-table .mud-table-body .mud-table-cell > div,
+.envelopes-table .mud-table-body td.mud-table-cell > div {
+    height: 22px;
+    line-height: 22px;
+    vertical-align: middle;
+    display: block;
+}
+
+/* Center MudCheckBox in select column */
+.envelopes-table .mud-table-body td:nth-child(1) .mud-checkbox {
+    vertical-align: middle;
 }
 
 /* Enhanced dialog styling for better visual separation from background */
