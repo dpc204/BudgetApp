@@ -20,6 +20,8 @@ public static class AssignTransaction
         return false;
       }
 
+      var unassignedEnvelope = GetEnvelopeByType.Get(db, EnvelopeTypes.Unassigned, cancellationToken);
+
       var fromEnvelopeId = transactionDetail.EnvelopeId;
 
       Debug.WriteLine(
@@ -32,6 +34,10 @@ public static class AssignTransaction
       // Update Transaction properties (Vendor and Description)
       transactionDetail.Transaction.Vendor = request.Vendor;
       transactionDetail.Transaction.Description = request.Description;
+
+      if(request.EnvelopeId != unassignedEnvelope.Result.Id)
+        transactionDetail.Transaction.TransactionHiddenFromAssign = false;
+
       transactionDetail.Transaction.TransactionHiddenFromAssign = request.HiddenFromAssign;
 
       var toEnvelopeId = transactionDetail.EnvelopeId;
