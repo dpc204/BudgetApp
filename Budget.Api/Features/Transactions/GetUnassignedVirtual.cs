@@ -37,6 +37,7 @@ public static class GetUnassignedVirtual
           TransactionHiddenFromAssign = t.TransactionHiddenFromAssign
         }).AsNoTracking();
 
+      var hiddenCount = await query.CountAsync(t => t.TransactionHiddenFromAssign, cancellationToken);
 
       query = query.ApplyFilters(request.AssignQuery.Filters);
 
@@ -66,7 +67,8 @@ public static class GetUnassignedVirtual
       var result = new AssignQueryResult
       {
         Items =  items,
-        TotalCount = totalCount
+        TotalCount = totalCount,
+        HiddenCount = hiddenCount
       };
 
       return Result.Ok(new Response(result));

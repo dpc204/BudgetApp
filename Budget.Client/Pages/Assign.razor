@@ -18,7 +18,7 @@ else
 {
   <MudProgressLinear Value="ProgressValue" Max="ProgressMax" Indeterminate="false" Color="Color.Primary" />
 
-  <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
+  <div style="flex: 1; min-height: 0; overflow: hidden; width: 100%;">
     <MudDataGrid T="TransactionDto"
                  @ref="Grid"
                  ReadOnly="false"
@@ -66,7 +66,8 @@ else
           </EditTemplate>
         </TemplateColumn>
 
-        <TemplateColumn Title="Hide" Sortable="false" Filterable="false" Resizable="false" Editable="false">
+        <TemplateColumn Title="Hide" Sortable="false" Filterable="false" Resizable="false" Editable="false"
+                        HeaderStyle="width: 60px; min-width: 60px;" CellStyle="width: 60px; min-width: 60px;">
           <CellTemplate>
             <div @onclick:stopPropagation>
               <MudCheckBox T="bool"
@@ -184,13 +185,20 @@ else
           </MudButton>
         </MudStack>
         <MudSpacer />
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
           <MudCheckBox T="bool"
                        Value="_showHidden"
                        ValueChanged="@(async (bool val) => await OnShowHiddenChangedAsync(val))"
                        Color="Color.Primary"
-                       Dense="true" />
-          <MudText>Show Hidden</MudText>
+                       Dense="true"
+                       Label="Show Hidden" />
+          <MudButton Variant="Variant.Outlined"
+                     Color="Color.Warning"
+                     Size="Size.Small"
+                     Disabled="@(_hiddenCount == 0)"
+                     OnClick="ClearHiddenAsync">
+            Clear (@_hiddenCount) Hidden
+          </MudButton>
         </MudStack>
       </ToolBarContent>
       <PagerContent>
