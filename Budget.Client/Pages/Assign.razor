@@ -36,6 +36,7 @@ else
                  MultiSelection="true"
                  Virtualize="true"
                  @bind-SelectedItems="_selectedTransactions"
+                 RowStyleFunc="@GetRowStyle"
                  Class="envelopes-table"
                  Style="height: 100%; overflow: auto; width: auto ;">
       <Columns>
@@ -63,6 +64,17 @@ else
                             Immediate="false"  />
             </div>
           </EditTemplate>
+        </TemplateColumn>
+
+        <TemplateColumn Title="Hide" Sortable="false" Filterable="false" Resizable="false" Editable="false">
+          <CellTemplate>
+            <div @onclick:stopPropagation>
+              <MudCheckBox T="bool"
+                           Value="@context.Item.TransactionHiddenFromAssign"
+                           ValueChanged="@(async (bool val) => await OnHiddenChanged(context.Item, val))"
+                           Dense="true" />
+            </div>
+          </CellTemplate>
         </TemplateColumn>
 
         <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
@@ -172,6 +184,14 @@ else
           </MudButton>
         </MudStack>
         <MudSpacer />
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+          <MudCheckBox T="bool"
+                       Value="_showHidden"
+                       ValueChanged="@(async (bool val) => await OnShowHiddenChangedAsync(val))"
+                       Color="Color.Primary"
+                       Dense="true" />
+          <MudText>Show Hidden</MudText>
+        </MudStack>
       </ToolBarContent>
       <PagerContent>
         <MudDataGridPager T="TransactionDto"

@@ -33,11 +33,17 @@ public static class GetUnassignedVirtual
           Description = t.Description,
           Notes = td.Notes,
           Amount = td.Amount,
-          Date = t.Date
+          Date = t.Date,
+          TransactionHiddenFromAssign = t.TransactionHiddenFromAssign
         }).AsNoTracking();
 
 
       query = query.ApplyFilters(request.AssignQuery.Filters);
+
+      if (!request.AssignQuery.ShowHidden)
+      {
+        query = query.Where(t => !t.TransactionHiddenFromAssign);
+      }
 
       if (!string.IsNullOrEmpty(request.AssignQuery.Sort))
       {

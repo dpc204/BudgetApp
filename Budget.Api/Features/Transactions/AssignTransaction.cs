@@ -4,7 +4,7 @@ namespace Budget.Api.Features.Transactions;
 
 public static class AssignTransaction
 {
-  public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Vendor, string Description, string Notes) : IRequest<bool>;
+  public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Vendor, string Description, string Notes, bool HiddenFromAssign = false) : IRequest<bool>;
 
   public class Handler(BudgetContext db, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, bool>
   {
@@ -32,6 +32,7 @@ public static class AssignTransaction
       // Update Transaction properties (Vendor and Description)
       transactionDetail.Transaction.Vendor = request.Vendor;
       transactionDetail.Transaction.Description = request.Description;
+      transactionDetail.Transaction.TransactionHiddenFromAssign = request.HiddenFromAssign;
 
       var toEnvelopeId = transactionDetail.EnvelopeId;
 

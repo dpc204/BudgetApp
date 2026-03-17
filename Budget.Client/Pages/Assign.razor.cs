@@ -43,6 +43,7 @@ public partial class Assign : ComponentBase
   private bool _afterRenderInit;
   private int _focusRowIndexAfterReload = -2;
   private bool _setInitialFocus = false;
+  private bool _showHidden = true;
 
   protected override async Task OnInitializedAsync()
   {
@@ -171,6 +172,7 @@ public partial class Assign : ComponentBase
         Count = gridState.PageSize,
         Sort = gridState.SortDefinitions.FirstOrDefault()?.SortBy,
         Descending = gridState.SortDefinitions.FirstOrDefault()?.Descending ?? false,
+        ShowHidden = _showHidden,
         Filters = [.. gridState.FilterDefinitions
           .Select(f => new FilterItem
           {
@@ -213,7 +215,7 @@ public partial class Assign : ComponentBase
 
     // Call API to save the transaction envelope assignment
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Vendor, transaction.Description, transaction.Notes);
+      transaction.Vendor, transaction.Description, transaction.Notes, transaction.TransactionHiddenFromAssign);
     await Grid.ReloadServerData();
     StateHasChanged();
   }
@@ -270,7 +272,7 @@ public partial class Assign : ComponentBase
 
     // Call API to save the transaction notes
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Vendor, transaction.Description, transaction.Notes);
+      transaction.Vendor, transaction.Description, transaction.Notes, transaction.TransactionHiddenFromAssign);
 
     StateHasChanged();
   }
@@ -282,7 +284,7 @@ public partial class Assign : ComponentBase
 
     // Call API to save the transaction vendor
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Vendor, transaction.Description, transaction.Notes);
+      transaction.Vendor, transaction.Description, transaction.Notes, transaction.TransactionHiddenFromAssign);
 
     StateHasChanged();
   }
@@ -294,9 +296,27 @@ public partial class Assign : ComponentBase
 
     // Call API to save the transaction description
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
-      transaction.Vendor, transaction.Description, transaction.Notes);
+      transaction.Vendor, transaction.Description, transaction.Notes, transaction.TransactionHiddenFromAssign);
 
     StateHasChanged();
+  }
+
+  private async Task OnHiddenChanged(TransactionDto transaction, bool newHiddenValue)
+  {
+    // Update the transaction's hidden flag
+    transaction.TransactionHiddenFromAssign = newHiddenValue;
+
+    // Call API to save the hidden flag
+    await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
+      transaction.Vendor, transaction.Description, transaction.Notes, transaction.TransactionHiddenFromAssign);
+
+    StateHasChanged();
+  }
+
+  private async Task OnShowHiddenChangedAsync(bool showHidden)
+  {
+    _showHidden = showHidden;
+    await Grid.ReloadServerData();
   }
 
   /// <summary>
@@ -336,7 +356,8 @@ public partial class Assign : ComponentBase
           transaction.EnvelopeId,
           transaction.Vendor,
           transaction.Description,
-          transaction.Notes
+          transaction.Notes,
+          transaction.TransactionHiddenFromAssign
           );
 
         // Remove from the unassigned transactions list
@@ -388,5 +409,10 @@ public partial class Assign : ComponentBase
     {
       Logger.LogWarning(ex, "Failed to set focus to Notes column at row {RowIndex}", rowIndex);
     }
+  }
+
+  private static string GetRowStyle(TransactionDto transaction, int _)
+  {
+    return transaction.TransactionHiddenFromAssign ? "color: gray; opacity: 0.5;" : string.Empty;
   }
 }
