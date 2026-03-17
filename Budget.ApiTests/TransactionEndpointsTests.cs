@@ -450,6 +450,93 @@ public class TransactionEndpointsTests : IntegrationTestBase
   }
 
   [Fact]
+  public async Task UpdateTransaction_Should_Persist_Description()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
+    var account = new BankAccount { Id = 206, Name = "Test Account", Balance = 900m, AccountType = AccountTypes.Checking, FamilyId = 1 };
+    var envelope = new Envelope
+    {
+      Id = 206,
+      Name = "Test Envelope",
+      CategoryId = "1",
+      Balance = 400m,
+      FamilyId = 1,
+      EnvelopeType = EnvelopeTypes.Standard,
+      SortOrder = 1
+    };
+    var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
+
+    context.Families.Add(family);
+    context.Categories.Add(category);
+    context.BankAccounts.Add(account);
+    context.Envelopes.Add(envelope);
+    context.Users.Add(user);
+
+    var transaction = new Transaction
+    {
+      Id = 800,
+      AccountId = 206,
+      Vendor = "Original Vendor",
+      Description = "Original Description",
+      Date = DateTime.UtcNow,
+      TotalAmount = 100m,
+      UserId = 1,
+      FamilyId = 1
+    };
+    var detail = new TransactionDetail
+    {
+      TransactionId = 800,
+      LineId = 1,
+      EnvelopeId = 206,
+      Amount = 100m,
+      Notes = "Original Note"
+    };
+
+    context.Transactions.Add(transaction);
+    context.TransactionDetails.Add(detail);
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+    var handler = new UpdateTransaction.Handler(context);
+    var updatedTransaction = new OneTransactionDetail
+    {
+      Id = 800,
+      AccountId = 206,
+      Date = DateTime.UtcNow,
+      Vendor = "Updated Vendor",
+      Description = "Updated Description",
+      UserId = 1,
+      Details =
+      [
+        new TransactionDetailDto
+        {
+          TransactionId = 800,
+          LineId = 1,
+          EnvelopeId = 206,
+          Amount = 100m,
+          Notes = "Updated Note"
+        }
+      ]
+    };
+    var command = new UpdateTransaction.Command(updatedTransaction);
+
+    // Act
+    var result = await handler.Handle(command, TestContext.Current.CancellationToken);
+
+    // Assert
+    result.IsSuccess.Should().BeTrue();
+
+    context.ChangeTracker.Clear();
+    var updatedTx = await context.Transactions.FindAsync([800], TestContext.Current.CancellationToken);
+    updatedTx.Should().NotBeNull();
+    updatedTx!.Vendor.Should().Be("Updated Vendor");
+    updatedTx.Description.Should().Be("Updated Description");
+  }
+
+  [Fact]
   public async Task UpdateTransaction_Should_Return_NotFound_For_NonExistent_Transaction()
   {
     // Arrange

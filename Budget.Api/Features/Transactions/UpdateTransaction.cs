@@ -36,6 +36,7 @@ public static class UpdateTransaction
       existingTrans.AccountId = request.Trans.AccountId;
       existingTrans.Date = request.Trans.Date;
       existingTrans.Vendor = request.Trans.Vendor;
+      existingTrans.Description = request.Trans.Description;
       existingTrans.TotalAmount = 0; // Will be recalculated
 
       // Add new details

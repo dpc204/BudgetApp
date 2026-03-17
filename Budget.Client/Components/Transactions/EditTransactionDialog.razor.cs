@@ -186,6 +186,7 @@ public partial class EditTransactionDialog
       Id = _transactionId, // Use stored transaction ID for updates
       AccountId = _header.AccountId,
       Vendor = _header.Vendor.Trim(),
+      Description = _header.Description?.Trim() ?? string.Empty,
       Date = _header.Date.Date,
       UserId = 1,
       UserName = UserOptions.User.Email!,
@@ -196,7 +197,7 @@ public partial class EditTransactionDialog
           TransactionId = _transactionId,
           EnvelopeId = l.EnvelopeId,
           Amount = l.Amount * -1,
-          Notes = l.Notes?.Trim() ?? string.Empty
+          Notes = l.Description?.Trim() ?? string.Empty
           // LineId intentionally left unset - will be assigned by backend
         })
       ],
