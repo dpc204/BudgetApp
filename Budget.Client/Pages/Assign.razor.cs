@@ -26,6 +26,7 @@ public partial class Assign : ComponentBase
   // Multi-selection stat
   private HashSet<TransactionDto> _selectedTransactions = [];
   private EnvelopeIdName? _bulkEnvelope;
+  private bool _showHidden;
 
   // Height calculation so the MudDataGrid shows exactly 3 rows and scrolls for more
   // Dense row height in MudBlazor is ~33px; header is ~56px. Adjust if theme differs.
@@ -171,6 +172,7 @@ public partial class Assign : ComponentBase
         Count = gridState.PageSize,
         Sort = gridState.SortDefinitions.FirstOrDefault()?.SortBy,
         Descending = gridState.SortDefinitions.FirstOrDefault()?.Descending ?? false,
+        ShowHidden = _showHidden,
         Filters = [.. gridState.FilterDefinitions
           .Select(f => new FilterItem
           {
@@ -261,6 +263,16 @@ public partial class Assign : ComponentBase
 
     await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
     return contextItem;
+  }
+
+  private async Task OnHiddenChanged(TransactionDto transaction, bool hidden)
+  {
+    var success = await Api.HideTransactionAsync(transaction.TransactionId, hidden);
+    if (success)
+    {
+      transaction.TransactionHiddenFromAssign = hidden;
+    }
+    await Grid.ReloadServerData();
   }
 
   private async Task OnNotesChanged(TransactionDto transaction, string newNotes)
@@ -376,6 +388,16 @@ public partial class Assign : ComponentBase
   //  return (transaction.Vendor ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
   //         || (transaction.Description ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase);
   //}
+
+  private string? GetTransactionRowStyle(TransactionDto? item, int rowNumber)
+  {
+    if (item == null)
+      return null;
+
+    return item.TransactionHiddenFromAssign
+      ? "color: var(--mud-palette-text-disabled); opacity: 0.5;"
+      : null;
+  }
 
   private async Task SetFocusToNotesColumnAsync(int rowIndex)
   {

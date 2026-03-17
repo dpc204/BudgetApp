@@ -20,6 +20,7 @@ public interface ITransactionsApiClient
   Task<List<EnvelopeDto>> UpdateTransactionAsync(OneTransactionDetail transaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeDto>> VoidTransactionAsync(int transactionId, CancellationToken cancellationToken = default);
   Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string vendor, string description, string notes, CancellationToken cancellationToken = default);
+  Task<bool> HideTransactionAsync(int transactionId, bool hidden, CancellationToken cancellationToken = default);
 
   // Import/Export operations
   Task<int> ImportTransactionsToStagingAsync(List<TransactionImportDto> transactions, CancellationToken cancellationToken = default);

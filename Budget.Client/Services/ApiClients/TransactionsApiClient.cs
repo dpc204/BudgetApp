@@ -217,6 +217,14 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     return resp.IsSuccessStatusCode;
   }
 
+  public async Task<bool> HideTransactionAsync(int transactionId, bool hidden,
+    CancellationToken cancellationToken = default)
+  {
+    var payload = new { TransactionId = transactionId, Hidden = hidden };
+    using var resp = await http.PutAsJsonAsync("/transactions/hide", payload, cancellationToken);
+    return resp.IsSuccessStatusCode;
+  }
+
   // Import/Export operations
   public async Task<int> ImportTransactionsToStagingAsync(List<TransactionImportDto> transactions,
     CancellationToken cancellationToken = default)
