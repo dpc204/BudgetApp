@@ -15,6 +15,7 @@ public class TransactionDto
   public string EnvelopeName { get; set; } = string.Empty;
   public int UserId { get; set; }
   public bool WasPotentialDuplicate { get; set; }
+  public bool TransactionHiddenFromAssign { get; set; }
 }
 
 public class TransactionDetailDto

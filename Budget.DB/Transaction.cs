@@ -67,6 +67,7 @@ namespace Budget.DB
     public Envelope Envelope { get; set; } = null!;
     public string Notes { get; set; } = string.Empty;
     public decimal Amount { get; set; }
+    public bool TransactionHiddenFromAssign { get; set; }
 
     public class TransactionDetailConfiguration : IEntityTypeConfiguration<TransactionDetail>
     {

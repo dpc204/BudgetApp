@@ -138,6 +138,18 @@ else
                         Sortable="true"
                         Filterable="false"
                         SortBy="@(x => x.Amount)" Property="x => x.Amount" />
+
+        <TemplateColumn Title="Hide" Sortable="false" Filterable="false" HeaderStyle="min-width: 60px;" CellStyle="min-width: 60px;">
+          <CellTemplate>
+            <div @onclick:stopPropagation>
+              <MudCheckBox T="bool"
+                           Value="@context.Item.TransactionHiddenFromAssign"
+                           ValueChanged="@(val => OnHideChanged(context.Item, val))"
+                           Color="Color.Warning"
+                           Dense="true" />
+            </div>
+          </CellTemplate>
+        </TemplateColumn>
       </Columns>
 
 
@@ -169,6 +181,12 @@ else
                      OnClick="BulkAssignAsync">
             Assign (@(_selectedTransactions.Count) selected)
           </MudButton>
+          <MudToggleIconButton Toggled="_showHidden"
+                               ToggledChanged="OnShowHiddenToggleChanged"
+                               Icon="@Icons.Material.Filled.VisibilityOff"
+                               ToggledIcon="@Icons.Material.Filled.Visibility"
+                               Color="Color.Default"
+                               ToggledColor="Color.Warning" />
         </MudStack>
         <MudSpacer />
       </ToolBarContent>

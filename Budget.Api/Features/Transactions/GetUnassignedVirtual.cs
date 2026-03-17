@@ -32,8 +32,14 @@ public static class GetUnassignedVirtual
           Vendor = t.Vendor,
           Description = td.Notes,
           Amount = td.Amount,
-          Date = t.Date
+          Date = t.Date,
+          TransactionHiddenFromAssign = td.TransactionHiddenFromAssign
         }).AsNoTracking();
+
+      if (!request.AssignQuery.ShowHidden)
+      {
+        query = query.Where(t => !t.TransactionHiddenFromAssign);
+      }
 
 
       query = query.ApplyFilters(request.AssignQuery.Filters);
