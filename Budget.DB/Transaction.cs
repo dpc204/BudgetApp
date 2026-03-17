@@ -24,6 +24,7 @@ namespace Budget.DB
     public bool IsVoided { get; set; }
     public int FamilyId { get; set; } = 1;
     public bool WasPotentialDuplicate { get; set; } 
+    public bool TransactionHiddenFromAssign { get; set; }
     public Family Family { get; set; } = null!;
     public List<TransactionDetail> Details { get; set; } = [];
     public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
@@ -86,21 +87,9 @@ namespace Budget.DB
         // Document trigger for EF Core model (ensures it's included in future Initial migrations)
         entity.ToTable(tb => tb.HasTrigger("trg_TransactionDetails_UpdateEnvelopeBalance"));
 
-        //entity.HasData(
-        //  new TransactionDetail { TransactionId = 1, LineId = 1, Amount = 52m, EnvelopeId = 2, Notes = "Yasso" },
-        //  new TransactionDetail
-        //    { TransactionId = 1, LineId = 2, Amount = 52m, EnvelopeId = 6, Notes = "Cough supresent" },
-        //  new TransactionDetail { TransactionId = 2, LineId = 1, Amount = 48m, EnvelopeId = 1, Notes = "din din" },
-        //  new TransactionDetail { TransactionId = 3, LineId = 1, Amount = 10m, EnvelopeId = 3 },
-        //  new TransactionDetail { TransactionId = 3, LineId = 2, Amount = 2.5m, EnvelopeId = 2, Notes = "Tic Tacs" },
-        //  new TransactionDetail { TransactionId = 4, LineId = 1, Amount = 27m, EnvelopeId = 5, Notes = "Plumbing" },
-        //  new TransactionDetail { TransactionId = 4, LineId = 2, Amount = 3m, EnvelopeId = 2, Notes = "Candy" },
-        //  new TransactionDetail
-        //    { TransactionId = 5, LineId = 1, Amount = 20m, EnvelopeId = 6, Notes = "Prescriptions" },
-        //  new TransactionDetail { TransactionId = 5, LineId = 2, Amount = 4, EnvelopeId = 2, Notes = "Gum" },
-        //  new TransactionDetail { TransactionId = 5, LineId = 3, Amount = 8m, EnvelopeId = 5, Notes = "Light Bulbs" }
-        //);
       }
     }
   }
+
+
 }
