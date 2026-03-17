@@ -217,6 +217,14 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     return resp.IsSuccessStatusCode;
   }
 
+  public async Task<int> ClearHiddenUnassignedAsync(CancellationToken cancellationToken = default)
+  {
+    using var resp = await http.PutAsync("/transactions/clear-hidden-assign", null, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<int>(cancellationToken: cancellationToken);
+    return result;
+  }
+
   // Import/Export operations
   public async Task<int> ImportTransactionsToStagingAsync(List<TransactionImportDto> transactions,
     CancellationToken cancellationToken = default)

@@ -44,6 +44,7 @@ public partial class Assign : ComponentBase
   private int _focusRowIndexAfterReload = -2;
   private bool _setInitialFocus = false;
   private bool _showHidden = true;
+  private int _hiddenCount = 0;
 
   protected override async Task OnInitializedAsync()
   {
@@ -187,6 +188,9 @@ public partial class Assign : ComponentBase
       Logger.LogInformation("Loading server data: Received {ItemCount} items, Total: {TotalCount}",
         response.Items.Count, response.TotalCount);
 
+      _hiddenCount = response.HiddenCount;
+      await InvokeAsync(StateHasChanged);
+
       return new GridData<TransactionDto>
       {
         Items = response.Items,
@@ -316,6 +320,12 @@ public partial class Assign : ComponentBase
   private async Task OnShowHiddenChangedAsync(bool showHidden)
   {
     _showHidden = showHidden;
+    await Grid.ReloadServerData();
+  }
+
+  private async Task ClearHiddenAsync()
+  {
+    await Api.ClearHiddenUnassignedAsync();
     await Grid.ReloadServerData();
   }
 
