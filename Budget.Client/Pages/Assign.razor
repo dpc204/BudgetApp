@@ -60,8 +60,7 @@ else
           </EditTemplate>
         </PropertyColumn>
 
-        <TemplateColumn Title="Hide" Sortable="false" Filterable="false" Resizable="false" Editable="false"
-                        HeaderStyle="width: 60px; min-width: 60px;" CellStyle="width: 60px; min-width: 60px;">
+        <TemplateColumn Title="Hide" Sortable="false" Filterable="false" Resizable="false" Editable="false">
           <CellTemplate>
             <div @onclick:stopPropagation>
               <MudCheckBox T="bool"
@@ -170,7 +169,7 @@ else
         <MudSpacer />
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
           <MudCheckBox T="bool"
-                       Value="_showHidden"
+                       Value="@_showHidden"
                        ValueChanged="@(async (bool val) => await OnShowHiddenChangedAsync(val))"
                        Color="Color.Primary"
                        Dense="true"

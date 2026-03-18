@@ -15,12 +15,12 @@ public static class AssignTransaction
         .FirstOrDefaultAsync(td => td.TransactionId == request.TransactionId && td.LineId == request.LineId,
           cancellationToken);
 
-      if (transactionDetail is null)
+      if(transactionDetail is null)
       {
         return false;
       }
 
-      var unassignedEnvelope = GetEnvelopeByType.Get(db, EnvelopeTypes.Unassigned, cancellationToken);
+      var unassignedEnvelope = await GetEnvelopeByType.Get(db, EnvelopeTypes.Unassigned, cancellationToken);
 
       var fromEnvelopeId = transactionDetail.EnvelopeId;
 
@@ -35,10 +35,10 @@ public static class AssignTransaction
       transactionDetail.Transaction.Vendor = request.Vendor;
       transactionDetail.Transaction.Description = request.Description;
 
-      if(request.EnvelopeId != unassignedEnvelope.Result?.Id)
+      if(request.EnvelopeId != unassignedEnvelope?.Id)
         transactionDetail.Transaction.TransactionHiddenFromAssign = false;
-
-      transactionDetail.Transaction.TransactionHiddenFromAssign = request.HiddenFromAssign;
+      else
+        transactionDetail.Transaction.TransactionHiddenFromAssign = request.HiddenFromAssign;
 
       var toEnvelopeId = transactionDetail.EnvelopeId;
 
@@ -74,7 +74,7 @@ public class MoveEnvelopeBalance : IMoveEnvelopeBalance
     var fromEnvelope = await db.Envelopes.FirstOrDefaultAsync(e => e.Id == fromEnvelopeId);
     var toEnvelope = await db.Envelopes.FirstOrDefaultAsync(e => e.Id == toEnvelopeId);
 
-    if (fromEnvelope == null || toEnvelope == null)
+    if(fromEnvelope == null || toEnvelope == null)
       throw new InvalidOperationException("One or both envelopes do not exist.");
 
     //if (fromEnvelope.Balance < amountToMove)

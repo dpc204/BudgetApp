@@ -19,12 +19,22 @@ public static class ClearHiddenUnassigned
       if (unassignedEnvelope is null)
         return 0;
 
-      var count = await db.Transactions
+      var transactionsToUpdate = await db.Transactions
         .Where(t => t.TransactionHiddenFromAssign &&
                     db.TransactionDetails.Any(td => td.TransactionId == t.Id && td.EnvelopeId == unassignedEnvelope.Id))
-        .ExecuteUpdateAsync(s => s.SetProperty(t => t.TransactionHiddenFromAssign, false), cancellationToken);
+        .ToListAsync(cancellationToken);
 
-      return count;
+      foreach (var transaction in transactionsToUpdate)
+      {
+        transaction.TransactionHiddenFromAssign = false;
+      }
+
+      if (transactionsToUpdate.Count > 0)
+      {
+        await db.SaveChangesAsync(cancellationToken);
+      }
+
+      return transactionsToUpdate.Count;
     }
   }
 
