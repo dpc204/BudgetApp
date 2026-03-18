@@ -40,7 +40,7 @@ else
                  Class="envelopes-table"
                  Style="height: 100%; overflow: auto; width: auto ;">
       <Columns>
-        <SelectColumn T="TransactionDto"  />
+        <SelectColumn T="TransactionDto" />
         <PropertyColumn Property="x => x.Date"
                         Title="Date"
                         Format="d"
@@ -48,23 +48,17 @@ else
                         Sortable="true"
                         Editable="false" Resizable="true" />
 
-        <TemplateColumn Title="Notes" Sortable="false" Filterable="false" Resizable="true">
-          <CellTemplate>
-            <div @onclick:stopPropagation>
-              @context.Item.Notes
-            </div>
-          </CellTemplate>
+        <PropertyColumn T="TransactionDto" TProperty="string" Property="x => x.Notes" Required="false">
+        
           <EditTemplate>
-            <div @onclick:stopPropagation>
-              <MudTextField T="string"
-                            Value="@context.Item.Notes"
-                            ValueChanged="@(async (string val) => await OnNotesChanged(context.Item, val))"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            Immediate="false"  />
-            </div>
+            <MudTextField T="string"
+                          Value="@context.Item.Notes"
+                          ValueChanged="@(async (string val) => await OnNotesChanged(context.Item, val))"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="false" />
           </EditTemplate>
-        </TemplateColumn>
+        </PropertyColumn>
 
         <TemplateColumn Title="Hide" Sortable="false" Filterable="false" Resizable="false" Editable="false"
                         HeaderStyle="width: 60px; min-width: 60px;" CellStyle="width: 60px; min-width: 60px;">
@@ -108,41 +102,30 @@ else
           </EditTemplate>
         </TemplateColumn>
 
-        <TemplateColumn Title="Vendor" Sortable="true" Filterable="true" >
-          <CellTemplate>
-            <div @onclick:stopPropagation>
-              @context.Item.Vendor
-            </div>
-          </CellTemplate>
-          <EditTemplate>
-            <div @onclick:stopPropagation>
-              <MudTextField T="string"
-                            Value="@context.Item.Vendor"
-                            ValueChanged="@(async (string val) => await OnVendorChanged(context.Item, val))"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            Immediate="false" />
-            </div>
-          </EditTemplate>
-        </TemplateColumn>
 
-        <TemplateColumn Title="Description" Sortable="true" Filterable="true" Resizable="true">
-          <CellTemplate>
-            <div @onclick:stopPropagation>
-              @context.Item.Description
-            </div>
-          </CellTemplate>
+        <PropertyColumn T="TransactionDto" TProperty="string" Property="x => x.Vendor" Required="false">
+        
           <EditTemplate>
-            <div @onclick:stopPropagation>
-              <MudTextField T="string"
-                            Value="@context.Item.Description"
-                            ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            Immediate="false" />
-            </div>
+            <MudTextField T="string"
+                          Value="@context.Item.Vendor"
+                          ValueChanged="@(async (string val) => await OnVendorChanged(context.Item, val))"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="false" />
           </EditTemplate>
-        </TemplateColumn>
+        </PropertyColumn>
+
+        <PropertyColumn T="TransactionDto" TProperty="string" Property="x => x.Description" Required="false">
+        
+          <EditTemplate>
+            <MudTextField T="string"
+                          Value="@context.Item.Description"
+                          ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="false" />
+          </EditTemplate>
+        </PropertyColumn>
 
         <PropertyColumn Title="Amount"
                         Editable="false"

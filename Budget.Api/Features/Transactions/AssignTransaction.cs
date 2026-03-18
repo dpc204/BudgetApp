@@ -35,7 +35,7 @@ public static class AssignTransaction
       transactionDetail.Transaction.Vendor = request.Vendor;
       transactionDetail.Transaction.Description = request.Description;
 
-      if(request.EnvelopeId != unassignedEnvelope.Result.Id)
+      if(request.EnvelopeId != unassignedEnvelope.Result?.Id)
         transactionDetail.Transaction.TransactionHiddenFromAssign = false;
 
       transactionDetail.Transaction.TransactionHiddenFromAssign = request.HiddenFromAssign;

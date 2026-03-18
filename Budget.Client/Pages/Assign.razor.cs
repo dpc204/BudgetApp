@@ -314,6 +314,8 @@ public partial class Assign : ComponentBase
     await Api.AssignTransactionAsync(transaction.TransactionId, transaction.LineId, transaction.EnvelopeId,
       transaction.Vendor, transaction.Description, transaction.Notes, transaction.TransactionHiddenFromAssign);
 
+    await Grid.ReloadServerData();
+
     StateHasChanged();
   }
 
