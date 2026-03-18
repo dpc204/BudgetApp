@@ -94,9 +94,9 @@
 /* Column 1: SelectColumn (checkbox) */
 ::deep .envelopes-table .mud-table-head th:nth-child(1),
 ::deep .envelopes-table .mud-table-body td:nth-child(1) {
-  width: 30px !important;
-  min-width: 30px !important;
-  max-width: 30px !important;
+  width: 35px !important;
+  min-width: 35px !important;
+  max-width: 35px !important;
 }
 
 /* Column 2: Date */
@@ -118,9 +118,9 @@
 /* Column 4: Hide (checkbox) */
 ::deep .envelopes-table .mud-table-head th:nth-child(4),
 ::deep .envelopes-table .mud-table-body td:nth-child(4) {
-    width: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
+    width: 35px !important;
+    min-width: 35px !important;
+    max-width: 35px !important;
 }
 
 /* Column 5: Envelope */
