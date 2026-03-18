@@ -18,7 +18,7 @@ else
 {
   <MudProgressLinear Value="ProgressValue" Max="ProgressMax" Indeterminate="false" Color="Color.Primary" />
 
-  <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
+  <div style="flex: 1; min-height: 0; overflow: hidden; width: 100%;">
     <MudDataGrid T="TransactionDto"
                  @ref="Grid"
                  ReadOnly="false"
@@ -36,10 +36,11 @@ else
                  MultiSelection="true"
                  Virtualize="true"
                  @bind-SelectedItems="_selectedTransactions"
+                 RowStyleFunc="@GetRowStyle"
                  Class="envelopes-table"
                  Style="height: 100%; overflow: auto; width: auto ;">
       <Columns>
-        <SelectColumn T="TransactionDto"  />
+        <SelectColumn T="TransactionDto" />
         <PropertyColumn Property="x => x.Date"
                         Title="Date"
                         Format="d"
@@ -47,22 +48,27 @@ else
                         Sortable="true"
                         Editable="false" Resizable="true" />
 
-        <TemplateColumn Title="Notes" Sortable="false" Filterable="false" Resizable="true">
+        <PropertyColumn T="TransactionDto" TProperty="string" Property="x => x.Notes" Required="false">
+        
+          <EditTemplate>
+            <MudTextField T="string"
+                          Value="@context.Item.Notes"
+                          ValueChanged="@(async (string val) => await OnNotesChanged(context.Item, val))"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="false" />
+          </EditTemplate>
+        </PropertyColumn>
+
+        <TemplateColumn Title="Hide" Sortable="false" Filterable="false" Resizable="false" Editable="false">
           <CellTemplate>
             <div @onclick:stopPropagation>
-              @context.Item.Notes
+              <MudCheckBox T="bool"
+                           Value="@context.Item.TransactionHiddenFromAssign"
+                           ValueChanged="@(async (bool val) => await OnHiddenChanged(context.Item, val))"
+                           Dense="true" />
             </div>
           </CellTemplate>
-          <EditTemplate>
-            <div @onclick:stopPropagation>
-              <MudTextField T="string"
-                            Value="@context.Item.Notes"
-                            ValueChanged="@(async (string val) => await OnNotesChanged(context.Item, val))"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            Immediate="false"  />
-            </div>
-          </EditTemplate>
         </TemplateColumn>
 
         <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
@@ -95,41 +101,30 @@ else
           </EditTemplate>
         </TemplateColumn>
 
-        <TemplateColumn Title="Vendor" Sortable="true" Filterable="true" >
-          <CellTemplate>
-            <div @onclick:stopPropagation>
-              @context.Item.Vendor
-            </div>
-          </CellTemplate>
-          <EditTemplate>
-            <div @onclick:stopPropagation>
-              <MudTextField T="string"
-                            Value="@context.Item.Vendor"
-                            ValueChanged="@(async (string val) => await OnVendorChanged(context.Item, val))"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            Immediate="false" />
-            </div>
-          </EditTemplate>
-        </TemplateColumn>
 
-        <TemplateColumn Title="Description" Sortable="true" Filterable="true" Resizable="true">
-          <CellTemplate>
-            <div @onclick:stopPropagation>
-              @context.Item.Description
-            </div>
-          </CellTemplate>
+        <PropertyColumn T="TransactionDto" TProperty="string" Property="x => x.Vendor" Required="false">
+        
           <EditTemplate>
-            <div @onclick:stopPropagation>
-              <MudTextField T="string"
-                            Value="@context.Item.Description"
-                            ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            Immediate="false" />
-            </div>
+            <MudTextField T="string"
+                          Value="@context.Item.Vendor"
+                          ValueChanged="@(async (string val) => await OnVendorChanged(context.Item, val))"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="false" />
           </EditTemplate>
-        </TemplateColumn>
+        </PropertyColumn>
+
+        <PropertyColumn T="TransactionDto" TProperty="string" Property="x => x.Description" Required="false">
+        
+          <EditTemplate>
+            <MudTextField T="string"
+                          Value="@context.Item.Description"
+                          ValueChanged="@(async (string val) => await OnDescriptionChanged(context.Item, val))"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="false" />
+          </EditTemplate>
+        </PropertyColumn>
 
         <PropertyColumn Title="Amount"
                         Editable="false"
@@ -172,6 +167,21 @@ else
           </MudButton>
         </MudStack>
         <MudSpacer />
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+          <MudCheckBox T="bool"
+                       Value="@_showHidden"
+                       ValueChanged="@(async (bool val) => await OnShowHiddenChangedAsync(val))"
+                       Color="Color.Primary"
+                       Dense="true"
+                       Label="Show Hidden" />
+          <MudButton Variant="Variant.Outlined"
+                     Color="Color.Warning"
+                     Size="Size.Small"
+                     Disabled="@(_hiddenCount == 0)"
+                     OnClick="ClearHiddenAsync">
+            Clear (@_hiddenCount) Hidden
+          </MudButton>
+        </MudStack>
       </ToolBarContent>
       <PagerContent>
         <MudDataGridPager T="TransactionDto"

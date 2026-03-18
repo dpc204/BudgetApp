@@ -33,11 +33,18 @@ public static class GetUnassignedVirtual
           Description = t.Description,
           Notes = td.Notes,
           Amount = td.Amount,
-          Date = t.Date
+          Date = t.Date,
+          TransactionHiddenFromAssign = t.TransactionHiddenFromAssign
         }).AsNoTracking();
 
+      var hiddenCount = await query.CountAsync(t => t.TransactionHiddenFromAssign, cancellationToken);
 
       query = query.ApplyFilters(request.AssignQuery.Filters);
+
+      if (!request.AssignQuery.ShowHidden)
+      {
+        query = query.Where(t => !t.TransactionHiddenFromAssign);
+      }
 
       if (!string.IsNullOrEmpty(request.AssignQuery.Sort))
       {
@@ -60,7 +67,8 @@ public static class GetUnassignedVirtual
       var result = new AssignQueryResult
       {
         Items =  items,
-        TotalCount = totalCount
+        TotalCount = totalCount,
+        HiddenCount = hiddenCount
       };
 
       return Result.Ok(new Response(result));

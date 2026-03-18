@@ -94,9 +94,9 @@
 /* Column 1: SelectColumn (checkbox) */
 ::deep .envelopes-table .mud-table-head th:nth-child(1),
 ::deep .envelopes-table .mud-table-body td:nth-child(1) {
-  width: 30px !important;
-  min-width: 30px !important;
-  max-width: 30px !important;
+  width: 35px !important;
+  min-width: 35px !important;
+  max-width: 35px !important;
 }
 
 /* Column 2: Date */
@@ -115,33 +115,41 @@
   max-width: 200px !important;
 }
 
-/* Column 4: Envelope */
+/* Column 4: Hide (checkbox) */
 ::deep .envelopes-table .mud-table-head th:nth-child(4),
 ::deep .envelopes-table .mud-table-body td:nth-child(4) {
+    width: 35px !important;
+    min-width: 35px !important;
+    max-width: 35px !important;
+}
+
+/* Column 5: Envelope */
+::deep .envelopes-table .mud-table-head th:nth-child(5),
+::deep .envelopes-table .mud-table-body td:nth-child(5) {
   width: 200px !important;
   min-width: 150px !important;
   max-width: 200px !important;
 }
 
-/* Column 5: Vendor */
-::deep .envelopes-table .mud-table-head th:nth-child(5),
-::deep .envelopes-table .mud-table-body td:nth-child(5) {
+/* Column 6: Vendor */
+::deep .envelopes-table .mud-table-head th:nth-child(6),
+::deep .envelopes-table .mud-table-body td:nth-child(6) {
   width: 150px !important;
   min-width: 120px !important;
   max-width: 150px !important;
 }
 
-/* Column 6: Description */
-::deep .envelopes-table .mud-table-head th:nth-child(6),
-::deep .envelopes-table .mud-table-body td:nth-child(6) {
+/* Column 7: Description */
+::deep .envelopes-table .mud-table-head th:nth-child(7),
+::deep .envelopes-table .mud-table-body td:nth-child(7) {
   width: 250px !important;
   min-width: 200px !important;
   max-width: 250px !important;
 }
 
-/* Column 7: Amount */
-::deep .envelopes-table .mud-table-head th:nth-child(7),
-::deep .envelopes-table .mud-table-body td:nth-child(7) {
+/* Column 8: Amount */
+::deep .envelopes-table .mud-table-head th:nth-child(8),
+::deep .envelopes-table .mud-table-body td:nth-child(8) {
   width: 100px !important;
   min-width: 100px !important;
   max-width: 100px !important;

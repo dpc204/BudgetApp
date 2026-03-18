@@ -208,13 +208,21 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     }
   }
 
-  public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string vendor, string description, string notes,
+  public async Task<bool> AssignTransactionAsync(int transactionId, int lineId, int envelopeId, string vendor, string description, string notes, bool hiddenFromAssign = false,
     CancellationToken cancellationToken = default)
   {
     var payload = new
-      { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Vendor = vendor, Description = description, Notes = notes };
+      { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Vendor = vendor, Description = description, Notes = notes, HiddenFromAssign = hiddenFromAssign };
     using var resp = await http.PutAsJsonAsync("/transactions/assign", payload, cancellationToken);
     return resp.IsSuccessStatusCode;
+  }
+
+  public async Task<int> ClearHiddenUnassignedAsync(CancellationToken cancellationToken = default)
+  {
+    using var resp = await http.PutAsync("/transactions/clear-hidden-assign", null, cancellationToken);
+    resp.EnsureSuccessStatusCode();
+    var result = await resp.Content.ReadFromJsonAsync<int>(cancellationToken: cancellationToken);
+    return result;
   }
 
   // Import/Export operations

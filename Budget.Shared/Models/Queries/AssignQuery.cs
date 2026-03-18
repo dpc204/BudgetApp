@@ -15,6 +15,7 @@ namespace Budget.Shared.Models.Queries
     public string? Sort { get; set; }
     public bool Descending { get; set; }
     public List<FilterItem>? Filters { get; set; }
+    public bool ShowHidden { get; set; } = true;
   }
 
 

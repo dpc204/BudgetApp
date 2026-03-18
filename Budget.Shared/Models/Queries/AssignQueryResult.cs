@@ -4,4 +4,5 @@ public class AssignQueryResult
 {
   public List<TransactionDto> Items { get; set; } = [];
   public int TotalCount { get; set; }
+  public int HiddenCount { get; set; }
 }
