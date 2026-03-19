@@ -225,6 +225,42 @@ public sealed class BudgetMaintApiClient(HttpClient http, ILogger<BudgetMaintApi
     return new FileDownloadDto(content, fileName, "application/octet-stream");
   }
 
+  public async Task<IEnumerable<BacpacBackupDto>> GetBacpacHistoryAsync(CancellationToken cancellationToken = default)
+  {
+    return await GetListAsync<BacpacBackupDto>("api/maintenance/bacpac/history", cancellationToken);
+  }
+
+  public async Task<string> TriggerBacpacBackupAsync(CancellationToken cancellationToken = default)
+  {
+    using var resp = await http.PostAsync("/api/maintenance/bacpac/trigger", null, cancellationToken);
+    var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+    if (!resp.IsSuccessStatusCode)
+      throw new InvalidOperationException($"BACPAC backup failed ({(int)resp.StatusCode}): {body}");
+    return body;
+  }
+
+  public async Task<bool> DeleteBacpacBackupAsync(string rowKey, CancellationToken cancellationToken = default)
+  {
+    var encodedRowKey = Uri.EscapeDataString(rowKey);
+    using var resp = await http.DeleteAsync($"/api/maintenance/bacpac/{encodedRowKey}", cancellationToken);
+    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+      return false;
+    resp.EnsureSuccessStatusCode();
+    return true;
+  }
+
+  public async Task<FileDownloadDto> DownloadBacpacBackupAsync(string rowKey, CancellationToken cancellationToken = default)
+  {
+    var encodedRowKey = Uri.EscapeDataString(rowKey);
+    using var resp = await http.GetAsync($"/api/maintenance/bacpac/download/{encodedRowKey}", cancellationToken);
+    resp.EnsureSuccessStatusCode();
+
+    var content = await resp.Content.ReadAsByteArrayAsync(cancellationToken);
+    var fileName = $"{rowKey}.bacpac";
+
+    return new FileDownloadDto(content, fileName, "application/octet-stream");
+  }
+
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
   {
     // Log the base address and full URL for debugging
