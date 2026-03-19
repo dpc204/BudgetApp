@@ -153,6 +153,103 @@ resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2024-02-02-p
 
 }
 
+// Storage account used as the Azure Functions host storage (separate from backup storage)
+resource functionHostStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: replace('stfunc${resourceToken}', '-', '')
+  location: location
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_LRS'
+  }
+  properties: {
+    accessTier: 'Hot'
+    allowBlobPublicAccess: false
+    minimumTlsVersion: 'TLS1_2'
+    supportsHttpsTrafficOnly: true
+  }
+  tags: tags
+}
+
+// App Service Plan (Consumption) for the BACPAC Azure Function
+resource functionAppPlan 'Microsoft.Web/serverfarms@2022-09-01' = {
+  name: 'asp-bacpac-${resourceToken}'
+  location: location
+  kind: 'functionapp'
+  sku: {
+    name: 'Y1'
+    tier: 'Dynamic'
+  }
+  properties: {
+    reserved: false // Windows
+  }
+  tags: tags
+}
+
+// BACPAC Azure Function App
+resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
+  name: 'func-bacpac-${resourceToken}'
+  location: location
+  kind: 'functionapp'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
+  }
+  properties: {
+    serverFarmId: functionAppPlan.id
+    siteConfig: {
+      netFrameworkVersion: 'v9.0'
+      use32BitWorkerProcess: false
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${functionHostStorage.name};AccountKey=${functionHostStorage.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+        }
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'dotnet-isolated'
+        }
+        {
+          name: 'AZURE_CLIENT_ID'
+          value: managedIdentity.properties.clientId
+        }
+        {
+          name: 'AZURE_STORAGE_BLOB_ENDPOINT'
+          value: storageAccount.properties.primaryEndpoints.blob
+        }
+        {
+          name: 'AZURE_STORAGE_TABLE_ENDPOINT'
+          value: storageAccount.properties.primaryEndpoints.table
+        }
+        {
+          name: 'SqlConnectionString'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=SqlConnectionString)'
+        }
+        {
+          name: 'DatabaseName'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=DatabaseName)'
+        }
+        {
+          name: 'KeyVault__Uri'
+          value: keyVault.properties.vaultUri
+        }
+      ]
+    }
+    httpsOnly: true
+    keyVaultReferenceIdentity: managedIdentity.id
+  }
+  tags: tags
+}
+
+// Note: The Function App uses the same managed identity (mi-*) that already has
+// Key Vault Secrets User, Storage Blob Data Contributor, and Storage Table Data Contributor
+// roles granted above – no additional role assignments are required.
+
 output MANAGED_IDENTITY_CLIENT_ID string = managedIdentity.properties.clientId
 output MANAGED_IDENTITY_NAME string = managedIdentity.name
 output MANAGED_IDENTITY_PRINCIPAL_ID string = managedIdentity.properties.principalId
@@ -169,6 +266,7 @@ output AZURE_STORAGE_BLOB_ENDPOINT string = storageAccount.properties.primaryEnd
 output AZURE_STORAGE_TABLE_ENDPOINT string = storageAccount.properties.primaryEndpoints.table
 output AZURE_KEY_VAULT_NAME string = keyVault.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.properties.vaultUri
+output BACPAC_FUNCTION_APP_NAME string = functionApp.name
 
 // Outputs with CAE_ prefix for Aspire Container Apps Environment resource
 output CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = containerAppEnvironment.name
