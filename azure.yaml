@@ -7,12 +7,6 @@ services:
     project: ./Budget.AppHost/Budget.AppHost.csproj
     host: containerapp
 
-  bacpac-function:
-    language: dotnet
-    project: ./Budget.Functions/Budget.Functions.csproj
-    host: function
-    resourceName: BACPAC_FUNCTION_APP_NAME
-
 hooks:
   postdeploy:
     windows:
