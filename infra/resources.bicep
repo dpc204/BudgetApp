@@ -170,14 +170,15 @@ resource functionHostStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   tags: tags
 }
 
-// App Service Plan (Consumption) for the BACPAC Azure Function
+// App Service Plan (Basic B1) for the BACPAC Azure Function
+// NOTE: Consumption (Y1/Dynamic) requires a separate "Dynamic VMs" quota that many
+// subscriptions don't have by default. B1 uses standard compute quota available everywhere.
 resource functionAppPlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: 'asp-bacpac-${resourceToken}'
   location: location
-  kind: 'functionapp'
   sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
+    name: 'B1'
+    tier: 'Basic'
   }
   properties: {
     reserved: false // Windows
