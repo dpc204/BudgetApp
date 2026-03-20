@@ -118,10 +118,11 @@ if ([string]::IsNullOrEmpty($functionAppName)) {
     Write-Host "  ? ZIP created at $zipPath" -ForegroundColor Green
 
     Write-Host "  [3/3] Deploying to Function App $functionAppName..." -ForegroundColor Gray
-    $deployOutput = az functionapp deployment source config-zip `
+    $deployOutput = az functionapp deploy `
         --resource-group $resourceGroup `
         --name $functionAppName `
-        --src $zipPath `
+        --src-path $zipPath `
+        --type zip `
         2>&1
 
     if ($LASTEXITCODE -ne 0) {
