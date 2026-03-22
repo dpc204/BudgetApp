@@ -36,6 +36,12 @@ public interface IBudgetMaintApiClient
   Task<FileDownloadDto> DownloadBackupCsvAsync(string blobName, CancellationToken cancellationToken = default);
   Task<FileDownloadDto> DownloadDatabaseBackupAsync(string fileName, CancellationToken cancellationToken = default);
 
+  // BACPAC history operations
+  Task<IEnumerable<BacpacBackupDto>> GetBacpacHistoryAsync(CancellationToken cancellationToken = default);
+  Task<string> TriggerBacpacBackupAsync(CancellationToken cancellationToken = default);
+  Task<bool> DeleteBacpacBackupAsync(string rowKey, CancellationToken cancellationToken = default);
+  Task<FileDownloadDto> DownloadBacpacBackupAsync(string rowKey, CancellationToken cancellationToken = default);
+
   // Role management
   Task<IEnumerable<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default);
   Task<RoleDto?> GetRoleAsync(int id, CancellationToken cancellationToken = default);

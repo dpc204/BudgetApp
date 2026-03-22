@@ -153,6 +153,145 @@ resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2024-02-02-p
 
 }
 
+// Storage account used as the Azure Functions host storage (separate from backup storage)
+resource functionHostStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: replace('stfunc${resourceToken}', '-', '')
+  location: location
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_LRS'
+  }
+  properties: {
+    accessTier: 'Hot'
+    allowBlobPublicAccess: false
+    minimumTlsVersion: 'TLS1_2'
+    supportsHttpsTrafficOnly: true
+  }
+  tags: tags
+}
+
+// Blob service on the function host storage (required to create the deployment container)
+resource functionHostStorageBlobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+  parent: functionHostStorage
+  name: 'default'
+}
+
+// Blob container that Flex Consumption uses to store and load deployment packages
+resource deploymentContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  parent: functionHostStorageBlobService
+  name: 'deploymentpackages'
+  properties: {
+    publicAccess: 'None'
+  }
+}
+
+// Grant managed identity Storage Blob Data Contributor on the function host storage
+// (required so Flex Consumption can pull the deployment package using the managed identity)
+resource functionStorageBlobRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(functionHostStorage.id, managedIdentity.id, 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+  scope: functionHostStorage
+  properties: {
+    principalId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe') // Storage Blob Data Contributor
+  }
+}
+
+// App Service Plan (Flex Consumption) for the BACPAC Azure Function.
+// FC1/FlexConsumption is pay-per-use (free for minimal usage) and uses a different
+// quota pool than Y1/Dynamic – no "Dynamic VMs" quota is required.
+resource functionAppPlan 'Microsoft.Web/serverfarms@2023-12-01' = {
+  name: 'asp-bacpac-${resourceToken}'
+  location: location
+  sku: {
+    name: 'FC1'
+    tier: 'FlexConsumption'
+  }
+  properties: {
+    reserved: true // Linux is required for Flex Consumption
+  }
+  tags: tags
+}
+
+// BACPAC Azure Function App (Flex Consumption / Linux)
+resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
+  name: 'func-bacpac-${resourceToken}'
+  location: location
+  kind: 'functionapp,linux'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
+  }
+  properties: {
+    serverFarmId: functionAppPlan.id
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
+        }
+        {
+          name: 'AZURE_CLIENT_ID'
+          value: managedIdentity.properties.clientId
+        }
+        {
+          name: 'AZURE_STORAGE_BLOB_ENDPOINT'
+          value: storageAccount.properties.primaryEndpoints.blob
+        }
+        {
+          name: 'AZURE_STORAGE_TABLE_ENDPOINT'
+          value: storageAccount.properties.primaryEndpoints.table
+        }
+        {
+          name: 'SqlConnectionString'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=SqlConnectionString)'
+        }
+        {
+          name: 'DatabaseName'
+          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=DatabaseName)'
+        }
+        {
+          name: 'KeyVault__Uri'
+          value: keyVault.properties.vaultUri
+        }
+      ]
+    }
+    functionAppConfig: {
+      deployment: {
+        storage: {
+          type: 'blobContainer'
+          value: '${functionHostStorage.properties.primaryEndpoints.blob}${deploymentContainer.name}'
+          authentication: {
+            type: 'UserAssignedIdentity'
+            userAssignedIdentityResourceId: managedIdentity.id
+          }
+        }
+      }
+      scaleAndConcurrency: {
+        maximumInstanceCount: 100
+        instanceMemoryMB: 2048
+      }
+      runtime: {
+        name: 'dotnet-isolated'
+        version: '9.0'
+      }
+    }
+    httpsOnly: true
+    keyVaultReferenceIdentity: managedIdentity.id
+  }
+  tags: tags
+  dependsOn: [
+    deploymentContainer
+    functionStorageBlobRoleAssignment
+  ]
+}
+
+// Note: The Function App uses the same managed identity (mi-*) that already has
+// Key Vault Secrets User, Storage Blob Data Contributor, and Storage Table Data Contributor
+// roles granted above – no additional role assignments are required.
+
 output MANAGED_IDENTITY_CLIENT_ID string = managedIdentity.properties.clientId
 output MANAGED_IDENTITY_NAME string = managedIdentity.name
 output MANAGED_IDENTITY_PRINCIPAL_ID string = managedIdentity.properties.principalId
@@ -169,6 +308,7 @@ output AZURE_STORAGE_BLOB_ENDPOINT string = storageAccount.properties.primaryEnd
 output AZURE_STORAGE_TABLE_ENDPOINT string = storageAccount.properties.primaryEndpoints.table
 output AZURE_KEY_VAULT_NAME string = keyVault.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.properties.vaultUri
+output BACPAC_FUNCTION_APP_NAME string = functionApp.name
 
 // Outputs with CAE_ prefix for Aspire Container Apps Environment resource
 output CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = containerAppEnvironment.name

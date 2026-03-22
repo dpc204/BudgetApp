@@ -1,0 +1,64 @@
+@using Budget.Client.Components.Maintenance.BacpacHistory
+
+<MudText Typo="Typo.h6" Class="mb-3">BACPAC Backup History</MudText>
+
+@if (IsAdmin)
+{
+    <MudStack Row="true" Spacing="2" Class="mb-4" AlignItems="AlignItems.Center">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TriggerBackupAsync" Disabled="@Busy">
+            @ButtonText
+        </MudButton>
+        @if (Busy)
+        {
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Primary" />
+        }
+    </MudStack>
+
+    @if (!string.IsNullOrWhiteSpace(Status))
+    {
+        <MudAlert Severity="@StatusSeverity" Class="mb-2">@Status</MudAlert>
+    }
+}
+
+<MudText Typo="Typo.subtitle1" Class="mb-2 mt-4">Backup History</MudText>
+
+@if (_backups == null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_backups.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No BACPAC backups found. Click "Run Backup Now" to create one.</MudAlert>
+}
+else
+{
+    <MudTable Items="_backups" Dense="true" Class="mb-4" Style="width: auto; max-width: fit-content;">
+        <HeaderContent>
+            <MudTh>Database</MudTh>
+            <MudTh>Backup Date</MudTh>
+            <MudTh>Size</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Database">@context.DatabaseName</MudTd>
+            <MudTd DataLabel="Backup Date">@context.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+            <MudTd DataLabel="Size">@FormatBytes(context.SizeBytes)</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudStack Row="true" Spacing="1">
+                    <MudButton Size="Size.Small"
+                               Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Download"
+                               OnClick="() => DownloadBackupAsync(context)">
+                        Download
+                    </MudButton>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Size="Size.Small"
+                                   Color="Color.Error"
+                                   OnClick="() => DeleteBackupAsync(context)"
+                                   title="Delete Backup" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}

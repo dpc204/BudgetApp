@@ -4,19 +4,10 @@
 @using Budget.Client.Components.Maintenance.CategoryCRUD
 @using Budget.Client.Components.Maintenance.EnvelopePagesCRUD
 @using Budget.Client.Components.Maintenance.BackupRestore
+@using Budget.Client.Components.Maintenance.BacpacHistory
 @using Budget.Client.Components.Import
 
 <MudText Typo="Typo.h5" Class="mb-4">Maintenance</MudText>
-
-<MudStack Row="true" Spacing="2" Class="mb-4" AlignItems="AlignItems.Center">
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TriggerBackupAsync" Disabled="@Busy">
-        @ButtonText
-    </MudButton>
-    @if (Busy)
-    {
-        <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Primary" />
-    }
-</MudStack>
 
 @if (!string.IsNullOrWhiteSpace(Status))
 {
@@ -38,6 +29,9 @@
     </MudTabPanel>
     <MudTabPanel Text="Backup/Restore">
         <BackupRestoreIndex />
+    </MudTabPanel>
+    <MudTabPanel Text="BACPAC History">
+        <BacpacHistoryIndex />
     </MudTabPanel>
     <MudTabPanel Text="Users">
         <div>Content of tab3</div>

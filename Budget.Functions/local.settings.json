@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "SqlConnectionString": "",
+    "DatabaseName": "",
+    "AZURE_STORAGE_BLOB_ENDPOINT": "",
+    "AZURE_STORAGE_TABLE_ENDPOINT": "",
+    "AzureStorage__ConnectionString": ""
+  }
+}

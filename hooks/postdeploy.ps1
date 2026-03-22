@@ -1,4 +1,5 @@
 # Post-deployment hook to assign Managed Identity to Container Apps
+# and publish the BACPAC Azure Function App.
 # This runs after azd provisions resources and deploys containers
 
 Write-Host "=== Post-Deploy Hook: Configuring Managed Identity for Container Apps ===" -ForegroundColor Cyan
@@ -10,6 +11,7 @@ $resourceGroup = "rg-$env:AZURE_ENV_NAME"
 $subscriptionId = $env:AZURE_SUBSCRIPTION_ID
 $containerAppsBudget = "budget"
 $containerAppsBudgetApi = "budget-api"
+$functionAppName = $env:BACPAC_FUNCTION_APP_NAME
 
 if ([string]::IsNullOrEmpty($managedIdentityClientId)) {
     Write-Host "ERROR: MANAGED_IDENTITY_CLIENT_ID not found in environment" -ForegroundColor Red
@@ -84,6 +86,58 @@ if ($budgetSuccess -and $apiSuccess) {
 }
 
 Write-Host "`n=== Post-Deploy Hook Complete ===" -ForegroundColor Cyan
+
+# ── Deploy BACPAC Azure Function ──────────────────────────────────────────────
+if ([string]::IsNullOrEmpty($functionAppName)) {
+    Write-Host "`nWARN: BACPAC_FUNCTION_APP_NAME not set – skipping Function App deployment." -ForegroundColor Yellow
+} else {
+    Write-Host "`n=== Deploying BACPAC Azure Function: $functionAppName ===" -ForegroundColor Cyan
+
+    $scriptRoot = $PSScriptRoot
+    $repoRoot = Split-Path $scriptRoot -Parent
+    $functionProject = Join-Path $repoRoot "Budget.Functions" "Budget.Functions.csproj"
+    $publishDir = Join-Path ([System.IO.Path]::GetTempPath()) "bacpac-func-publish"
+    $zipPath = Join-Path ([System.IO.Path]::GetTempPath()) "bacpac-func.zip"
+
+    Write-Host "  [1/3] Publishing project..." -ForegroundColor Gray
+    $publishOutput = dotnet publish $functionProject `
+        --configuration Release `
+        --output $publishDir `
+        2>&1
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  ? dotnet publish failed:" -ForegroundColor Red
+        Write-Host $publishOutput -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "  ? Published to $publishDir" -ForegroundColor Green
+
+    Write-Host "  [2/3] Creating deployment ZIP..." -ForegroundColor Gray
+    if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+    Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Force
+    Write-Host "  ? ZIP created at $zipPath" -ForegroundColor Green
+
+    Write-Host "  [3/3] Deploying to Function App $functionAppName..." -ForegroundColor Gray
+    $deployOutput = az functionapp deploy `
+        --resource-group $resourceGroup `
+        --name $functionAppName `
+        --src-path $zipPath `
+        --type zip `
+        2>&1
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  ? Deployment failed:" -ForegroundColor Red
+        Write-Host $deployOutput -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "  ? Function App deployed successfully!" -ForegroundColor Green
+
+    # Clean up temp files
+    Remove-Item $publishDir -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host "`n=== All Post-Deploy Steps Complete ===" -ForegroundColor Cyan
 Write-Host "`nPress any key to close this window..." -ForegroundColor Yellow
 #$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
