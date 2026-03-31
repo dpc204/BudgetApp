@@ -37,8 +37,10 @@ var host = new HostBuilder()
     else
     {
       // Development: Azurite local storage
-      services.AddSingleton(_ => new BlobServiceClient("UseDevelopmentStorage=true"));
-      services.AddSingleton(_ => new TableServiceClient("UseDevelopmentStorage=true"));
+      //services.AddSingleton(_ => new BlobServiceClient("UseDevelopmentStorage=true"));
+      //services.AddSingleton(_ => new TableServiceClient("UseDevelopmentStorage=true"));   
+      services.AddSingleton(_ => new BlobServiceClient("storageConnectionString"));
+      services.AddSingleton(_ => new TableServiceClient("storageConnectionString"));
     }
 
     services.AddSingleton<BacpacBackupService>();

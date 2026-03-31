@@ -45,33 +45,33 @@
   min-height: 0;
 }
 
-.envelopes-table {
+.envelopes-page-table {
   height: 100%;
   flex: 1 1 auto;
   min-height: 0;
 }
 
 /* Ensure the DataGrid's internal divs also respect the height */
-::deep .envelopes-table {
+::deep .envelopes-page-table {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
 }
 
-::deep .envelopes-table .mud-table-root {
+::deep .envelopes-page-table .mud-table-root {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
-}
+}envelopes-table
 
-::deep .envelopes-table .mud-table-container {
+::deep .envelopes-page-table .mud-table-container {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto !important;
 }
 
-::deep .envelopes-table .mud-table {
+::deep .envelopes-page-table .mud-table {
   height: auto;
 }
 
@@ -111,14 +111,14 @@
 }
 
 /* Highlight selected row in the envelopes MudTable using the theme Secondary color */
-::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary,
-::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary > td {
+::deep .envelopes-page-table .mud-table-body .mud-table-row.row-selected-secondary,
+::deep .envelopes-page-table .mud-table-body .mud-table-row.row-selected-secondary > td {
   background-color: var(--mud-palette-secondary) !important;
   color: var(--mud-palette-secondary-contrastText) !important;
 }
 
 /* Keep hover visible but not override selected */
-::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover,
-::deep .envelopes-table .mud-table-body .mud-table-row.row-selected-secondary:hover > td {
+::deep .envelopes-page-table .mud-table-body .mud-table-row.row-selected-secondary:hover,
+::deep .envelopes-page-table .mud-table-body .mud-table-row.row-selected-secondary:hover > td {
   filter: brightness(0.98);
 }

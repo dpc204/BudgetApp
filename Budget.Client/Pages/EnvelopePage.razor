@@ -30,7 +30,7 @@ else
     <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
       <MudDataGrid Items="@SelectedEnvelopeData"
                    Hover="true"
-                   dense="true"
+
                    @ref="EnvGrid"
                    FixedHeader="true"
                    RowClassFunc="GetEnvelopeRowClass"
@@ -40,7 +40,7 @@ else
                    FilterMode="DataGridFilterMode.ColumnFilterRow"
                    FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
                    ExpandSingleRow="true"
-                   Class="envelopes-table"
+                   Class="envelopes-page-table"
                    Style="height: 100%; overflow: auto; width: auto;">
         <Columns >
           <HierarchyColumn T="EnvelopeResult"/>

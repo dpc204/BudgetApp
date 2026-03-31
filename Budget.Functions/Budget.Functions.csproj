@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Budget.Functions</RootNamespace>
+    <UserSecretsId>3de96e19-adf0-42d9-8b1a-aa5245a5d46a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
