@@ -69,9 +69,11 @@ public static class UpdateTransaction
       var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
       foreach (var grp in grouped)
       {
+
         var env = await db.Envelopes.FindAsync([grp.Key]);
         if (env is null) continue;
-        env.Balance += grp.Sum(d => d.Amount); // Add back the amounts
+        var oldEnvAmount = grp.Sum(d => d.Amount);
+        env.Balance = env.Balance - oldEnvAmount; // Add back the amounts
       }
     }
 
@@ -79,7 +81,7 @@ public static class UpdateTransaction
     {
       var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
       if (acct is null) return;
-      acct.Balance += trans.TotalAmount; // Add back the amount
+      acct.Balance = acct.Balance - trans.TotalAmount; // Add back the amount
     }
 
     private async Task<List<EnvelopeDto>> UpdateEnvelopeAsync(Transaction trans)
@@ -94,7 +96,7 @@ public static class UpdateTransaction
         env.LastTransactionDate = DateTime.UtcNow;
         var lastDtl = grp.OrderByDescending(d => d.LineId).First();
         env.LastTransactionDetail = lastDtl;
-        env.Balance -= grp.Sum(d => d.Amount);
+        env.Balance += grp.Sum(d => d.Amount);
 
         rslt.Add(new EnvelopeDto
         {

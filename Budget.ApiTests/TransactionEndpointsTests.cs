@@ -375,7 +375,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       Id = 205, 
       Name = "Test Envelope", 
       CategoryId = "1", 
-      Balance = 400m,
+      Balance = -400m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
@@ -394,7 +394,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       AccountId = 205, 
       Vendor = "Original Vendor", 
       Date = DateTime.UtcNow,
-      TotalAmount = 100m,
+      TotalAmount = -100m,
       UserId = 1,
       FamilyId = 1
     };
@@ -403,7 +403,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
       TransactionId = 700, 
       LineId = 1, 
       EnvelopeId = 205, 
-      Amount = 100m,
+      Amount = -100m,
       Notes = "Original"
     };
     
@@ -426,7 +426,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
           TransactionId = 700,
           LineId = 1,
           EnvelopeId = 205,
-          Amount = 150m,
+          Amount = -150m,
           Notes = "Updated"
         }
       ]
@@ -439,14 +439,14 @@ public class TransactionEndpointsTests : IntegrationTestBase
     // Assert
     EnvelopeDto? testResult = result.Value.FirstOrDefault();
     testResult?.Should().NotBeNull();
-    testResult?.Balance.Should().Be(350);
+    testResult?.Balance.Should().Be(-450);
     testResult?.Id.Should().Be(205);
     
     context.ChangeTracker.Clear();
     Transaction? updatedTx = await context.Transactions.FindAsync([700], TestContext.Current.CancellationToken);
     updatedTx.Should().NotBeNull();
     updatedTx!.Vendor.Should().Be("Updated Vendor");
-    updatedTx.TotalAmount.Should().Be(150m);
+    updatedTx.TotalAmount.Should().Be(-150m);
   }
 
   [Fact]

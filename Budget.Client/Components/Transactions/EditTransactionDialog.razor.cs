@@ -94,14 +94,14 @@ public partial class EditTransactionDialog
       _header.Description = ExistingTransaction.Description;
       _header.Vendor = ExistingTransaction.Vendor;
       _header.Date = ExistingTransaction.Date;
-      _header.TotalAmount = ExistingTransaction.TotalAmount;
+      _header.TotalAmount = ExistingTransaction.TotalAmount * -1;
 
       foreach (var detail in ExistingTransaction.Details)
       {
         _lines.Add(new TransactionDto
         {
           EnvelopeId = detail.EnvelopeId,
-          Amount = detail.Amount,
+          Amount = detail.Amount * -1,
           Description = detail.Notes,
           IsVoided = ExistingTransaction.IsVoided
         });

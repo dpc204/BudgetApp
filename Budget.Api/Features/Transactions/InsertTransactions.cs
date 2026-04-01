@@ -89,12 +89,12 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     ArgumentNullException.ThrowIfNull(rslt);
     
     _InsertTransactionResult.SingleAddedTransaction = rslt.Adapt<TransactionDto>();
-    await UpdateEnvelopeBalancesAsync();
+    await UpdateEnvelopeBalancesForReturnAsync();
     await EndBatchAsync();
     return _InsertTransactionResult;
   }
 
-  private async Task UpdateEnvelopeBalancesAsync()
+  private async Task UpdateEnvelopeBalancesForReturnAsync()
   {
     var groupedChanges = _envelopeChanges.GroupBy(e => e.EnvelopeId);
     foreach (var grp in groupedChanges)
@@ -114,7 +114,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
       await AddTransactionAsync(tran);
     }
 
-    await UpdateEnvelopeBalancesAsync();
+    await UpdateEnvelopeBalancesForReturnAsync();
     await EndBatchAsync();
     return _InsertTransactionResult;
   }
