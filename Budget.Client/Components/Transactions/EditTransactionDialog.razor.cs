@@ -207,17 +207,18 @@ public partial class EditTransactionDialog
 
 
     // Call appropriate API based on whether we're adding or updating
-    List<EnvelopeDto> envelopes = [];
+    List<EnvelopeUpdate> envelopeUpdates = [];
+
     if (IsEditMode)
     {
-      envelopes = await TransactionApi.UpdateTransactionAsync(result);
+      envelopeUpdates = await TransactionApi.UpdateTransactionAsync(result);
     }
     else
     {
-      addResult = await TransactionApi.AddTransactionAsync(result);
+      envelopeUpdates = await TransactionApi.AddTransactionAsync(result);
       ArgumentNullException.ThrowIfNull(addResult);
     }
-
+    addResult.EnvelopeUpdates = envelopeUpdates;
 
     // Pass the updated envelopes back to the caller (EnvelopePage)
     SnackBar.Add("Transaction Saved!", Severity.Success);

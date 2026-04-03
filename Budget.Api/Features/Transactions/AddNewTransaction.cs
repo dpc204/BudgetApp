@@ -2,15 +2,16 @@
 
 public static class AddNewTransaction
 {
-  public sealed record Command(OneTransactionDetail Trans) : IRequest<TransactionAddResult>;
+  public sealed record Command(OneTransactionDetail Trans) : IRequest<List<EnvelopeUpdate>>;
 
 
-  public class Handler( IInsertTransactions inserter) : IRequestHandler<Command, TransactionAddResult>
+  public class Handler( IInsertTransactions inserter) : IRequestHandler<Command, List<EnvelopeUpdate>>
   {
-    public async Task<TransactionAddResult> Handle(Command request, CancellationToken cancellationToken)
+    public async Task<List<EnvelopeUpdate>> Handle(Command request, CancellationToken cancellationToken)
     {
       var trans = await inserter.AddSingleTransaction(request);
-      return trans;
+      var rslt = trans.EnvelopeUpdates;
+      return rslt;
     }
   }
 

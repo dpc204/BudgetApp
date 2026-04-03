@@ -88,7 +88,6 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     Transaction? rslt = await AddTransactionAsync(request.Trans);
     ArgumentNullException.ThrowIfNull(rslt);
     
-    _InsertTransactionResult.SingleAddedTransaction = rslt.Adapt<TransactionDto>();
     await UpdateEnvelopeBalancesForReturnAsync();
     await EndBatchAsync();
     return _InsertTransactionResult;

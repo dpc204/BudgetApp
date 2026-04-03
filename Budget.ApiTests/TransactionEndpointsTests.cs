@@ -69,13 +69,14 @@ public class TransactionEndpointsTests : IntegrationTestBase
       ]
     };
      
+
     var mockFamilyService = new TestCurrentFamilyService(1);
     var inserter = new InsertTransactions(context, mockFamilyService);
     var handler = new AddNewTransaction.Handler( inserter);
     var command = new AddNewTransaction.Command(transactionDetail);
 
     // Act
-    TransactionAddResult result = await handler.Handle(command, CancellationToken.None);
+    var result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.Should().NotBeNull();
@@ -434,13 +435,12 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var command = new UpdateTransaction.Command( updatedTransaction);
 
     // Act
-    Result<List<EnvelopeDto>> result = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeUpdate>> result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
-    EnvelopeDto? testResult = result.Value.FirstOrDefault();
-    testResult?.Should().NotBeNull();
-    testResult?.Balance.Should().Be(-450);
-    testResult?.Id.Should().Be(205);
+    var testResult = result.Value.FirstOrDefault();
+    testResult?.EnvelopeDelta.Should().Be(-50);
+    testResult?.EnvelopeId.Should().Be(205);
     
     context.ChangeTracker.Clear();
     Transaction? updatedTx = await context.Transactions.FindAsync([700], TestContext.Current.CancellationToken);
@@ -468,7 +468,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var command = new UpdateTransaction.Command(transaction);
 
     // Act
-    Result<List<EnvelopeDto>> result = await handler.Handle(command, CancellationToken.None);
+    Result<List<EnvelopeUpdate>> result = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     result.IsFailed.Should().Be(true);

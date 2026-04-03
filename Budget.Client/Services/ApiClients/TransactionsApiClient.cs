@@ -101,7 +101,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
   }
 
   // Write operations
-  public async Task<TransactionAddResult> AddTransactionAsync(OneTransactionDetail newTransaction,
+  public async Task<List<EnvelopeUpdate>> AddTransactionAsync(OneTransactionDetail newTransaction,
     CancellationToken cancellationToken = default)
   {
     var payload = new { Trans = newTransaction };
@@ -111,14 +111,14 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
 
     try
     {
-      var transaction =
-        await resp.Content.ReadFromJsonAsync<TransactionAddResult>(cancellationToken: cancellationToken);
-      return transaction ?? new TransactionAddResult();
+      var envUpdates =
+        await resp.Content.ReadFromJsonAsync<List<EnvelopeUpdate>>(cancellationToken: cancellationToken);
+      return envUpdates ?? [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return new TransactionAddResult();
+      return [];
     }
   }
 
@@ -143,7 +143,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     }
   }
 
-  public async Task<List<EnvelopeDto>> UpdateTransactionAsync(OneTransactionDetail transaction,
+  public async Task<List<EnvelopeUpdate>> UpdateTransactionAsync(OneTransactionDetail transaction,
     CancellationToken cancellationToken = default)
   {
     var payload = new { Trans = transaction };
@@ -160,7 +160,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     try
     {
       var result =
-        await resp.Content.ReadFromJsonAsync<List<EnvelopeDto>>(cancellationToken: cancellationToken);
+        await resp.Content.ReadFromJsonAsync<List<EnvelopeUpdate>>(cancellationToken: cancellationToken);
 
       if (result != null)
       {

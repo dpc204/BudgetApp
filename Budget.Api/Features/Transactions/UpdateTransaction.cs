@@ -7,11 +7,12 @@ namespace Budget.Api.Features.Transactions;
 /// </summary>
 public static class UpdateTransaction
 {
-  public sealed record Command(OneTransactionDetail Trans) : IRequest<Result<List<EnvelopeDto>>>;
+  public sealed record Command(OneTransactionDetail Trans) : IRequest<Result<List<EnvelopeUpdate>>>;
 
-  public class Handler(BudgetContext db) : IRequestHandler<Command, Result<List<EnvelopeDto>>>
+  public class Handler(BudgetContext db) : IRequestHandler<Command, Result<List<EnvelopeUpdate>>>
   {
-    public async Task<Result<List<EnvelopeDto>>> Handle(Command request, CancellationToken cancellationToken)
+    private readonly List<EnvelopeUpdate> _envelopeUpdates = [];
+    public async Task<Result<List<EnvelopeUpdate>>> Handle(Command request, CancellationToken cancellationToken)
     {
       var existingTrans = await db.Transactions
         .Include(t => t.Details)
@@ -23,10 +24,10 @@ public static class UpdateTransaction
       }
 
       // Restore envelope balances from existing details before updating
-      await RestoreEnvelopeBalancesAsync(existingTrans);
+      await BackoutTransactionFromEnvelopeBalances(existingTrans);
 
       // Restore account balance
-      await RestoreAccountBalanceAsync(existingTrans);
+      await BackoutTransactionFromAccountBalances(existingTrans);
 
       // Remove existing details
       db.TransactionDetails.RemoveRange(existingTrans.Details);
@@ -61,23 +62,24 @@ public static class UpdateTransaction
       var rslt = await UpdateEnvelopeAsync(existingTrans);
 
       await db.SaveChangesAsync(cancellationToken);
-      return Result.Ok(rslt);
+      return Result.Ok(_envelopeUpdates);
     }
 
-    private async Task RestoreEnvelopeBalancesAsync(Transaction trans)
+    Dictionary<int, decimal> _priorBalances = new();
+    private async Task BackoutTransactionFromEnvelopeBalances(Transaction trans)
     {
       var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
       foreach (var grp in grouped)
       {
-
         var env = await db.Envelopes.FindAsync([grp.Key]);
         if (env is null) continue;
+        _priorBalances[env.Id] = env.Balance; // Store prior balance for delta update later
         var oldEnvAmount = grp.Sum(d => d.Amount);
         env.Balance = env.Balance - oldEnvAmount; // Add back the amounts
       }
     }
 
-    private async Task RestoreAccountBalanceAsync(Transaction trans)
+    private async Task BackoutTransactionFromAccountBalances(Transaction trans)
     {
       var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
       if (acct is null) return;
@@ -96,7 +98,11 @@ public static class UpdateTransaction
         env.LastTransactionDate = DateTime.UtcNow;
         var lastDtl = grp.OrderByDescending(d => d.LineId).First();
         env.LastTransactionDetail = lastDtl;
-        env.Balance += grp.Sum(d => d.Amount);
+
+        var origBalance = _priorBalances.ContainsKey(env.Id) ? _priorBalances[env.Id] : 0m;
+        var delta = grp.Sum(d => d.Amount) - origBalance ;
+        env.Balance -= delta;
+        _envelopeUpdates.Add(new EnvelopeUpdate(env.Id, delta));
 
         rslt.Add(new EnvelopeDto
         {
