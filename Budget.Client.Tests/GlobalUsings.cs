@@ -6,6 +6,7 @@ global using MudBlazor;
 global using MudBlazor.Services;
 global using Moq;
 global using Budget.Client.Components.Envelopes;
+global using Budget.Client.Components.Forms;
 global using Budget.Client.Components.Transactions;
 global using Budget.Shared.Services;
 global using Budget.Shared.Models;
