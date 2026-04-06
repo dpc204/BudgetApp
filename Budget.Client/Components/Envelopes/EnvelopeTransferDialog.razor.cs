@@ -42,7 +42,7 @@ public partial class EnvelopeTransferDialog
 
     try
     {
-      var success = await TransactionApi.MoveEnvelopeBalanceAsync(
+      var success = await TransactionApi.TransferEnvelopeFundsAsync(
         _fromEnvelope!.EnvelopeId,
         _toEnvelope!.EnvelopeId,
         _amount!.Value);

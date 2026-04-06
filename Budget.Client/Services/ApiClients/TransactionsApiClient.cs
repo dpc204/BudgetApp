@@ -19,6 +19,9 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     return readOnlyList;
   }
 
+
+
+
   public async Task<Result<List<EnvelopeTransactionListItem>>> GetFullTransactionsByEnvelopeAsync(int envelopeId,
     int startIndex = 0, int pageSize = 0, CancellationToken cancellationToken = default)
   {
@@ -101,7 +104,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
   }
 
   // Write operations
-  public async Task<bool> MoveEnvelopeBalanceAsync(int fromEnvelopeId, int toEnvelopeId, decimal amount,
+  public async Task<bool> TransferEnvelopeFundsAsync(int fromEnvelopeId, int toEnvelopeId, decimal amount,
     CancellationToken cancellationToken = default)
   {
     var payload = new { FromEnvelopeId = fromEnvelopeId, ToEnvelopeId = toEnvelopeId, Amount = amount };
