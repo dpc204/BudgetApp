@@ -6,8 +6,6 @@ public partial class Assign : ComponentBase
 {
  // [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private ITransactionsApiClient Api { get; set; } = default!;
-  [Inject] private IEnvelopesApiClient EnvelopesApi { get; set; } = default!;
-  [Inject] private ICategoriesApiClient CategoriesApi { get; set; } = default!;
   [Inject] private IBudgetMonthlyApiClient MonthlyApi { get; set; } = default!;
   [Inject] private IJSRuntime JS { get; set; } = default!;
 
@@ -19,9 +17,6 @@ public partial class Assign : ComponentBase
   public MudDataGrid<TransactionDto> Grid { get; set; } = null!;
   public int ProgressValue { get; set; }
   public int ProgressMax { get; set; }
-
-  private List<EnvelopeIdName> _availableEnvelopes = [];
-
 
   // Multi-selection stat
   private HashSet<TransactionDto> _selectedTransactions = [];
@@ -50,15 +45,6 @@ public partial class Assign : ComponentBase
   {
     try
     {
-      // Convert State.AllEnvelopeData to EnvelopeIdName list
-      _availableEnvelopes = await SetAvailableEnvelopes();
-
-    //  _unassignedEnvelope = State.AllEnvelopeData.FirstOrDefault(a => a.EnvelopeType == EnvelopeTypes.Unassigned);
-
-    //  _unassignedEnvelope = await MonthlyApi.GetEnvelopeByEnvelopeTypeAsync(EnvelopeTypes.Unassigned);
-
-
-
       var result = await Api.GetTransactionsUnassignedAsync();
       if (result.IsSuccess)
       {
@@ -86,21 +72,6 @@ public partial class Assign : ComponentBase
     }
   }
 
-  private async Task< List<EnvelopeIdName>> SetAvailableEnvelopes()
-  {
-    var envelopes = await EnvelopesApi.GetEnvelopesAsync();
-
-    var categories= await CategoriesApi.GetCategoriesAsync();
-
-    var result = from e in envelopes
-      join c in categories
-        on e.CategoryId equals c.CategoryId
-      where e.EnvelopeType == EnvelopeTypes.Standard || e.EnvelopeType == EnvelopeTypes.Income
-      select new EnvelopeIdName(e.Id, c.Name, e.Name, c.SortOrder, e.SortOrder);
-
-    return [.. result];
-  }
-
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender && !_afterRenderInit)
@@ -123,22 +94,6 @@ public partial class Assign : ComponentBase
       _focusRowIndexAfterReload = -2;
       await SetFocusToNotesColumnAsync(rowIndex);
     }
-  }
-
-  private static string? GetEnvelopeNameOnly(EnvelopeIdName? e)
-  {
-    if (e == null)
-      return null;
-
-    return e.EnvelopeName;
-  }
-
-  private static string? GetCatAndEnvName(EnvelopeIdName? e)
-  {
-    if (e == null)
-      return null;
-
-    return e.CategoryName + " - " + e.EnvelopeName;
   }
 
   //private static EnvelopeIdName? GetCurrentEnvelope(TransactionDto transaction)
@@ -224,50 +179,17 @@ public partial class Assign : ComponentBase
     StateHasChanged();
   }
 
-  private async Task<IEnumerable<EnvelopeIdName>> SearchEnvelopes(string? arg1, CancellationToken arg2)
+  private async Task OnEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val)
   {
-    if (string.IsNullOrWhiteSpace(arg1))
-    {
-      return [.. _availableEnvelopes];
-    }
+    if (val is null) return;
 
-    return
-    [
-      .. _availableEnvelopes.Where(e =>
-        e.CategoryName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase) ||
-        e.EnvelopeName.Contains(arg1, StringComparison.InvariantCultureIgnoreCase)
-      )
-    ];
-  }
-
-  private async Task<object> OnEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val)
-  {
-    if (val is null) return contextItem;
-
-    var selectedEnvelope = _availableEnvelopes.FirstOrDefault(a => a.EnvelopeId == val.EnvelopeId);
-
-    if (selectedEnvelope is null) return contextItem;
-
-    await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
+    await OnEnvelopeSelectedAsync(contextItem, val);
 
     // Use -1 to signal JavaScript to use the last clicked row index
     _focusRowIndexAfterReload = -1;
-
-    return contextItem;
   }
 
-  private async Task<object> SetBulkEnvelope(TransactionDto contextItem, EnvelopeIdName? val)
-  {
-    if (val is null) return contextItem;
-
-    var selectedEnvelope = _availableEnvelopes.FirstOrDefault(a => a.EnvelopeId == val.EnvelopeId);
-
-
-    if (selectedEnvelope is null) return contextItem;
-
-    await OnEnvelopeSelectedAsync(contextItem, selectedEnvelope);
-    return contextItem;
-  }
+  private Task HandleEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val) => OnEnvelopeChanged(contextItem, val);
 
   private async Task OnNotesChanged(TransactionDto transaction, string newNotes)
   {

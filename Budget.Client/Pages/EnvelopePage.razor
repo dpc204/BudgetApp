@@ -1,8 +1,14 @@
 @page "/envelopes"
 
 @rendermode InteractiveServer
-
-<h1>Envelopes</h1>
+<MudStack Row="true" >
+ <h1>Envelopes</h1>
+<MudSpacer></MudSpacer>
+@if(!_loading)
+  {
+    <MudButton Variant="Variant.Filled" OnClick="OnTransferClick">Env. Transfer</MudButton>
+  }
+  </MudStack>
 @if (_loading)
 {
   <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-4">

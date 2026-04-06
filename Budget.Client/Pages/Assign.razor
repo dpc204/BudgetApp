@@ -72,31 +72,17 @@ else
         </TemplateColumn>
 
         <TemplateColumn Title="Envelope" Sortable="true" Filterable="false" SortBy="@(x => x.EnvelopeName)">
-          <CellTemplate>
+          <CellTemplate Context="cellContext">
             <div @onclick:stopPropagation>
-              @context.Item.EnvelopeName
+              @cellContext.Item.EnvelopeName
             </div>
           </CellTemplate>
-          <EditTemplate>
+          <EditTemplate Context="editContext">
             <div @onclick:stopPropagation>
-              <MudAutocomplete T="EnvelopeIdName"
-                               Value="@null"
-                               SearchFunc="@SearchEnvelopes"
-                               ValueChanged="@(async (EnvelopeIdName? val) => await OnEnvelopeChanged(context.Item, val))"
-                               ToStringFunc="GetEnvelopeNameOnly"
-                               ResetValueOnEmptyText="false"
-                               CoerceText="false"
-                               CoerceValue="false"
-                               OpenOnFocus="true"
-                               Placeholder="Search Envelope"
-                               Immediate="true"
-                               AdornmentIcon="@Icons.Material.Filled.Search"
-                               AdornmentColor="Color.Primary"
-                               Variant="Variant.Outlined"
-                               dense="true"
-                               MaxItems="null"
-                               ShowProgressIndicator="true"
-                               ProgressIndicatorColor="Color.Primary" />
+              <EnvelopePicker Value="@null"
+                              ValueChanged="@(EventCallback.Factory.Create<EnvelopeIdName?>(this, val => HandleEnvelopeChanged(editContext.Item, val)))"
+                              ShowCategoryInDisplay="true"
+                              Placeholder="Search Envelope" />
             </div>
           </EditTemplate>
         </TemplateColumn>
@@ -139,26 +125,12 @@ else
 
       <ToolBarContent>
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-          <MudAutocomplete T="EnvelopeIdName"
-                           Value="@_bulkEnvelope"
-                           SearchFunc="@SearchEnvelopes"
-                           ToStringFunc="GetCatAndEnvName"
-                           ResetValueOnEmptyText="false"
-                           CoerceText="false"
-                           CoerceValue="false"
-                           OpenOnFocus="true"
-                           ValueChanged="@OnBulkEnvelopeSelected"
-                           Placeholder="Select Envelope for Bulk Assignment"
-                           Disabled="@(_selectedTransactions.Count == 0)"
-                           Immediate="true"
-                           AdornmentIcon="@Icons.Material.Filled.Search"
-                           AdornmentColor="Color.Primary"
-                           Variant="Variant.Outlined"
-                           dense="true"
-                           MaxItems="null"
-                           ShowProgressIndicator="true"
-                           ProgressIndicatorColor="Color.Primary"
-                           Style="min-width: 300px;" />
+          <EnvelopePicker Value="@_bulkEnvelope"
+                          ValueChanged="@OnBulkEnvelopeSelected"
+                          ShowCategoryInDisplay="true"
+                          Placeholder="Select Envelope for Bulk Assignment"
+                          Disabled="@(_selectedTransactions.Count == 0)"
+                          Style="min-width: 300px;" />
           <MudButton Variant="Variant.Filled"
                      Color="Color.Primary"
                      Disabled="@(_selectedTransactions.Count == 0 || _bulkEnvelope is null)"

@@ -354,4 +354,8 @@ public partial class EnvelopePage(
   }
 
  
+  private Task OnTransferClick(MouseEventArgs args)
+  {
+    throw new NotImplementedException();
+  }
 }
