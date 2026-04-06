@@ -354,8 +354,8 @@ public partial class EnvelopePage(
   }
 
  
-  private Task OnTransferClick(MouseEventArgs args)
+  private async Task OnTransferClick(MouseEventArgs args)
   {
-    throw new NotImplementedException();
+    await transactionService.ShowEnvelopeTransferDialogAsync();
   }
 }

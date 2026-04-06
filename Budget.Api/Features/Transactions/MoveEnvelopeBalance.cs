@@ -1,3 +1,6 @@
+using Carter;
+using Microsoft.AspNetCore.Mvc;
+
 namespace Budget.Api.Features.Transactions;
 
 public interface IMoveEnvelopeBalance
@@ -22,4 +25,34 @@ public class MoveEnvelopeBalance : IMoveEnvelopeBalance
 
     await db.SaveChangesAsync();
   }
+
+  /// <summary>
+  /// Carter endpoint that exposes the envelope transfer operation over HTTP
+  /// </summary>
+  public class Endpoint : ICarterModule
+  {
+    public void AddRoutes(IEndpointRouteBuilder app)
+    {
+      app.MapPost("/envelopes/transfer", async (
+        [FromBody] TransferRequest request,
+        [FromServices] IMoveEnvelopeBalance service,
+        BudgetContext db) =>
+      {
+        try
+        {
+          await service.MoveBalance(db, request.FromEnvelopeId, request.ToEnvelopeId, request.Amount);
+          return Results.Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+          return Results.BadRequest(ex.Message);
+        }
+      }).RequireAuthorization();
+    }
+  }
+
+  /// <summary>
+  /// Request body for envelope transfer
+  /// </summary>
+  public sealed record TransferRequest(int FromEnvelopeId, int ToEnvelopeId, decimal Amount);
 }

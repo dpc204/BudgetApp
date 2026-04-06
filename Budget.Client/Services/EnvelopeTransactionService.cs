@@ -143,6 +143,23 @@ public class EnvelopeTransactionService(
       return null;
     }
   }
+  /// <summary>
+  /// Shows the envelope transfer dialog to move a balance between envelopes
+  /// </summary>
+  public async Task ShowEnvelopeTransferDialogAsync()
+  {
+    try
+    {
+      var options = new DialogOptions
+        { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+      var dialog = await dialogService.ShowAsync<EnvelopeTransferDialog>("Envelope Transfer", options);
+      await dialog.Result;
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex, "Failed showing envelope transfer dialog");
+    }
+  }
 }
 
 /// <summary>
@@ -172,6 +189,11 @@ public interface IEnvelopeTransactionService
   /// Shows the new transaction dialog for creating a purchase in the specified envelope
   /// </summary>
   Task<TransactionDialogResult?> ShowNewTransactionDialogAsync(int envelopeId);
+
+  /// <summary>
+  /// Shows the envelope transfer dialog to move a balance between envelopes
+  /// </summary>
+  Task ShowEnvelopeTransferDialogAsync();
 }
 
 /// <summary>
