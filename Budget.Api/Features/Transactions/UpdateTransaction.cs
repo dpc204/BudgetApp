@@ -1,4 +1,6 @@
+using Budget.Shared.Utilities;
 using FluentResults;
+using NetTopologySuite.GeometriesGraph;
 
 namespace Budget.Api.Features.Transactions;
 
@@ -22,6 +24,8 @@ public static class UpdateTransaction
       {
         return Result.Fail($"Transaction with Id {request.Trans.Id} not found.");
       }
+
+      var origDetails = Clone.ShallowClone(existingTrans.Details);
 
       // Restore envelope balances from existing details before updating
       await BackoutTransactionFromEnvelopeBalances(existingTrans);
@@ -51,9 +55,11 @@ public static class UpdateTransaction
           EnvelopeId = detail.EnvelopeId,
           Notes = detail.Notes
         };
-        existingTrans.TotalAmount += detail.Amount;
+        existingTrans.TotalAmount = detail.Amount;
         existingTrans.Details.Add(dtl);
       }
+
+      SetEnvelopeUpdates(origDetails, existingTrans.Details);
 
       // Update account with new balance
       await UpdateAccountAsync(existingTrans);
@@ -63,6 +69,31 @@ public static class UpdateTransaction
 
       await db.SaveChangesAsync(cancellationToken);
       return Result.Ok(_envelopeUpdates);
+    }
+
+    private void SetEnvelopeUpdates(List<TransactionDetail> origDetails, List<TransactionDetail> newDetails)
+    {
+      // Group by envelope and sum amounts for both original and new details
+      var origAmounts = origDetails
+        .GroupBy(d => d.EnvelopeId)
+        .ToDictionary(g => g.Key, g => g.Sum(d => d.Amount));
+
+      var newAmounts = newDetails
+        .GroupBy(d => d.EnvelopeId)
+        .ToDictionary(g => g.Key, g => g.Sum(d => d.Amount));
+
+      // Get all unique envelope IDs from both collections
+      var allEnvelopeIds = origAmounts.Keys.Union(newAmounts.Keys);
+
+      // Calculate delta for each envelope
+      foreach (var envelopeId in allEnvelopeIds)
+      {
+        var origAmount = origAmounts.GetValueOrDefault(envelopeId, 0m);
+        var newAmount = newAmounts.GetValueOrDefault(envelopeId, 0m);
+        var delta = newAmount - origAmount;
+
+        _envelopeUpdates.Add(new EnvelopeUpdate(envelopeId, delta));
+      }
     }
 
     Dictionary<int, decimal> _priorBalances = new();
@@ -100,9 +131,9 @@ public static class UpdateTransaction
         env.LastTransactionDetail = lastDtl;
 
         var origBalance = _priorBalances.ContainsKey(env.Id) ? _priorBalances[env.Id] : 0m;
-        var delta = grp.Sum(d => d.Amount) - origBalance ;
-        env.Balance -= delta;
-        _envelopeUpdates.Add(new EnvelopeUpdate(env.Id, delta));
+        var delta = grp.Sum(d => d.Amount);
+        env.Balance += delta;
+
 
         rslt.Add(new EnvelopeDto
         {

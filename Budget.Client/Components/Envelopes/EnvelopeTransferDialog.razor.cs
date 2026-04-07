@@ -40,6 +40,9 @@ public partial class EnvelopeTransferDialog
     _isBusy = true;
     _errorMessage = null;
 
+
+
+
     try
     {
       var success = await TransactionApi.TransferEnvelopeFundsAsync(
