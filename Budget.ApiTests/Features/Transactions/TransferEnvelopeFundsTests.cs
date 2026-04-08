@@ -84,7 +84,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Test Transfer", 10, 20, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -212,7 +212,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Zero Transfer", 10, 20, 0m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -272,7 +272,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Negative Transfer", 10, 20, -50m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -332,7 +332,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Large Transfer", 10, 20, 999999999999.99m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -380,7 +380,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Same Envelope Transfer", 10, 10, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -437,7 +437,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command(string.Empty, 10, 20, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -494,7 +494,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("   ", 10, 20, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -552,7 +552,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command(longReason, 10, 20, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -609,7 +609,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Test!@#$%^&*()_+-={}[]|:;<>,.?/~`", 10, 20, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -738,7 +738,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Moving to vacation", 10, 20, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -812,7 +812,7 @@ public partial class TransferEnvelopeFundsTests
         var beforeTime = DateTime.UtcNow;
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         var afterTime = DateTime.UtcNow;
@@ -910,7 +910,7 @@ public partial class TransferEnvelopeFundsTests
         var command = new Command("Test Transfer", 10, 20, 100m);
 
         // Act
-        Result<EnvelopeUpdates> result = await handler.Handle(command, CancellationToken.None);
+        Result<EnvelopeDeltas> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

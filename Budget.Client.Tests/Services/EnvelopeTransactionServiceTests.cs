@@ -79,11 +79,9 @@ public class EnvelopeTransactionServiceTests
       TotalAmount = 50m
     };
 
-    var updatedEnvelopes = new TransactionAddResult() {
-      EnvelopeUpdates =
-      [
-        new( 1, 150m )
-      ]
+    var updatedEnvelopes = new EnvelopeDeltas
+    {
+      new( 1, 150m )
     };
 
     _mockApi
@@ -109,8 +107,8 @@ public class EnvelopeTransactionServiceTests
     // Assert
     result.Should().NotBeNull();
     result!.WasEdited.Should().BeTrue();
-    result.UpdatedEnvelopes.Should().HaveCount(1);  
-    result.UpdatedEnvelopes[0].EnvelopeId.Should().Be(1);
+    result.Deltas.Should().HaveCount(1);  
+    result.Deltas[0].EnvelopeId.Should().Be(1);
   }
 
   [Fact]
@@ -210,10 +208,10 @@ public class EnvelopeTransactionServiceTests
   {
     // Arrange
     var envelopeId = 1;
-    var updatedEnvelopes = new TransactionAddResult(){EnvelopeUpdates =
-    [
+    var updatedEnvelopes = new EnvelopeDeltas
+    {
       new( envelopeId, 150m )
-    ]};
+    };
 
     var mockDialogReference = new Mock<IDialogReference>();
     var dialogResult = DialogResult.Ok(updatedEnvelopes);
@@ -232,8 +230,8 @@ public class EnvelopeTransactionServiceTests
     // Assert
     result.Should().NotBeNull();
     result!.WasEdited.Should().BeTrue();
-    result.UpdatedEnvelopes.Should().HaveCount(1);
-    result.UpdatedEnvelopes[0].EnvelopeId.Should().Be(envelopeId);
+    result.Deltas.Should().HaveCount(1);
+    result.Deltas[0].EnvelopeId.Should().Be(envelopeId);
   }
 
   [Fact]

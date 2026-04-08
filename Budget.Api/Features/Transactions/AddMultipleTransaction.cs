@@ -2,12 +2,12 @@
 
 public static class AddMultipleTransaction
 {
-  public sealed record Command(List<OneTransactionDetail> Trans) : IRequest<TransactionAddResult>;
+  public sealed record Command(List<OneTransactionDetail> Trans) : IRequest<EnvelopeDeltas>;
 
 
-  public class Handler(IInsertTransactions inserter) : IRequestHandler<Command, TransactionAddResult>
+  public class Handler(IInsertTransactions inserter) : IRequestHandler<Command, EnvelopeDeltas>
   {
-    public async Task<TransactionAddResult> Handle(Command request, CancellationToken cancellationToken)
+    public async Task<EnvelopeDeltas> Handle(Command request, CancellationToken cancellationToken)
     {
       var trans = await inserter.AddMultipleTransactions(request.Trans);
       return trans;

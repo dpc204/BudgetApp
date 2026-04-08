@@ -104,7 +104,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
   }
 
   // Write operations
-  public async Task<bool> TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amount,
+  public async Task<EnvelopeDeltas> TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amount,
     CancellationToken cancellationToken = default)
   {
     var payload = new { Reason = reason, FromEnvelopeId = fromEnvelopeId, ToEnvelopeId = toEnvelopeId, Amount = amount };
@@ -113,13 +113,15 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     if (!resp.IsSuccessStatusCode)
     {
       logger.LogWarning("TransferEnvelopeFunds failed with status {Status}", resp.StatusCode);
-      return false;
+      return null;
     }
 
-    return true;
+    var envUpdates = await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
+
+    return envUpdates;
   }
 
-  public async Task<List<EnvelopeUpdate>> AddTransactionAsync(OneTransactionDetail newTransaction,
+  public async Task<EnvelopeDeltas> AddTransactionAsync(OneTransactionDetail newTransaction,
     CancellationToken cancellationToken = default)
   {
     var payload = new { Trans = newTransaction };
@@ -129,8 +131,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
 
     try
     {
-      var envUpdates =
-        await resp.Content.ReadFromJsonAsync<List<EnvelopeUpdate>>(cancellationToken: cancellationToken);
+      var envUpdates = await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
       return envUpdates ?? [];
     }
     catch(Exception ex)
@@ -140,7 +141,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     }
   }
 
-  public async Task<TransactionAddResult> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction,
+  public async Task<EnvelopeDeltas> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction,
     CancellationToken cancellationToken = default)
   {
     var payload = new { Trans = newTransaction };
@@ -150,14 +151,13 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
 
     try
     {
-      var transaction =
-        await resp.Content.ReadFromJsonAsync<TransactionAddResult>(cancellationToken: cancellationToken);
-      return transaction ?? new TransactionAddResult();
+      var transaction = await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
+      return transaction ?? new EnvelopeDeltas();
     }
     catch (Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for AddMultipleTransactions at {Url}", "/Transaction/InsertMulti");
-      return new TransactionAddResult();
+      return new EnvelopeDeltas();
     }
   }
 

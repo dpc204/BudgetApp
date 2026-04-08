@@ -173,7 +173,7 @@ public partial class EnvelopePage(
     if (result?.WasEdited == true)
     {
       // Refresh envelope data after edit
-      dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes, AllEnvelopeData);
+      dataService.UpdateClientSideEnvelopeBalances(result.Deltas, AllEnvelopeData);
       ApplyCategorySelection();
       await dataService.RefreshAsync();
       
@@ -226,19 +226,24 @@ public partial class EnvelopePage(
     {
       try
       {
-        dataService.UpdateClientSideEnvelopeBalances(result.UpdatedEnvelopes, AllEnvelopeData);
-        ApplyCategorySelection();
-        
-        // Increment refresh key to force child grids to reload
-        _childGridRefreshKey++;
-        
-        await InvokeAsync(StateHasChanged);
+        await UpdateClientBalances(result.Deltas);
       }
       catch (Exception ex)
       {
         Console.Error.WriteLine($"Refresh after new purchase failed: {ex.Message}");
       }
     }
+  }
+
+  private async Task UpdateClientBalances(EnvelopeDeltas deltas)
+  {
+    dataService.UpdateClientSideEnvelopeBalances(deltas, AllEnvelopeData);
+    ApplyCategorySelection();
+        
+    // Increment refresh key to force child grids to reload
+    _childGridRefreshKey++;
+        
+    await InvokeAsync(StateHasChanged);
   }
 
   private string? GetEnvelopeRowClass(EnvelopeResult? item, int rowNumber)
@@ -356,6 +361,16 @@ public partial class EnvelopePage(
  
   private async Task OnTransferClick(MouseEventArgs args)
   {
-    await transactionService.ShowEnvelopeTransferDialogAsync();
+   var deltas= await transactionService.ShowEnvelopeTransferDialogAsync();
+   if(deltas != null)
+   {
+     dataService.UpdateClientSideEnvelopeBalances(deltas, AllEnvelopeData);
+     ApplyCategorySelection();
+     await dataService.RefreshAsync();
+
+     // Increment refresh key to force child grids to reload
+     _childGridRefreshKey++;
+   }
+
   }
 }

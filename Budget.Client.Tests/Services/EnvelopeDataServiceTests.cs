@@ -234,13 +234,11 @@ public class EnvelopeDataServiceTests
 
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
 
-    var tranResult = new TransactionAddResult();
-
-    tranResult.EnvelopeUpdates =
-    [
+    var tranResult = new EnvelopeDeltas
+    {
       new(1, -150m),
       new(2, -75m)
-    ];
+    };
 
     // Act
     _service.UpdateClientSideEnvelopeBalances(tranResult, envelopes);
@@ -261,14 +259,10 @@ public class EnvelopeDataServiceTests
 
     _mockState.Setup(s => s.AllEnvelopeData).Returns(envelopes);
 
-    var tranResult = new TransactionAddResult();
-
-
-    // Non-existent envelope ID
-    tranResult.EnvelopeUpdates =
-    [
+    var tranResult = new EnvelopeDeltas
+    {
       new(999, 200m)
-    ];
+    };
 
 
     // Act

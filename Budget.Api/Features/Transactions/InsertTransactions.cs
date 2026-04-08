@@ -6,8 +6,8 @@ public interface IInsertTransactions
 {
   Task BeginBatchAsync();
   Task EndBatchAsync();
-  Task<TransactionAddResult> AddSingleTransaction(AddNewTransaction.Command request);
-  Task<TransactionAddResult> AddMultipleTransactions(List<OneTransactionDetail> list);
+  Task<EnvelopeDeltas> AddSingleTransaction(AddNewTransaction.Command request);
+  Task<EnvelopeDeltas> AddMultipleTransactions(List<OneTransactionDetail> list);
   ValueTask DisposeAsync();
 }
 
@@ -26,7 +26,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   /// <summary>
   /// The final result of the transaction with details of the updaetd envelope changes so the screen can be updated without a refresh
   /// </summary>
-  private readonly TransactionAddResult _InsertTransactionResult = new();
+  private readonly EnvelopeDeltas _InsertTransactionResult = new();
 
   public async Task BeginBatchAsync()
   {
@@ -77,7 +77,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     _inBatch = false;
   }
 
-  public async Task<TransactionAddResult> AddSingleTransaction(AddNewTransaction.Command request)
+  public async Task<EnvelopeDeltas> AddSingleTransaction(AddNewTransaction.Command request)
   {
     ArgumentNullException.ThrowIfNull(request);
 
@@ -87,7 +87,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
     Transaction? rslt = await AddTransactionAsync(request.Trans);
     ArgumentNullException.ThrowIfNull(rslt);
-    
+
     await UpdateEnvelopeBalancesForReturnAsync();
     await EndBatchAsync();
     return _InsertTransactionResult;
@@ -102,7 +102,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     }
   }
 
-  public async Task<TransactionAddResult> AddMultipleTransactions(List<OneTransactionDetail> list)
+  public async Task<EnvelopeDeltas> AddMultipleTransactions(List<OneTransactionDetail> list)
   {
     await BeginBatchAsync();
 
@@ -185,7 +185,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     var env = await db.Envelopes.FindAsync([grp.Key]);
     if (env is null) return;
     env.Balance += grp.Sum(d => d.EnvelopeDelta); // subtract total amount for this envelope
-    _InsertTransactionResult.EnvelopeUpdates.Add(new EnvelopeUpdate(grp.Key, grp.Sum(d => d.EnvelopeDelta)));
+    _InsertTransactionResult.Add(new EnvelopeUpdate(grp.Key, grp.Sum(d => d.EnvelopeDelta)));
   }
 
   private async Task UpdateAccountAsync(Transaction trans)

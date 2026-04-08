@@ -3,10 +3,10 @@ using Budget.Shared.Services;
 namespace Budget.Api.Features.Transactions;
 
 
-public sealed record Command(string Reason, int FromEnvelopeId, int ToEnvelopeId, decimal Amount) : IRequest<Result<EnvelopeUpdates>>;
+public sealed record Command(string Reason, int FromEnvelopeId, int ToEnvelopeId, decimal Amount) : IRequest<Result<EnvelopeDeltas>>;
 
 
-public class Handler(BudgetContext db, IUserAndOptions userAndOptions, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, Result<EnvelopeUpdates>>
+public class Handler(BudgetContext db, IUserAndOptions userAndOptions, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, Result<EnvelopeDeltas>>
 {
   //public async Task TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
   //{
@@ -14,7 +14,7 @@ public class Handler(BudgetContext db, IUserAndOptions userAndOptions, IMoveEnve
   //  await db.SaveChangesAsync();
   //}
 
-  public async Task<Result<EnvelopeUpdates>> Handle(Command command, CancellationToken cancellationToken)
+  public async Task<Result<EnvelopeDeltas>> Handle(Command command, CancellationToken cancellationToken)
   {
     var account = await db.BankAccounts.FirstOrDefaultAsync(a => a.AccountType == AccountTypes.Transfers);
     ArgumentNullException.ThrowIfNull(account, "No transfer account found. Please create an account with the type 'Transfers' to use this feature.");
@@ -48,7 +48,7 @@ public class Handler(BudgetContext db, IUserAndOptions userAndOptions, IMoveEnve
     await MoveEnvelopeBalance.MoveBalanceDontSave(db, fromDetail.EnvelopeId, toDetail.EnvelopeId, command.Amount);
     await db.SaveChangesAsync();
 
-    var updates = new EnvelopeUpdates()
+    var updates = new EnvelopeDeltas()
     {
       new EnvelopeUpdate(command.FromEnvelopeId, command.Amount * -1),
       new EnvelopeUpdate(command.ToEnvelopeId, command.Amount)

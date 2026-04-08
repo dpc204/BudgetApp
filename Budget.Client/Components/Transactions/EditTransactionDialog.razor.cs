@@ -203,11 +203,11 @@ public partial class EditTransactionDialog
       TotalAmount = _header.TotalAmount * -1
     };
 
-    TransactionAddResult addResult = new TransactionAddResult();
+    EnvelopeDeltas envDeltas = new EnvelopeDeltas();
 
 
     // Call appropriate API based on whether we're adding or updating
-    List<EnvelopeUpdate> envelopeUpdates = [];
+    List<EnvelopeUpdate> envelopeUpdates;
 
     if (IsEditMode)
     {
@@ -216,14 +216,14 @@ public partial class EditTransactionDialog
     else
     {
       envelopeUpdates = await TransactionApi.AddTransactionAsync(result);
-      ArgumentNullException.ThrowIfNull(addResult);
+      ArgumentNullException.ThrowIfNull(envDeltas);
     }
-    addResult.EnvelopeUpdates = envelopeUpdates;
+    envDeltas.AddRange(envelopeUpdates);
 
     // Pass the updated envelopes back to the caller (EnvelopePage)
     SnackBar.Add("Transaction Saved!", Severity.Success);
 
-    MudDialog.Close(DialogResult.Ok(addResult));
+    MudDialog.Close(DialogResult.Ok(envDeltas));
   }
 
 

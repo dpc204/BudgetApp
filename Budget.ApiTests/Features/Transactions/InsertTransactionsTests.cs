@@ -1,4 +1,4 @@
-﻿using Budget.Api.Features.Transactions;
+using Budget.Api.Features.Transactions;
 using Budget.DB;
 using Budget.Shared.Enums;
 using Budget.Shared.Models;
@@ -371,7 +371,7 @@ public partial class InsertTransactionsTests
         var result = await service.AddMultipleTransactions(emptyList);
         // Assert
         result.Should().NotBeNull();
-        result.EnvelopeUpdates.Should().BeEmpty();
+        result.Should().BeEmpty();
     }
 
     /// <summary>
@@ -703,7 +703,7 @@ public partial class InsertTransactionsTests
     /// <summary>
     /// Tests that AddMultipleTransactions successfully processes a single transaction.
     /// Input: List containing one valid transaction with details
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Fact]
     public async Task AddMultipleTransactions_SingleTransaction_CompletesSuccessfully()
@@ -736,18 +736,17 @@ public partial class InsertTransactionsTests
             transaction
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
-        result.Should().BeOfType<TransactionAddResult>();
+        result.Should().BeOfType<EnvelopeDeltas>();
     }
 
     /// <summary>
     /// Tests that AddMultipleTransactions successfully processes multiple transactions.
     /// Input: List containing three valid transactions with details
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Fact]
     public async Task AddMultipleTransactions_MultipleTransactions_CompletesSuccessfully()
@@ -815,18 +814,17 @@ public partial class InsertTransactionsTests
             }
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
-        result.Should().BeOfType<TransactionAddResult>();
+        result.Should().BeOfType<EnvelopeDeltas>();
     }
 
     /// <summary>
     /// Tests that AddMultipleTransactions handles a transaction with empty Details list.
     /// Input: List containing one transaction with no detail items (empty Details list)
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Fact]
     public async Task AddMultipleTransactions_TransactionWithEmptyDetails_CompletesSuccessfully()
@@ -852,18 +850,17 @@ public partial class InsertTransactionsTests
             transaction
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
-        result.Should().BeOfType<TransactionAddResult>();
+        result.Should().BeOfType<EnvelopeDeltas>();
     }
 
     /// <summary>
     /// Tests that AddMultipleTransactions handles transactions with boundary date values.
     /// Input: List with transactions using DateTime.MinValue and DateTime.MaxValue
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Fact]
     public async Task AddMultipleTransactions_TransactionsWithBoundaryDates_CompletesSuccessfully()
@@ -908,17 +905,16 @@ public partial class InsertTransactionsTests
             }
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
     }
 
     /// <summary>
     /// Tests that AddMultipleTransactions handles transactions with boundary decimal amounts.
     /// Input: List with transactions containing decimal.MinValue, decimal.MaxValue, and zero amounts
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Fact]
     public async Task AddMultipleTransactions_TransactionsWithBoundaryAmounts_CompletesSuccessfully()
@@ -978,17 +974,16 @@ public partial class InsertTransactionsTests
             }
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
     }
 
     /// <summary>
     /// Tests that AddMultipleTransactions handles transactions with empty and whitespace string values.
     /// Input: List with transactions containing empty strings and whitespace-only strings for Vendor and Description
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Fact]
     public async Task AddMultipleTransactions_TransactionsWithEmptyAndWhitespaceStrings_CompletesSuccessfully()
@@ -1035,17 +1030,16 @@ public partial class InsertTransactionsTests
             }
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
     }
 
     /// <summary>
     /// Tests that AddMultipleTransactions handles transactions with all enum values for TransactionType.
     /// Input: List with transactions using each TransactionType enum value
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Theory]
     [InlineData(TransactionTypes.Expense)]
@@ -1078,17 +1072,16 @@ public partial class InsertTransactionsTests
             }
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
     }
 
     /// <summary>
     /// Tests that AddMultipleTransactions handles a transaction with multiple detail lines.
     /// Input: Single transaction with multiple TransactionDetailDto items
-    /// Expected: Method completes successfully and returns a TransactionAddResult.
+    /// Expected: Method completes successfully and returns an EnvelopeUpdates.
     /// </summary>
     [Fact]
     public async Task AddMultipleTransactions_TransactionWithMultipleDetails_CompletesSuccessfully()
@@ -1129,11 +1122,13 @@ public partial class InsertTransactionsTests
             }
         };
         // Act
-        Func<Task<TransactionAddResult>> act = async () => await service.AddMultipleTransactions(list);
+        var result = await service.AddMultipleTransactions(list);
         // Assert
-        await act.Should().NotThrowAsync();
-        var result = await act();
+        
         result.Should().NotBeNull();
     }
 
 }
+
+
+

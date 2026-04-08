@@ -57,7 +57,7 @@ public partial class EnvelopeTransferDialog
 
     try
     {
-      var success = await TransactionApi.TransferEnvelopeFundsAsync(
+      var envUpdates = await TransactionApi.TransferEnvelopeFundsAsync(
         _reason,
         _fromEnvelope!.EnvelopeId,
         _toEnvelope!.EnvelopeId,
@@ -65,19 +65,11 @@ public partial class EnvelopeTransferDialog
 
 
 
-      if (success)
+      if (envUpdates != null)
       {
-        TransactionAddResult addResult = new TransactionAddResult();
-
-   //     addResult.EnvelopeUpdates = envelopeUpdates;
-
-        // Pass the updated envelopes back to the caller (EnvelopePage)
-        //SnackBar.Add("Transaction Saved!", Severity.Success);
-
-        //MudDialog.Close(DialogResult.Ok(addResult));
 
         SnackBar.Add("Transfer complete!", Severity.Success);
-        MudDialog.Close(DialogResult.Ok(true));
+        MudDialog.Close(DialogResult.Ok(envUpdates));
       }
       else
       {

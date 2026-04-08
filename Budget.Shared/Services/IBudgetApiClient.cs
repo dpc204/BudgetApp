@@ -14,9 +14,9 @@ public interface IBudgetApiClient
   Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId, CancellationToken cancellationToken = default);
   Task<UserDetailDto?> GetUserByIdAsync(int id, CancellationToken cancellationToken = default);
 
-  Task<TransactionAddResult> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);
+  Task<EnvelopeDeltas> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);
 
-   Task<TransactionAddResult> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction, CancellationToken cancellationToken = default);
+   Task<EnvelopeDeltas> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeDto>> UpdateTransactionAsync(OneTransactionDetail transaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeDto>> VoidTransactionAsync(int transactionId, CancellationToken cancellationToken = default);
   Task<EnvelopeDto> GetEnvelopeByIdAsync(int envelopeId, CancellationToken cancellationToken = default);
