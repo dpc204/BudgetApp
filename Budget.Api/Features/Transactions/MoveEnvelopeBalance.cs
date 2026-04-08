@@ -19,7 +19,7 @@ public class MoveEnvelopeBalance(IUserAndOptions userAndOptions) : IMoveEnvelope
     await db.SaveChangesAsync();
   }
 
-  private static async Task MoveBalanceDontSave(BudgetContext db, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
+  public static async Task MoveBalanceDontSave(BudgetContext db, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
   {
     var fromEnvelope = await db.Envelopes.FirstOrDefaultAsync(e => e.Id == fromEnvelopeId);
     var toEnvelope = await db.Envelopes.FirstOrDefaultAsync(e => e.Id == toEnvelopeId);

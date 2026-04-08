@@ -2,47 +2,66 @@ using Budget.Shared.Services;
 
 namespace Budget.Api.Features.Transactions;
 
-public interface ITransferEnvelopeFunds
-{
-  public Task TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove);
-}
 
-public class TransferEnvelopeFunds(BudgetContext db, UserAndOptions userAndOptions) : ITransferEnvelopeFunds
-{
-  public async Task TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
-  {
-    await WriteBalanceMovementTransaction(db, reason, fromEnvelopeId, toEnvelopeId, amountToMove);
-    await db.SaveChangesAsync();
-  }
+public sealed record Command(string Reason, int FromEnvelopeId, int ToEnvelopeId, decimal Amount) : IRequest<Result<EnvelopeUpdates>>;
 
-  private async Task WriteBalanceMovementTransaction(BudgetContext db, string reason, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
+
+public class Handler(BudgetContext db, IUserAndOptions userAndOptions, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, Result<EnvelopeUpdates>>
+{
+  //public async Task TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
+  //{
+  //  await WriteBalanceMovementTransaction(db, reason, fromEnvelopeId, toEnvelopeId, amountToMove);
+  //  await db.SaveChangesAsync();
+  //}
+
+  public async Task<Result<EnvelopeUpdates>> Handle(Command command, CancellationToken cancellationToken)
   {
     var account = await db.BankAccounts.FirstOrDefaultAsync(a => a.AccountType == AccountTypes.Transfers);
     ArgumentNullException.ThrowIfNull(account, "No transfer account found. Please create an account with the type 'Transfers' to use this feature.");
 
+    var fromEnvName = GetEnvelopeName(command.FromEnvelopeId);
+    var toEnvName = GetEnvelopeName(command.ToEnvelopeId);
     var fromDetail = new TransactionDetail() {
-      Amount = amountToMove,
-      EnvelopeId = fromEnvelopeId,
-      Notes = $"Transfer from envelope {fromEnvelopeId}",
+      Amount = command.Amount,
+      EnvelopeId = command.FromEnvelopeId,
+      Notes = $"Transfer to {toEnvName}",
       LineId = 0
     };
 
     var toDetail = new TransactionDetail() {
-      Amount = amountToMove * -1,
-      EnvelopeId = toEnvelopeId,
-      Notes = $"Transfer to envelope {toEnvelopeId}",
+      Amount = command.Amount * -1,
+      EnvelopeId = command.ToEnvelopeId,
+      Notes = $"Transfer from {fromEnvName}",
       LineId = 1
     };
 
     var moveTransaction = new Transaction {
-      Description = "Transfer: " + reason,
-      TotalAmount = amountToMove,
+      Description = command.Reason,
+      TotalAmount = command.Amount,
+      Vendor = "Transfer",
       AccountId = account.Id,
       UserId = userAndOptions.User.Id,
       Date = DateTime.UtcNow,
       Details = new List<TransactionDetail> { fromDetail, toDetail }
     };
     db.Transactions.Add(moveTransaction);
+    await MoveEnvelopeBalance.MoveBalanceDontSave(db, fromDetail.EnvelopeId, toDetail.EnvelopeId, command.Amount);
+    await db.SaveChangesAsync();
+
+    var updates = new EnvelopeUpdates()
+    {
+      new EnvelopeUpdate(command.FromEnvelopeId, command.Amount * -1),
+      new EnvelopeUpdate(command.ToEnvelopeId, command.Amount)
+    };
+
+    return Result.Ok(updates);
+
+    string GetEnvelopeName(int envId)
+    {
+      var fromEnv = db.Envelopes.FindAsync(envId).Result;
+      var fromEnvName = fromEnv?.Name ?? envId.ToString();
+      return fromEnvName;
+    }
   }
 
   /// <summary>
@@ -52,21 +71,16 @@ public class TransferEnvelopeFunds(BudgetContext db, UserAndOptions userAndOptio
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapPost("/envelopes/transfer", async (
-        [FromBody] TransferRequest request,
-        [FromServices] ITransferEnvelopeFunds service,
-        BudgetContext db) =>
+      app.MapPost("/envelopes/transfer", async (ISender sender, Command command) =>
       {
-        try
-        {
-          await service.TransferEnvelopeFundsAsync(request.Reason, request.FromEnvelopeId, request.ToEnvelopeId, request.Amount);
-          return Results.Ok();
-        }
-        catch(InvalidOperationException ex)
-        {
-          return Results.BadRequest(ex.Message);
-        }
+        var result = await sender.Send(command);
+
+        return result.IsSuccess
+          ? Results.Ok(result.Value)
+          : Results.NotFound(new { error = result.Errors });
       }).RequireAuthorization();
+
+
     }
   }
 

@@ -63,8 +63,19 @@ public partial class EnvelopeTransferDialog
         _toEnvelope!.EnvelopeId,
         _amount);
 
+
+
       if (success)
       {
+        TransactionAddResult addResult = new TransactionAddResult();
+
+   //     addResult.EnvelopeUpdates = envelopeUpdates;
+
+        // Pass the updated envelopes back to the caller (EnvelopePage)
+        //SnackBar.Add("Transaction Saved!", Severity.Success);
+
+        //MudDialog.Close(DialogResult.Ok(addResult));
+
         SnackBar.Add("Transfer complete!", Severity.Success);
         MudDialog.Close(DialogResult.Ok(true));
       }

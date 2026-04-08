@@ -71,21 +71,7 @@
               }
             </MudSelect>
           </MudTd>
-          @* <MudTd Class="text-end" xs="5" md="5">
-            <MudNumericField T="decimal"
-                             @bind-Value="context.Amount"
-                             For="@(() => context.Amount)"
-                             @bind-Value:after="() => NormalizeAmount(context)"
-                             Immediate="true"
-                             Min="0.01m"
-                             Format="N2"
-                             Culture="@CultureInfo.CurrentCulture"
-                             HideSpinButtons="true"
-                             Validation="@((decimal val) => ValidateAmount(val))"
-                             Disabled="@IsVoided"/>
-
-
-          </MudTd> *@
+     
           <MudTd>
             <MudNumericField T="decimal"
                              @bind-Value="context.Amount"

@@ -8,5 +8,11 @@ namespace Budget.Shared.Models
   {
     public List<EnvelopeUpdate> EnvelopeUpdates { get; set; } = [];
   }  
+
+  public class EnvelopeUpdates : List<EnvelopeUpdate>
+  {
+    
+  }
+
   public record EnvelopeUpdate(int EnvelopeId, decimal EnvelopeDelta);
 }
