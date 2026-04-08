@@ -104,15 +104,15 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
   }
 
   // Write operations
-  public async Task<bool> TransferEnvelopeFundsAsync(int fromEnvelopeId, int toEnvelopeId, decimal amount,
+  public async Task<bool> TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amount,
     CancellationToken cancellationToken = default)
   {
-    var payload = new { FromEnvelopeId = fromEnvelopeId, ToEnvelopeId = toEnvelopeId, Amount = amount };
+    var payload = new { Reason = reason, FromEnvelopeId = fromEnvelopeId, ToEnvelopeId = toEnvelopeId, Amount = amount };
     using var resp = await http.PostAsJsonAsync("/envelopes/transfer", payload, cancellationToken);
 
     if (!resp.IsSuccessStatusCode)
     {
-      logger.LogWarning("MoveEnvelopeBalance failed with status {Status}", resp.StatusCode);
+      logger.LogWarning("TransferEnvelopeFunds failed with status {Status}", resp.StatusCode);
       return false;
     }
 

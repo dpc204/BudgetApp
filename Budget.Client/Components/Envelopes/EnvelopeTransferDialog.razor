@@ -4,6 +4,13 @@
       <MudStack Spacing="3">
         <MudText Typo="Typo.subtitle1">Transfer funds between envelopes</MudText>
 
+        <MudTextField T="string"
+                      @bind-Value="_reason"
+                      Label="Reason"
+                      Required="true"
+                      Immediate="true"
+                      Variant="Variant.Outlined" />
+
         <MudStack>
           <MudText Typo="Typo.body2" Color="Color.Secondary">From Envelope</MudText>
           <EnvelopePicker @bind-Value="_fromEnvelope"
@@ -20,14 +27,18 @@
                           Dense="true" />
         </MudStack>
 
-        <MudNumericField T="decimal?"
+        <MudNumericField T="decimal"
                          @bind-Value="_amount"
+                         @bind-Value:after="NormalizeAmount"
+                         For="@(() => _amount)"
+                         Validation="@((decimal val) => ValidateAmount(val))"
                          Label="Amount"
-                         Min="0.01m"
-                         Format="N2"
+                         Format="C2"
+                         Immediate="false"
                          HideSpinButtons="true"
-                         Variant="Variant.Outlined"
-                         Immediate="true" />
+                         Class="draft-input-right"
+                         Variant="Variant.Text"
+                         Margin="Margin.Dense" />
 
         @if (!string.IsNullOrEmpty(_errorMessage))
         {
@@ -48,3 +59,7 @@
     </MudStack>
   </DialogActions>
 </MudDialog>
+
+<style>
+  .draft-input-right input { text-align: right !important; }
+</style>
