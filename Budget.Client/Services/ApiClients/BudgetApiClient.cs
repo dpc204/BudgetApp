@@ -242,13 +242,13 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     {
       var transaction =
         await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
-      return transaction ?? new EnvelopeDeltas();
+      return transaction ?? [];
     }
     catch (Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return new EnvelopeDeltas();
+      return  [];
     }
   }
 
@@ -265,13 +265,13 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     {
       var transaction =
         await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
-      return transaction ?? new EnvelopeDeltas();
+      return transaction ??   [];
     }
     catch (Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return new EnvelopeDeltas();
+      return [];
     }
   }
 

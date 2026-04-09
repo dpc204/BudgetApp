@@ -69,9 +69,6 @@ public partial class EnvelopePage(
       {
         var result = await dataService.LoadEnvelopeDataAsync();
 
-        if(result.AllEnvelopes.Count == 1)
-          Debugger.Break();
-
         AllEnvelopeData = result.AllEnvelopes;
         SelectedCategoryId = result.SelectedCategoryId;
         CategoriesForSelect = result.Categories;
@@ -101,11 +98,6 @@ public partial class EnvelopePage(
       CategoriesForSelect,
       SelectedCategoryId)
       .Where(a=> a.EnvelopeType == EnvelopeTypes.Standard)];
-
-    if(SelectedEnvelopeData.Count == 0)
-      Debugger.Break();
-
-
 
     if(_selectedEnvelope is not null && SelectedEnvelopeData.All(e => e.EnvelopeId != _selectedEnvelope.EnvelopeId))
     {
@@ -152,10 +144,6 @@ public partial class EnvelopePage(
       await InvokeAsync(StateHasChanged);
     }
   }
-
-
-
-
 
   private async Task NewTransactionAsync(EnvelopeResult? envelope)
   {

@@ -66,7 +66,7 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
     List<Cat> categories,
     string? selectedCategoryId)
   {
-    if (string.IsNullOrEmpty(selectedCategoryId) || selectedCategoryId == "0")
+    if (string.IsNullOrEmpty(selectedCategoryId) || selectedCategoryId == "ALL")
     {
       // Return all envelopes that belong to the available categories
       return [.. allEnvelopes.Join(categories, e => e.CategoryId, c => c.CategoryId, (e, c) => e)];
