@@ -203,7 +203,7 @@ public partial class EditTransactionDialog
       TotalAmount = _header.TotalAmount * -1
     };
 
-    EnvelopeDeltas envDeltas = new EnvelopeDeltas();
+    EnvelopeDeltas envDeltas = [];
 
 
     // Call appropriate API based on whether we're adding or updating
