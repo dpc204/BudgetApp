@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Reflection;
 using Budget.Api;
+using Budget.Shared.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -111,6 +112,13 @@ return bld.Options;
     
     return db;
   }
+
+    protected UserAndOptions MakeUserAndOptions()
+    {
+      var userAndOpts = new UserAndOptions(null);
+      userAndOpts.User = new           UserInfoDto { Id = 1, FamilyId = 1};
+      return userAndOpts;
+    }
 
   protected class TestCurrentFamilyService(int familyId = 1) : ICurrentFamilyService
   {

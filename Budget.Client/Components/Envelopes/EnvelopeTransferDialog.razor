@@ -1,0 +1,65 @@
+<MudDialog>
+  <DialogContent>
+    <MudForm @ref="_form">
+      <MudStack Spacing="3">
+        <MudText Typo="Typo.subtitle1">Transfer funds between envelopes</MudText>
+
+        <MudTextField T="string"
+                      @bind-Value="_reason"
+                      Label="Reason"
+                      Required="true"
+                      Immediate="true"
+                      Variant="Variant.Outlined" />
+
+        <MudStack>
+          <MudText Typo="Typo.body2" Color="Color.Secondary">From Envelope</MudText>
+          <EnvelopePicker @bind-Value="_fromEnvelope"
+                          Placeholder="Select source envelope"
+                          Variant="Variant.Outlined"
+                          Dense="true" />
+        </MudStack>
+
+        <MudStack>
+          <MudText Typo="Typo.body2" Color="Color.Secondary">To Envelope</MudText>
+          <EnvelopePicker @bind-Value="_toEnvelope"
+                          Placeholder="Select destination envelope"
+                          Variant="Variant.Outlined"
+                          Dense="true" />
+        </MudStack>
+
+        <MudNumericField T="decimal"
+                         @bind-Value="_amount"
+                         @bind-Value:after="NormalizeAmount"
+                         For="@(() => _amount)"
+                         Validation="@((decimal val) => ValidateAmount(val))"
+                         Label="Amount"
+                         Format="C2"
+                         Immediate="false"
+                         HideSpinButtons="true"
+                         Class="draft-input-right"
+                         Variant="Variant.Text"
+                         Margin="Margin.Dense" />
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+          <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+        }
+      </MudStack>
+    </MudForm>
+  </DialogContent>
+  <DialogActions>
+    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+      <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Primary"
+                 Disabled="@IsTransferDisabled"
+                 OnClick="TransferAsync">
+        Transfer
+      </MudButton>
+    </MudStack>
+  </DialogActions>
+</MudDialog>
+
+<style>
+  .draft-input-right input { text-align: right !important; }
+</style>

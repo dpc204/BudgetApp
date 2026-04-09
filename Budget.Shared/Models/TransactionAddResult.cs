@@ -4,9 +4,10 @@ using System.Text;
 
 namespace Budget.Shared.Models
 {
-  public class TransactionAddResult
+  public class EnvelopeDeltas : List<EnvelopeUpdate>
   {
-    public List<EnvelopeUpdate> EnvelopeUpdates { get; set; } = [];
-  }  
+
+  }
+
   public record EnvelopeUpdate(int EnvelopeId, decimal EnvelopeDelta);
 }

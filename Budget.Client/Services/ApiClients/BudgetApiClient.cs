@@ -229,7 +229,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     return result!;
   }
 
-  public async Task<TransactionAddResult> AddTransactionAsync(OneTransactionDetail newTransaction,
+  public async Task<EnvelopeDeltas> AddTransactionAsync(OneTransactionDetail newTransaction,
     CancellationToken cancellationToken = default)
   {
     // The API currently returns 202 Accepted with no body. Post and ensure success; if no JSON body, return the request object.
@@ -241,18 +241,18 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     try
     {
       var transaction =
-        await resp.Content.ReadFromJsonAsync<TransactionAddResult>(cancellationToken: cancellationToken);
-      return transaction ?? new TransactionAddResult();
+        await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
+      return transaction ?? new EnvelopeDeltas();
     }
     catch (Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return new TransactionAddResult();
+      return new EnvelopeDeltas();
     }
   }
 
-  public async Task<TransactionAddResult> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction,
+  public async Task<EnvelopeDeltas> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction,
     CancellationToken cancellationToken = default)
   {
     // The API currently returns 202 Accepted with no body. Post and ensure success; if no JSON body, return the request object.
@@ -264,14 +264,14 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     try
     {
       var transaction =
-        await resp.Content.ReadFromJsonAsync<TransactionAddResult>(cancellationToken: cancellationToken);
-      return transaction ?? new TransactionAddResult();
+        await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
+      return transaction ?? new EnvelopeDeltas();
     }
     catch (Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return new TransactionAddResult();
+      return new EnvelopeDeltas();
     }
   }
 

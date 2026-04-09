@@ -27,7 +27,7 @@ public class EnvelopeTransactionService(
       var result = await api.GetTransactionsByEnvelopeAsync(envelopeId, cancellationToken: cancellationToken);
       return [.. result];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed loading transactions for envelope {EnvelopeId}", envelopeId);
       return [];
@@ -48,11 +48,11 @@ public class EnvelopeTransactionService(
     try
     {
       var result = await api.GetFullTransactionsByEnvelopeAsync(envelopeId, cancellationToken: cancellationToken);
-      if (result.IsSuccess)
+      if(result.IsSuccess)
         return [.. result.Value];
       return [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed loading transactions for envelope {EnvelopeId}", envelopeId);
       return [];
@@ -72,25 +72,22 @@ public class EnvelopeTransactionService(
     {
       var detail = await api.GetOneTransactionDetailAsync(transactionId, cancellationToken);
 
-      if (userOptions.IsAdminUser())
+      if(userOptions.IsAdminUser())
       {
         // Admin users can edit transactions via EditTransactionDialog
-        var parameters = new DialogParameters
-        {
+        var parameters = new DialogParameters {
           [nameof(EditTransactionDialog.ExistingTransaction)] = detail,
           [nameof(EditTransactionDialog.IsReadOnly)] = readOnly
         };
-        var options = new DialogOptions
-          { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
         var dialog = await dialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", parameters, options);
         var result = await dialog.Result;
 
-        if (result is { Canceled: false, Data: TransactionAddResult envResult })
+        if(result is { Canceled: false, Data: EnvelopeDeltas envResult })
         {
-          return new TransactionDialogResult
-          {
+          return new TransactionDialogResult {
             WasEdited = true,
-            UpdatedEnvelopes = envResult.EnvelopeUpdates
+            Deltas = envResult
           };
         }
       }
@@ -104,7 +101,7 @@ public class EnvelopeTransactionService(
 
       return null;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed loading transaction detail for transaction {TransactionId}", transactionId);
       return null;
@@ -121,25 +118,49 @@ public class EnvelopeTransactionService(
     try
     {
       var parameters = new DialogParameters { [nameof(EditTransactionDialog.InitialEnvelopeId)] = envelopeId };
-      var options = new DialogOptions
-        { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+      var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
       var dialog = await dialogService.ShowAsync<EditTransactionDialog>("New Purchase", parameters, options);
       var result = await dialog.Result;
 
-      if (result is { Canceled: false, Data: TransactionAddResult envResult })
+      if(result is { Canceled: false, Data: EnvelopeDeltas envResult })
       {
-        return new TransactionDialogResult
-        {
+        return new TransactionDialogResult {
           WasEdited = true,
-          UpdatedEnvelopes = envResult.EnvelopeUpdates
+          Deltas = envResult
         };
       }
 
       return null;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed creating new transaction for envelope {EnvelopeId}", envelopeId);
+      return null;
+    }
+  }
+  /// <summary>
+  /// Shows the envelope transfer dialog to move a balance between envelopes
+  /// </summary>
+  public async Task<EnvelopeDeltas?> ShowEnvelopeTransferDialogAsync()
+  {
+    try
+    {
+      var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+      var dialog = await dialogService.ShowAsync<EnvelopeTransferDialog>("Envelope Transfer", options);
+      var result = await dialog.Result;
+
+      if(result is { Canceled: false, Data: EnvelopeDeltas envResult })
+      {
+        return envResult;
+      };
+      
+
+      return null;
+    }
+    
+    catch(Exception ex)
+    {
+      logger.LogError(ex, "Failed showing envelope transfer dialog");
       return null;
     }
   }
@@ -172,6 +193,11 @@ public interface IEnvelopeTransactionService
   /// Shows the new transaction dialog for creating a purchase in the specified envelope
   /// </summary>
   Task<TransactionDialogResult?> ShowNewTransactionDialogAsync(int envelopeId);
+
+  /// <summary>
+  /// Shows the envelope transfer dialog to move a balance between envelopes
+  /// </summary>
+  Task<EnvelopeDeltas?> ShowEnvelopeTransferDialogAsync();
 }
 
 /// <summary>
@@ -180,5 +206,5 @@ public interface IEnvelopeTransactionService
 public class TransactionDialogResult
 {
   public bool WasEdited { get; set; }
-  public List<EnvelopeUpdate> UpdatedEnvelopes { get; set; } = [];
+  public EnvelopeDeltas Deltas { get; set; } = [];
 }

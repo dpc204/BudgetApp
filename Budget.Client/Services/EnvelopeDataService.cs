@@ -96,9 +96,9 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
   /// Updates UI envelope balances with new values from API
   /// </summary>
   /// <param name="envelopes">List of envelopes with updated balances</param>
-  public void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult, List<EnvelopeResult> allEnvelopeData)
+  public void UpdateClientSideEnvelopeBalances(EnvelopeDeltas addResult, List<EnvelopeResult> allEnvelopeData)
   {
-    UpdateClientSideEnvelopeBalances(addResult.EnvelopeUpdates, allEnvelopeData);
+    UpdateClientSideEnvelopeBalances(addResult.ToList(), allEnvelopeData);
   }
 
   /// <summary>
@@ -147,7 +147,7 @@ public interface IEnvelopeDataService
   /// <summary>
   /// Updates envelope balances with new values from API
   /// </summary>
-  void UpdateClientSideEnvelopeBalances(TransactionAddResult addResult, List<EnvelopeResult> allEnvelopeData);
+  void UpdateClientSideEnvelopeBalances(EnvelopeDeltas addResult, List<EnvelopeResult> allEnvelopeData);
 
   /// <summary>
   /// Saves the current state

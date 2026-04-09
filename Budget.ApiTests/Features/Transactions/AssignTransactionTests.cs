@@ -1,10 +1,12 @@
-﻿namespace Budget.ApiTests.Features.Transactions;
+﻿using Budget.Shared.Services;
+
+namespace Budget.ApiTests.Features.Transactions;
 
 
 /// <summary>
 /// Unit tests for the MoveEnvelopeBalance class.
 /// </summary>
-public partial class MoveEnvelopeBalanceTests
+public partial class MoveEnvelopeBalanceTests : IntegrationTestBase
 {
     /// <summary>
     /// Creates in-memory database options for testing.
@@ -31,7 +33,10 @@ public partial class MoveEnvelopeBalanceTests
         context.Families.Add(family);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var userAndOpts = MakeUserAndOptions();
+
+
+        var service = new MoveEnvelopeBalance(userAndOpts);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -40,12 +45,12 @@ public partial class MoveEnvelopeBalanceTests
         exception.Message.Should().Be("One or both envelopes do not exist.");
     }
 
-    /// <summary>
-    /// Tests that MoveBalance successfully transfers a positive amount between two valid envelopes.
-    /// Input: fromEnvelopeId=1, toEnvelopeId=2, amountToMove=100
-    /// Expected: fromEnvelope balance decreased by 100, toEnvelope balance increased by 100
-    /// </summary>
-    [Fact]
+  /// <summary>
+  /// Tests that MoveBalance successfully transfers a positive amount between two valid envelopes.
+  /// Input: fromEnvelopeId=1, toEnvelopeId=2, amountToMove=100
+  /// Expected: fromEnvelope balance decreased by 100, toEnvelope balance increased by 100
+  /// </summary>
+  [Fact]
     public async Task MoveBalance_ValidEnvelopesAndPositiveAmount_TransfersBalanceSuccessfully()
     {
         // Arrange
@@ -55,7 +60,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 100m);
@@ -83,7 +88,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.Add(toEnvelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -105,7 +110,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.Add(fromEnvelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -123,7 +128,7 @@ public partial class MoveEnvelopeBalanceTests
     {
         // Arrange
         await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -146,7 +151,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 0m);
@@ -176,7 +181,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 100m);
@@ -204,7 +209,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.Add(envelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 1, amountToMove: 100m);
@@ -234,7 +239,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove);
@@ -265,7 +270,7 @@ public partial class MoveEnvelopeBalanceTests
             context.Envelopes.AddRange(fromEnvelope, toEnvelope);
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var service = new MoveEnvelopeBalance();
+            var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
             // Act
             await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 100m);
@@ -296,7 +301,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.AddRange(fromEnvelope, toEnvelope);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 0.123456789m);
@@ -326,7 +331,7 @@ public partial class MoveEnvelopeBalanceTests
         context.Envelopes.AddRange(envelope1, envelope2, envelope3);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var service = new MoveEnvelopeBalance();
+        var service = new MoveEnvelopeBalance(MakeUserAndOptions());
 
         // Act
         await service.MoveBalance(context, fromEnvelopeId: 1, toEnvelopeId: 2, amountToMove: 100m);

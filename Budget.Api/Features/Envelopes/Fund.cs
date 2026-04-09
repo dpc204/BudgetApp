@@ -69,7 +69,7 @@ public static class Fund
         var addMultipleHandler = new AddMultipleTransaction.Handler(insertTransactions);
        var addResult = await addMultipleHandler.Handle(new AddMultipleTransaction.Command(_newAssignTransactions), cancellationToken);
 
-       return result.WithValue(addResult.EnvelopeUpdates.Count).WithSuccess("Envelopes have been funded");
+       return result.WithValue(addResult.Count).WithSuccess("Envelopes have been funded");
       }
       catch (Exception e)
       {
