@@ -15,7 +15,7 @@ public interface ITransactionsApiClient
   Task<AssignQueryResult> GetUnassignedVirtualAsync(AssignQuery query, CancellationToken cancellationToken = default);
 
   // Write operations
-  Task<EnvelopeDeltas> TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amount, CancellationToken cancellationToken = default);
+  Task<Result<EnvelopeDeltas>> TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amount, CancellationToken cancellationToken = default);
   Task<EnvelopeDeltas> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);
   Task<EnvelopeDeltas> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeUpdate>> UpdateTransactionAsync(OneTransactionDetail transaction, CancellationToken cancellationToken = default);

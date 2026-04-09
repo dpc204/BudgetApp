@@ -2,22 +2,22 @@ namespace Budget.Client.Components.Maintenance.BackupRestore;
 
 public partial class BackupRestoreIndex : IDisposable
 {
-  [Inject] private IUtilitiesApiClient MaintApiClient { get; set; } = default!;
-  [Inject] private ISnackbar Snackbar { get; set; } = default!;
-  [Inject] private IDialogService DialogService { get; set; } = default!;
-  [Inject] private IJSRuntime JS { get; set; } = default!;
-  [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
-  [Inject] private ILogger<BackupRestoreIndex> Logger { get; set; } = default!;
+  [Inject] private IUtilitiesApiClient MaintApiClient { get; set; } = null!;
+  [Inject] private ISnackbar Snackbar { get; set; } = null!;
+  [Inject] private IDialogService DialogService { get; set; } = null!;
+  [Inject] private IJSRuntime Js { get; set; } = null!;
+  [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+  [Inject] private ILogger<BackupRestoreIndex> Logger { get; set; } = null!;
 
   private List<BackupSetDto>? _backupSets;
   private List<BackupTableDto>? _backupTables;
   private BackupSetDto? _selectedBackupSet;
 
-  protected bool IsAdmin { get; private set; }
-  protected bool BackupAllBusy { get; private set; }
-  protected string BackupAllButtonText { get; private set; } = "Backup All Tables";
-  protected string? BackupAllStatus { get; private set; }
-  protected string? CurrentBackupId { get; private set; }
+  private bool IsAdmin { get; set; }
+  private bool BackupAllBusy { get; set; }
+  private string BackupAllButtonText { get; set; } = "Backup All Tables";
+  private string? BackupAllStatus { get; set; }
+  private string? CurrentBackupId { get; set; }
 
   private System.Timers.Timer? _pollTimer;
 
@@ -130,7 +130,7 @@ public partial class BackupRestoreIndex : IDisposable
       var base64 = Convert.ToBase64String(fileDownload.Content);
       var dataUrl = $"data:{fileDownload.ContentType};base64,{base64}";
       
-      await JS.InvokeVoidAsync("downloadFileFromStream", fileDownload.FileName, dataUrl);
+      await Js.InvokeVoidAsync("downloadFileFromStream", fileDownload.FileName, dataUrl);
       Snackbar.Add($"Downloaded {table.TableName}.csv", Severity.Success);
     }
     catch (Exception ex)
@@ -174,7 +174,7 @@ public partial class BackupRestoreIndex : IDisposable
   private void StartStatusPolling()
   {
     _pollTimer = new System.Timers.Timer(2000); // Poll every 2 seconds
-    _pollTimer.Elapsed += async (sender, e) =>
+    _pollTimer.Elapsed += async (_, _) =>
     {
       try
       {

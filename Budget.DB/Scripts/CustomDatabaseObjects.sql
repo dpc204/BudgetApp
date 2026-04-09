@@ -54,7 +54,7 @@ GO
 CREATE OR ALTER TRIGGER budget.trg_TransactionDetails_UpdateEnvelopeBalance
 ON budget.TransactionDetails
 AFTER INSERT
-ASx`
+AS
 BEGIN
   SET NOCOUNT ON;
   

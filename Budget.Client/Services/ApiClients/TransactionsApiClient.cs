@@ -68,7 +68,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
   {
     try
     {
-      var response = await http.GetAsync($"transactions/unassigned", cancellationToken);
+      var response = await http.GetAsync("transactions/unassigned", cancellationToken);
 
       if (!response.IsSuccessStatusCode)
       {
@@ -104,7 +104,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
   }
 
   // Write operations
-  public async Task<EnvelopeDeltas> TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amount,
+  public async Task<Result<EnvelopeDeltas>> TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amount,
     CancellationToken cancellationToken = default)
   {
     var payload = new { Reason = reason, FromEnvelopeId = fromEnvelopeId, ToEnvelopeId = toEnvelopeId, Amount = amount };
@@ -112,13 +112,14 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
 
     if (!resp.IsSuccessStatusCode)
     {
+      var msg = $"TransferEnvelopeFunds failed with status {resp.StatusCode}";
       logger.LogWarning("TransferEnvelopeFunds failed with status {Status}", resp.StatusCode);
-      return null;
+      return Result.Fail(msg);
     }
 
     var envUpdates = await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
 
-    return envUpdates;
+    return envUpdates ?? [];
   }
 
   public async Task<EnvelopeDeltas> AddTransactionAsync(OneTransactionDetail newTransaction,
@@ -152,12 +153,12 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     try
     {
       var transaction = await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
-      return transaction ?? new EnvelopeDeltas();
+      return transaction ?? [];
     }
     catch (Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for AddMultipleTransactions at {Url}", "/Transaction/InsertMulti");
-      return new EnvelopeDeltas();
+      return [];
     }
   }
 
@@ -324,7 +325,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
       throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
     }
 
-    return result!;
+    return result;
   }
 
   private sealed record ImportResult(int Count);

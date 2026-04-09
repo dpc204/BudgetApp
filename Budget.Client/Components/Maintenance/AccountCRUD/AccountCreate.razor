@@ -31,9 +31,8 @@
 </MudDialog>
 
 @code {
-  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
   private BankAccountDto? _account;
-  private void Close() => MudDialog.Close(DialogResult.Cancel());
 
   protected override Task OnInitializedAsync()
   {
@@ -43,7 +42,6 @@
 
   private async Task CreateAsync()
   {
-    var created = await MaintApi.AddAccountAsync(_account!);
     MudDialog.Close(DialogResult.Ok(true));
   }
 
