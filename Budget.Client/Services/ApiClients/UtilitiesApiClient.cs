@@ -94,6 +94,13 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
     return new FileDownloadDto(content, fileName, "text/csv");
   }
 
+  public async Task<ImportAllResponse> ImportAllAsync(string partitionKey, string targetDatabase, CancellationToken cancellationToken = default)
+  {
+    var payload = new { PartitionKey = partitionKey, TargetDatabase = targetDatabase };
+    var result = await PostAsync<object, ImportAllResponse>("utilities/import-all", payload, cancellationToken);
+    return result;
+  }
+
   // BACPAC history operations
   public async Task<IEnumerable<BacpacBackupDto>> GetBacpacHistoryAsync(CancellationToken cancellationToken = default)
   {

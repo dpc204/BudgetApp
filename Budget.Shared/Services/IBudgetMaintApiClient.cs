@@ -63,6 +63,7 @@ public interface IBudgetMaintApiClient
 public sealed record BackupPlanDto(string FileName);
 public sealed record ImportResult(int ImportedCount, List<string> Errors);
 public sealed record ExportAllResponse(string BackupId, string Message);
+public sealed record ImportAllResponse(bool Success, string Message, int TablesRestored, int TablesFailed, List<string> Errors);
 public sealed record BackupStatusDto(
   string BackupId,
   DateTime StartTime,
