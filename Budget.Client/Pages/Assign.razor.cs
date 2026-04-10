@@ -4,7 +4,7 @@ namespace Budget.Client.Pages;
 
 public partial class Assign : ComponentBase
 {
- // [Inject] private EnvelopeState State { get; set; } = default!;
+  // [Inject] private EnvelopeState State { get; set; } = default!;
   [Inject] private ITransactionsApiClient Api { get; set; } = default!;
   [Inject] private IBudgetMonthlyApiClient MonthlyApi { get; set; } = default!;
   [Inject] private IJSRuntime JS { get; set; } = default!;
@@ -46,7 +46,7 @@ public partial class Assign : ComponentBase
     try
     {
       var result = await Api.GetTransactionsUnassignedAsync();
-      if (result.IsSuccess)
+      if(result.IsSuccess)
       {
         Transactions = result.Value;
       }
@@ -56,10 +56,10 @@ public partial class Assign : ComponentBase
         Logger.LogError("Failed to load unassigned transactions: {Errors}", _loadError);
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       _loadError = ex.Message;
-      if (Logger.IsEnabled(LogLevel.Error))
+      if(Logger.IsEnabled(LogLevel.Error))
       {
         Logger.LogError(ex, "Error in OnInitializedAsync");
       }
@@ -74,21 +74,21 @@ public partial class Assign : ComponentBase
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    if (firstRender && !_afterRenderInit)
+    if(firstRender && !_afterRenderInit)
     {
       _afterRenderInit = true;
       StateHasChanged();
     }
 
     // Set initial focus on Notes column when page first loads
-    if (!_setInitialFocus && !_loading && Grid != null)
+    if(!_setInitialFocus && !_loading && Grid != null)
     {
       _setInitialFocus = true;
       await SetFocusToNotesColumnAsync(0);
     }
 
     // Set focus after grid reload when envelope was changed
-    if (_focusRowIndexAfterReload >= -1)
+    if(_focusRowIndexAfterReload >= -1)
     {
       var rowIndex = _focusRowIndexAfterReload;
       _focusRowIndexAfterReload = -2;
@@ -122,8 +122,7 @@ public partial class Assign : ComponentBase
         string.Join(";", gridState.FilterDefinitions.Select(f => $"{f.Column?.PropertyName} {f.Operator} {f.Value}"))
       );
 
-      var query = new AssignQuery
-      {
+      var query = new AssignQuery {
         StartIndex = gridState.Page * gridState.PageSize,
         Count = gridState.PageSize,
         Sort = gridState.SortDefinitions.FirstOrDefault()?.SortBy,
@@ -146,17 +145,15 @@ public partial class Assign : ComponentBase
       _hiddenCount = response.HiddenCount;
       await InvokeAsync(StateHasChanged);
 
-      return new GridData<TransactionDto>
-      {
+      return new GridData<TransactionDto> {
         Items = response.Items,
         TotalItems = response.TotalCount
       };
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error loading server data");
-      return new GridData<TransactionDto>
-      {
+      return new GridData<TransactionDto> {
         Items = [],
         TotalItems = 0
       };
@@ -166,7 +163,7 @@ public partial class Assign : ComponentBase
 
   private async Task OnEnvelopeSelectedAsync(TransactionDto transaction, EnvelopeIdName? selectedEnvelope)
   {
-    if (selectedEnvelope is null) return;
+    if(selectedEnvelope is null) return;
 
     // Update the transaction's envelope
     transaction.EnvelopeId = selectedEnvelope.EnvelopeId;
@@ -181,7 +178,7 @@ public partial class Assign : ComponentBase
 
   private async Task OnEnvelopeChanged(TransactionDto contextItem, EnvelopeIdName? val)
   {
-    if (val is null) return;
+    if(val is null) return;
 
     await OnEnvelopeSelectedAsync(contextItem, val);
 
@@ -264,7 +261,7 @@ public partial class Assign : ComponentBase
 
   private async Task BulkAssignAsync()
   {
-    if (_bulkEnvelope is null || _selectedTransactions.Count == 0)
+    if(_bulkEnvelope is null || _selectedTransactions.Count == 0)
     {
       return;
     }
@@ -339,7 +336,7 @@ public partial class Assign : ComponentBase
       await Task.Delay(100);
       await JS.InvokeVoidAsync("setNotesColumnFocus", rowIndex);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogWarning(ex, "Failed to set focus to Notes column at row {RowIndex}", rowIndex);
     }

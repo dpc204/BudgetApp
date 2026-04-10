@@ -9,7 +9,7 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
   public async Task<BackupPlanDto> GetBackupPlanAsync(CancellationToken cancellationToken = default)
   {
     var result = await http.GetFromJsonAsync<BackupPlanDto>("/api/maintenance/backup-plan", cancellationToken);
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for BackupPlanDto from /api/maintenance/backup-plan");
       throw new InvalidOperationException("Expected non-null BackupPlanDto from '/api/maintenance/backup-plan'.");
@@ -21,7 +21,7 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
   {
     using var resp = await http.PostAsync("/api/maintenance/backup-azure-sql", null, cancellationToken);
     var body = await resp.Content.ReadAsStringAsync(cancellationToken);
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       throw new InvalidOperationException($"Backup failed ({(int)resp.StatusCode}): {body}");
     }
@@ -50,7 +50,7 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
   public async Task<BackupStatusDto?> GetBackupStatusAsync(string backupId, CancellationToken cancellationToken = default)
   {
     using var resp = await http.GetAsync($"utilities/backup-status/{backupId}", cancellationToken);
-    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+    if(resp.StatusCode == System.Net.HttpStatusCode.NotFound)
       return null;
 
     resp.EnsureSuccessStatusCode();
@@ -75,7 +75,7 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
   {
     var encodedPartitionKey = Uri.EscapeDataString(partitionKey);
     using var resp = await http.DeleteAsync($"utilities/backup-sets/{encodedPartitionKey}", cancellationToken);
-    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+    if(resp.StatusCode == System.Net.HttpStatusCode.NotFound)
       return false;
 
     resp.EnsureSuccessStatusCode();
@@ -104,7 +104,7 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
   {
     using var resp = await http.PostAsync("/api/maintenance/bacpac/trigger", null, cancellationToken);
     var body = await resp.Content.ReadAsStringAsync(cancellationToken);
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
       throw new InvalidOperationException($"BACPAC backup failed ({(int)resp.StatusCode}): {body}");
     return body;
   }
@@ -113,7 +113,7 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
   {
     var encodedRowKey = Uri.EscapeDataString(rowKey);
     using var resp = await http.DeleteAsync($"/api/maintenance/bacpac/{encodedRowKey}", cancellationToken);
-    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+    if(resp.StatusCode == System.Net.HttpStatusCode.NotFound)
       return false;
     resp.EnsureSuccessStatusCode();
     return true;
@@ -130,6 +130,16 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
 
     return new FileDownloadDto(content, fileName, "application/octet-stream");
   }
+  public async Task<BudgetSystemInfoDto> GetSystemInfoAsync(CancellationToken cancellationToken = default)
+  {
+    var result = await http.GetFromJsonAsync<BudgetSystemInfoDto>("/api/system/info", cancellationToken);
+    if(result is null)
+    {
+      logger.LogDebug("Null response for {Type} from {Url}", typeof(BudgetSystemInfoDto).Name, "/api/system/info");
+      throw new InvalidOperationException($"Expected non-null {typeof(BudgetSystemInfoDto).Name} from '/api/system/info'.");
+    }
+    return result;
+  }
 
   // Helper methods
   private async Task<IEnumerable<T>> GetListAsync<T>(string relativeUrl, CancellationToken ct)
@@ -143,7 +153,7 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
     using var resp = await http.PostAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");

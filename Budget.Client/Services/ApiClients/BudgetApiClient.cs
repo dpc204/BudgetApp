@@ -30,7 +30,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       logger.LogDebug("UserAndOptions:Received response for GetUserByIdAsync: {HasValue}", response?.User != null);
       return response?.User;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "UserAndOptions:Error in GetUserByIdAsync for Id: {Id}", id);
       return null;
@@ -43,7 +43,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     CancellationToken cancellationToken = default)
   {
     var parameters = "";
-    if (startIndex > 0 && pageSize > 0)
+    if(startIndex > 0 && pageSize > 0)
       parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
 
     var readOnlyList = await GetListAsync<TransactionDto>($"transactions/{envelopeId}{parameters}", cancellationToken);
@@ -55,7 +55,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     CancellationToken cancellationToken = default)
   {
     var parameters = "";
-    if (startIndex > 0 && pageSize > 0)
+    if(startIndex > 0 && pageSize > 0)
       parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
 
     var readOnlyList =
@@ -73,13 +73,13 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     try
     {
       var parameters = "";
-      if (startIndex > 0 && pageSize > 0)
+      if(startIndex > 0 && pageSize > 0)
         parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
 
       var response = await http.GetAsync($"transactions/getfull/{envelopeId}{parameters}", cancellationToken);
       //var response = await http.GetAsync($"transactions/unassigned", cancellationToken);
 
-      if (!response.IsSuccessStatusCode)
+      if(!response.IsSuccessStatusCode)
       {
         var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
         logger.LogWarning("GetTransactionsUnassignedAsync failed with status {Status}: {Error}",
@@ -93,7 +93,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
           cancellationToken: cancellationToken);
 
       //I need to convert the result value to a Type of Result<List<FullTransactionDto>>
-      if (result != null)
+      if(result != null)
       {
         // The API returns a list of FullResponse, where each FullResponse contains a single transaction.
         // We need to extract the transaction from each FullResponse and return a list of FullTransactionDto.
@@ -105,7 +105,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
         return Result.Fail<List<EnvelopeTransactionListItem>>("Received null data from the API.");
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error getting unassigned transactions");
       return Result.Fail<List<EnvelopeTransactionListItem>>($"Error: {ex.Message}");
@@ -128,7 +128,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     {
       var response = await http.GetAsync($"transactions/unassigned", cancellationToken);
 
-      if (!response.IsSuccessStatusCode)
+      if(!response.IsSuccessStatusCode)
       {
         var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
         logger.LogWarning("GetTransactionsUnassignedAsync failed with status {Status}: {Error}",
@@ -139,7 +139,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       var result = await response.Content.ReadFromJsonAsync<List<TransactionDto>>(cancellationToken: cancellationToken);
       return Result.Ok(result ?? []);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error getting unassigned transactions");
       return Result.Fail<List<TransactionDto>>($"Error: {ex.Message}");
@@ -149,7 +149,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   public async Task<OneTransactionDetail> GetOneTransactionDetailAsync(int transactionId,
     CancellationToken cancellationToken = default)
   {
-   return await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);
+    return await GetAsync<OneTransactionDetail>($"transactions/detail/{transactionId}", cancellationToken);
   }
 
   public async Task<EnvelopeDto> GetEnvelopeByIdAsync(int envelopeId, CancellationToken cancellationToken = default)
@@ -203,7 +203,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   {
     using var resp = await http.PostAsync("/api/maintenance/backup-azure-sql", null, cancellationToken);
     var body = await resp.Content.ReadAsStringAsync(cancellationToken);
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       throw new InvalidOperationException($"Backup failed ({(int)resp.StatusCode}): {body}");
     }
@@ -220,7 +220,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
   private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct)
   {
     var result = await http.GetFromJsonAsync<T>(relativeUrl, cancellationToken: ct);
-    if (result == null)
+    if(result == null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
@@ -244,11 +244,11 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
         await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
       return transaction ?? [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
-      return  [];
+      return [];
     }
   }
 
@@ -265,9 +265,9 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
     {
       var transaction =
         await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
-      return transaction ??   [];
+      return transaction ?? [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       // Log at debug level and return the submitted transaction to maintain API contract
       logger.LogDebug(ex, "No response body or invalid JSON for AddTransaction at {Url}", "/Transaction/Insert");
@@ -283,7 +283,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
     using var resp = await http.PutAsJsonAsync("/Transaction/Update", payload, cancellationToken);
 
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       logger.LogWarning("UpdateTransaction failed with status {Status} for transaction {Id}",
         resp.StatusCode, transaction.Id);
@@ -295,7 +295,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       var result =
         await resp.Content.ReadFromJsonAsync<Result<List<EnvelopeDto>>>(cancellationToken: cancellationToken);
 
-      if (result?.IsSuccess == true)
+      if(result?.IsSuccess == true)
       {
         return result.Value ?? [];
       }
@@ -303,7 +303,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       logger.LogWarning("UpdateTransaction failed: {Error}", result?.Errors);
       return [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for UpdateTransaction at {Url}", "/Transaction/Update");
       return [];
@@ -317,7 +317,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
 
     using var resp = await http.PostAsJsonAsync("/Transaction/Void", payload, cancellationToken);
 
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       logger.LogWarning("VoidTransaction failed with status {Status} for transaction {Id}",
         resp.StatusCode, transactionId);
@@ -329,7 +329,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       var result =
         await resp.Content.ReadFromJsonAsync<Result<List<EnvelopeDto>>>(cancellationToken: cancellationToken);
 
-      if (result?.IsSuccess == true)
+      if(result?.IsSuccess == true)
       {
         return result.Value ?? [];
       }
@@ -337,7 +337,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       logger.LogWarning("VoidTransaction failed: {Error}", result?.Errors);
       return [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for VoidTransaction at {Url}", "/Transaction/Void");
       return [];
@@ -353,7 +353,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
           cancellationToken: cancellationToken);
       return response?.Options;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "Failed to get user options for user {UserId}", userId);
       return null;
@@ -369,7 +369,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       using var resp = await http.PostAsJsonAsync("/api/useroptions", command, cancellationToken);
       return resp.IsSuccessStatusCode;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogWarning(ex, "Failed to save user options for user {UserId}", userId);
       return false;
@@ -399,7 +399,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       var command = new LoadImportsCommand(accountId, userId);
       using var resp = await http.PostAsJsonAsync("/api/transactions/load-imports", command, cancellationToken);
 
-      if (!resp.IsSuccessStatusCode)
+      if(!resp.IsSuccessStatusCode)
       {
         logger.LogWarning("LoadTransactionImportsToUnassigned failed with status {Status}", resp.StatusCode);
         return 0;
@@ -408,7 +408,7 @@ public sealed class BudgetApiClient(HttpClient http, ILogger<BudgetApiClient> lo
       var result = await resp.Content.ReadFromJsonAsync<LoadImportsResponse>(cancellationToken: cancellationToken);
       return result?.ImportedCount ?? 0;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error loading transaction imports to unassigned");
       return 0;

@@ -1,8 +1,5 @@
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.Utilities.ImportExport;
 
@@ -40,7 +37,7 @@ public static class DeleteBackupSet
         {
           await tableClient.CreateIfNotExistsAsync(cancellationToken);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
           log.LogError(ex, "Failed to access TableBackups table");
           return new Response(false, "Failed to access backup table");
@@ -50,12 +47,12 @@ public static class DeleteBackupSet
         var filter = $"PartitionKey eq '{request.PartitionKey}'";
         var entitiesToDelete = new List<TableEntity>();
 
-        await foreach (var entity in tableClient.QueryAsync<TableEntity>(filter, cancellationToken: cancellationToken))
+        await foreach(var entity in tableClient.QueryAsync<TableEntity>(filter, cancellationToken: cancellationToken))
         {
           entitiesToDelete.Add(entity);
         }
 
-        if (entitiesToDelete.Count == 0)
+        if(entitiesToDelete.Count == 0)
         {
           log.LogWarning("No entities found for PartitionKey: {PartitionKey}", request.PartitionKey);
           return new Response(false, "Backup set not found");
@@ -67,10 +64,10 @@ public static class DeleteBackupSet
         var blobsDeleted = 0;
         var blobsFailed = 0;
 
-        foreach (var entity in entitiesToDelete)
+        foreach(var entity in entitiesToDelete)
         {
           var blobName = entity.GetString("BlobName");
-          if (!string.IsNullOrEmpty(blobName))
+          if(!string.IsNullOrEmpty(blobName))
           {
             try
             {
@@ -79,7 +76,7 @@ public static class DeleteBackupSet
               blobsDeleted++;
               log.LogInformation("Deleted blob: {BlobName}", blobName);
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
               log.LogError(ex, "Failed to delete blob: {BlobName}", blobName);
               blobsFailed++;
@@ -91,14 +88,14 @@ public static class DeleteBackupSet
         var entitiesDeleted = 0;
         var entitiesFailed = 0;
 
-        foreach (var entity in entitiesToDelete)
+        foreach(var entity in entitiesToDelete)
         {
           try
           {
             await tableClient.DeleteEntityAsync(entity.PartitionKey, entity.RowKey, cancellationToken: cancellationToken);
             entitiesDeleted++;
           }
-          catch (Exception ex)
+          catch(Exception ex)
           {
             log.LogError(ex, "Failed to delete entity: {PartitionKey}/{RowKey}", entity.PartitionKey, entity.RowKey);
             entitiesFailed++;
@@ -108,14 +105,14 @@ public static class DeleteBackupSet
         log.LogInformation("Deletion complete. Blobs: {BlobsDeleted}/{TotalBlobs}, Entities: {EntitiesDeleted}/{TotalEntities}",
           blobsDeleted, blobsDeleted + blobsFailed, entitiesDeleted, entitiesDeleted + entitiesFailed);
 
-        if (entitiesFailed > 0 || blobsFailed > 0)
+        if(entitiesFailed > 0 || blobsFailed > 0)
         {
           return new Response(false, $"Partial deletion: {entitiesDeleted} entities and {blobsDeleted} blobs deleted, {entitiesFailed + blobsFailed} failures");
         }
 
         return new Response(true, $"Successfully deleted backup set with {entitiesDeleted} tables");
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         log.LogError(ex, "Error deleting backup set: {PartitionKey}", request.PartitionKey);
         return new Response(false, $"Error: {ex.Message}");

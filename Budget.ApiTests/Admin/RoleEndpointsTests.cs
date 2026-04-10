@@ -1,11 +1,4 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Budget.Api.Features.Admin.Roles;
-using Budget.DB;
-using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 
 namespace Budget.ApiTests.Admin;
 
@@ -21,12 +14,12 @@ public class RoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var role1 = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     var role2 = new Role { Id = 2, Name = "User", Description = "Standard User", CreatedAt = DateTime.UtcNow };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Roles.AddRange(role1, role2);
     context.Users.Add(user);
@@ -55,12 +48,11 @@ public class RoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
-    var role = new Role 
-    {
+
+    var role = new Role {
       Id = 1,
-      Name = "Admin", 
-      Description = "Administrator", 
+      Name = "Admin",
+      Description = "Administrator",
       CreatedAt = DateTime.UtcNow,
       ModifiedAt = DateTime.UtcNow.AddDays(-1)
     };
@@ -126,12 +118,11 @@ public class RoleEndpointsTests
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     DateTime originalCreatedAt = DateTime.UtcNow.AddDays(-1);
-    context.Roles.Add(new Role 
-    { 
-      Id = 1, 
-      Name = "Admin", 
-      Description = "Old Description", 
-      CreatedAt = originalCreatedAt 
+    context.Roles.Add(new Role {
+      Id = 1,
+      Name = "Admin",
+      Description = "Old Description",
+      CreatedAt = originalCreatedAt
     });
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -175,7 +166,7 @@ public class RoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     context.Roles.Add(new Role { Id = 1, Name = "TestRole", Description = "Test", CreatedAt = DateTime.UtcNow });
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -196,11 +187,11 @@ public class RoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var role = new Role { Id = 1, Name = "TestRole", Description = "Test", CreatedAt = DateTime.UtcNow };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Roles.Add(role);
     context.Users.Add(user);
@@ -217,7 +208,7 @@ public class RoleEndpointsTests
     result.Success.Should().BeFalse();
     result.ErrorMessage.Should().Contain("Cannot delete role");
     result.ErrorMessage.Should().Contain("TestRole");
-    
+
     (await context.Roles.FindAsync([1], TestContext.Current.CancellationToken)).Should().NotBeNull();
   }
 

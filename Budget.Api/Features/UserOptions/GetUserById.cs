@@ -1,6 +1,4 @@
 ﻿using Budget.Shared.Services;
-using Carter;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.UserOptions;
 

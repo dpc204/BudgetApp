@@ -6,7 +6,7 @@ namespace Budget.Api.Features.BudgetMonths;
 public static class ClearDraftBudgets
 {
   public sealed record Command : IRequest<Response>;
-  
+
   public sealed record Response(bool Success, string Message, int RecordsUpdated);
 
   /// <summary>
@@ -26,7 +26,7 @@ public static class ClearDraftBudgets
         .ToListAsync(cancellationToken);
 
       // Clear the draft values
-      foreach (var budget in budgetsWithDrafts)
+      foreach(var budget in budgetsWithDrafts)
       {
         budget.BudgetDraft = null;
       }
@@ -34,7 +34,7 @@ public static class ClearDraftBudgets
       await db.SaveChangesAsync(cancellationToken);
 
       return new Response(
-        true, 
+        true,
         $"Cleared draft values for {budgetsWithDrafts.Count} budget records",
         budgetsWithDrafts.Count);
     }

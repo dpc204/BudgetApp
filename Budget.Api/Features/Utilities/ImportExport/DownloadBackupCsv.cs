@@ -1,7 +1,4 @@
 using Azure.Storage.Blobs;
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.Utilities.ImportExport;
 
@@ -34,7 +31,7 @@ public static class DownloadBackupCsv
 
         // Check if blob exists
         var exists = await blobClient.ExistsAsync(cancellationToken);
-        if (!exists)
+        if(!exists)
         {
           log.LogWarning("Blob not found: {BlobName}", request.BlobName);
           return new Response(null, null, null);
@@ -46,12 +43,12 @@ public static class DownloadBackupCsv
         // Extract filename from blob name (e.g., "BackupSet-2024-01-06/TableName.csv" -> "TableName.csv")
         var normalized = (request.BlobName ?? string.Empty).Replace('\\', '/');
         var fileName = normalized.Split('/').LastOrDefault() ?? string.Empty;
-//        var fileName = Path.GetFileName(request.BlobName);
+        //        var fileName = Path.GetFileName(request.BlobName);
 
         log.LogInformation("Successfully downloaded blob: {BlobName}", request.BlobName);
         return new Response(downloadResponse.Value.Content, "text/csv", fileName);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         log.LogError(ex, "Error downloading blob: {BlobName}", request.BlobName);
         return new Response(null, null, null);
@@ -71,8 +68,8 @@ public static class DownloadBackupCsv
         [FromServices] ISender sender) =>
       {
         var result = await sender.Send(new Query(blobName));
-        
-        if (result.Content == null)
+
+        if(result.Content == null)
         {
           return Results.NotFound();
         }

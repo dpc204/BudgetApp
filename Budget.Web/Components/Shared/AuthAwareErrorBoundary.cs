@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Budget.Web.Components.Shared;
 
@@ -16,16 +15,16 @@ public class AuthAwareErrorBoundary : ErrorBoundary
     Logger.LogError(exception, "Error boundary caught exception: {Message}", exception.Message);
 
     // Check if this is an authentication-related error
-    var isAuthError = exception is HttpRequestException httpEx && 
-                      (httpEx.Message.Contains("401") || 
+    var isAuthError = exception is HttpRequestException httpEx &&
+                      (httpEx.Message.Contains("401") ||
                        httpEx.Message.Contains("Unauthorized") ||
                        httpEx.Message.Contains("consent required") ||
                        httpEx.Message.Contains("sign out and sign back in"));
 
-    if (isAuthError)
+    if(isAuthError)
     {
       Logger.LogWarning("Authentication error detected - user needs to sign out and sign in");
-      
+
       // Set a flag in session storage to show a message after redirect
       // This would require JS interop, so for now just log it
     }

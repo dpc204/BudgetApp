@@ -38,14 +38,14 @@ public static class DownloadBacpacBackup
             databaseName, request.RowKey, cancellationToken: cancellationToken);
           entity = response.Value;
         }
-        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        catch(Azure.RequestFailedException ex) when(ex.Status == 404)
         {
           logger.LogWarning("BACPAC history entry not found: {RowKey}", request.RowKey);
           return Results.NotFound();
         }
 
         var blobName = entity.GetString("BlobName") ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(blobName))
+        if(string.IsNullOrWhiteSpace(blobName))
         {
           logger.LogError("BACPAC entry {RowKey} has no BlobName", request.RowKey);
           return Results.Problem("Blob name not found for this backup entry.", statusCode: 500);
@@ -55,7 +55,7 @@ public static class DownloadBacpacBackup
         var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
         var blobClient = containerClient.GetBlobClient(blobName);
 
-        if (!await blobClient.ExistsAsync(cancellationToken))
+        if(!await blobClient.ExistsAsync(cancellationToken))
         {
           logger.LogWarning("BACPAC blob not found: {BlobName}", blobName);
           return Results.NotFound($"Backup file '{blobName}' not found in storage.");
@@ -68,7 +68,7 @@ public static class DownloadBacpacBackup
         logger.LogInformation("Streaming BACPAC download: {BlobName} ({Size} bytes)", blobName, content.Length);
         return Results.File(content, "application/octet-stream", fileName);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         logger.LogError(ex, "Error downloading BACPAC backup {RowKey}", request.RowKey);
         return Results.Problem(ex.Message, statusCode: 500);

@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Budget.Shared.Enums;
+﻿using Budget.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Budget.DB
 {
@@ -23,7 +23,7 @@ namespace Budget.DB
     public User User { get; set; } = null!;
     public bool IsVoided { get; set; }
     public int FamilyId { get; set; } = 1;
-    public bool WasPotentialDuplicate { get; set; } 
+    public bool WasPotentialDuplicate { get; set; }
     public bool TransactionHiddenFromAssign { get; set; }
     public Family Family { get; set; } = null!;
     public List<TransactionDetail> Details { get; set; } = [];
@@ -32,7 +32,7 @@ namespace Budget.DB
       public void Configure(EntityTypeBuilder<Transaction> entity)
       {
         entity.Property(t => t.Vendor)
-          .HasMaxLength(200).IsRequired(); 
+          .HasMaxLength(200).IsRequired();
         entity.Property(t => t.Description)
           .HasMaxLength(200);
         entity.Property(t => t.TotalAmount)
@@ -54,7 +54,7 @@ namespace Budget.DB
           .HasForeignKey(t => t.FamilyId)
           .OnDelete(DeleteBehavior.Restrict);
 
-        
+
       }
     }
   }

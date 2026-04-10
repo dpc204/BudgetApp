@@ -73,8 +73,7 @@ public class FundDataServiceTests
       )
     };
 
-    var unallocatedEnvelope = new EnvelopeDto
-    {
+    var unallocatedEnvelope = new EnvelopeDto {
       Id = 100,
       Name = "Unallocated",
       Balance = 1000m
@@ -139,8 +138,7 @@ public class FundDataServiceTests
       )
     };
 
-    var unallocatedEnvelope = new EnvelopeDto
-    {
+    var unallocatedEnvelope = new EnvelopeDto {
       Id = 100,
       Name = "Unallocated",
       Balance = 1000m

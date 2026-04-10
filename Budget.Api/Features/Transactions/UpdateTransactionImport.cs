@@ -1,8 +1,3 @@
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -23,7 +18,7 @@ public static class UpdateTransactionImport
       var import = await db.TransactionImports
         .FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken);
 
-      if (import == null)
+      if(import == null)
       {
         return false;
       }

@@ -6,7 +6,7 @@ namespace Budget.Api.Features.BudgetMonths;
 public static class UpdateBudgetDraft
 {
   public sealed record Command(int AcctPeriod, int EnvelopeId, decimal? DraftValue) : IRequest<Response>;
-  
+
   public sealed record Response(bool Success, string Message);
 
   /// <summary>
@@ -22,11 +22,10 @@ public static class UpdateBudgetDraft
           b => b.AcctPeriod == request.AcctPeriod && b.EnvelopeId == request.EnvelopeId,
           cancellationToken);
 
-      if (budgetMonth == null)
+      if(budgetMonth == null)
       {
         // Create new budget record
-        budgetMonth = new BudgetMonth
-        {
+        budgetMonth = new BudgetMonth {
           AcctPeriod = request.AcctPeriod,
           EnvelopeId = request.EnvelopeId,
           Budget = null,

@@ -1,11 +1,9 @@
-using Budget.Shared.Models;
-
 namespace Budget.Client.Services;
 
 /// <summary>
 /// Service for loading and transforming envelope data
 /// </summary>
-public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesApiClient categoriesApi, IUserAndOptions userOptions)
+public class EnvelopeDataService(IEnvelopesApiClient envelopesApi, ICategoriesApiClient categoriesApi, IUserAndOptions userOptions)
   : IEnvelopeDataService
 {
   /// <summary>
@@ -23,8 +21,7 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
 
     var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c);
     List<Cat> Cats = [new Cat { CategoryId = "0", CategoryName = "All" }];
-    Cats.AddRange(categories.Select(c => new Cat
-      { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name, CatType = c.CatType }));
+    Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name, CatType = c.CatType }));
 
     List<EnvelopeResult> resultEnvs =
     [
@@ -46,8 +43,7 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
     ];
 
 
-    return new EnvelopeDataResult
-    {
+    return new EnvelopeDataResult {
       AllEnvelopes = resultEnvs,
       Categories = Cats,
       SelectedCategoryId = userOptions.Options.SelectedCategoryType
@@ -66,7 +62,7 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
     List<Cat> categories,
     string? selectedCategoryId)
   {
-    if (string.IsNullOrEmpty(selectedCategoryId) || selectedCategoryId == "ALL")
+    if(string.IsNullOrEmpty(selectedCategoryId) || selectedCategoryId == "ALL")
     {
       // Return all envelopes that belong to the available categories
       return [.. allEnvelopes.Join(categories, e => e.CategoryId, c => c.CategoryId, (e, c) => e)];
@@ -85,7 +81,7 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
   /// <param name="allEnvelopeData"></param>
   public void UpdateClientSideEnvelopeBalances(List<EnvelopeUpdate> updates, List<EnvelopeResult> allEnvelopeData)
   {
-    foreach (var env in updates)
+    foreach(var env in updates)
     {
       var rec = allEnvelopeData?.Find(e => e.EnvelopeId == env.EnvelopeId);
       rec?.Balance += env.EnvelopeDelta;
@@ -117,8 +113,8 @@ public class EnvelopeDataService( IEnvelopesApiClient envelopesApi, ICategoriesA
   /// <param name="cancellationToken">Cancellation token</param>
   public async Task RefreshAsync(CancellationToken cancellationToken = default)
   {
-   // await state.RefreshAsync();
-   await Task.CompletedTask;
+    // await state.RefreshAsync();
+    await Task.CompletedTask;
   }
 }
 

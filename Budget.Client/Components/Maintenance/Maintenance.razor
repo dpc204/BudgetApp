@@ -11,29 +11,20 @@
 
 @if (!string.IsNullOrWhiteSpace(Status))
 {
-    <MudAlert Severity="Severity.Info" Class="mb-2">@Status</MudAlert>
+  <MudAlert Severity="Severity.Info" Class="mb-2">@Status</MudAlert>
 }
 
 <MudTabs Elevation="1" Rounded="true">
-    <MudTabPanel Text="Accounts">
-        <AccountIndex />
-    </MudTabPanel>
-    <MudTabPanel Text="Categories">
-        <CategoryIndex />
-    </MudTabPanel>
-    <MudTabPanel Text="Envelopes">
-        <EnvelopeIndex />
-    </MudTabPanel>
-    <MudTabPanel Text="Import">
-        <TransactionsCsvImport />
-    </MudTabPanel>
-    <MudTabPanel Text="Backup/Restore">
-        <BackupRestoreIndex />
-    </MudTabPanel>
-    <MudTabPanel Text="BACPAC History">
-        <BacpacHistoryIndex />
-    </MudTabPanel>
-    <MudTabPanel Text="Users">
-        <div>Content of tab3</div>
-    </MudTabPanel>
+  <MudTabPanel Text="Accounts">
+    <AccountIndex />
+  </MudTabPanel>
+  <MudTabPanel Text="Categories">
+    <CategoryIndex />
+  </MudTabPanel>
+  <MudTabPanel Text="Envelopes">
+    <EnvelopeIndex />
+  </MudTabPanel>
+  <MudTabPanel Text="Import">
+    <TransactionsCsvImport />
+  </MudTabPanel>
 </MudTabs>

@@ -30,7 +30,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
   public async Task BeginBatchAsync()
   {
-    if (_inBatch)
+    if(_inBatch)
     {
       return;
     }
@@ -42,7 +42,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
   private void EnsureInBatch()
   {
-    if (!_inBatch)
+    if(!_inBatch)
     {
       throw new InvalidOperationException("Not currently in a batch. Call BeginBatchAsync first.");
     }
@@ -51,7 +51,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
   public async Task EndBatchAsync()
   {
-    if (!_inBatch)
+    if(!_inBatch)
       return;
 
     // Use the execution strategy to wrap the transaction
@@ -62,7 +62,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
       using var transaction = await db.Database.BeginTransactionAsync();
 
 
-      foreach (var tran in _transactions)
+      foreach(var tran in _transactions)
       {
         await db.Transactions.AddAsync(tran);
       }
@@ -96,7 +96,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   private async Task UpdateEnvelopeBalancesForReturnAsync()
   {
     var groupedChanges = _envelopeChanges.GroupBy(e => e.EnvelopeId);
-    foreach (var grp in groupedChanges)
+    foreach(var grp in groupedChanges)
     {
       await UpdateOneEnvelope(grp);
     }
@@ -108,7 +108,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
     ArgumentNullException.ThrowIfNull(list);
 
-    foreach (var tran in list)
+    foreach(var tran in list)
     {
       await AddTransactionAsync(tran);
     }
@@ -123,7 +123,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
     EnsureInBatch();
 
     Transaction? updatedTransaction = null;
-    if (tran.PostingStatus == PostingStatuses.ToBeCleared)
+    if(tran.PostingStatus == PostingStatuses.ToBeCleared)
     {
       ClearPendingTransaction(tran);
     }
@@ -132,7 +132,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
       updatedTransaction = InsertTransaction(tran);
       await UpdateAccountAsync(updatedTransaction);
     }
-    
+
     return updatedTransaction;
   }
 
@@ -144,8 +144,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
   private Transaction InsertTransaction(OneTransactionDetail tran)
   {
-    var trans = new Transaction
-    {
+    var trans = new Transaction {
       AccountId = tran.AccountId,
       Date = tran.Date,
       PostingStatus = tran.PostingStatus,
@@ -159,10 +158,9 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
 
     var lineId = 1;
 
-    foreach (var detail in tran.Details)
+    foreach(var detail in tran.Details)
     {
-      var dtl = new TransactionDetail()
-      {
+      var dtl = new TransactionDetail() {
         LineId = lineId++,
         Amount = detail.Amount,
         EnvelopeId = detail.EnvelopeId,
@@ -183,7 +181,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   private async Task UpdateOneEnvelope(IGrouping<int, EnvelopeUpdate> grp)
   {
     var env = await db.Envelopes.FindAsync([grp.Key]);
-    if (env is null) return;
+    if(env is null) return;
     env.Balance += grp.Sum(d => d.EnvelopeDelta); // subtract total amount for this envelope
     _InsertTransactionResult.Add(new EnvelopeUpdate(grp.Key, grp.Sum(d => d.EnvelopeDelta)));
   }
@@ -191,7 +189,7 @@ public class InsertTransactions(BudgetContext db, ICurrentFamilyService currentF
   private async Task UpdateAccountAsync(Transaction trans)
   {
     var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
-    if (acct is null) return;
+    if(acct is null) return;
     acct.LastTransactionDate = DateTime.UtcNow;
     acct.LastTransaction = trans; // set navigation, EF will set FK after save
     acct.Balance += trans.TotalAmount;

@@ -1,12 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Budget.Api.Features.BudgetMonths;
-using Budget.DB;
 using Budget.Shared.Enums;
-using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 
 namespace Budget.ApiTests;
 
@@ -25,11 +18,11 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
@@ -54,7 +47,7 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var handler = new CheckDraftBudgets.Handler(context);
 
     // Act
@@ -70,11 +63,11 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
@@ -96,18 +89,17 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
-    var budgetMonth = new BudgetMonth 
-    { 
-      AcctPeriod = 202412, 
-      EnvelopeId = 1, 
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202412,
+      EnvelopeId = 1,
       BudgetDraft = 100m,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
@@ -130,19 +122,18 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     // Use a future date to ensure it gets cleared
     DateTime futureDate = DateTime.Now.AddMonths(1);
     var futureAcctPeriod = futureDate.Year * 100 + futureDate.Month;
-    var budgetMonth = new BudgetMonth 
-    { 
-      AcctPeriod = futureAcctPeriod, 
-      EnvelopeId = 1, 
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = futureAcctPeriod,
+      EnvelopeId = 1,
       BudgetDraft = 100m,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -163,18 +154,17 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var envelope = new Envelope { Id = 1, Name = "Test Envelope", CategoryId = "1", FamilyId = 1, EnvelopeType = EnvelopeTypes.Standard, SortOrder = 1 };
-    var budgetMonth = new BudgetMonth 
-    { 
-      AcctPeriod = 202411, 
-      EnvelopeId = 1, 
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202411,
+      EnvelopeId = 1,
       Budget = 150m,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.Envelopes.Add(envelope);
@@ -198,16 +188,15 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var budgetMonth = new BudgetMonth 
-    { 
-      AcctPeriod = 202412, 
-      EnvelopeId = 1, 
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202412,
+      EnvelopeId = 1,
       Budget = 200m,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -229,16 +218,15 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var budgetMonth = new BudgetMonth 
-    { 
-      AcctPeriod = 202412, 
-      EnvelopeId = 1, 
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202412,
+      EnvelopeId = 1,
       BudgetDraft = 150m,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -260,17 +248,16 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var budgetMonth = new BudgetMonth 
-    { 
-      AcctPeriod = 202412, 
-      EnvelopeId = 1, 
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202412,
+      EnvelopeId = 1,
       Budget = 200m,
       BudgetDraft = 150m,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -292,16 +279,15 @@ public class BudgetMonthEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var budgetMonth = new BudgetMonth 
-    { 
-      AcctPeriod = 202412, 
-      EnvelopeId = 1, 
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202412,
+      EnvelopeId = 1,
       BudgetDraft = 175m,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BudgetMonths.Add(budgetMonth);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);

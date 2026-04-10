@@ -23,5 +23,6 @@ public interface IUtilitiesApiClient
   Task<string> TriggerBacpacBackupAsync(CancellationToken cancellationToken = default);
   Task<bool> DeleteBacpacBackupAsync(string rowKey, CancellationToken cancellationToken = default);
   Task<FileDownloadDto> DownloadBacpacBackupAsync(string rowKey, CancellationToken cancellationToken = default);
+  Task<BudgetSystemInfoDto> GetSystemInfoAsync(CancellationToken cancellationToken = default);
 }
 

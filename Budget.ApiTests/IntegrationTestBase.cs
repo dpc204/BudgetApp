@@ -1,14 +1,9 @@
-﻿using System.IO;
-using System.Net.Http;
-using System.Reflection;
-using Budget.Api;
-using Budget.Shared.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Budget.Shared.Services;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.UserSecrets;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.IO;
+using System.Reflection;
 
 
 namespace Budget.ApiTests;
@@ -102,23 +97,23 @@ public class IntegrationTestBase
 
     bld.ConfigureWarnings(warn => warn.Ignore(InMemoryEventId.TransactionIgnoredWarning));
 
-return bld.Options;
+    return bld.Options;
   }
 
   protected static BudgetContext GetTestDBContext(int familyId = 1)
   {
     var db = new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService(familyId));
-    
-    
+
+
     return db;
   }
 
-    protected UserAndOptions MakeUserAndOptions()
-    {
-      var userAndOpts = new UserAndOptions(null);
-      userAndOpts.User = new           UserInfoDto { Id = 1, FamilyId = 1};
-      return userAndOpts;
-    }
+  protected UserAndOptions MakeUserAndOptions()
+  {
+    var userAndOpts = new UserAndOptions(null);
+    userAndOpts.User = new UserInfoDto { Id = 1, FamilyId = 1 };
+    return userAndOpts;
+  }
 
   protected class TestCurrentFamilyService(int familyId = 1) : ICurrentFamilyService
   {

@@ -2,11 +2,11 @@
 {
   public class GetEnvelopeByType
   {
-    public static async Task<EnvelopeDto?> Get(BudgetContext db,EnvelopeTypes envType, CancellationToken cancellationToken)
+    public static async Task<EnvelopeDto?> Get(BudgetContext db, EnvelopeTypes envType, CancellationToken cancellationToken)
     {
-      if(envType == EnvelopeTypes.All|| envType== EnvelopeTypes.Standard)
-        throw new ArgumentException("Invalid envelope type in GetEnvelopeByType");	
-      
+      if(envType == EnvelopeTypes.All || envType == EnvelopeTypes.Standard)
+        throw new ArgumentException("Invalid envelope type in GetEnvelopeByType");
+
       var envelope = await db.Envelopes
         .AsNoTracking()
         .Include(env => env.Category)

@@ -9,7 +9,7 @@ public static class RemoveEnvelope
     public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
     {
       var entity = await db.Envelopes.FindAsync([request.Id], cancellationToken);
-      if (entity is null)
+      if(entity is null)
       {
         return false;
       }

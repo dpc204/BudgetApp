@@ -28,8 +28,8 @@ public static class ConfigureDatabase
                 maxRetryCount: 5,
                 maxRetryDelay: TimeSpan.FromSeconds(10),
                 errorNumbersToAdd: null));
-      
-      if (env.IsDevelopment())
+
+      if(env.IsDevelopment())
       {
         options.EnableDetailedErrors();
         options.EnableSensitiveDataLogging();
@@ -52,11 +52,11 @@ public static class ConfigureDatabase
 
       builder.Services.AddDatabaseDeveloperPageExceptionFilter();
     }
-    catch (InvalidOperationException ex) when (ex.Message.Contains("Connection string"))
+    catch(InvalidOperationException ex) when(ex.Message.Contains("Connection string"))
     {
       // During Entra ID migration, Identity database is optional
       logger.LogWarning("Identity database connection string not found. Skipping Identity database configuration during Entra ID migration. Error: {Error}", ex.Message);
-      
+
       // Add a dummy/in-memory context for components that still reference it during migration
       builder.Services.AddDbContext<IdentityDBContext>(options =>
         options.UseInMemoryDatabase("TemporaryIdentityDb"));

@@ -7,7 +7,7 @@ public static class ServiceAccessor
 
   public static T GetRequiredService<T>() where T : notnull
   {
-    if (Services == null)
+    if(Services == null)
       throw new InvalidOperationException("ServiceAccessor not initialized. Call ServiceAccessor.Configure in Program.cs after building the host.");
     return Services.GetRequiredService<T>();
   }

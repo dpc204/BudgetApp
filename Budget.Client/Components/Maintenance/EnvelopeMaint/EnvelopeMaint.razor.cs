@@ -13,12 +13,10 @@ public partial class EnvelopeMaint : ComponentBase
 
   protected override void OnAfterRender(bool firstRender)
   {
-    if (firstRender)
+    if(firstRender)
     {
-      CategoryParams = new DropDownEditCellParams
-      {
-        Params = new()
-        {
+      CategoryParams = new DropDownEditCellParams {
+        Params = new() {
           DataSource = new List<CategoryDto>()
           {
             new() { CategoryId = "1", Name = "Frequent", Description = "", SortOrder = 0 },
@@ -36,9 +34,10 @@ public partial class EnvelopeMaint : ComponentBase
   public int Count { get; set; }
 
   public static void DataBoundHandler()
-  {  Console.WriteLine("DataBoundHandler ");
+  {
+    Console.WriteLine("DataBoundHandler ");
     throw new NotImplementedException();
-  
+
   }
 
   public static void ActionBeginHandler(ActionEventArgs<EnvelopeDto> args)

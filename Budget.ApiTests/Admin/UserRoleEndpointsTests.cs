@@ -21,7 +21,7 @@ public class UserRoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var adminRole = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     var userRole = new Role { Id = 2, Name = "User", Description = "Standard User", CreatedAt = DateTime.UtcNow };
@@ -30,7 +30,7 @@ public class UserRoleEndpointsTests
 
     DateTime assignedAt1 = DateTime.UtcNow.AddDays(-2);
     DateTime assignedAt2 = DateTime.UtcNow.AddDays(-1);
-    
+
     context.Families.Add(family);
     context.Roles.AddRange(adminRole, userRole);
     context.Users.AddRange(user, assignedBy);
@@ -39,7 +39,7 @@ public class UserRoleEndpointsTests
       new UserRole { UserId = 1, RoleId = 2, AssignedAt = assignedAt2, AssignedByUserId = 2 }
     );
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
     var handler = new GetUserRoles.Handler(context);
 
     // Act
@@ -76,21 +76,19 @@ public class UserRoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var role = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     var user = new User { Id = 1, Email = "USER@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
     var adminUser = new User { Id = 2, Email = "ADMIN@TEST.COM", FirstName = "Admin", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Roles.Add(role);
     context.Users.AddRange(user, adminUser);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-    var httpContextAccessor = new TestHttpContextAccessor
-    {
-      HttpContext = new DefaultHttpContext
-      {
+    var httpContextAccessor = new TestHttpContextAccessor {
+      HttpContext = new DefaultHttpContext {
         User = new ClaimsPrincipal(new ClaimsIdentity(
         [
           new Claim(ClaimTypes.Email, "ADMIN@TEST.COM")
@@ -121,11 +119,11 @@ public class UserRoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var role = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     var user = new User { Id = 1, Email = "USER@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Roles.Add(role);
     context.Users.Add(user);
@@ -148,7 +146,7 @@ public class UserRoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var role = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     context.Roles.Add(role);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -169,11 +167,11 @@ public class UserRoleEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var role = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     var user = new User { Id = 1, Email = "USER@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Roles.Add(role);
     context.Users.Add(user);

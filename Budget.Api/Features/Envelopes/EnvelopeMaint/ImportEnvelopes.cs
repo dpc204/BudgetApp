@@ -26,12 +26,12 @@ public static class ImportEnvelopes
         var lines = request.CsvContent
           .Split(["\r\n", "\n", "\r"], StringSplitOptions.None)
           .ToList();
-        
+
         // Enable IDENTITY_INSERT to allow explicit Id values
 
         if(db.Database.IsSqlServer())
         {
-     //     await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes ON", cancellationToken);
+          //     await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes ON", cancellationToken);
           try
           {
             var envelopes = await CsvImportService.ImportAsync(db.Envelopes, lines, log: log);
@@ -41,7 +41,7 @@ public static class ImportEnvelopes
           finally
           {
             // Always disable IDENTITY_INSERT
-        //    await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes OFF", cancellationToken);
+            //    await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Envelopes OFF", cancellationToken);
           }
         }
         else
@@ -52,7 +52,7 @@ public static class ImportEnvelopes
 
         }
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         errors.Add($"Import failed: {ex.Message}");
       }
@@ -71,8 +71,8 @@ public static class ImportEnvelopes
       app.MapPost("/envelopes/maint/import", async ([FromServices] ISender sender, [FromBody] ImportRequest request) =>
       {
         var result = await sender.Send(new Command(request.CsvContent));
-        
-        if (result.Errors.Count > 0)
+
+        if(result.Errors.Count > 0)
         {
           return Results.BadRequest(result);
         }

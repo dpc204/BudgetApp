@@ -1,5 +1,3 @@
-using Aspire.Hosting.Azure;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add Azure Container Apps Environment (required for PublishAsAzureContainerApp)

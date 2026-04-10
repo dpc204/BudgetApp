@@ -22,17 +22,16 @@ public class BackupProgressService : IBackupProgressService
       CurrentTable: null,
       ErrorMessage: null,
       IsComplete: false);
-    
+
     _backups[backupId] = status;
     return backupId;
   }
 
   public void UpdateProgress(string backupId, int totalTables, int completedTables, int failedTables, string? currentTable = null, string? errorMessage = null)
   {
-    if (_backups.TryGetValue(backupId, out var existing))
+    if(_backups.TryGetValue(backupId, out var existing))
     {
-      var updated = existing with
-      {
+      var updated = existing with {
         TotalTables = totalTables,
         CompletedTables = completedTables,
         FailedTables = failedTables,
@@ -45,10 +44,9 @@ public class BackupProgressService : IBackupProgressService
 
   public void CompleteBackup(string backupId, int totalTables, int completedTables, int failedTables)
   {
-    if (_backups.TryGetValue(backupId, out var existing))
+    if(_backups.TryGetValue(backupId, out var existing))
     {
-      var updated = existing with
-      {
+      var updated = existing with {
         TotalTables = totalTables,
         CompletedTables = completedTables,
         FailedTables = failedTables,

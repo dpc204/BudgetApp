@@ -16,7 +16,7 @@ public class FakeAuthenticationStateProvider : AuthenticationStateProvider
       new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, "test@example.com")
     }, "Test");
 #pragma warning restore IDE0300 // Simplify collection initialization
-    
+
     var user = new System.Security.Claims.ClaimsPrincipal(identity);
     return Task.FromResult(new AuthenticationState(user));
   }

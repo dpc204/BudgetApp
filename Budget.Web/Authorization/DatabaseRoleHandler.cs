@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Budget.Web.Authorization;
 
@@ -25,7 +25,7 @@ public class DatabaseRoleHandler(ILogger<DatabaseRoleHandler> logger) : Authoriz
       string.Join(", ", requirement.AllowedRoles));
 
     // Check if user has any of the allowed roles
-    if (userRoles.Any(role => requirement.AllowedRoles.Contains(role, StringComparer.OrdinalIgnoreCase)))
+    if(userRoles.Any(role => requirement.AllowedRoles.Contains(role, StringComparer.OrdinalIgnoreCase)))
     {
       logger.LogDebug("Authorization succeeded for user {User}", context.User.Identity?.Name ?? "unknown");
       context.Succeed(requirement);

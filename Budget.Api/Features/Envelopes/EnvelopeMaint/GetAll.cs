@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks.Dataflow;
-
-namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
+﻿namespace Budget.Api.Features.Envelopes.EnvelopeMaint;
 
 public static class GetAll
 {
@@ -14,12 +12,12 @@ public static class GetAll
     {
       var result = await db.Envelopes.Include(e => e.Category) // Eagerly load the Category navigation property
         .AsNoTracking()
-        .OrderBy(e=> e.Category.SortOrder)
-        .ThenBy(e=> e.Name)
+        .OrderBy(e => e.Category.SortOrder)
+        .ThenBy(e => e.Name)
         .Select(a => new Response(a.Id, a.Name, a.Description, a.Balance, a.Budget, a.CategoryId, a.Category.SortOrder,
           a.EnvelopeType))
         .ToListAsync(cancellationToken);
-     return result;
+      return result;
     }
   }
 

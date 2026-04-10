@@ -1,20 +1,13 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Budget.Api.Features.Admin.Users;
-using Budget.DB;
-using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 
 namespace Budget.ApiTests.Admin;
 
 public class UserEndpointsTests : IntegrationTestBase
 {
-    private new static DbContextOptions<BudgetContext> CreateInMemoryOptions()
-    => new DbContextOptionsBuilder<BudgetContext>()
-      .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
-      .Options;
+  private new static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+  => new DbContextOptionsBuilder<BudgetContext>()
+    .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+    .Options;
 
   [Fact]
   public async Task GetUsers_ReturnsAllUsers_WithRoles_AcrossFamilies()
@@ -27,10 +20,10 @@ public class UserEndpointsTests : IntegrationTestBase
     var family2 = new Family { Id = 2, Name = "Family 2" };
     var adminRole = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     var userRole = new Role { Id = 2, Name = "User", Description = "Standard User", CreatedAt = DateTime.UtcNow };
-    
+
     var user1 = new User { Id = 1, Email = "ADMIN@TEST.COM", FirstName = "Admin", LastName = "User", FamilyId = 1 };
     var user2 = new User { Id = 2, Email = "USER@TEST.COM", FirstName = "Regular", LastName = "User", FamilyId = 2 };
-    
+
     context.Families.AddRange(family1, family2);
     context.Roles.AddRange(adminRole, userRole);
     context.Users.AddRange(user1, user2);
@@ -64,10 +57,10 @@ public class UserEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var user = new User { Id = 1, Email = "USER@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Users.Add(user);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -87,12 +80,12 @@ public class UserEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var adminRole = new Role { Id = 1, Name = "Admin", Description = "Administrator", CreatedAt = DateTime.UtcNow };
     var powerUserRole = new Role { Id = 2, Name = "PowerUser", Description = "Power User", CreatedAt = DateTime.UtcNow };
     var user = new User { Id = 1, Email = "ADMIN@TEST.COM", FirstName = "Admin", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Roles.AddRange(adminRole, powerUserRole);
     context.Users.Add(user);
@@ -137,18 +130,17 @@ public class UserEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family1 = new Family { Id = 1, Name = "Family 1" };
     var family2 = new Family { Id = 2, Name = "Family 2" };
-    var user = new User 
-    { 
-      Id = 1, 
-      Email = "OLD@TEST.COM", 
-      FirstName = "Old", 
-      LastName = "Name", 
-      FamilyId = 1 
+    var user = new User {
+      Id = 1,
+      Email = "OLD@TEST.COM",
+      FirstName = "Old",
+      LastName = "Name",
+      FamilyId = 1
     };
-    
+
     context.Families.AddRange(family1, family2);
     context.Users.Add(user);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -195,7 +187,7 @@ public class UserEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     context.Families.Add(family);
     context.Users.AddRange(

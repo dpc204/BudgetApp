@@ -47,8 +47,7 @@ public class HandlerTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = "Groceries",
       Description = "Monthly grocery budget",
@@ -146,8 +145,8 @@ public class HandlerTests
       FamilyId = 1,
       SortOrder = 1
     };
-    context.Categories.Add(category); 
-     category = new Category {
+    context.Categories.Add(category);
+    category = new Category {
       CategoryId = "cat3",
       Name = "Test Category",
       Description = "Test",
@@ -182,8 +181,7 @@ public class HandlerTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = "Unbudgeted",
       Description = "No budget set",
@@ -232,8 +230,7 @@ public class HandlerTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = "Test Envelope",
       Description = "Test",
@@ -244,8 +241,7 @@ public class HandlerTests
       EnvelopeType = envelopeType,
       FamilyId = 1
     };
-    var category = new Category
-    {
+    var category = new Category {
       CategoryId = "cat1",
       Name = "Test Category",
       Description = "Test",
@@ -280,8 +276,7 @@ public class HandlerTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = "Test",
       Description = "Test",
@@ -293,8 +288,7 @@ public class HandlerTests
       FamilyId = 1
     };
 
-    var category = new Category
-    {
+    var category = new Category {
       CategoryId = "cat1",
       Name = "Test Category",
       Description = "Test",
@@ -327,8 +321,7 @@ public class HandlerTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = string.Empty,
       Description = string.Empty,
@@ -339,8 +332,7 @@ public class HandlerTests
       EnvelopeType = EnvelopeTypes.Standard,
       FamilyId = 1
     };
-    var category = new Category
-    {
+    var category = new Category {
       CategoryId = "cat1",
       Name = "Test Category",
       Description = "Test",
@@ -361,7 +353,7 @@ public class HandlerTests
     result.Should().NotBeNull();
     result.Should().HaveCount(0);
 
-  
+
   }
 
   /// <summary>
@@ -373,8 +365,7 @@ public class HandlerTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = "Test & Special <chars> \"quotes\"",
       Description = "Line1\nLine2\tTabbed",
@@ -426,8 +417,7 @@ public class HandlerTests
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = "Test",
       Description = "Test",
@@ -438,8 +428,7 @@ public class HandlerTests
       FamilyId = 1
     };
 
-    var category = new Category
-    {
+    var category = new Category {
       CategoryId = "cat1",
       Name = "Test Category",
       Description = "Test",
@@ -472,10 +461,9 @@ public class HandlerTests
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     // Add many envelopes to increase likelihood of cancellation being detected
-    for (int i = 1; i <= 100; i++)
+    for(int i = 1; i <= 100; i++)
     {
-      context.Envelopes.Add(new Envelope
-      {
+      context.Envelopes.Add(new Envelope {
         Id = i,
         Name = $"Envelope {i}",
         Description = $"Description {i}",
@@ -511,8 +499,7 @@ public class HandlerTests
 
     var longString = new string('A', 10000);
 
-    var envelope = new Envelope
-    {
+    var envelope = new Envelope {
       Id = 1,
       Name = longString,
       Description = longString,

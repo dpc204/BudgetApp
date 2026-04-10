@@ -30,7 +30,7 @@ public sealed class AccountsApiClient(HttpClient http, ILogger<AccountsApiClient
   public async Task<bool> RemoveAccountAsync(int id, CancellationToken cancellationToken = default)
   {
     using var resp = await http.DeleteAsync($"accounts/maint/{id}", cancellationToken);
-    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
+    if(resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
     resp.EnsureSuccessStatusCode();
     return true;
   }
@@ -47,7 +47,7 @@ public sealed class AccountsApiClient(HttpClient http, ILogger<AccountsApiClient
     using var resp = await http.PostAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
@@ -60,7 +60,7 @@ public sealed class AccountsApiClient(HttpClient http, ILogger<AccountsApiClient
     using var resp = await http.PutAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");

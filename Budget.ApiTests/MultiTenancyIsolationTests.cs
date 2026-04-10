@@ -24,68 +24,64 @@ public class MultiTenancyIsolationTests(ITestOutputHelper output) : IntegrationT
     // Arrange
     var familyService = new TestCurrentFamilyService { FamilyId = 10 };
     await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
-    
+
     // Create two families with IDs that don't conflict with seed data
     var family1 = new Family { Id = 10, Name = "Family 10" };
     var family2 = new Family { Id = 20, Name = "Family 20" };
     context.Families.AddRange(family1, family2);
-    
-    
+
+
     // Create categories for both families
     var category1 = new Category { CategoryId = "100", Name = "Cat1", Description = "Cat1", SortOrder = 1, FamilyId = 10, CategoryType = CatTypes.User };
     var category2 = new Category { CategoryId = "101", Name = "Cat2", Description = "Cat2", SortOrder = 1, FamilyId = 20, CategoryType = CatTypes.User };
     context.Categories.AddRange(category1, category2);
-    
+
     // Create envelopes for family 10
-    var envelope1Family1 = new Envelope 
-    { 
-      Id = 500, 
-      Name = "Envelope 1 - Family 10", 
-      CategoryId = "100", 
+    var envelope1Family1 = new Envelope {
+      Id = 500,
+      Name = "Envelope 1 - Family 10",
+      CategoryId = "100",
       FamilyId = 10,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
-    var envelope2Family1 = new Envelope 
-    { 
-      Id = 501, 
-      Name = "Envelope 2 - Family 10", 
-      CategoryId = "100", 
+    var envelope2Family1 = new Envelope {
+      Id = 501,
+      Name = "Envelope 2 - Family 10",
+      CategoryId = "100",
       FamilyId = 10,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 2
     };
-    
+
     // Create envelopes for family 20
-    var envelope1Family2 = new Envelope 
-    { 
-      Id = 502, 
-      Name = "Envelope 1 - Family 20", 
-      CategoryId = "101", 
+    var envelope1Family2 = new Envelope {
+      Id = 502,
+      Name = "Envelope 1 - Family 20",
+      CategoryId = "101",
       FamilyId = 20,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
-    var envelope2Family2 = new Envelope 
-    { 
-      Id = 503, 
-      Name = "Envelope 2 - Family 20", 
-      CategoryId = "101", 
+    var envelope2Family2 = new Envelope {
+      Id = 503,
+      Name = "Envelope 2 - Family 20",
+      CategoryId = "101",
       FamilyId = 20,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 2
     };
-    
+
     context.Envelopes.AddRange(envelope1Family1, envelope2Family1, envelope1Family2, envelope2Family2);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
 
     // Act: Query all envelopes (should only get family 10 due to query filter)
     List<Envelope> envelopes = await context.Envelopes.Where(e => e.Id >= 500).ToListAsync(TestContext.Current.CancellationToken);
 
-    foreach (Envelope? env in envelopes)
+    foreach(Envelope? env in envelopes)
     {
       _output.WriteLine($"{env.Id}  Family: {env.FamilyId}");
     }
@@ -104,55 +100,53 @@ public class MultiTenancyIsolationTests(ITestOutputHelper output) : IntegrationT
     // Arrange
     var familyService = new TestCurrentFamilyService { FamilyId = 10 };
     await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
-    
+
     // Create two families
     var family1 = new Family { Id = 10, Name = "Family 10" };
     var family2 = new Family { Id = 20, Name = "Family 20" };
     context.Families.AddRange(family1, family2);
-    
+
     // Create accounts for both families
     var account1 = new BankAccount { Id = 200, Name = "Account 1 - Family 10", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 10 };
     var account2 = new BankAccount { Id = 201, Name = "Account 2 - Family 20", Balance = 2000m, AccountType = AccountTypes.Checking, FamilyId = 20 };
     context.BankAccounts.AddRange(account1, account2);
-    
+
     // Create users for both families
     var user1 = new User { Id = 100, Email = "USER1@TEST.COM", FirstName = "User1", LastName = "Family10", FamilyId = 10 };
     var user2 = new User { Id = 101, Email = "USER2@TEST.COM", FirstName = "User2", LastName = "Family20", FamilyId = 20 };
     context.Users.AddRange(user1, user2);
-    
+
     // Create transactions for family 10
-    var tx1Family1 = new Transaction 
-    { 
-      Id = 600, 
-      AccountId = 200, 
-      Vendor = "Vendor 1", 
+    var tx1Family1 = new Transaction {
+      Id = 600,
+      AccountId = 200,
+      Vendor = "Vendor 1",
       FamilyId = 10,
       Date = DateTime.Now,
       TotalAmount = 100m,
       UserId = 100
     };
-    
+
     // Create transactions for family 20
-    var tx1Family2 = new Transaction 
-    { 
-      Id = 601, 
-      AccountId = 201, 
-      Vendor = "Vendor 2", 
+    var tx1Family2 = new Transaction {
+      Id = 601,
+      AccountId = 201,
+      Vendor = "Vendor 2",
       FamilyId = 20,
       Date = DateTime.Now,
       TotalAmount = 200m,
       UserId = 101
     };
-    
+
     context.Transactions.AddRange(tx1Family1, tx1Family2);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
 
     // Act
     List<Transaction> transactions = await context.Transactions.Where(t => t.Id >= 600).ToListAsync(TestContext.Current.CancellationToken);
-    
+
     // Assert
     transactions.Should().HaveCount(1, "query filter should only return Family 10 transactions");
     transactions.All(t => t.FamilyId == 10).Should().BeTrue("all transactions should belong to Family 10");
@@ -165,23 +159,23 @@ public class MultiTenancyIsolationTests(ITestOutputHelper output) : IntegrationT
     // Arrange
     var familyService = new TestCurrentFamilyService { FamilyId = 10 };
     await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
-    
+
     // Create two families
     var family1 = new Family { Id = 10, Name = "Family 10" };
     var family2 = new Family { Id = 20, Name = "Family 20" };
     context.Families.AddRange(family1, family2);
-    
+
     // Create accounts
     var account1 = new BankAccount { Id = 300, Name = "Checking - Family 10", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 10 };
     var account2 = new BankAccount { Id = 301, Name = "Savings - Family 20", Balance = 2000m, AccountType = AccountTypes.Checking, FamilyId = 20 };
     context.BankAccounts.AddRange(account1, account2);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
     // Act
     List<BankAccount> accounts = await context.BankAccounts.Where(a => a.Id >= 300).ToListAsync(TestContext.Current.CancellationToken);
-    
+
     // Assert
     accounts.Should().HaveCount(1, "query filter should only return Family 10 accounts");
     accounts.All(a => a.FamilyId == 10).Should().BeTrue("all accounts should belong to Family 10");
@@ -194,24 +188,24 @@ public class MultiTenancyIsolationTests(ITestOutputHelper output) : IntegrationT
     // Arrange
     var familyService = new TestCurrentFamilyService { FamilyId = 10 };
     await using var context = new BudgetContext(CreateInMemoryOptions(), familyService);
-    
+
     // Create two families
     var family1 = new Family { Id = 10, Name = "Family 10" };
     var family2 = new Family { Id = 20, Name = "Family 20" };
     context.Families.AddRange(family1, family2);
-    
+
     // Create categories
     var cat1 = new Category { CategoryId = "400", Name = "Category 1 - Family 10", Description = "Cat1", SortOrder = 1, FamilyId = 10, CategoryType = CatTypes.User };
     var cat2 = new Category { CategoryId = "401", Name = "Category 2 - Family 20", Description = "Cat2", SortOrder = 1, FamilyId = 20, CategoryType = CatTypes.User };
     context.Categories.AddRange(cat1, cat2);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
     // Clear change tracker to ensure fresh query
     context.ChangeTracker.Clear();
 
     // Act
     List<Category> categories = await context.Categories.Where(c => int.Parse(c.CategoryId) >= 400).ToListAsync(TestContext.Current.CancellationToken);
-    
+
     // Assert
     categories.Should().HaveCount(1, "query filter should only return Family 10 categories");
     categories.All(c => c.FamilyId == 10).Should().BeTrue("all categories should belong to Family 10");
@@ -221,7 +215,7 @@ public class MultiTenancyIsolationTests(ITestOutputHelper output) : IntegrationT
   /// <summary>
   /// Test helper class to provide current family context for multi-tenancy filtering
   /// </summary>
-    private new class TestCurrentFamilyService : ICurrentFamilyService
+  private new class TestCurrentFamilyService : ICurrentFamilyService
   {
     public int FamilyId { get; set; } = 1;
     public int GetCurrentFamilyId() => FamilyId;

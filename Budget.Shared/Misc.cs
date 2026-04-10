@@ -2,7 +2,7 @@
 
 public static class Misc
 {
-  private static bool? UseAzureDb;
+  private static bool? _useAzureDb;
 
   public enum ConnectionStringType
   {
@@ -22,7 +22,7 @@ public static class Misc
       ? configuration[$"{connectionType}Connection"]
       : configuration[$"Local{connectionType}Connection"];
 
-    if (string.IsNullOrWhiteSpace(s))
+    if(string.IsNullOrWhiteSpace(s))
     {
       throw new InvalidOperationException(
         $"Connection string!@# '{connectionType}Connection' is null or empty. Checked: Local{connectionType}Connection, {connectionType}connection, ConnectionStrings:{connectionType}connection");
@@ -40,7 +40,7 @@ public static class Misc
     webApplicationBuilder.Configuration.AddUserSecrets(assembly1);
     webApplicationBuilder.Configuration.AddEnvironmentVariables();
 
-    if (Misc.UseAzureDB(webApplicationBuilder, logger))
+    if(Misc.UseAzureDB(webApplicationBuilder, logger))
     {
       try
       {
@@ -49,20 +49,19 @@ public static class Misc
         var keyVaultUri = webApplicationBuilder.Configuration["KeyVault:Uri"]
           ?? webApplicationBuilder.Configuration["AZURE_KEY_VAULT_ENDPOINT"]
           ?? "https://fantumkeyvault.vault.azure.net/";
-        
+
         // Get the Managed Identity Client ID for authentication
         // Try custom variable first (to avoid azd override), then fall back to standard names
         var managedIdentityClientId = webApplicationBuilder.Configuration["BUDGET_MANAGED_IDENTITY_CLIENT_ID"]
           ?? webApplicationBuilder.Configuration["AZURE_CLIENT_ID"]
           ?? webApplicationBuilder.Configuration["MANAGED_IDENTITY_CLIENT_ID"];
-        
+
         Azure.Core.TokenCredential credential;
-        
-        if (!string.IsNullOrEmpty(managedIdentityClientId))
+
+        if(!string.IsNullOrEmpty(managedIdentityClientId))
         {
           logger.LogInformation("Using Managed Identity with Client ID: {ClientId}", managedIdentityClientId);
-          credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-          {
+          credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions {
             ManagedIdentityClientId = managedIdentityClientId
           });
         }
@@ -71,18 +70,18 @@ public static class Misc
           logger.LogInformation("Using DefaultAzureCredential without explicit Managed Identity Client ID");
           credential = new DefaultAzureCredential();
         }
-        
+
         logger.LogInformation("Connecting to Key Vault: {KeyVaultUri}", keyVaultUri);
         webApplicationBuilder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), credential);
 
         logger.Log(LogLevel.Information, "SetupConfigurationSources Using AzureDB - KeyVault Done");
       }
-      catch (Azure.RequestFailedException ex) when (ex.Status == 403)
+      catch(Azure.RequestFailedException ex) when(ex.Status == 403)
       {
         // Log but don't fail if Key Vault access is denied
         logger.LogWarning("Azure Key Vault access denied (403 Forbidden). This is expected if managed identity permissions are not configured yet. Continuing without Key Vault. Error: {Message}", ex.Message);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         // Log the exception but don't fail startup in development or when Key Vault is not critical
         logger.LogWarning("Azure Key Vault access failed: {Message}. Continuing without Key Vault.", ex.Message);
@@ -97,45 +96,46 @@ public static class Misc
 
 
     logger.Log(LogLevel.Information, $"Checking If UseAzureDB is null");
-    if (UseAzureDb is null)
+    if(_useAzureDb is null)
     {
       logger.Log(LogLevel.Information, "UseAzureDb is null");
-      if (AzureEnvironment.IsRunningOnAzure)
+      if(AzureEnvironment.IsRunningOnAzure)
       {
-        UseAzureDb = true;
+        _useAzureDb = true;
         logger.Log(LogLevel.Information, $"IsRunningOnAzure = true");
         return true;
       }
-      else {
+      else
+      {
         logger.Log(LogLevel.Information, $"IsRunningOnAzure = false");
       }
 
       var sValue = webApplicationBuilder.Configuration["UseAzureDB"]?.ToLower();
       logger.Log(LogLevel.Information, "UseAzureDB from config: {SValue}", sValue);
-      if (bool.TryParse(sValue, out var bValue))
+      if(bool.TryParse(sValue, out var bValue))
       {
-        UseAzureDb = bValue;
+        _useAzureDb = bValue;
       }
       else
       {
-        UseAzureDb = false;
+        _useAzureDb = false;
       }
     }
 
-    Console.WriteLine($"Checking UseAzureDB - UserAzureDB: {UseAzureDb}");
-    return (bool)UseAzureDb;
+    Console.WriteLine($"Checking UseAzureDB - UserAzureDB: {_useAzureDb}");
+    return (bool)_useAzureDb;
   }
 
   public static string? ParseDataSource(string cs)
   {
-    if (string.IsNullOrEmpty(cs)) return null;
-    foreach (var part in cs.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    if(string.IsNullOrEmpty(cs)) return null;
+    foreach(var part in cs.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
     {
-      if (part.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) ||
+      if(part.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) ||
           part.StartsWith("Server=", StringComparison.OrdinalIgnoreCase))
       {
         var idx = part.IndexOf('=');
-        if (idx > -1 && idx < part.Length - 1)
+        if(idx > -1 && idx < part.Length - 1)
           return part[(idx + 1)..];
       }
     }
@@ -148,10 +148,10 @@ public static class Misc
   /// </summary>
   public static void LogAllConfigurationSettings(WebApplicationBuilder webApplicationBuilder)
   {
-    if (!Debugger.IsAttached)
+    if(!Debugger.IsAttached)
       return;
 
-    if (webApplicationBuilder.Configuration is IConfigurationRoot configRoot)
+    if(webApplicationBuilder.Configuration is IConfigurationRoot configRoot)
     {
       var headerMessage = "===================== Configuration Settings by Provider === === === === === === === === === === === === === === === === === === === === === === === === === === === ";
       Debug.WriteLine(headerMessage);
@@ -162,10 +162,10 @@ public static class Misc
         Debug.WriteLine(providerMessage);
 
         LoadProviderData(provider);
-        
-        foreach (var key in GetAllKeys(provider))
+
+        foreach(var key in GetAllKeys(provider))
         {
-          if (provider.TryGet(key, out var value))
+          if(provider.TryGet(key, out var value))
           {
             // Mask sensitive values
             var keyValueMessage = $"  xKey: {key}, Value: {value}";
@@ -173,7 +173,7 @@ public static class Misc
           }
         }
       }
-      
+
       var footerMessage = "=== End Configuration Settings ===";
       Debug.WriteLine(footerMessage);
     }
@@ -200,8 +200,8 @@ public static class Misc
   private static void GetKeysRecursive(IConfigurationProvider provider, string? parentPath, List<string> keys)
   {
     var children = provider.GetChildKeys([], parentPath);
-    
-    foreach (var child in children)
+
+    foreach(var child in children)
     {
       var key = parentPath == null ? child : $"{parentPath}:{child}";
       keys.Add(key);

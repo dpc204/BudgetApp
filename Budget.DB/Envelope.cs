@@ -68,5 +68,5 @@ namespace Budget.DB
     }
   }
 
- 
+
 }

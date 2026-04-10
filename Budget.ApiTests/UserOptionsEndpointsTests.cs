@@ -6,7 +6,7 @@ namespace Budget.ApiTests;
 /// <summary>
 /// Tests for UserOptions API endpoints
 /// </summary>
-public class UserOptionsEndpointsTests 
+public class UserOptionsEndpointsTests
 {
   private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
     => new DbContextOptionsBuilder<BudgetContext>()
@@ -28,11 +28,10 @@ public class UserOptionsEndpointsTests
     // Arrange
     BudgetContext db = GetTestDBContext();
     var userId = 1;
-    var options = new Budget.Shared.Services.UserOptions
-    {
+    var options = new Budget.Shared.Services.UserOptions {
       FillAmountType = FillAmounts.FiftyPercent
     };
-    
+
     var command = new SaveUserOptions.Command(userId, options);
     var handler = new SaveUserOptions.Handler(db);
 
@@ -61,15 +60,13 @@ public class UserOptionsEndpointsTests
 
     // First, save initial options
     BudgetContext db = GetTestDBContext();
-    db.SavedUserOptions.Add(new SavedUserOptions
-    {
+    db.SavedUserOptions.Add(new SavedUserOptions {
       UserId = userId,
       JsonOptions = "{\"FillAmountType\":1}"
     });
     await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-    var updatedOptions = new Budget.Shared.Services.UserOptions
-    {
+    var updatedOptions = new Budget.Shared.Services.UserOptions {
       FillAmountType = FillAmounts.FillToBudget
     };
     var command = new SaveUserOptions.Command(userId, updatedOptions);
@@ -98,22 +95,20 @@ public class UserOptionsEndpointsTests
     var userId = 1;
 
     // First, save some options
-    db.SavedUserOptions.Add(new SavedUserOptions
-    {
+    db.SavedUserOptions.Add(new SavedUserOptions {
       UserId = userId,
       JsonOptions = "{\"FillAmountType\":2}"
     });
     await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     // Act
-    var command = new SaveUserOptions.Command(userId, new Budget.Shared.Services.UserOptions()
-    {
-      UserId = userId, FillAmountType = FillAmounts.OneHundredPercent, 
+    var command = new SaveUserOptions.Command(userId, new Budget.Shared.Services.UserOptions() {
+      UserId = userId, FillAmountType = FillAmounts.OneHundredPercent,
       SelectedCategoryType = "ALL"
     });
     var handler = new SaveUserOptions.Handler(db);
 
-      SaveUserOptions.Response response = await handler.Handle(command, CancellationToken.None);
+    SaveUserOptions.Response response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
     response.Success.Should().Be(true);

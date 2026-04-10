@@ -1,5 +1,4 @@
 using Budget.Shared.Models.Queries;
-using static System.Net.WebRequestMethods;
 
 namespace Budget.Shared.Services;
 
@@ -16,12 +15,12 @@ public interface IBudgetApiClient
 
   Task<EnvelopeDeltas> AddTransactionAsync(OneTransactionDetail newTransaction, CancellationToken cancellationToken = default);
 
-   Task<EnvelopeDeltas> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction, CancellationToken cancellationToken = default);
+  Task<EnvelopeDeltas> AddMultipleTransactionsAsync(List<OneTransactionDetail> newTransaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeDto>> UpdateTransactionAsync(OneTransactionDetail transaction, CancellationToken cancellationToken = default);
   Task<List<EnvelopeDto>> VoidTransactionAsync(int transactionId, CancellationToken cancellationToken = default);
   Task<EnvelopeDto> GetEnvelopeByIdAsync(int envelopeId, CancellationToken cancellationToken = default);
   Task<List<BankAccountDto>> GetAccountsAsync(CancellationToken cancellationToken = default);
- 
+
   // Transaction Import
   Task<int> ImportTransactionsToStagingAsync(List<TransactionImportDto> transactions, CancellationToken cancellationToken = default);
   Task<List<TransactionImportDto>> GetTransactionImportsAsync(CancellationToken cancellationToken = default);

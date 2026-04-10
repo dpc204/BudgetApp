@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Budget.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -42,7 +41,7 @@ public partial class TransactionImport
 
       entity.Property(t => t.EnvelopeName)
         .HasMaxLength(200);
-      
+
       entity.Property(t => t.Amount)
         .HasPrecision(18, 2);
 

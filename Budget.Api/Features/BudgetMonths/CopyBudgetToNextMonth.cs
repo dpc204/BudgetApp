@@ -27,7 +27,7 @@ public static class CopyBudgetToNextMonth
       var sourceYear = request.SourceAcctPeriod / 100;
       var sourceMonth = request.SourceAcctPeriod % 100;
 
-      if (sourceMonth < 1 || sourceMonth > 12 || sourceYear < 1900)
+      if(sourceMonth < 1 || sourceMonth > 12 || sourceYear < 1900)
       {
         return new Response(false, "Invalid accounting period format", 0, false);
       }
@@ -44,7 +44,7 @@ public static class CopyBudgetToNextMonth
         .AnyAsync(cancellationToken);
 
       // If there's data to overwrite and user hasn't confirmed, return warning
-      if (targetDrafts && !request.ConfirmOverwrite)
+      if(targetDrafts && !request.ConfirmOverwrite)
       {
         return new Response(false, "Target month has draft data that would be overwritten", 0, true);
       }
@@ -62,23 +62,22 @@ public static class CopyBudgetToNextMonth
 
       int recordsUpdated = 0;
 
-      foreach (var source in sourceData)
+      foreach(var source in sourceData)
       {
         // Determine the value to copy based on CopyFromDraft flag
         decimal? valueToCopy = request.CopyFromDraft ? source.BudgetDraft : source.Budget;
 
         // Skip null values
-        if (valueToCopy == null)
+        if(valueToCopy == null)
           continue;
 
         // Find or create target record
         var target = existingTargetData.FirstOrDefault(b => b.EnvelopeId == source.EnvelopeId);
 
-        if (target == null)
+        if(target == null)
         {
           // Create new record in target month with null budget
-          target = new BudgetMonth
-          {
+          target = new BudgetMonth {
             AcctPeriod = targetAcctPeriod,
             EnvelopeId = source.EnvelopeId,
             Budget = null,
@@ -89,7 +88,7 @@ public static class CopyBudgetToNextMonth
         else
         {
           // Update existing record's draft
-          if (!target.IsBudgetLocked)
+          if(!target.IsBudgetLocked)
             target.BudgetDraft = valueToCopy ?? 0m;
         }
 

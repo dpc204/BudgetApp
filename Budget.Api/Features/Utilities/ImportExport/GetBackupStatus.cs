@@ -1,7 +1,4 @@
 using Budget.Api.Services;
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.Utilities.ImportExport;
 
@@ -31,8 +28,8 @@ public static class GetBackupStatus
     public Task<Response?> Handle(Query request, CancellationToken cancellationToken)
     {
       var status = progressService.GetStatus(request.BackupId);
-      
-      if (status == null)
+
+      if(status == null)
         return Task.FromResult<Response?>(null);
 
       return Task.FromResult<Response?>(new Response(

@@ -1,8 +1,3 @@
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>

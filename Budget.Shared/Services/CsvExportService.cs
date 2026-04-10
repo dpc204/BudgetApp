@@ -19,9 +19,9 @@ public static class CsvExportService
     ILogger? log = null) where T : class
   {
     log?.LogInformation("Starting CSV export for {EntityType}", typeof(T).Name);
-    
+
     var entityList = entities.ToList();
-    if (entityList.Count == 0)
+    if(entityList.Count == 0)
     {
       log?.LogWarning("No entities to export");
       return string.Empty;
@@ -33,7 +33,7 @@ public static class CsvExportService
       .Where(p => p.CanRead && IsSimpleType(p.PropertyType))
       .ToList();
 
-    if (properties.Count == 0)
+    if(properties.Count == 0)
     {
       log?.LogWarning("No exportable properties found for {EntityType}", entityType.Name);
       return string.Empty;
@@ -47,7 +47,7 @@ public static class CsvExportService
     log?.LogInformation("Created CSV header with {PropertyCount} columns", properties.Count);
 
     // Create data lines
-    foreach (var entity in entityList)
+    foreach(var entity in entityList)
     {
       var values = properties.Select(p =>
       {
@@ -83,13 +83,12 @@ public static class CsvExportService
   /// </summary>
   private static string FormatValue(object? value)
   {
-    if (value is null)
+    if(value is null)
     {
       return string.Empty;
     }
 
-    return value switch
-    {
+    return value switch {
       DateTime dt => dt.ToString("O"), // ISO 8601 format
       DateOnly d => d.ToString("yyyy-MM-dd"),
       TimeOnly t => t.ToString("HH:mm:ss"),
@@ -105,15 +104,15 @@ public static class CsvExportService
   /// </summary>
   private static string EscapeCsvValue(string value, string separator)
   {
-    if (string.IsNullOrEmpty(value))
+    if(string.IsNullOrEmpty(value))
     {
       return string.Empty;
     }
 
     var sepChar = separator.Length > 0 ? separator[0] : ',';
-    
+
     // Check if value needs escaping (contains separator, quotes, newlines)
-    if (value.Contains(sepChar) || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+    if(value.Contains(sepChar) || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
     {
       // Escape quotes by doubling them
       var escaped = value.Replace("\"", "\"\"");

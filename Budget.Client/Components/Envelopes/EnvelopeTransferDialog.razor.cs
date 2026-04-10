@@ -34,13 +34,13 @@ public partial class EnvelopeTransferDialog
   private void NormalizeAmount()
   {
     var v = Math.Round(_amount < 0 ? 0 : _amount, 2, MidpointRounding.AwayFromZero);
-    if (v != _amount)
+    if(v != _amount)
       _amount = v;
   }
 
   private static string? ValidateAmount(decimal value)
   {
-    if (value <= 0m)
+    if(value <= 0m)
       return "Amount must be greater than 0.";
     return null;
   }
@@ -50,7 +50,7 @@ public partial class EnvelopeTransferDialog
   /// </summary>
   private async Task TransferAsync()
   {
-    if (IsTransferDisabled) return;
+    if(IsTransferDisabled) return;
 
     _isBusy = true;
     _errorMessage = null;
@@ -65,7 +65,7 @@ public partial class EnvelopeTransferDialog
 
 
 
-      if (envUpdates != null)
+      if(envUpdates != null)
       {
 
         SnackBar.Add("Transfer complete!", Severity.Success);
@@ -76,7 +76,7 @@ public partial class EnvelopeTransferDialog
         _errorMessage = "Transfer failed. Please try again.";
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       _errorMessage = $"An error occurred: {ex.Message}";
     }

@@ -30,7 +30,7 @@ public static class LoadTransactionImportsToUnassigned
         .Where(ti => !ti.Duplicate || ti.KeepDuplicate)
         .ToListAsync(cancellationToken);
 
-      if (nonDuplicates.Count == 0)
+      if(nonDuplicates.Count == 0)
       {
         return new Response(0);
       }
@@ -39,10 +39,9 @@ public static class LoadTransactionImportsToUnassigned
       List<OneTransactionDetail> transactionsToAdd = [];
 
       // Process each transaction import
-      foreach (var rec in nonDuplicates)
+      foreach(var rec in nonDuplicates)
       {
-        var trans = new OneTransactionDetail
-        {
+        var trans = new OneTransactionDetail {
           AccountId = request.AccountId,
           Date = rec.Date,
           PostingStatus = rec.PostingStatus,

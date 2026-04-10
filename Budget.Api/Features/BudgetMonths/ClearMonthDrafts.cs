@@ -6,7 +6,7 @@ namespace Budget.Api.Features.BudgetMonths;
 public static class ClearMonthDrafts
 {
   public sealed record Command(int AcctPeriod) : IRequest<Response>;
-  
+
   public sealed record Response(bool Success, string Message, int RecordsUpdated);
 
   /// <summary>
@@ -20,7 +20,7 @@ public static class ClearMonthDrafts
       var year = request.AcctPeriod / 100;
       var month = request.AcctPeriod % 100;
 
-      if (month < 1 || month > 12 || year < 1900)
+      if(month < 1 || month > 12 || year < 1900)
       {
         return new Response(false, "Invalid accounting period format", 0);
       }
@@ -31,7 +31,7 @@ public static class ClearMonthDrafts
         .ToListAsync(cancellationToken);
 
       // Clear the draft values
-      foreach (var budget in budgetsWithDrafts)
+      foreach(var budget in budgetsWithDrafts)
       {
         budget.BudgetDraft = null;
       }
@@ -39,7 +39,7 @@ public static class ClearMonthDrafts
       await db.SaveChangesAsync(cancellationToken);
 
       return new Response(
-        true, 
+        true,
         $"Cleared draft values for {budgetsWithDrafts.Count} records",
         budgetsWithDrafts.Count);
     }

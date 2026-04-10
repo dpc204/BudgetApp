@@ -84,16 +84,16 @@ public partial class EnvelopePicker(IEnvelopesApiClient envelopesApi, ICategorie
     var categories = await categoriesApi.GetCategoriesAsync();
 
     var result = from e in envelopes
-      join c in categories on e.CategoryId equals c.CategoryId
-      where IncludeEnvelopeTypes.Contains(e.EnvelopeType)
-      select new EnvelopeIdName(e.Id, c.Name, e.Name, c.SortOrder, e.SortOrder);
+                 join c in categories on e.CategoryId equals c.CategoryId
+                 where IncludeEnvelopeTypes.Contains(e.EnvelopeType)
+                 select new EnvelopeIdName(e.Id, c.Name, e.Name, c.SortOrder, e.SortOrder);
 
     _availableEnvelopes = [.. result];
   }
 
   private async Task<IEnumerable<EnvelopeIdName>> SearchEnvelopesAsync(string? searchText, CancellationToken cancellationToken)
   {
-    if (string.IsNullOrWhiteSpace(searchText))
+    if(string.IsNullOrWhiteSpace(searchText))
     {
       return [.. _availableEnvelopes];
     }
@@ -109,7 +109,7 @@ public partial class EnvelopePicker(IEnvelopesApiClient envelopesApi, ICategorie
 
   private string? GetDisplayName(EnvelopeIdName? envelope)
   {
-    if (envelope is null)
+    if(envelope is null)
       return null;
 
     return ShowCategoryInDisplay

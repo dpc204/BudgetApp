@@ -1,5 +1,4 @@
 using Budget.DB;
-using System.Security.Claims;
 
 namespace Budget.Web.Services;
 
@@ -15,13 +14,13 @@ public class CurrentFamilyService(IHttpContextAccessor httpContextAccessor) : IC
   public int GetCurrentFamilyId()
   {
     var user = httpContextAccessor.HttpContext?.User;
-    if (user?.Identity?.IsAuthenticated != true)
+    if(user?.Identity?.IsAuthenticated != true)
     {
       return -999;
     }
 
     var familyIdClaim = user.FindFirst("FamilyId")?.Value;
-    if (!int.TryParse(familyIdClaim, out var familyId))
+    if(!int.TryParse(familyIdClaim, out var familyId))
     {
       return -998;
     }

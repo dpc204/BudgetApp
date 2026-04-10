@@ -12,8 +12,7 @@ public static class InsertEnvelope
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
 
     {
-      var env = new Envelope
-      {
+      var env = new Envelope {
         Name = request.Name,
         Description = request.Description,
         Balance = request.Balance,
@@ -26,8 +25,8 @@ public static class InsertEnvelope
 
 
       db.Envelopes.Add(env);
-     await db.SaveChangesAsync(cancellationToken);
-     return new Response(env.Id, env.Name, env.Description, env.Balance, env.Budget, env.CategoryId, env.SortOrder);
+      await db.SaveChangesAsync(cancellationToken);
+      return new Response(env.Id, env.Name, env.Description, env.Balance, env.Budget, env.CategoryId, env.SortOrder);
     }
   }
 

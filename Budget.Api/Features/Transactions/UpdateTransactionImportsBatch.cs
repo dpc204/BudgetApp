@@ -1,8 +1,3 @@
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -19,7 +14,7 @@ public static class UpdateTransactionImportsBatch
   {
     public async Task<int> Handle(Command request, CancellationToken cancellationToken)
     {
-      if (request.Ids.Count == 0)
+      if(request.Ids.Count == 0)
       {
         return 0;
       }
@@ -28,7 +23,7 @@ public static class UpdateTransactionImportsBatch
         .Where(t => request.Ids.Contains(t.Id))
         .ToListAsync(cancellationToken);
 
-      foreach (var import in imports)
+      foreach(var import in imports)
       {
         import.Duplicate = request.Duplicate;
       }

@@ -12,7 +12,7 @@ public static class GetOneTransactionDetail
     public int AccountId { get; set; }
     public DateTime Date { get; set; }
     public required string Vendor { get; set; }
-      
+
     public string Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public string UserInitials { get; set; } = string.Empty;
@@ -29,8 +29,7 @@ public static class GetOneTransactionDetail
         .Include(t => t.Details)
           .ThenInclude(d => d.Envelope) // ensure Envelope is loaded per detail (EnvelopeId FK)
         .Where(t => t.Id == request.TransactionId)
-        .Select(t => new Response
-        {
+        .Select(t => new Response {
           Id = t.Id,
           AccountId = t.AccountId,
           Date = t.Date,
@@ -43,8 +42,7 @@ public static class GetOneTransactionDetail
           IsVoided = t.IsVoided,
           Details = t.Details
             .OrderBy(d => d.LineId)
-            .Select(d => new TransactionDetailDto
-            {
+            .Select(d => new TransactionDetailDto {
               TransactionId = d.TransactionId,
               LineId = d.LineId,
               EnvelopeId = d.EnvelopeId,

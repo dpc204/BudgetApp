@@ -6,7 +6,7 @@ namespace Budget.Api.Features.BudgetMonths;
 public static class ApplyDraftValuesToBudget
 {
   public sealed record Command : IRequest<Response>;
-  
+
   public sealed record Response(bool Success, string Message, int RecordsUpdated);
 
   /// <summary>
@@ -22,7 +22,7 @@ public static class ApplyDraftValuesToBudget
         .ToListAsync(cancellationToken);
 
       // Apply draft values to budget and clear drafts
-      foreach (var budget in budgetsWithDrafts.Where(a=> !a.IsBudgetLocked))
+      foreach(var budget in budgetsWithDrafts.Where(a => !a.IsBudgetLocked))
       {
         budget.Budget = budget.BudgetDraft;
         budget.BudgetDraft = null;

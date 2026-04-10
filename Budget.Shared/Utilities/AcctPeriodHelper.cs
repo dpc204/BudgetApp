@@ -20,12 +20,12 @@ public static class AcctPeriodHelper
   {
     var year = acctPeriod / 100;
     var month = acctPeriod % 100;
-    
-    if (month < 1 || month > 12)
+
+    if(month < 1 || month > 12)
     {
       throw new ArgumentException($"Invalid AcctPeriod format: {acctPeriod}. Month must be between 1-12.", nameof(acctPeriod));
     }
-    
+
     return new DateTime(year, month, 1);
   }
 }

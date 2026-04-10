@@ -9,8 +9,7 @@ public static class InsertCategory
   {
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
-      var cat = new Category
-      {
+      var cat = new Category {
         CategoryId = Guid.NewGuid().ToString(),
         Name = request.Name,
         Description = request.Description,

@@ -12,7 +12,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     int pageSize = 0, CancellationToken cancellationToken = default)
   {
     var parameters = "";
-    if (startIndex > 0 && pageSize > 0)
+    if(startIndex > 0 && pageSize > 0)
       parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
 
     var readOnlyList = await GetListAsync<TransactionDto>($"transactions/{envelopeId}{parameters}", cancellationToken);
@@ -28,12 +28,12 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     try
     {
       var parameters = "";
-      if (startIndex > 0 && pageSize > 0)
+      if(startIndex > 0 && pageSize > 0)
         parameters = $"?startIndex={startIndex}&pageSize={pageSize}";
 
       var response = await http.GetAsync($"transactions/getfull/{envelopeId}{parameters}", cancellationToken);
 
-      if (!response.IsSuccessStatusCode)
+      if(!response.IsSuccessStatusCode)
       {
         var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
         logger.LogWarning("GetFullTransactionsByEnvelopeAsync failed with status {Status}: {Error}",
@@ -46,7 +46,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
         await response.Content.ReadFromJsonAsync<List<EnvelopeTransactionListItem>>(
           cancellationToken: cancellationToken);
 
-      if (result != null)
+      if(result != null)
       {
         return Result.Ok(result);
       }
@@ -56,7 +56,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
         return Result.Fail<List<EnvelopeTransactionListItem>>("Received null data from the API.");
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error getting transactions");
       return Result.Fail<List<EnvelopeTransactionListItem>>($"Error: {ex.Message}");
@@ -70,7 +70,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     {
       var response = await http.GetAsync("transactions/unassigned", cancellationToken);
 
-      if (!response.IsSuccessStatusCode)
+      if(!response.IsSuccessStatusCode)
       {
         var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
         logger.LogWarning("GetTransactionsUnassignedAsync failed with status {Status}: {Error}",
@@ -81,7 +81,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
       var result = await response.Content.ReadFromJsonAsync<List<TransactionDto>>(cancellationToken: cancellationToken);
       return Result.Ok(result ?? []);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error getting unassigned transactions");
       return Result.Fail<List<TransactionDto>>($"Error: {ex.Message}");
@@ -110,7 +110,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     var payload = new { Reason = reason, FromEnvelopeId = fromEnvelopeId, ToEnvelopeId = toEnvelopeId, Amount = amount };
     using var resp = await http.PostAsJsonAsync("/envelopes/transfer", payload, cancellationToken);
 
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       var msg = $"TransferEnvelopeFunds failed with status {resp.StatusCode}";
       logger.LogWarning("TransferEnvelopeFunds failed with status {Status}", resp.StatusCode);
@@ -155,7 +155,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
       var transaction = await resp.Content.ReadFromJsonAsync<EnvelopeDeltas>(cancellationToken: cancellationToken);
       return transaction ?? [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for AddMultipleTransactions at {Url}", "/Transaction/InsertMulti");
       return [];
@@ -169,7 +169,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
 
     using var resp = await http.PutAsJsonAsync("/Transaction/Update", payload, cancellationToken);
 
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       logger.LogWarning("UpdateTransaction failed with status {Status} for transaction {Id}",
         resp.StatusCode, transaction.Id);
@@ -181,12 +181,12 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
       var result =
         await resp.Content.ReadFromJsonAsync<List<EnvelopeUpdate>>(cancellationToken: cancellationToken);
 
-      if (result != null)
+      if(result != null)
       {
         return result;
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for UpdateTransaction at {Url}", "/Transaction/Update");
     }
@@ -201,7 +201,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
 
     using var resp = await http.PostAsJsonAsync("/Transaction/Void", payload, cancellationToken);
 
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       logger.LogWarning("VoidTransaction failed with status {Status} for transaction {Id}",
         resp.StatusCode, transactionId);
@@ -220,7 +220,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
 
       return [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "No response body or invalid JSON for VoidTransaction at {Url}", "/Transaction/Void");
       return [];
@@ -231,7 +231,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
     CancellationToken cancellationToken = default)
   {
     var payload = new
-      { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Vendor = vendor, Description = description, Notes = notes, HiddenFromAssign = hiddenFromAssign };
+    { TransactionId = transactionId, LineId = lineId, EnvelopeId = envelopeId, Vendor = vendor, Description = description, Notes = notes, HiddenFromAssign = hiddenFromAssign };
     using var resp = await http.PutAsJsonAsync("/transactions/assign", payload, cancellationToken);
     return resp.IsSuccessStatusCode;
   }
@@ -293,7 +293,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
       var command = new LoadImportsCommand(accountId, userId);
       using var resp = await http.PostAsJsonAsync("/api/transactions/load-imports", command, cancellationToken);
 
-      if (!resp.IsSuccessStatusCode)
+      if(!resp.IsSuccessStatusCode)
       {
         logger.LogWarning("LoadTransactionImportsToUnassigned failed with status {Status}", resp.StatusCode);
         return 0;
@@ -302,7 +302,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
       var result = await resp.Content.ReadFromJsonAsync<LoadImportsResponse>(cancellationToken: cancellationToken);
       return result?.ImportedCount ?? 0;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error loading transaction imports to unassigned");
       return 0;
@@ -319,7 +319,7 @@ public sealed class TransactionsApiClient(HttpClient http, ILogger<TransactionsA
   private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct)
   {
     var result = await http.GetFromJsonAsync<T>(relativeUrl, cancellationToken: ct);
-    if (result == null)
+    if(result == null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");

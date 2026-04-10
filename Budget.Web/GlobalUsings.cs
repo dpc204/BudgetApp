@@ -1,34 +1,22 @@
 // Global using directives
 
-global using System.ComponentModel.DataAnnotations;
-global using System.Diagnostics;
-global using System.Net.Http;
-global using System.Net.Http.Json;
-global using System.Reflection;
-global using System.Text;
-global using System.Text.Encodings.Web;
 global using Azure.Identity;
-global using Budget;
 global using Budget.Shared;
 global using Budget.Shared.Models;
 global using Budget.Shared.Services;
 global using Budget.Web.Components;
-global using Budget.Web.Components.Account.Shared;
-global using Budget.Web.Components.Layout;
 global using Budget.Web.Data;
 global using Budget.Web.Startup;
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authentication.Cookies;
 global using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 global using Microsoft.AspNetCore.Components.Authorization;
-global using Microsoft.AspNetCore.Components.Forms;
-global using Microsoft.AspNetCore.Components.Routing;
 global using Microsoft.AspNetCore.Components.Web;
-global using Microsoft.AspNetCore.Components.Web.Virtualization;
 global using Microsoft.AspNetCore.Identity;
-global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.Identity.Web;
 global using Microsoft.Identity.Web.UI;
-global using Microsoft.JSInterop;
 global using MudBlazor;
-global using static Microsoft.AspNetCore.Components.Web.RenderMode;
+global using System.Diagnostics;
+global using System.Net.Http;
+global using System.Net.Http.Json;
+global using System.Text.Encodings.Web;

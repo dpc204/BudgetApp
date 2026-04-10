@@ -29,7 +29,7 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
   // Call as early as possible (OnInitializedAsync) � performs ONLY server/API work (no JS)
   public async Task EnsureLoadedAsync()
   {
-    if (IsLoaded)
+    if(IsLoaded)
       return;
     await RefreshAsync(); // API fetch only; caching happens later
   }
@@ -37,7 +37,7 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
   // Invoke from a component's OnAfterRenderAsync(firstRender) to hydrate from localStorage once JS is available.
   public virtual async Task TryLoadFromCacheAsync()
   {
-    if (_cacheAttempted)
+    if(_cacheAttempted)
       return;
     _cacheAttempted = true;
 
@@ -48,10 +48,10 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
 
 
       var json = await js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
-      if (!string.IsNullOrWhiteSpace(json))
+      if(!string.IsNullOrWhiteSpace(json))
       {
         var snapshot = JsonSerializer.Deserialize<StateSnapshot>(json, _jsonOptions);
-        if (snapshot is not null && snapshot.AllEnvelopeData is not null)
+        if(snapshot is not null && snapshot.AllEnvelopeData is not null)
         {
           AllEnvelopeData = snapshot.AllEnvelopeData;
           Cats = snapshot.Cats ?? Cats;
@@ -60,7 +60,7 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
         }
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       // Swallow � may still be prerendering or JS not yet ready; we'll rely on RefreshAsync data.
       _logger.LogDebug(ex, "Skipping cache load (JS not ready or failed).");
@@ -74,8 +74,8 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
       var categories = await _api.GetCategoriesAsync();
       var envelopes = await _api.GetEnvelopesAsync();
       _cacheAttempted = false;
-      Cats = [ new Cat { CategoryId = "0", CategoryName = "All" } ];
-      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name , CatType = c.CatType}));
+      Cats = [new Cat { CategoryId = "0", CategoryName = "All" }];
+      Cats.AddRange(categories.Select(c => new Cat { CategoryId = c.CategoryId, SortOrder = c.SortOrder, CategoryName = c.Name, CatType = c.CatType }));
 
       var categoryNameLookup = categories.ToDictionary(c => c.CategoryId, c => c);
 
@@ -95,17 +95,17 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
         .OrderBy(e => e.CategoryId)
         .ThenBy(e => e.EnvelopeName)];
 
-     _ = SaveAsync();
+      _ = SaveAsync();
 
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       _logger.LogError(ex, "Failed refreshing envelope data from API");
-      Cats = Cats.Count == 0 ? [ new Cat { CategoryId = "0", CategoryName = "All" } ] : Cats;
+      Cats = Cats.Count == 0 ? [new Cat { CategoryId = "0", CategoryName = "All" }] : Cats;
       AllEnvelopeData ??= [];
     }
 
- 
+
   }
 
   public virtual async Task SaveAsync()
@@ -116,11 +116,10 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
 
     try
     {
-      if (InOnInitializedAsync)
+      if(InOnInitializedAsync)
         return;
 
-      var snapshot = new StateSnapshot
-      {
+      var snapshot = new StateSnapshot {
         AllEnvelopeData = AllEnvelopeData,
         Cats = Cats,
         SelectedCategoryId = SelectedCategoryId,
@@ -128,13 +127,13 @@ public class EnvelopeState(IJSRuntime js, IBudgetApiClient api, ILogger<Envelope
       var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
       await js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
     }
-    catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.Contains("JavaScript interop calls cannot be issued at this time"))
+    catch(Exception ex) when((ex is InvalidOperationException && ex.Message.Contains("JavaScript interop calls cannot be issued at this time"))
     || ex is JSException)
     {
       // Ignore � typically occurs if called just before JS is fully ready; non-fatal.
       _logger.LogDebug(ex, "Skipping localStorage save (JS unavailable).");
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       _logger.LogWarning(ex, "Unexpected error saving EnvelopeState to localStorage key {StorageKey}", StorageKey);
     }

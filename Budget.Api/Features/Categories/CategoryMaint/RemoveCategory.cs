@@ -9,7 +9,7 @@ public static class RemoveCategory
     public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
     {
       var entity = await db.Categories.FindAsync([request.CategoryId], cancellationToken);
-      if (entity is null)
+      if(entity is null)
       {
         return false;
       }

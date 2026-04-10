@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using System.Net.Http.Json;
-
 namespace Budget.Client.Pages.Admin;
 
 public partial class UsersIndex
@@ -29,7 +25,7 @@ public partial class UsersIndex
       var users = await MaintApi.GetUsersAsync();
       Users = [.. users];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       ErrorMessage = $"Failed to load users: {ex.Message}";
     }
@@ -50,8 +46,7 @@ public partial class UsersIndex
       { x => x.FamilyId, user.FamilyId }
     };
 
-    var options = new DialogOptions
-    {
+    var options = new DialogOptions {
       CloseButton = true,
       MaxWidth = MaxWidth.Small,
       FullWidth = true
@@ -77,8 +72,7 @@ public partial class UsersIndex
       { x => x.UserEmail, user.Email }
     };
 
-    var options = new DialogOptions
-    {
+    var options = new DialogOptions {
       CloseButton = true,
       MaxWidth = MaxWidth.Medium,
       FullWidth = true,
@@ -88,7 +82,7 @@ public partial class UsersIndex
     var dialog = await DialogService.ShowAsync<UserRoleDialog>("Manage User Roles", parameters, options);
     var result = await dialog.Result;
 
-    if (result is { Canceled: false })
+    if(result is { Canceled: false })
     {
       await LoadUsers();
       Snackbar.Add("User roles updated successfully", Severity.Success);

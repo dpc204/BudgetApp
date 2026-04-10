@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 namespace Budget.Api.Services;
 
 /// <summary>
@@ -16,15 +14,15 @@ public class CurrentFamilyService(IHttpContextAccessor httpContextAccessor) : IC
   {
     var httpContext = httpContextAccessor.HttpContext ?? throw new UnauthorizedAccessException("HttpContext is not available.");
     var user = httpContext.User;
-    if (user?.Identity?.IsAuthenticated != true)
+    if(user?.Identity?.IsAuthenticated != true)
     {
       throw new UnauthorizedAccessException("User is not authenticated.");
     }
 
     // Try to get FamilyId from custom header first (sent by Budget.Web)
-    if (httpContext.Request.Headers.TryGetValue("X-FamilyId", out var headerValue))
+    if(httpContext.Request.Headers.TryGetValue("X-FamilyId", out var headerValue))
     {
-      if (int.TryParse(headerValue.ToString(), out var familyIdFromHeader))
+      if(int.TryParse(headerValue.ToString(), out var familyIdFromHeader))
       {
         return familyIdFromHeader;
       }
@@ -32,7 +30,7 @@ public class CurrentFamilyService(IHttpContextAccessor httpContextAccessor) : IC
 
     // Fall back to claim (for local JWT tokens or future implementations)
     var familyIdClaim = user.FindFirst("FamilyId")?.Value;
-    if (!int.TryParse(familyIdClaim, out var familyId))
+    if(!int.TryParse(familyIdClaim, out var familyId))
     {
       throw new UnauthorizedAccessException("User authenticated but FamilyId is missing from both header and claims.");
     }

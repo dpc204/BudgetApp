@@ -19,12 +19,12 @@ public static class GetAllEnvelopes
     {
       var query = db.Envelopes.AsNoTracking().Join(db.Categories, e => e.CategoryId, c => c.CategoryId, (e, c) => e);
 
-      if (request.EnvelopeType != EnvelopeTypes.All)
+      if(request.EnvelopeType != EnvelopeTypes.All)
         query = query.Where(e => e.EnvelopeType == request.EnvelopeType);
 
       query = query.OrderBy(e => e.SortOrder);
-      
-      var result = query.Select(e => 
+
+      var result = query.Select(e =>
         new Response(e.Id, e.Name, e.Balance, e.Budget, e.CategoryId, e.SortOrder, e.EnvelopeType))
         .ToListAsync(cancellationToken);
       return result.Result;

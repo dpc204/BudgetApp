@@ -20,7 +20,7 @@ public static class GetBackupPlan
       var databaseName = conn.Database;
       var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmssfff");
       var fileName = $"{databaseName}-{stamp}.bacpac";
-      
+
       return await Task.FromResult(new Response(fileName));
     }
   }

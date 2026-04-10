@@ -19,19 +19,17 @@ public class AccountEndpointsTests
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     var family = new Family { Id = 1, Name = "Test Family" };
-    var account1 = new BankAccount 
-    { 
-      Id = 300, 
-      Name = "Checking", 
-      Balance = 1000m, 
+    var account1 = new BankAccount {
+      Id = 300,
+      Name = "Checking",
+      Balance = 1000m,
       AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
-    var account2 = new BankAccount 
-    { 
-      Id = 301, 
-      Name = "Credit Card", 
-      Balance = 5000m, 
+    var account2 = new BankAccount {
+      Id = 301,
+      Name = "Credit Card",
+      Balance = 5000m,
       AccountType = AccountTypes.Credit,
       FamilyId = 1
     };
@@ -66,7 +64,7 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     context.Families.Add(family);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -99,17 +97,16 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var account = new BankAccount 
-    { 
-      Id = 302, 
-      Name = "Original Name", 
-      Balance = 1000m, 
+    var account = new BankAccount {
+      Id = 302,
+      Name = "Original Name",
+      Balance = 1000m,
       AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BankAccounts.Add(account);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -145,7 +142,7 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var handler = new UpdateAccount.Handler(context);
     var command = new UpdateAccount.Command(
       Id: 99999,
@@ -165,17 +162,16 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var account = new BankAccount 
-    { 
-      Id = 304, 
-      Name = "To Delete", 
-      Balance = 500m, 
+    var account = new BankAccount {
+      Id = 304,
+      Name = "To Delete",
+      Balance = 500m,
       AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BankAccounts.Add(account);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -199,7 +195,7 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var handler = new RemoveAccount.Handler(context);
 
     // Act
@@ -229,7 +225,7 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     context.Families.Add(family);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -254,17 +250,16 @@ public class AccountEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var account = new BankAccount 
-    { 
-      Id = 305, 
-      Name = "Original", 
-      Balance = 1000m, 
+    var account = new BankAccount {
+      Id = 305,
+      Name = "Original",
+      Balance = 1000m,
       AccountType = AccountTypes.Checking,
       FamilyId = 1
     };
-    
+
     context.Families.Add(family);
     context.BankAccounts.Add(account);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);

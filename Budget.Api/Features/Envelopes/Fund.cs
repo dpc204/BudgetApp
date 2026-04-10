@@ -1,7 +1,5 @@
 ﻿using Budget.Api.Features.Transactions;
 using Budget.Shared.Services;
-using FluentResults;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Budget.Api.Features.Envelopes;
 
@@ -29,17 +27,17 @@ public static class Fund
       {
         var incomeEnvelope = await GetEnvelopeByType.Get(db, EnvelopeTypes.Income, cancellationToken);
 
-        if (incomeEnvelope == null)
+        if(incomeEnvelope == null)
         {
           result.WithError("No Envelope setup as the Income Envelope");
           logger.LogError("No Envelope setup as the Income Envelope");
-        }     
+        }
         // Find all budget records with draft values in current or future months
         envelopesWithFunds = await db.Envelopes
           .Where(b => b.FundAmount != 0)
           .ToListAsync(cancellationToken);
 
-        if (envelopesWithFunds.Count == 0)
+        if(envelopesWithFunds.Count == 0)
           return Result.Ok().WithSuccess("There were no envelopes with a funding balance");
 
 
@@ -55,11 +53,11 @@ public static class Fund
 
         var _newAssignTransactions = new List<OneTransactionDetail>();
 
-        if (result.IsFailed)
+        if(result.IsFailed)
           return result;
 
         // Move funds from Income to the standard envelopes
-        foreach (var toEnvelope in envelopesWithFunds)
+        foreach(var toEnvelope in envelopesWithFunds)
         {
           var assignTran = MakeAssignTransaction(toEnvelope, incomeEnvelope, fundingAccount);
           _newAssignTransactions.Add(assignTran);
@@ -67,11 +65,11 @@ public static class Fund
 
         // add the new assign transactions using the AddMultipleTransactions handler
         var addMultipleHandler = new AddMultipleTransaction.Handler(insertTransactions);
-       var addResult = await addMultipleHandler.Handle(new AddMultipleTransaction.Command(_newAssignTransactions), cancellationToken);
+        var addResult = await addMultipleHandler.Handle(new AddMultipleTransaction.Command(_newAssignTransactions), cancellationToken);
 
-       return result.WithValue(addResult.Count).WithSuccess("Envelopes have been funded");
+        return result.WithValue(addResult.Count).WithSuccess("Envelopes have been funded");
       }
-      catch (Exception e)
+      catch(Exception e)
       {
         logger.LogError(e, "Error funding envelopes");
         return Result.Fail(new ExceptionalError(e));
@@ -82,11 +80,10 @@ public static class Fund
     {
       ArgumentNullException.ThrowIfNull(incomeEnvelope, nameof(incomeEnvelope));
 
-      if (!fundingAccount.HasValue)
+      if(!fundingAccount.HasValue)
         throw new ArgumentNullException(nameof(fundingAccount));
 
-      var rslt = new OneTransactionDetail()
-      {
+      var rslt = new OneTransactionDetail() {
         Date = DateTime.UtcNow,
         TransactionType = TransactionTypes.Funding,
         Description = $"Fund: {env.Name}",
@@ -126,14 +123,14 @@ public static class Fund
       {
         var result = await sender.Send(new Command());
 
-        if (result.IsSuccess)
+        if(result.IsSuccess)
         {
-          return Results.Ok(FBResult<int>.Success( result.Value ));
+          return Results.Ok(FBResult<int>.Success(result.Value));
         }
 
         // Extract error messages into a simple string
         var errorMessage = string.Join("; ", result.Errors.Select(e => e.Message));
-        return Results.BadRequest(FBResult<int>.Failure( errorMessage ));
+        return Results.BadRequest(FBResult<int>.Failure(errorMessage));
       }).RequireAuthorization();
     }
   }

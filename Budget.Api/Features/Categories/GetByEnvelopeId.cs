@@ -4,7 +4,7 @@ public static class GetByEnvelopeId
 {
   public sealed record Query : IRequest<IEnumerable<Response>>;
 
-  public sealed record Response(string CategoryId, string Name,string Description, int SortOrder , CatTypes CatType);
+  public sealed record Response(string CategoryId, string Name, string Description, int SortOrder, CatTypes CatType);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {

@@ -152,12 +152,13 @@ public class EnvelopeTransactionService(
       if(result is { Canceled: false, Data: EnvelopeDeltas envResult })
       {
         return envResult;
-      };
-      
+      }
+      ;
+
 
       return null;
     }
-    
+
     catch(Exception ex)
     {
       logger.LogError(ex, "Failed showing envelope transfer dialog");

@@ -15,50 +15,48 @@ public class AuthCookieValidationMiddleware(RequestDelegate next, ILogger<AuthCo
   public async Task InvokeAsync(HttpContext context)
   {
     // Get the authentication cookie value to use as a user identifier
-    var authCookie = context.Request.Cookies[".AspNetCore.Cookies"] 
+    var authCookie = context.Request.Cookies[".AspNetCore.Cookies"]
                     ?? context.Request.Cookies["Budget.Auth"];
-                    
-    if (!string.IsNullOrEmpty(authCookie))
+
+    if(!string.IsNullOrEmpty(authCookie))
     {
       // Create a hash of the cookie to identify this user
       var userHash = GetCookieHash(authCookie);
-      
+
       bool shouldCheck = false;
-      lock (_lock)
+      lock(_lock)
       {
         // Try to add the user hash; if it was not present, Add returns true
         shouldCheck = _checkedUsers.Add(userHash);
       }
-      
-      if (shouldCheck)
+
+      if(shouldCheck)
       {
         // Check how old the cookie is - if it predates the app start, it's stale
         logger.LogInformation("First request for user (hash: {UserHash}) after app startup - validating authentication state", userHash[..8]);
-        
+
         // Clear the stale authentication cookie
         logger.LogWarning("Clearing stale authentication cookie for user (hash: {UserHash}) to force fresh sign-in", userHash[..8]);
-        
-        context.Response.Cookies.Delete(".AspNetCore.Cookies", new CookieOptions 
-        { 
+
+        context.Response.Cookies.Delete(".AspNetCore.Cookies", new CookieOptions {
           Path = "/",
           Secure = true,
           HttpOnly = true,
           SameSite = SameSiteMode.Lax
         });
-        context.Response.Cookies.Delete("Budget.Auth", new CookieOptions 
-        { 
+        context.Response.Cookies.Delete("Budget.Auth", new CookieOptions {
           Path = "/",
           Secure = true,
           HttpOnly = true,
           SameSite = SameSiteMode.Lax
         });
-        
+
         // Also clear any OpenID Connect cookies
-        foreach (var cookie in context.Request.Cookies.Keys.Where(k => k.StartsWith(".AspNetCore.OpenIdConnect")))
+        foreach(var cookie in context.Request.Cookies.Keys.Where(k => k.StartsWith(".AspNetCore.OpenIdConnect")))
         {
           context.Response.Cookies.Delete(cookie);
         }
-        
+
         // Redirect to home page (which will trigger authentication)
         context.Response.Redirect("/");
         return;
@@ -67,7 +65,7 @@ public class AuthCookieValidationMiddleware(RequestDelegate next, ILogger<AuthCo
 
     await next(context);
   }
-  
+
   private static string GetCookieHash(string cookie)
   {
     var bytes = System.Text.Encoding.UTF8.GetBytes(cookie);

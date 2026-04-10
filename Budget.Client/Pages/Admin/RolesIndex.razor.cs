@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using System.Net.Http.Json;
-
 namespace Budget.Client.Pages.Admin;
 
 public partial class RolesIndex
@@ -29,7 +25,7 @@ public partial class RolesIndex
       var roles = await MaintApi.GetRolesAsync();
       RolesList = [.. roles];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       ErrorMessage = $"Failed to load roles: {ex.Message}";
     }
@@ -46,8 +42,7 @@ public partial class RolesIndex
       { x => x.IsEditMode, false }
     };
 
-    var options = new DialogOptions
-    {
+    var options = new DialogOptions {
       CloseButton = true,
       MaxWidth = MaxWidth.Small,
       FullWidth = true
@@ -56,7 +51,7 @@ public partial class RolesIndex
     var dialog = await DialogService.ShowAsync<RoleDialog>("Create Role", parameters, options);
     var result = await dialog.Result;
 
-    if (result == null || result.Canceled)
+    if(result == null || result.Canceled)
       Snackbar.Add("Unable to add role");
     else
     {
@@ -75,8 +70,7 @@ public partial class RolesIndex
       { x => x.RoleDescription, role.Description }
     };
 
-    var options = new DialogOptions
-    {
+    var options = new DialogOptions {
       CloseButton = true,
       MaxWidth = MaxWidth.Small,
       FullWidth = true
@@ -85,7 +79,7 @@ public partial class RolesIndex
     var dialog = await DialogService.ShowAsync<RoleDialog>("Edit Role", parameters, options);
     var result = await dialog.Result;
 
-    if (result is { Canceled: false })
+    if(result is { Canceled: false })
     {
       await LoadRoles();
       Snackbar.Add("Role updated successfully", Severity.Success);
@@ -100,14 +94,14 @@ public partial class RolesIndex
       yesText: "Delete",
       cancelText: "Cancel");
 
-    if (confirmed != true)
+    if(confirmed != true)
       return;
 
     try
     {
       var success = await MaintApi.DeleteRoleAsync(role.Id);
-      
-      if (success)
+
+      if(success)
       {
         await LoadRoles();
         Snackbar.Add($"Role '{role.Name}' deleted successfully", Severity.Success);
@@ -117,7 +111,7 @@ public partial class RolesIndex
         Snackbar.Add("Failed to delete role", Severity.Error);
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Snackbar.Add($"Error deleting role: {ex.Message}", Severity.Error);
     }

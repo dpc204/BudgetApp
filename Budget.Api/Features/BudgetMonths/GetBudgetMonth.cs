@@ -6,7 +6,7 @@ namespace Budget.Api.Features.BudgetMonths;
 public static class GetBudgetMonth
 {
   public sealed record Query(int AcctPeriod) : IRequest<IEnumerable<Response>>;
-  
+
   public sealed record Response(
     int AcctPeriod,
     int EnvelopeId,
@@ -32,7 +32,7 @@ public static class GetBudgetMonth
       var allEnvelopes = await db.Envelopes
         .AsNoTracking()
         .Include(e => e.Category)
-        .Where(a=>a.EnvelopeType == EnvelopeTypes.Standard || a.EnvelopeType == EnvelopeTypes.Income)
+        .Where(a => a.EnvelopeType == EnvelopeTypes.Standard || a.EnvelopeType == EnvelopeTypes.Income)
         .OrderBy(e => e.SortOrder)
         .ToListAsync(cancellationToken);
 
@@ -44,11 +44,11 @@ public static class GetBudgetMonth
 
       // Build response ensuring all envelopes are included
       var results = new List<Response>();
-      
-      foreach (var envelope in allEnvelopes)
+
+      foreach(var envelope in allEnvelopes)
       {
         var budgetData = existingBudgets.FirstOrDefault(b => b.EnvelopeId == envelope.Id);
-        
+
         results.Add(new Response(
           request.AcctPeriod,
           envelope.Id,
@@ -56,7 +56,7 @@ public static class GetBudgetMonth
           envelope.CategoryId,
           envelope.Category.Name,
           envelope.Category.CategoryType,
-          envelope.Category.SortOrder * 1000 +envelope.SortOrder,
+          envelope.Category.SortOrder * 1000 + envelope.SortOrder,
           budgetData?.Budget,
           budgetData?.BudgetDraft,
           budgetData?.IsBudgetLocked ?? false,

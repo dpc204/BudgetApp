@@ -210,10 +210,10 @@ public class CsvExportServiceTests
     // Assert - verify the CSV can be parsed back
     var lines = csv.Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries);
     lines.Should().HaveCount(3); // header + 2 data lines
-    
+
     // Verify header
     lines[0].Should().Be("Id,Name,Budget,Balance,Description,SortOrder");
-    
+
     // Verify data integrity
     lines[1].Should().Contain("1");
     lines[1].Should().Contain("Dining Out");

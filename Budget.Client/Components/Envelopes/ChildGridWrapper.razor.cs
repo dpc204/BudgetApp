@@ -1,7 +1,3 @@
-using Budget.Shared.Models;
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
-
 namespace Budget.Client.Components.Envelopes;
 
 /// <summary>
@@ -19,7 +15,7 @@ public partial class ChildGridWrapper : ComponentBase
 
   protected override void OnAfterRender(bool firstRender)
   {
-    if (firstRender && _grid != null)
+    if(firstRender && _grid != null)
     {
       OnGridCreated(EnvelopeId, _grid);
     }

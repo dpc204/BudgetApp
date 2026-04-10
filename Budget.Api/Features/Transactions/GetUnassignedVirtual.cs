@@ -14,39 +14,38 @@ public static class GetUnassignedVirtual
     {
       var unassignedEnvelope = await GetEnvelopeByType.Get(db, EnvelopeTypes.Unassigned, cancellationToken);
 
-      if (unassignedEnvelope is null)
+      if(unassignedEnvelope is null)
         return Result.FailIf(unassignedEnvelope == null, "System Error: UnassignedEnvelope not defined");
 
 
       var query = (from td in db.TransactionDetails
-        join t in db.Transactions on td.TransactionId equals t.Id
-        join e in db.Envelopes on td.EnvelopeId equals e.Id
-        where td.EnvelopeId == unassignedEnvelope.Id
-        select new TransactionDto
-        {
-          TransactionId = t.Id,
-          LineId = td.LineId,
-          PostingStatus = t.PostingStatus,
-          EnvelopeId = e.Id,
-          EnvelopeName = e.Name,
-          Vendor = t.Vendor,
-          Description = t.Description,
-          Notes = td.Notes,
-          Amount = td.Amount,
-          Date = t.Date,
-          TransactionHiddenFromAssign = t.TransactionHiddenFromAssign
-        }).AsNoTracking();
+                   join t in db.Transactions on td.TransactionId equals t.Id
+                   join e in db.Envelopes on td.EnvelopeId equals e.Id
+                   where td.EnvelopeId == unassignedEnvelope.Id
+                   select new TransactionDto {
+                     TransactionId = t.Id,
+                     LineId = td.LineId,
+                     PostingStatus = t.PostingStatus,
+                     EnvelopeId = e.Id,
+                     EnvelopeName = e.Name,
+                     Vendor = t.Vendor,
+                     Description = t.Description,
+                     Notes = td.Notes,
+                     Amount = td.Amount,
+                     Date = t.Date,
+                     TransactionHiddenFromAssign = t.TransactionHiddenFromAssign
+                   }).AsNoTracking();
 
       var hiddenCount = await query.CountAsync(t => t.TransactionHiddenFromAssign, cancellationToken);
 
       query = query.ApplyFilters(request.AssignQuery.Filters);
 
-      if (!request.AssignQuery.ShowHidden)
+      if(!request.AssignQuery.ShowHidden)
       {
         query = query.Where(t => !t.TransactionHiddenFromAssign);
       }
 
-      if (!string.IsNullOrEmpty(request.AssignQuery.Sort))
+      if(!string.IsNullOrEmpty(request.AssignQuery.Sort))
       {
         query = request.AssignQuery.Descending
           ? query.OrderByDescendingDynamic(request.AssignQuery.Sort)
@@ -54,7 +53,7 @@ public static class GetUnassignedVirtual
       }
 
       var totalCount = await query.CountAsync(cancellationToken);
-      
+
       query = query
         .Skip(request.AssignQuery.StartIndex)
         .Take(request.AssignQuery.Count);
@@ -64,9 +63,8 @@ public static class GetUnassignedVirtual
 
       //return Result.Ok<IEnumerable<Response>>(result);
 
-      var result = new AssignQueryResult
-      {
-        Items =  items,
+      var result = new AssignQueryResult {
+        Items = items,
         TotalCount = totalCount,
         HiddenCount = hiddenCount
       };

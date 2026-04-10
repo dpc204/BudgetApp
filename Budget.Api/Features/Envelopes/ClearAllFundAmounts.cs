@@ -6,7 +6,7 @@ namespace Budget.Api.Features.Envelopes;
 public static class ClearAllFundAmounts
 {
   public sealed record Command : IRequest<Response>;
-  
+
   public sealed record Response(bool Success, string Message, int RecordsUpdated);
 
   /// <summary>
@@ -22,7 +22,7 @@ public static class ClearAllFundAmounts
         .ToListAsync(cancellationToken);
 
       // Clear all fund amounts
-      foreach (var envelope in envelopes)
+      foreach(var envelope in envelopes)
       {
         envelope.FundAmount = 0m;
       }

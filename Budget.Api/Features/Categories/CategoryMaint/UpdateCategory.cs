@@ -10,7 +10,7 @@ public static class UpdateCategory
     public async Task<Response?> Handle(Command request, CancellationToken cancellationToken)
     {
       var entity = await db.Categories.FirstOrDefaultAsync(c => c.CategoryId == request.CategoryId, cancellationToken);
-      if (entity is null) return null;
+      if(entity is null) return null;
 
       entity.Name = request.Name;
       entity.Description = request.Description;
@@ -28,7 +28,7 @@ public static class UpdateCategory
     {
       app.MapPut("/categories/maint/{id}", async (string id, [FromBody] CommandBody body, ISender sender) =>
       {
-        if (id != body.CategoryId) return Results.BadRequest("Route id and payload id differ.");
+        if(id != body.CategoryId) return Results.BadRequest("Route id and payload id differ.");
         var result = await sender.Send(new Command(body.CategoryId, body.Name, body.Description, body.SortOrder));
         return result is null ? Results.NotFound() : Results.Ok(result);
       }).RequireAuthorization();

@@ -6,7 +6,7 @@ namespace Budget.Api.Features.BudgetMonths;
 public static class CheckDraftBudgets
 {
   public sealed record Query : IRequest<Response>;
-  
+
   public sealed record Response(bool HasDrafts, int DraftCount);
 
   /// <summary>

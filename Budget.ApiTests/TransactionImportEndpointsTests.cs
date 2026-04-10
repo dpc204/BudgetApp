@@ -1,25 +1,22 @@
-using System.Net.Http;
-using Budget.Shared.Enums;
-
 namespace Budget.ApiTests;
 
 /// <summary>
 /// Tests for Transaction Import API endpoints
 /// </summary>
-public class TransactionImportEndpointsTests 
+public class TransactionImportEndpointsTests
 {
   private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
     => new DbContextOptionsBuilder<BudgetContext>()
       .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
       .Options;
 
-  
+
   private static BudgetContext GetTestDBContext()
   {
     return new BudgetContext(CreateInMemoryOptions(), new TestCurrentFamilyService());
   }
-  
-  
+
+
   /// <summary>
   /// Test ImportTransactions endpoint - should bulk import transactions to staging table
   /// </summary>
@@ -85,8 +82,7 @@ public class TransactionImportEndpointsTests
     // Arrange - insert test data directly
 
 
-    var import1 = new TransactionImport
-    {
+    var import1 = new TransactionImport {
       Date = DateTime.Today.AddDays(-3),
       Vendor = "Test Vendor A",
       Description = "Test Description A",
@@ -98,8 +94,7 @@ public class TransactionImportEndpointsTests
       ImportedAt = DateTime.UtcNow
     };
 
-    var import2 = new TransactionImport
-    {
+    var import2 = new TransactionImport {
       Date = DateTime.Today.AddDays(-2),
       Vendor = "Test Vendor B",
       Description = "Test Description B",
@@ -138,8 +133,7 @@ public class TransactionImportEndpointsTests
     // Arrange - insert test data
     BudgetContext arrangeDb = GetTestDBContext();
 
-    var import1 = new TransactionImport
-    {
+    var import1 = new TransactionImport {
       Date = DateTime.Today,
       Vendor = "Test Vendor X",
       Description = "Test Description X",
@@ -156,10 +150,10 @@ public class TransactionImportEndpointsTests
 
     var handler = new ClearTransactionImports.Handler(arrangeDb);
     var command = new ClearTransactionImports.Command();
-    
-    
+
+
     // Act
-    
+
     var response = await handler.Handle(command, CancellationToken.None);
 
     // Assert
@@ -186,8 +180,7 @@ public class TransactionImportEndpointsTests
     Envelope envelope = TestHelpers.CreateTestEnvelope(id: 300, categoryId: "1", balance: 500m);
     arrangeDb.Envelopes.Add(envelope);
 
-    var existingTransaction = new Transaction
-    {
+    var existingTransaction = new Transaction {
       Date = DateTime.Today,
       Vendor = "Duplicate Vendor",
       TotalAmount = 75.00m,
@@ -230,7 +223,7 @@ public class TransactionImportEndpointsTests
     var response = await handler.Handle(command, CancellationToken.None);
     // Assert
     List<TransactionImport> imports = await arrangeDb.TransactionImports.ToListAsync(TestContext.Current.CancellationToken);
-    
+
     imports.Should().HaveCount(2);
     imports.First(i => i.Vendor == "Duplicate Vendor").Duplicate.Should().BeTrue();
     imports.First(i => i.Vendor == "New Vendor").Duplicate.Should().BeFalse();
@@ -245,8 +238,7 @@ public class TransactionImportEndpointsTests
     // Arrange
     BudgetContext arrangeDb = GetTestDBContext();
 
-    var import = new TransactionImport
-    {
+    var import = new TransactionImport {
       Date = DateTime.Today,
       Vendor = "Test Vendor",
       Description = "Test",
@@ -272,7 +264,7 @@ public class TransactionImportEndpointsTests
 
     // Assert
     TransactionImport? updatedImport = await arrangeDb.TransactionImports.FindAsync([importId], TestContext.Current.CancellationToken);
-    
+
     updatedImport.Should().NotBeNull();
     updatedImport!.Duplicate.Should().BeTrue();
     updatedImport.KeepDuplicate.Should().BeFalse();

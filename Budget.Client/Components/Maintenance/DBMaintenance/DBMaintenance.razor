@@ -1,0 +1,25 @@
+﻿@page "/dbmaintenance"
+@attribute [Authorize]
+@using Budget.Client.Components.Maintenance.AccountCRUD
+@using Budget.Client.Components.Maintenance.CategoryCRUD
+@using Budget.Client.Components.Maintenance.EnvelopePagesCRUD
+@using Budget.Client.Components.Maintenance.BackupRestore
+@using Budget.Client.Components.Maintenance.BacpacHistory
+@using Budget.Client.Components.Import
+
+<MudText Typo="Typo.h5" Class="mb-4">DBMaintenance</MudText>
+
+<MudTabs Elevation="1" Rounded="true">
+  <MudTabPanel Text="Import">
+    <TransactionsCsvImport />
+  </MudTabPanel>
+  <MudTabPanel Text="Backup To CVS">
+    <BackupRestoreIndex />
+  </MudTabPanel>
+  <MudTabPanel Text="Restore From CVS">
+    <BackupRestoreIndex />
+  </MudTabPanel>
+  <MudTabPanel Text="BACPAC History">
+    <BacpacHistoryIndex />
+  </MudTabPanel>
+</MudTabs>

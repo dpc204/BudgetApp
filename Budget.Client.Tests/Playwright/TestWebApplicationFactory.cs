@@ -56,7 +56,7 @@ public class TestWebApplicationFactory(string environment = "Development") : Web
           var appHost = testHost.Services.GetRequiredService<IHost>();
           // Copy the app configuration from testHost
         });
-        
+
         // Apply the same service configuration
         ConfigureWebHost(webHostBuilder);
       });
@@ -72,7 +72,7 @@ public class TestWebApplicationFactory(string environment = "Development") : Web
   /// </summary>
   public string GetServerUrl()
   {
-    if (_host == null)
+    if(_host == null)
       throw new InvalidOperationException("Host has not been created yet");
 
     var server = _host.Services.GetRequiredService<IServer>();
@@ -82,7 +82,7 @@ public class TestWebApplicationFactory(string environment = "Development") : Web
 
   protected override void Dispose(bool disposing)
   {
-    if (disposing)
+    if(disposing)
     {
       _host?.Dispose();
     }

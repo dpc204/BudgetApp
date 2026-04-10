@@ -17,15 +17,15 @@ public static class ExportEnvelopes
     public async Task<string> Handle(Query request, CancellationToken cancellationToken)
     {
       log.LogInformation("Starting envelope export to CSV");
-      
+
       var envelopes = await db.Envelopes
         .OrderBy(e => e.CategoryId)
         .ThenBy(e => e.SortOrder)
         .ThenBy(e => e.Name)
         .ToListAsync(cancellationToken);
-      
+
       var csv = CsvExportService.ExportToCsv(envelopes, log: log);
-      
+
       log.LogInformation("Exported {Count} envelopes to CSV", envelopes.Count);
       return csv;
     }

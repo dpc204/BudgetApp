@@ -1,7 +1,6 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Components;
-using Budget.Client.Services;
 using Budget.DB;
+using Microsoft.AspNetCore.Components;
+using System.Security.Claims;
 
 namespace Budget.Web.Components.Auth;
 
@@ -17,7 +16,7 @@ public sealed partial class AuthStateSync : ComponentBase
   [Inject] public required ILogger<AuthStateSync> Logger { get; set; }
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    if (!firstRender)
+    if(!firstRender)
       return;
 
     var state = await (AuthenticationStateTask ?? AuthStateProvider.GetAuthenticationStateAsync());
@@ -29,16 +28,16 @@ public sealed partial class AuthStateSync : ComponentBase
     var user = state.User;
     var isAuth = user?.Identity?.IsAuthenticated == true;
 
-    if (isAuth)
+    if(isAuth)
     {
       // Only set user info once per load
       // Options will be loaded lazily when first accessed via EnsureOptionsLoadedAsync()
-      if (!UserAndOptions.HasInfo)
-      { 
+      if(!UserAndOptions.HasInfo)
+      {
         UserAndOptions.User = MapToDto(user!);
 
         // Fix: Ensure 'user' is not null before calling GetEmail
-        if (user != null)
+        if(user != null)
         {
           UserAndOptions.SetUserEmail(GetEmail(user));
         }
@@ -52,7 +51,7 @@ public sealed partial class AuthStateSync : ComponentBase
     else
     {
       // Only clear once per load
-      if (UserAndOptions.HasInfo)
+      if(UserAndOptions.HasInfo)
       {
         UserAndOptions.ClearUserInfo();
         // No refresh on logout here to keep it minimal; page reload typically follows logout
@@ -78,7 +77,7 @@ public sealed partial class AuthStateSync : ComponentBase
                ?? string.Empty;
 
     return name;
-    
+
   }
 
 
@@ -103,8 +102,7 @@ public sealed partial class AuthStateSync : ComponentBase
       throw new InvalidOperationException($"User with email {email}  not found in database.");
     }
 
-    return new UserInfoDto
-    {
+    return new UserInfoDto {
       Id = dbUser.Id,
       Email = name,
       FamilyId = dbUser.FamilyId,

@@ -34,14 +34,14 @@ public class BacpacBackupService(
       ?? throw new InvalidOperationException("SqlConnectionString is not configured.");
 
     var databaseName = configuration["DatabaseName"];
-    if (string.IsNullOrWhiteSpace(databaseName))
+    if(string.IsNullOrWhiteSpace(databaseName))
     {
       // Derive from connection string
       var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
       databaseName = builder.InitialCatalog;
     }
 
-    if (string.IsNullOrWhiteSpace(databaseName))
+    if(string.IsNullOrWhiteSpace(databaseName))
       throw new InvalidOperationException("DatabaseName could not be determined from configuration.");
 
     var timestamp = DateTime.UtcNow;
@@ -59,7 +59,7 @@ public class BacpacBackupService(
       logger.LogInformation("Exporting {Database} to temp file {File}", databaseName, tempPath);
       await Task.Run(() => dac.ExportBacpac(tempPath, databaseName), cancellationToken);
 
-      if (!File.Exists(tempPath))
+      if(!File.Exists(tempPath))
       {
         logger.LogError("DacFx export succeeded but file not found: {File}", tempPath);
         throw new InvalidOperationException("Export failed: output file missing.");
@@ -74,7 +74,7 @@ public class BacpacBackupService(
       await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
       var blobClient = containerClient.GetBlobClient(blobName);
-      await using (var fileStream = File.OpenRead(tempPath))
+      await using(var fileStream = File.OpenRead(tempPath))
       {
         await blobClient.UploadAsync(fileStream, overwrite: true, cancellationToken);
       }
@@ -104,9 +104,9 @@ public class BacpacBackupService(
       // Clean up temp file
       try
       {
-        if (File.Exists(tempPath)) File.Delete(tempPath);
+        if(File.Exists(tempPath)) File.Delete(tempPath);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         logger.LogWarning(ex, "Failed to clean up temp file {File}", tempPath);
       }
@@ -124,21 +124,21 @@ public class BacpacBackupService(
     logger.LogInformation("Deleting BACPAC backups older than {Cutoff}", cutoff);
 
     var oldEntities = new List<TableEntity>();
-    await foreach (var entity in tableClient.QueryAsync<TableEntity>(
+    await foreach(var entity in tableClient.QueryAsync<TableEntity>(
       filter: $"PartitionKey eq '{databaseName}'",
       cancellationToken: cancellationToken))
     {
       var createdAt = entity.GetDateTimeOffset("CreatedAt")?.UtcDateTime ?? DateTime.MinValue;
-      if (createdAt < cutoff)
+      if(createdAt < cutoff)
         oldEntities.Add(entity);
     }
 
-    foreach (var entity in oldEntities)
+    foreach(var entity in oldEntities)
     {
       try
       {
         var blobName = entity.GetString("BlobName") ?? string.Empty;
-        if (!string.IsNullOrWhiteSpace(blobName))
+        if(!string.IsNullOrWhiteSpace(blobName))
         {
           var blobClient = containerClient.GetBlobClient(blobName);
           await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
@@ -148,7 +148,7 @@ public class BacpacBackupService(
         await tableClient.DeleteEntityAsync(entity.PartitionKey, entity.RowKey, cancellationToken: cancellationToken);
         logger.LogInformation("Deleted old BACPAC table entry: {RowKey}", entity.RowKey);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         logger.LogWarning(ex, "Failed to delete old BACPAC entry {RowKey}", entity.RowKey);
       }

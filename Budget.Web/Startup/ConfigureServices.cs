@@ -71,12 +71,12 @@ public static class ConfigureServices
   {
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSingleton<TokenCacheManager>();
-    
+
     // Only register ForwardAuthCookiesHandler when NOT in test mode
-    var useTestAuth = builder.Configuration.GetValue<bool>("UseTestAuthentication") 
+    var useTestAuth = builder.Configuration.GetValue<bool>("UseTestAuthentication")
                       || Environment.GetEnvironmentVariable("USE_TEST_AUTH") == "true";
-    
-    if (!useTestAuth)
+
+    if(!useTestAuth)
     {
       builder.Services.AddTransient<ForwardAuthCookiesHandler>();
     }
@@ -96,12 +96,10 @@ public static class ConfigureServices
       options.Retry.Delay = TimeSpan.FromSeconds(2);
 
       // Standard timeout (30 seconds per attempt, 100 seconds total)
-      options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
-      {
+      options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions {
         Timeout = TimeSpan.FromSeconds(30)
       };
-      options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
-      {
+      options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions {
         Timeout = TimeSpan.FromSeconds(100)
       };
       options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(200);
@@ -115,12 +113,10 @@ public static class ConfigureServices
       options.Retry.Delay = TimeSpan.FromSeconds(1);
 
       // CRITICAL: Both AttemptTimeout and TotalRequestTimeout must match the HttpClient timeout
-      options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
-      {
+      options.AttemptTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions {
         Timeout = timeout // 5 minutes
       };
-      options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions
-      {
+      options.TotalRequestTimeout = new Microsoft.Extensions.Http.Resilience.HttpTimeoutStrategyOptions {
         Timeout = timeout // Same as AttemptTimeout since we're not retrying
       };
 
@@ -137,14 +133,14 @@ public static class ConfigureServices
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
       });
-    
+
     // Only add auth forwarding when NOT in test mode
-    if (!useTestAuth)
+    if(!useTestAuth)
     {
       budgetApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
     }
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       budgetApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
@@ -155,14 +151,14 @@ public static class ConfigureServices
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
       });
-    
+
     // Only add auth forwarding when NOT in test mode
-    if (!useTestAuth)
+    if(!useTestAuth)
     {
       envelopesApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
     }
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       envelopesApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
@@ -175,7 +171,7 @@ public static class ConfigureServices
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       categoriesApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
@@ -188,7 +184,7 @@ public static class ConfigureServices
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       transactionsApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
@@ -201,7 +197,7 @@ public static class ConfigureServices
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       accountsApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
@@ -214,7 +210,7 @@ public static class ConfigureServices
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       adminApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
@@ -227,7 +223,7 @@ public static class ConfigureServices
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       userOptionsApiClientBuilder.AddStandardResilienceHandler(ConfigureStandardResilience);
     }
@@ -240,7 +236,7 @@ public static class ConfigureServices
       })
       .AddHttpMessageHandler<ForwardAuthCookiesHandler>();
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       utilitiesApiClientBuilder
         .RemoveAllResilienceHandlers()
@@ -253,14 +249,14 @@ public static class ConfigureServices
         client.BaseAddress = new Uri("https+http://budget-api");
         client.Timeout = timeout;
       });
-    
+
     // Only add auth forwarding when NOT in test mode
-    if (!useTestAuth)
+    if(!useTestAuth)
     {
       budgetMonthlyApiClientBuilder.AddHttpMessageHandler<ForwardAuthCookiesHandler>();
     }
 
-    if (!isDevelopment)
+    if(!isDevelopment)
     {
       budgetMonthlyApiClientBuilder
         .RemoveAllResilienceHandlers()
@@ -301,7 +297,7 @@ public static class ConfigureServices
                         ?? builder.Configuration["LocalBudgetConnection"]
                         ?? builder.Configuration["BudgetConnection"];
 
-    if (!string.IsNullOrEmpty(sqlConnection))
+    if(!string.IsNullOrEmpty(sqlConnection))
     {
       logger.LogInformation("Configuring SQL Server distributed cache for token persistence");
       logger.LogInformation("Connection string source: {Source}",
@@ -328,6 +324,7 @@ public static class ConfigureServices
 
     builder.Services.AddScoped<EnvelopeState>();
     builder.Services.AddSingleton<ThemeService>();
+    builder.Services.AddScoped<DatabaseEnvironmentService>();
 
     // Register data provider for frontend (uses API client)
     builder.Services.AddScoped<IUserAndOptionsDataProvider, ApiUserAndOptionsDataProvider>();
@@ -398,8 +395,8 @@ public static class ConfigureServices
   {
     try
     {
-      if (string.IsNullOrWhiteSpace(value)) return "http://127.0.0.1:8080";
-      if (value.Contains("0.0.0.0", StringComparison.Ordinal) || value.Contains('+', StringComparison.Ordinal))
+      if(string.IsNullOrWhiteSpace(value)) return "http://127.0.0.1:8080";
+      if(value.Contains("0.0.0.0", StringComparison.Ordinal) || value.Contains('+', StringComparison.Ordinal))
       {
         var uri = new Uri(value);
         var port = uri.IsDefaultPort ? 80 : uri.Port;

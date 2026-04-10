@@ -17,7 +17,7 @@ public static class RemoveRole
       var userRole = await db.UserRoles
         .FirstOrDefaultAsync(ur => ur.UserId == request.UserId && ur.RoleId == request.RoleId, cancellationToken);
 
-      if (userRole == null)
+      if(userRole == null)
       {
         return false;
       }

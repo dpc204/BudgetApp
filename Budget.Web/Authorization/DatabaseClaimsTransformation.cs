@@ -1,6 +1,5 @@
-using System.Security.Claims;
 using Budget.Web.Services;
-using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace Budget.Web.Authorization;
 
@@ -18,14 +17,14 @@ public class DatabaseClaimsTransformation(
     logger.LogDebug("DatabaseClaimsTransformation.TransformAsync called");
 
     // Only transform if user is authenticated
-    if (principal.Identity?.IsAuthenticated != true)
+    if(principal.Identity?.IsAuthenticated != true)
     {
       logger.LogDebug("Skipping transformation - user not authenticated");
       return principal;
     }
 
     // Check if we've already added database roles (avoid duplicate transformation)
-    if (principal.HasClaim(c => c.Type == "database_roles_loaded"))
+    if(principal.HasClaim(c => c.Type == "database_roles_loaded"))
     {
       logger.LogDebug("Skipping transformation - database_roles_loaded claim already present");
       return principal;
@@ -41,15 +40,15 @@ public class DatabaseClaimsTransformation(
     // but doesn't have enough account information in the cache yet
     var hasAccountInfo = principal.HasClaim(c => c.Type == "oid" || c.Type == "sub");
 
-    if (string.IsNullOrEmpty(email) && !hasAccountInfo)
+    if(string.IsNullOrEmpty(email) && !hasAccountInfo)
     {
       logger.LogDebug("Skipping role transformation - no email or account identifier claims found yet");
       return principal;
     }
 
-    if (string.IsNullOrEmpty(email))
+    if(string.IsNullOrEmpty(email))
     {
-      logger.LogWarning("No email claim found for user {User}. Available claims: {Claims}", 
+      logger.LogWarning("No email claim found for user {User}. Available claims: {Claims}",
         principal.Identity.Name ?? "unknown",
         string.Join(", ", principal.Claims.Select(c => $"{c.Type}={c.Value}")));
       return principal;
@@ -62,7 +61,7 @@ public class DatabaseClaimsTransformation(
       // Get user from database to access FamilyId
       var user = await roleService.GetUserByEmailAsync(email);
 
-      if (user == null)
+      if(user == null)
       {
         logger.LogWarning("User not found in database for email {Email}", email);
         return principal;
@@ -71,7 +70,7 @@ public class DatabaseClaimsTransformation(
       // Load roles from database
       var roles = await roleService.GetUserRolesAsync(user.Id);
 
-      if (roles.Count == 0)
+      if(roles.Count == 0)
       {
         logger.LogWarning("No roles found in database for user {Email}", email);
       }
@@ -88,7 +87,7 @@ public class DatabaseClaimsTransformation(
       logger.LogInformation("Added FamilyId claim: {FamilyId} for user {Email}", user.FamilyId, email);
 
       // Add role claims
-      foreach (var role in roles)
+      foreach(var role in roles)
       {
         claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
         logger.LogInformation("Added role {Role} for user {Email}", role.Name, email);
@@ -106,7 +105,7 @@ public class DatabaseClaimsTransformation(
         roles.Count,
         email);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error loading database roles for user {Email}", email);
       // Don't throw - allow authentication to succeed even if role loading fails

@@ -38,13 +38,13 @@ public partial class BackupRestoreIndex : IDisposable
       _backupSets = [.. (await MaintApiClient.GetBackupSetsAsync())];
       Logger.LogInformation("Loaded {Count} backup sets", _backupSets.Count);
     }
-    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+    catch(HttpRequestException ex) when(ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
     {
-      Logger.LogError(ex,  "**** Unauthorized error loading backup sets - user may need to re-authenticate: {message}", ex.Message);
+      Logger.LogError(ex, "**** Unauthorized error loading backup sets - user may need to re-authenticate: {message}", ex.Message);
       Snackbar.Add("Authentication required. Please sign out and sign back in to grant API access.", Severity.Warning);
       _backupSets = [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error loading backup sets");
       Snackbar.Add($"Error loading backup sets: {ex.Message}", Severity.Error);
@@ -56,14 +56,14 @@ public partial class BackupRestoreIndex : IDisposable
   {
     _selectedBackupSet = backupSet;
     _backupTables = null;
-    
+
     try
     {
       Logger.LogInformation("Loading backup set details for: {PartitionKey}", backupSet.PartitionKey);
       _backupTables = [.. (await MaintApiClient.GetBackupSetDetailsAsync(backupSet.PartitionKey))];
       Logger.LogInformation("Loaded {Count} tables", _backupTables.Count);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error loading backup set details");
       Snackbar.Add($"Error loading backup set details: {ex.Message}", Severity.Error);
@@ -73,8 +73,7 @@ public partial class BackupRestoreIndex : IDisposable
 
   private async Task DeleteBackupSetAsync(BackupSetDto backupSet)
   {
-    var parameters = new DialogParameters
-    {
+    var parameters = new DialogParameters {
       ["ContentText"] = $"Are you sure you want to delete the backup set from {backupSet.BackupDate:yyyy-MM-dd HH:mm:ss}? This will delete {backupSet.TableCount} table backups and cannot be undone.",
       ["ButtonText"] = "Delete",
       ["Color"] = Color.Error
@@ -84,25 +83,25 @@ public partial class BackupRestoreIndex : IDisposable
     var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Delete", parameters, options);
     var result = await dialog.Result;
 
-    if (result is { Canceled: true })
+    if(result is { Canceled: true })
       return;
 
     try
     {
       Logger.LogInformation("Deleting backup set: {PartitionKey}", backupSet.PartitionKey);
       var success = await MaintApiClient.DeleteBackupSetAsync(backupSet.PartitionKey);
-      
-      if (success)
+
+      if(success)
       {
         Snackbar.Add("Backup set deleted successfully", Severity.Success);
-        
+
         // Clear selection if we deleted the selected set
-        if (_selectedBackupSet?.PartitionKey == backupSet.PartitionKey)
+        if(_selectedBackupSet?.PartitionKey == backupSet.PartitionKey)
         {
           _selectedBackupSet = null;
           _backupTables = null;
         }
-        
+
         // Reload the backup sets list
         await LoadBackupSetsAsync();
       }
@@ -111,7 +110,7 @@ public partial class BackupRestoreIndex : IDisposable
         Snackbar.Add("Failed to delete backup set", Severity.Error);
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error deleting backup set");
       Snackbar.Add($"Error deleting backup set: {ex.Message}", Severity.Error);
@@ -123,17 +122,17 @@ public partial class BackupRestoreIndex : IDisposable
     try
     {
       Logger.LogInformation("Downloading CSV for table: {TableName}", table.TableName);
-      
+
       var fileDownload = await MaintApiClient.DownloadBackupCsvAsync(table.BlobName);
-      
+
       // Convert to base64 for JavaScript download
       var base64 = Convert.ToBase64String(fileDownload.Content);
       var dataUrl = $"data:{fileDownload.ContentType};base64,{base64}";
-      
+
       await Js.InvokeVoidAsync("downloadFileFromStream", fileDownload.FileName, dataUrl);
       Snackbar.Add($"Downloaded {table.TableName}.csv", Severity.Success);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error downloading CSV");
       Snackbar.Add($"Error downloading CSV: {ex.Message}", Severity.Error);
@@ -142,7 +141,7 @@ public partial class BackupRestoreIndex : IDisposable
 
   protected async Task TriggerBackupAllTablesAsync()
   {
-    if (!IsAdmin)
+    if(!IsAdmin)
     {
       Snackbar.Add("Admin privileges required for this operation", Severity.Error);
       return;
@@ -162,7 +161,7 @@ public partial class BackupRestoreIndex : IDisposable
       // Start polling for status
       StartStatusPolling();
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       BackupAllStatus = $"Error: {ex.Message}";
       Snackbar.Add($"Failed to start backup: {ex.Message}", Severity.Error);
@@ -180,7 +179,7 @@ public partial class BackupRestoreIndex : IDisposable
       {
         await PollBackupStatusAsync();
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         BackupAllStatus = $"Error polling status: {ex.Message}";
         StopStatusPolling();
@@ -192,27 +191,27 @@ public partial class BackupRestoreIndex : IDisposable
 
   private async Task PollBackupStatusAsync()
   {
-    if (string.IsNullOrEmpty(CurrentBackupId))
+    if(string.IsNullOrEmpty(CurrentBackupId))
       return;
 
     try
     {
       var status = await MaintApiClient.GetBackupStatusAsync(CurrentBackupId);
-      if (status == null)
+      if(status == null)
       {
         BackupAllStatus = "Backup status not found";
         StopStatusPolling();
         return;
       }
 
-      if (status.IsComplete)
+      if(status.IsComplete)
       {
         BackupAllStatus = $"Backup completed! Tables: {status.CompletedTables}/{status.TotalTables}, Failed: {status.FailedTables}";
         BackupAllBusy = false;
         BackupAllButtonText = "Backup All Tables";
         StopStatusPolling();
 
-        if (status.FailedTables > 0)
+        if(status.FailedTables > 0)
         {
           Snackbar.Add($"Backup completed with {status.FailedTables} failures", Severity.Warning);
         }
@@ -231,7 +230,7 @@ public partial class BackupRestoreIndex : IDisposable
           : "Initializing...";
         BackupAllStatus = $"Progress: {progress} - Current: {status.CurrentTable ?? "Preparing..."}";
 
-        if (!string.IsNullOrEmpty(status.ErrorMessage))
+        if(!string.IsNullOrEmpty(status.ErrorMessage))
         {
           BackupAllStatus += $" - {status.ErrorMessage}";
         }
@@ -239,7 +238,7 @@ public partial class BackupRestoreIndex : IDisposable
 
       await InvokeAsync(StateHasChanged);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       BackupAllStatus = $"Error checking status: {ex.Message}";
       StopStatusPolling();
@@ -248,7 +247,7 @@ public partial class BackupRestoreIndex : IDisposable
 
   private void StopStatusPolling()
   {
-    if (_pollTimer != null)
+    if(_pollTimer != null)
     {
       _pollTimer.Stop();
       _pollTimer.Dispose();
@@ -261,7 +260,7 @@ public partial class BackupRestoreIndex : IDisposable
     string[] sizes = ["B", "KB", "MB", "GB"];
     double len = bytes;
     int order = 0;
-    while (len >= 1024 && order < sizes.Length - 1)
+    while(len >= 1024 && order < sizes.Length - 1)
     {
       order++;
       len /= 1024;

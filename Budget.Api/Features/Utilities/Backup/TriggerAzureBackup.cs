@@ -31,16 +31,16 @@ public static class TriggerAzureBackup
         var dbPassword = cfg["AzureSqlDbPassword"] ?? string.Empty;
 
         var missing = new List<string>();
-        if (string.IsNullOrWhiteSpace(subscriptionId)) missing.Add("AzureSqlSubscriptionId");
-        if (string.IsNullOrWhiteSpace(resourceGroup)) missing.Add("AzureSqlResourceGroup");
-        if (string.IsNullOrWhiteSpace(serverName)) missing.Add("AzureSqlServerName");
-        if (string.IsNullOrWhiteSpace(databaseName)) missing.Add("AzureSqlDatabaseName");
-        if (string.IsNullOrWhiteSpace(storageKey)) missing.Add("AzureSqlStorageKey");
-        if (string.IsNullOrWhiteSpace(storageUri)) missing.Add("AzureSqlStorageUri");
-        if (string.IsNullOrWhiteSpace(dbAdmin)) missing.Add("AzureSqlDbAdmin");
-        if (string.IsNullOrWhiteSpace(dbPassword)) missing.Add("AzureSqlDbPassword");
-        
-        if (missing.Count > 0)
+        if(string.IsNullOrWhiteSpace(subscriptionId)) missing.Add("AzureSqlSubscriptionId");
+        if(string.IsNullOrWhiteSpace(resourceGroup)) missing.Add("AzureSqlResourceGroup");
+        if(string.IsNullOrWhiteSpace(serverName)) missing.Add("AzureSqlServerName");
+        if(string.IsNullOrWhiteSpace(databaseName)) missing.Add("AzureSqlDatabaseName");
+        if(string.IsNullOrWhiteSpace(storageKey)) missing.Add("AzureSqlStorageKey");
+        if(string.IsNullOrWhiteSpace(storageUri)) missing.Add("AzureSqlStorageUri");
+        if(string.IsNullOrWhiteSpace(dbAdmin)) missing.Add("AzureSqlDbAdmin");
+        if(string.IsNullOrWhiteSpace(dbPassword)) missing.Add("AzureSqlDbPassword");
+
+        if(missing.Count > 0)
         {
           var payload = new { error = "Missing AzureSql configuration values.", missing };
           logger.LogWarning("Backup request rejected due to missing configuration: {Missing}", string.Join(", ", missing));
@@ -48,17 +48,17 @@ public static class TriggerAzureBackup
         }
 
         // If StorageUri points to a container (or just the account root), append a guaranteed-unique filename
-        if (!storageUri.EndsWith(".bacpac", StringComparison.OrdinalIgnoreCase))
+        if(!storageUri.EndsWith(".bacpac", StringComparison.OrdinalIgnoreCase))
         {
           // Normalize base and ensure a container segment
-          if (!Uri.TryCreate(storageUri, UriKind.Absolute, out var su))
+          if(!Uri.TryCreate(storageUri, UriKind.Absolute, out var su))
           {
             return Results.BadRequest(new { error = "AzureSqlStorageUri is not a valid absolute URI.", storageUri });
           }
 
           var baseUrl = $"{su.Scheme}://{su.Host}";
           var path = su.AbsolutePath?.Trim('/') ?? string.Empty;
-          if (string.IsNullOrWhiteSpace(path))
+          if(string.IsNullOrWhiteSpace(path))
           {
             path = "sqlserver-backups";
             logger.LogInformation("No container specified in StorageUri. Using default container '{Container}'.", path);
@@ -80,10 +80,10 @@ public static class TriggerAzureBackup
           dbAdmin,
           dbPassword,
           cancellationToken);
-        
+
         return Results.Ok(result);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         logger.LogError(ex, "Backup failed");
         return Results.Problem(ex.ToString(), statusCode: 500);
@@ -103,7 +103,7 @@ public static class TriggerAzureBackup
         var result = await sender.Send(new Command());
         return result;
       })
-      
+
       .WithName("TriggerAzureBackup")
       .WithTags("Maintenance")
       .RequireAuthorization("Admin");

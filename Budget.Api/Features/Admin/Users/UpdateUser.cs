@@ -30,7 +30,7 @@ public static class UpdateUser
         .IgnoreQueryFilters()
         .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
-      if (user == null)
+      if(user == null)
       {
         return null;
       }
@@ -58,7 +58,7 @@ public static class UpdateUser
         [FromBody] Command command,
         [FromServices] ISender sender) =>
       {
-        if (id != command.Id)
+        if(id != command.Id)
         {
           return Results.BadRequest("ID mismatch");
         }

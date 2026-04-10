@@ -1,6 +1,6 @@
 ﻿namespace Budget.Api.Features.Transactions;
 
-public static class GetFullTransactionsByEnvelopeAsync  
+public static class GetFullTransactionsByEnvelopeAsync
 {
   public sealed record Query(int EnvelopeId, int? StartIndex = null, int? PageSize = null)
     : IRequest<IEnumerable<Response>>;
@@ -28,26 +28,28 @@ public static class GetFullTransactionsByEnvelopeAsync
         .Where(a => a.Details.Any(d => d.EnvelopeId == request.EnvelopeId));
 
 
-      if (request.StartIndex.HasValue && request.PageSize.HasValue)
+      if(request.StartIndex.HasValue && request.PageSize.HasValue)
         rslt = rslt.Skip(request.StartIndex.Value).Take(request.PageSize.Value);
 
 
       var detailsByEnvelope = from r in rslt
-        from detail in r.Details
-        select new{
-          r.Id,
-          r.Vendor,
-          r.Description,
-          r.TotalAmount,
-          r.Date,
-          r.IsVoided,
-          r.UserId,
-          r.WasPotentialDuplicate,
-          detail.Amount, 
-          detail.Notes,
-          detail.EnvelopeId};
-      
-      var resultList = await detailsByEnvelope.Where(a=> a.EnvelopeId == request.EnvelopeId)
+                              from detail in r.Details
+                              select new
+                              {
+                                r.Id,
+                                r.Vendor,
+                                r.Description,
+                                r.TotalAmount,
+                                r.Date,
+                                r.IsVoided,
+                                r.UserId,
+                                r.WasPotentialDuplicate,
+                                detail.Amount,
+                                detail.Notes,
+                                detail.EnvelopeId
+                              };
+
+      var resultList = await detailsByEnvelope.Where(a => a.EnvelopeId == request.EnvelopeId)
         .Select(a => new Response(
           a.Id,
           a.Vendor,
@@ -62,7 +64,7 @@ public static class GetFullTransactionsByEnvelopeAsync
         .ToListAsync(cancellationToken);
 
 
-      
+
 
 
       // set the result to be a list of Response objects, where each Response object contains a FullTransactionDto object. I can use the Select method to project the list of FullTransactionDto objects to a list of Response objects, and then return the list of Response objects as the result of the Handle method.

@@ -1,9 +1,9 @@
-using System.Net.Http;
 using Budget.Api.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
+using System.Net.Http;
 
 namespace Budget.ApiTests.Services;
 

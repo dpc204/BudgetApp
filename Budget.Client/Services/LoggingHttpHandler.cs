@@ -15,7 +15,7 @@ public sealed class LoggingHttpHandler(ILogger<LoggingHttpHandler> logger) : Del
       request.Method,
       request.RequestUri);
 
-    if (request.Content is not null && logger.IsEnabled(LogLevel.Debug))
+    if(request.Content is not null && logger.IsEnabled(LogLevel.Debug))
     {
       var content = await request.Content.ReadAsStringAsync(cancellationToken);
       logger.LogDebug("[{RequestId}] Request Body: {Body}", requestId, content);
@@ -34,7 +34,7 @@ public sealed class LoggingHttpHandler(ILogger<LoggingHttpHandler> logger) : Del
         response.ReasonPhrase,
         stopwatch.ElapsedMilliseconds);
 
-      if (logger.IsEnabled(LogLevel.Debug) && response.Content is not null)
+      if(logger.IsEnabled(LogLevel.Debug) && response.Content is not null)
       {
         var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
         logger.LogDebug("[{RequestId}] Response Body: {Body}", requestId, responseContent);
@@ -42,7 +42,7 @@ public sealed class LoggingHttpHandler(ILogger<LoggingHttpHandler> logger) : Del
 
       return response;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       stopwatch.Stop();
       logger.LogError(

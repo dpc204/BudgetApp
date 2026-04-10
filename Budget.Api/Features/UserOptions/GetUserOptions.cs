@@ -1,6 +1,3 @@
-using Carter;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace Budget.Api.Features.UserOptions;
@@ -31,7 +28,7 @@ public static class GetUserOptions
         .AsNoTracking()
         .FirstOrDefaultAsync(s => s.UserId == request.UserId, cancellationToken);
 
-      if (savedOptions == null || string.IsNullOrEmpty(savedOptions.JsonOptions))
+      if(savedOptions == null || string.IsNullOrEmpty(savedOptions.JsonOptions))
       {
         return new Response(null);
       }
@@ -41,7 +38,7 @@ public static class GetUserOptions
         var options = JsonSerializer.Deserialize<Budget.Shared.Services.UserOptions>(savedOptions.JsonOptions);
         return new Response(options);
       }
-      catch (JsonException ex)
+      catch(JsonException ex)
       {
         logger.LogError(ex, "Failed to deserialize user options for user {UserId}", request.UserId);
         return new Response(null);

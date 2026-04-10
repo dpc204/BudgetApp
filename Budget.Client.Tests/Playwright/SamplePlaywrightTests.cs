@@ -62,7 +62,7 @@
 //    mudLayout.Should().NotBeNull("MudBlazor layout should be rendered");
 //  }
 
-  
+
 //  [Fact(Skip = "Playwright tests not working")]
 //  public async Task Authenticated_User_Information_Should_Be_Available()
 //  {
@@ -75,8 +75,8 @@
 
 //    Task.Delay(10000);
 
-    
-    
+
+
 //    var signInButton=  Page.Locator("button:has-text(\"Sign in with\")");
 
 //    signInButton.Should().Be(null);

@@ -1,7 +1,4 @@
 using Azure.Data.Tables;
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.Utilities.ImportExport;
 
@@ -35,13 +32,13 @@ public static class GetBackupSetDetails
       log.LogInformation("Retrieving backup set details for PartitionKey: {PartitionKey}", request.PartitionKey);
 
       var tableClient = tableServiceClient.GetTableClient(TableName);
-      
+
       // Ensure table exists
       try
       {
         await tableClient.CreateIfNotExistsAsync(cancellationToken);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         log.LogError(ex, "Failed to access TableBackups table");
         return new Response([]);
@@ -51,7 +48,7 @@ public static class GetBackupSetDetails
       var filter = $"PartitionKey eq '{request.PartitionKey}'";
       var tables = new List<BackupTableDto>();
 
-      await foreach (var entity in tableClient.QueryAsync<TableEntity>(filter, cancellationToken: cancellationToken))
+      await foreach(var entity in tableClient.QueryAsync<TableEntity>(filter, cancellationToken: cancellationToken))
       {
         var tableName = entity.RowKey;
         var blobName = entity.GetString("BlobName") ?? string.Empty;

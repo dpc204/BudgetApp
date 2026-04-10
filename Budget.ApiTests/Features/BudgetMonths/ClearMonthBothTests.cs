@@ -8,482 +8,474 @@ namespace Budget.ApiTests.Features.BudgetMonths;
 /// </summary>
 public class ClearMonthBothTests
 {
-    /// <summary>
-    /// Tests that valid AcctPeriod with unlocked records clears both Budget and BudgetDraft values successfully
-    /// </summary>
-    [Fact]
-    public async Task Handle_ValidAcctPeriodWithUnlockedRecords_ClearsValuesAndReturnsSuccess()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-
-        var family = new Family { Id = 1, Name = "Test Family" };
-        var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = 202401,
-            EnvelopeId = 1,
-            Budget = 100.50m,
-            BudgetDraft = 200.75m,
-            IsBudgetLocked = false,
-            FamilyId = 1
-        };
-
-        context.Families.Add(family);
-        context.Envelopes.Add(envelope);
-        context.BudgetMonths.Add(budgetMonth);
-        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(202401);
-
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.Message.Should().Contain("Cleared budget and draft values for 1 records");
-        result.RecordsUpdated.Should().Be(1);
-
-        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
-        updatedBudget.Should().NotBeNull();
-        updatedBudget!.Budget.Should().BeNull();
-        updatedBudget.BudgetDraft.Should().BeNull();
-    }
-
-    /// <summary>
-    /// Tests that invalid month values return failure response with appropriate error message
-    /// </summary>
-    /// <param name="acctPeriod">The accounting period with invalid month component</param>
-    /// 
-    [Theory]
-    [InlineData(202400)]
-    [InlineData(202413)]
-    [InlineData(202499)]
-    [InlineData(202300)]
-    [InlineData(190000)]
-    public async Task Handle_InvalidMonth_ReturnsFailure(int acctPeriod)
+  /// <summary>
+  /// Tests that valid AcctPeriod with unlocked records clears both Budget and BudgetDraft values successfully
+  /// </summary>
+  [Fact]
+  public async Task Handle_ValidAcctPeriodWithUnlockedRecords_ClearsValuesAndReturnsSuccess()
   {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(acctPeriod);
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202401,
+      EnvelopeId = 1,
+      Budget = 100.50m,
+      BudgetDraft = 200.75m,
+      IsBudgetLocked = false,
+      FamilyId = 1
+    };
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be("Invalid accounting period format");
-        result.RecordsUpdated.Should().Be(0);
-    }
+    context.Families.Add(family);
+    context.Envelopes.Add(envelope);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-    /// <summary>
-    /// Tests that year values below 1900 return failure response
-    /// </summary>
-    /// <param name="acctPeriod">The accounting period with invalid year component</param>
-    [Theory]
-    [InlineData(189912)]
-    [InlineData(189901)]
-    [InlineData(100001)]
-    [InlineData(0)]
-    [InlineData(-202401)]
-    public async Task Handle_InvalidYear_ReturnsFailure(int acctPeriod)
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(acctPeriod);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202401);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be("Invalid accounting period format");
-        result.RecordsUpdated.Should().Be(0);
-    }
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.Message.Should().Contain("Cleared budget and draft values for 1 records");
+    result.RecordsUpdated.Should().Be(1);
 
-    /// <summary>
-    /// Tests that valid AcctPeriod with no matching records returns success with zero count
-    /// </summary>
-    [Fact]
-    public async Task Handle_ValidPeriodNoRecords_ReturnsSuccessWithZeroCount()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(202401);
+    BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
+    updatedBudget.Should().NotBeNull();
+    updatedBudget!.Budget.Should().BeNull();
+    updatedBudget.BudgetDraft.Should().BeNull();
+  }
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+  /// <summary>
+  /// Tests that invalid month values return failure response with appropriate error message
+  /// </summary>
+  /// <param name="acctPeriod">The accounting period with invalid month component</param>
+  /// 
+  [Theory]
+  [InlineData(202400)]
+  [InlineData(202413)]
+  [InlineData(202499)]
+  [InlineData(202300)]
+  [InlineData(190000)]
+  public async Task Handle_InvalidMonth_ReturnsFailure(int acctPeriod)
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(acctPeriod);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.Message.Should().Contain("Cleared budget and draft values for 0 records");
-        result.RecordsUpdated.Should().Be(0);
-    }
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-    /// <summary>
-    /// Tests that valid AcctPeriod with all locked records returns success with zero count and does not modify records
-    /// </summary>
-    [Fact]
-    public async Task Handle_ValidPeriodAllRecordsLocked_ReturnsSuccessWithZeroCountAndDoesNotModify()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeFalse();
+    result.Message.Should().Be("Invalid accounting period format");
+    result.RecordsUpdated.Should().Be(0);
+  }
 
-        var family = new Family { Id = 1, Name = "Test Family" };
-        var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
-        var lockedBudget = new BudgetMonth
-        {
-            AcctPeriod = 202401,
-            EnvelopeId = 1,
-            Budget = 100.50m,
-            BudgetDraft = 200.75m,
-            IsBudgetLocked = true,
-            FamilyId = 1
-        };
+  /// <summary>
+  /// Tests that year values below 1900 return failure response
+  /// </summary>
+  /// <param name="acctPeriod">The accounting period with invalid year component</param>
+  [Theory]
+  [InlineData(189912)]
+  [InlineData(189901)]
+  [InlineData(100001)]
+  [InlineData(0)]
+  [InlineData(-202401)]
+  public async Task Handle_InvalidYear_ReturnsFailure(int acctPeriod)
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(acctPeriod);
 
-        context.Families.Add(family);
-        context.Envelopes.Add(envelope);
-        context.BudgetMonths.Add(lockedBudget);
-        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(202401);
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeFalse();
+    result.Message.Should().Be("Invalid accounting period format");
+    result.RecordsUpdated.Should().Be(0);
+  }
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+  /// <summary>
+  /// Tests that valid AcctPeriod with no matching records returns success with zero count
+  /// </summary>
+  [Fact]
+  public async Task Handle_ValidPeriodNoRecords_ReturnsSuccessWithZeroCount()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202401);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().Be(0);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202401, 1],TestContext.Current.CancellationToken);
-        
-        unchangedBudget.Should().NotBeNull();
-        unchangedBudget!.Budget.Should().Be(100.50m);
-        unchangedBudget.BudgetDraft.Should().Be(200.75m);
-    }
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.Message.Should().Contain("Cleared budget and draft values for 0 records");
+    result.RecordsUpdated.Should().Be(0);
+  }
 
-    /// <summary>
-    /// Tests that valid AcctPeriod with mix of locked and unlocked records clears only unlocked records
-    /// </summary>
-    [Fact]
-    public async Task Handle_ValidPeriodMixedLockedUnlocked_ClearsOnlyUnlocked()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+  /// <summary>
+  /// Tests that valid AcctPeriod with all locked records returns success with zero count and does not modify records
+  /// </summary>
+  [Fact]
+  public async Task Handle_ValidPeriodAllRecordsLocked_ReturnsSuccessWithZeroCountAndDoesNotModify()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-        var family = new Family { Id = 1, Name = "Test Family" };
-        var envelope1 = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
-        var envelope2 = new Envelope { Id = 2, Name = "Gas", FamilyId = 1 };
-        var envelope3 = new Envelope { Id = 3, Name = "Entertainment", FamilyId = 1 };
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
+    var lockedBudget = new BudgetMonth {
+      AcctPeriod = 202401,
+      EnvelopeId = 1,
+      Budget = 100.50m,
+      BudgetDraft = 200.75m,
+      IsBudgetLocked = true,
+      FamilyId = 1
+    };
 
-        var unlockedBudget1 = new BudgetMonth
-        {
-            AcctPeriod = 202401,
-            EnvelopeId = 1,
-            Budget = 100m,
-            BudgetDraft = 150m,
-            IsBudgetLocked = false,
-            FamilyId = 1
-        };
-        var lockedBudget = new BudgetMonth
-        {
-            AcctPeriod = 202401,
-            EnvelopeId = 2,
-            Budget = 200m,
-            BudgetDraft = 250m,
-            IsBudgetLocked = true,
-            FamilyId = 1
-        };
-        var unlockedBudget2 = new BudgetMonth
-        {
-            AcctPeriod = 202401,
-            EnvelopeId = 3,
-            Budget = 300m,
-            BudgetDraft = 350m,
-            IsBudgetLocked = false,
-            FamilyId = 1
-        };
+    context.Families.Add(family);
+    context.Envelopes.Add(envelope);
+    context.BudgetMonths.Add(lockedBudget);
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        context.Families.Add(family);
-        context.Envelopes.AddRange(envelope1, envelope2, envelope3);
-        context.BudgetMonths.AddRange(unlockedBudget1, lockedBudget, unlockedBudget2);
-        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202401);
 
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(202401);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().Be(0);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().Be(2);
+    BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
 
-        BudgetMonth? clearedBudget1 = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
-        clearedBudget1!.Budget.Should().BeNull();
-        clearedBudget1.BudgetDraft.Should().BeNull();
+    unchangedBudget.Should().NotBeNull();
+    unchangedBudget!.Budget.Should().Be(100.50m);
+    unchangedBudget.BudgetDraft.Should().Be(200.75m);
+  }
 
-        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202401, 2], TestContext.Current.CancellationToken);
-        unchangedBudget!.Budget.Should().Be(200m);
-        unchangedBudget.BudgetDraft.Should().Be(250m);
+  /// <summary>
+  /// Tests that valid AcctPeriod with mix of locked and unlocked records clears only unlocked records
+  /// </summary>
+  [Fact]
+  public async Task Handle_ValidPeriodMixedLockedUnlocked_ClearsOnlyUnlocked()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-        BudgetMonth? clearedBudget2 = await context.BudgetMonths.FindAsync([202401, 3], TestContext.Current.CancellationToken);
-        clearedBudget2!.Budget.Should().BeNull();
-        clearedBudget2.BudgetDraft.Should().BeNull();
-    }
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var envelope1 = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
+    var envelope2 = new Envelope { Id = 2, Name = "Gas", FamilyId = 1 };
+    var envelope3 = new Envelope { Id = 3, Name = "Entertainment", FamilyId = 1 };
 
-    /// <summary>
-    /// Tests that valid AcctPeriod with records already having null values updates successfully
-    /// </summary>
-    [Fact]
-    public async Task Handle_ValidPeriodRecordsAlreadyNull_UpdatesSuccessfully()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var unlockedBudget1 = new BudgetMonth {
+      AcctPeriod = 202401,
+      EnvelopeId = 1,
+      Budget = 100m,
+      BudgetDraft = 150m,
+      IsBudgetLocked = false,
+      FamilyId = 1
+    };
+    var lockedBudget = new BudgetMonth {
+      AcctPeriod = 202401,
+      EnvelopeId = 2,
+      Budget = 200m,
+      BudgetDraft = 250m,
+      IsBudgetLocked = true,
+      FamilyId = 1
+    };
+    var unlockedBudget2 = new BudgetMonth {
+      AcctPeriod = 202401,
+      EnvelopeId = 3,
+      Budget = 300m,
+      BudgetDraft = 350m,
+      IsBudgetLocked = false,
+      FamilyId = 1
+    };
 
-        var family = new Family { Id = 1, Name = "Test Family" };
-        var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
-        var budgetMonth = new BudgetMonth
-        {
-            AcctPeriod = 202401,
-            EnvelopeId = 1,
-            Budget = null,
-            BudgetDraft = null,
-            IsBudgetLocked = false,
-            FamilyId = 1
-        };
+    context.Families.Add(family);
+    context.Envelopes.AddRange(envelope1, envelope2, envelope3);
+    context.BudgetMonths.AddRange(unlockedBudget1, lockedBudget, unlockedBudget2);
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        context.Families.Add(family);
-        context.Envelopes.Add(envelope);
-        context.BudgetMonths.Add(budgetMonth);
-        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202401);
 
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(202401);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().Be(2);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().Be(1);
+    BudgetMonth? clearedBudget1 = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
+    clearedBudget1!.Budget.Should().BeNull();
+    clearedBudget1.BudgetDraft.Should().BeNull();
 
-        BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
-        updatedBudget.Should().NotBeNull();
-        updatedBudget!.Budget.Should().BeNull();
-        updatedBudget.BudgetDraft.Should().BeNull();
-    }
+    BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202401, 2], TestContext.Current.CancellationToken);
+    unchangedBudget!.Budget.Should().Be(200m);
+    unchangedBudget.BudgetDraft.Should().Be(250m);
 
-    /// <summary>
-    /// Tests that boundary month values (1 and 12) are validated correctly
-    /// </summary>
-    /// <param name="acctPeriod">The accounting period with boundary month values</param>
-    [Theory]
-    [InlineData(202401)]
-    [InlineData(202412)]
-    [InlineData(190001)]
-    [InlineData(190012)]
-    [InlineData(999901)]
-    [InlineData(999912)]
-    public async Task Handle_BoundaryMonthValues_ValidatesCorrectly(int acctPeriod)
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(acctPeriod);
+    BudgetMonth? clearedBudget2 = await context.BudgetMonths.FindAsync([202401, 3], TestContext.Current.CancellationToken);
+    clearedBudget2!.Budget.Should().BeNull();
+    clearedBudget2.BudgetDraft.Should().BeNull();
+  }
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+  /// <summary>
+  /// Tests that valid AcctPeriod with records already having null values updates successfully
+  /// </summary>
+  [Fact]
+  public async Task Handle_ValidPeriodRecordsAlreadyNull_UpdatesSuccessfully()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().Be(0);
-    }
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
+    var budgetMonth = new BudgetMonth {
+      AcctPeriod = 202401,
+      EnvelopeId = 1,
+      Budget = null,
+      BudgetDraft = null,
+      IsBudgetLocked = false,
+      FamilyId = 1
+    };
 
-    /// <summary>
-    /// Tests that boundary year value of 1900 is validated correctly
-    /// </summary>
-    [Fact]
-    public async Task Handle_BoundaryYearValue1900_ValidatesCorrectly()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(190001);
+    context.Families.Add(family);
+    context.Envelopes.Add(envelope);
+    context.BudgetMonths.Add(budgetMonth);
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202401);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().Be(0);
-    }
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-    /// <summary>
-    /// Tests that multiple records for the same period are all cleared when unlocked
-    /// </summary>
-    [Fact]
-    public async Task Handle_MultipleUnlockedRecordsForSamePeriod_ClearsAllRecords()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().Be(1);
 
-        var family = new Family { Id = 1, Name = "Test Family" };
-        var envelope1 = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
-        var envelope2 = new Envelope { Id = 2, Name = "Gas", FamilyId = 1 };
-        var envelope3 = new Envelope { Id = 3, Name = "Entertainment", FamilyId = 1 };
+    BudgetMonth? updatedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
+    updatedBudget.Should().NotBeNull();
+    updatedBudget!.Budget.Should().BeNull();
+    updatedBudget.BudgetDraft.Should().BeNull();
+  }
 
-        var budgets = new List<BudgetMonth>
-    {
+  /// <summary>
+  /// Tests that boundary month values (1 and 12) are validated correctly
+  /// </summary>
+  /// <param name="acctPeriod">The accounting period with boundary month values</param>
+  [Theory]
+  [InlineData(202401)]
+  [InlineData(202412)]
+  [InlineData(190001)]
+  [InlineData(190012)]
+  [InlineData(999901)]
+  [InlineData(999912)]
+  public async Task Handle_BoundaryMonthValues_ValidatesCorrectly(int acctPeriod)
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(acctPeriod);
+
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().Be(0);
+  }
+
+  /// <summary>
+  /// Tests that boundary year value of 1900 is validated correctly
+  /// </summary>
+  [Fact]
+  public async Task Handle_BoundaryYearValue1900_ValidatesCorrectly()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(190001);
+
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().Be(0);
+  }
+
+  /// <summary>
+  /// Tests that multiple records for the same period are all cleared when unlocked
+  /// </summary>
+  [Fact]
+  public async Task Handle_MultipleUnlockedRecordsForSamePeriod_ClearsAllRecords()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var envelope1 = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
+    var envelope2 = new Envelope { Id = 2, Name = "Gas", FamilyId = 1 };
+    var envelope3 = new Envelope { Id = 3, Name = "Entertainment", FamilyId = 1 };
+
+    var budgets = new List<BudgetMonth>
+{
       new() { AcctPeriod = 202401, EnvelopeId = 1, Budget = 100m, BudgetDraft = 150m, IsBudgetLocked = false, FamilyId = 1 },
       new() { AcctPeriod = 202401, EnvelopeId = 2, Budget = 200m, BudgetDraft = 250m, IsBudgetLocked = false, FamilyId = 1 },
       new() { AcctPeriod = 202401, EnvelopeId = 3, Budget = 300m, BudgetDraft = 350m, IsBudgetLocked = false, FamilyId = 1 }
     };
 
-        context.Families.Add(family);
-        context.Envelopes.AddRange(envelope1, envelope2, envelope3);
-        context.BudgetMonths.AddRange(budgets);
-        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    context.Families.Add(family);
+    context.Envelopes.AddRange(envelope1, envelope2, envelope3);
+    context.BudgetMonths.AddRange(budgets);
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(202401);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202401);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().Be(3);
-        result.Message.Should().Contain("Cleared budget and draft values for 3 records");
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().Be(3);
+    result.Message.Should().Contain("Cleared budget and draft values for 3 records");
 
-        List<BudgetMonth> allBudgets = await context.BudgetMonths.Where(b => b.AcctPeriod == 202401).ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
-        allBudgets.Should().HaveCount(3);
-        allBudgets.Should().OnlyContain(b => b.Budget == null && b.BudgetDraft == null);
-    }
+    List<BudgetMonth> allBudgets = await context.BudgetMonths.Where(b => b.AcctPeriod == 202401).ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
+    allBudgets.Should().HaveCount(3);
+    allBudgets.Should().OnlyContain(b => b.Budget == null && b.BudgetDraft == null);
+  }
 
-    /// <summary>
-    /// Tests that records from different periods are not affected
-    /// </summary>
-    [Fact]
-    public async Task Handle_RecordsFromDifferentPeriods_OnlyTargetPeriodCleared()
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+  /// <summary>
+  /// Tests that records from different periods are not affected
+  /// </summary>
+  [Fact]
+  public async Task Handle_RecordsFromDifferentPeriods_OnlyTargetPeriodCleared()
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
-        var family = new Family { Id = 1, Name = "Test Family" };
-        var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
+    var family = new Family { Id = 1, Name = "Test Family" };
+    var envelope = new Envelope { Id = 1, Name = "Groceries", FamilyId = 1 };
 
-        var targetBudget = new BudgetMonth
-        {
-            AcctPeriod = 202401,
-            EnvelopeId = 1,
-            Budget = 100m,
-            BudgetDraft = 150m,
-            IsBudgetLocked = false,
-            FamilyId = 1
-        };
-        var otherBudget = new BudgetMonth
-        {
-            AcctPeriod = 202402,
-            EnvelopeId = 1,
-            Budget = 200m,
-            BudgetDraft = 250m,
-            IsBudgetLocked = false,
-            FamilyId = 1
-        };
+    var targetBudget = new BudgetMonth {
+      AcctPeriod = 202401,
+      EnvelopeId = 1,
+      Budget = 100m,
+      BudgetDraft = 150m,
+      IsBudgetLocked = false,
+      FamilyId = 1
+    };
+    var otherBudget = new BudgetMonth {
+      AcctPeriod = 202402,
+      EnvelopeId = 1,
+      Budget = 200m,
+      BudgetDraft = 250m,
+      IsBudgetLocked = false,
+      FamilyId = 1
+    };
 
-        context.Families.Add(family);
-        context.Envelopes.Add(envelope);
-        context.BudgetMonths.AddRange(targetBudget, otherBudget);
-        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    context.Families.Add(family);
+    context.Envelopes.Add(envelope);
+    context.BudgetMonths.AddRange(targetBudget, otherBudget);
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(202401);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(202401);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.RecordsUpdated.Should().Be(1);
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeTrue();
+    result.RecordsUpdated.Should().Be(1);
 
-        BudgetMonth? clearedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
-        clearedBudget!.Budget.Should().BeNull();
-        clearedBudget.BudgetDraft.Should().BeNull();
+    BudgetMonth? clearedBudget = await context.BudgetMonths.FindAsync([202401, 1], TestContext.Current.CancellationToken);
+    clearedBudget!.Budget.Should().BeNull();
+    clearedBudget.BudgetDraft.Should().BeNull();
 
-        BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202402, 1], TestContext.Current.CancellationToken);
-        unchangedBudget!.Budget.Should().Be(200m);
-        unchangedBudget.BudgetDraft.Should().Be(250m);
-    }
+    BudgetMonth? unchangedBudget = await context.BudgetMonths.FindAsync([202402, 1], TestContext.Current.CancellationToken);
+    unchangedBudget!.Budget.Should().Be(200m);
+    unchangedBudget.BudgetDraft.Should().Be(250m);
+  }
 
-    /// <summary>
-    /// Tests extreme valid AcctPeriod values at integer boundaries
-    /// </summary>
-    [Theory]
-    [InlineData(int.MaxValue)]
-    public async Task Handle_ExtremeValidAcctPeriod_HandlesCorrectly(int acctPeriod)
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(acctPeriod);
+  /// <summary>
+  /// Tests extreme valid AcctPeriod values at integer boundaries
+  /// </summary>
+  [Theory]
+  [InlineData(int.MaxValue)]
+  public async Task Handle_ExtremeValidAcctPeriod_HandlesCorrectly(int acctPeriod)
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(acctPeriod);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        // int.MaxValue / 100 = 21474836, month = 47, so should fail validation
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be("Invalid accounting period format");
-    }
+    // Assert
+    result.Should().NotBeNull();
+    // int.MaxValue / 100 = 21474836, month = 47, so should fail validation
+    result.Success.Should().BeFalse();
+    result.Message.Should().Be("Invalid accounting period format");
+  }
 
-    /// <summary>
-    /// Tests extreme invalid AcctPeriod values at negative boundary
-    /// </summary>
-    [Theory]
-    [InlineData(int.MinValue)]
-    [InlineData(-1)]
-    public async Task Handle_ExtremeInvalidAcctPeriod_ReturnsFailure(int acctPeriod)
-    {
-        // Arrange
-        await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-        var handler = new ClearMonthBoth.Handler(context);
-        var command = new ClearMonthBoth.Command(acctPeriod);
+  /// <summary>
+  /// Tests extreme invalid AcctPeriod values at negative boundary
+  /// </summary>
+  [Theory]
+  [InlineData(int.MinValue)]
+  [InlineData(-1)]
+  public async Task Handle_ExtremeInvalidAcctPeriod_ReturnsFailure(int acctPeriod)
+  {
+    // Arrange
+    await using var context = new BudgetContext(CreateInMemoryOptions(), null);
+    var handler = new ClearMonthBoth.Handler(context);
+    var command = new ClearMonthBoth.Command(acctPeriod);
 
-        // Act
-        ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
+    // Act
+    ClearMonthBoth.Response result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeFalse();
-        result.Message.Should().Be("Invalid accounting period format");
-        result.RecordsUpdated.Should().Be(0);
-    }
+    // Assert
+    result.Should().NotBeNull();
+    result.Success.Should().BeFalse();
+    result.Message.Should().Be("Invalid accounting period format");
+    result.RecordsUpdated.Should().Be(0);
+  }
 
-    /// <summary>
-    /// Creates in-memory database options for testing
-    /// </summary>
-    private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
-    {
-        return new DbContextOptionsBuilder<BudgetContext>()
-          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-          .Options;
-    }
+  /// <summary>
+  /// Creates in-memory database options for testing
+  /// </summary>
+  private static DbContextOptions<BudgetContext> CreateInMemoryOptions()
+  {
+    return new DbContextOptionsBuilder<BudgetContext>()
+      .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+      .Options;
+  }
 }

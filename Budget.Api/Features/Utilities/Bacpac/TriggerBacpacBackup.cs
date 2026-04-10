@@ -48,7 +48,7 @@ public static class TriggerBacpacBackup
         logger.LogInformation("Exporting {Database} to temp file {File}", databaseName, tempPath);
         await Task.Run(() => dac.ExportBacpac(tempPath, databaseName), cancellationToken);
 
-        if (!File.Exists(tempPath))
+        if(!File.Exists(tempPath))
         {
           logger.LogError("DacFx export succeeded but file not found: {File}", tempPath);
           throw new InvalidOperationException("Export failed: output file missing.");
@@ -63,7 +63,7 @@ public static class TriggerBacpacBackup
         await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
         var blobClient = containerClient.GetBlobClient(blobName);
-        await using (var fileStream = File.OpenRead(tempPath))
+        await using(var fileStream = File.OpenRead(tempPath))
         {
           await blobClient.UploadAsync(fileStream, overwrite: true, cancellationToken);
         }
@@ -96,9 +96,9 @@ public static class TriggerBacpacBackup
           try
           {
             await Task.Delay(TimeSpan.FromMinutes(TempFileCleanupDelayMinutes), CancellationToken.None);
-            if (File.Exists(tempPath)) File.Delete(tempPath);
+            if(File.Exists(tempPath)) File.Delete(tempPath);
           }
-          catch (Exception ex)
+          catch(Exception ex)
           {
             logger.LogWarning(ex, "Failed to clean up temp BACPAC file {TempPath}", tempPath);
           }
@@ -117,21 +117,21 @@ public static class TriggerBacpacBackup
       logger.LogInformation("Deleting BACPAC backups older than {Cutoff}", cutoff);
 
       var oldEntities = new List<TableEntity>();
-      await foreach (var entity in tableClient.QueryAsync<TableEntity>(
+      await foreach(var entity in tableClient.QueryAsync<TableEntity>(
         filter: $"PartitionKey eq '{databaseName}'",
         cancellationToken: cancellationToken))
       {
         var createdAt = entity.GetDateTimeOffset("CreatedAt")?.UtcDateTime ?? DateTime.MinValue;
-        if (createdAt < cutoff)
+        if(createdAt < cutoff)
           oldEntities.Add(entity);
       }
 
-      foreach (var entity in oldEntities)
+      foreach(var entity in oldEntities)
       {
         try
         {
           var blobName = entity.GetString("BlobName") ?? string.Empty;
-          if (!string.IsNullOrWhiteSpace(blobName))
+          if(!string.IsNullOrWhiteSpace(blobName))
           {
             var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
@@ -141,7 +141,7 @@ public static class TriggerBacpacBackup
           await tableClient.DeleteEntityAsync(entity.PartitionKey, entity.RowKey, cancellationToken: cancellationToken);
           logger.LogInformation("Deleted old BACPAC table entry: {RowKey}", entity.RowKey);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
           logger.LogWarning(ex, "Failed to delete old BACPAC entry {RowKey}", entity.RowKey);
         }

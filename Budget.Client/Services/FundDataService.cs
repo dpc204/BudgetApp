@@ -22,10 +22,9 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
     var totalBalance = 0m;
     var availableToFund = allocateEnvelope.Balance;
 
-    foreach (var item in monthData.Where(a => a.CategoryType == CatTypes.User))
+    foreach(var item in monthData.Where(a => a.CategoryType == CatTypes.User))
     {
-      var envelopeData = new FundEnvelopeData
-      {
+      var envelopeData = new FundEnvelopeData {
         EnvelopeId = item.EnvelopeId,
         EnvelopeName = item.EnvelopeName,
         CategoryId = item.CategoryId,
@@ -44,8 +43,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
       totalBalance += item.Balance;
     }
 
-    return new FundDataResult
-    {
+    return new FundDataResult {
       FundData = fundData,
       TotalBudget = totalBudget,
       TotalBalance = totalBalance,
@@ -67,7 +65,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
 
     return response;
   }
-  
+
   /// <summary>
   /// Builds display rows from fund data
   /// </summary>
@@ -75,7 +73,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
   /// <returns>List of display rows sorted by sort order</returns>
   public List<FundDisplayRow> BuildDisplayRows(Dictionary<int, FundEnvelopeData> fundData)
   {
-    if (fundData == null || fundData.Count == 0)
+    if(fundData == null || fundData.Count == 0)
       return [];
 
     return [.. fundData.Values

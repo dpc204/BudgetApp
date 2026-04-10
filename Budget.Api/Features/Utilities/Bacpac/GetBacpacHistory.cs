@@ -1,5 +1,4 @@
 using Azure.Data.Tables;
-using Azure.Storage.Blobs;
 
 namespace Budget.Api.Features.Utilities.Bacpac;
 
@@ -27,7 +26,7 @@ public static class GetBacpacHistory
         await tableClient.CreateIfNotExistsAsync(cancellationToken);
 
         var results = new List<BacpacBackupDto>();
-        await foreach (var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
+        await foreach(var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
         {
           var dto = new BacpacBackupDto(
             RowKey: entity.RowKey,
@@ -40,7 +39,7 @@ public static class GetBacpacHistory
 
         return results.OrderByDescending(x => x.CreatedAt);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         logger.LogError(ex, "Error listing BACPAC history");
         throw;

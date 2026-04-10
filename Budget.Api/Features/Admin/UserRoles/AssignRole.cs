@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 namespace Budget.Api.Features.Admin.UserRoles;
 
 /// <summary>
@@ -22,8 +20,8 @@ public static class AssignRole
       var userExists = await db.Users
         .IgnoreQueryFilters()
         .AnyAsync(u => u.Id == request.UserId, cancellationToken);
-      
-      if (!userExists)
+
+      if(!userExists)
       {
         throw new InvalidOperationException($"User with ID {request.UserId} not found");
       }
@@ -35,7 +33,7 @@ public static class AssignRole
       var existingAssignment = await db.UserRoles
         .FirstOrDefaultAsync(ur => ur.UserId == request.UserId && ur.RoleId == request.RoleId, cancellationToken);
 
-      if (existingAssignment != null)
+      if(existingAssignment != null)
       {
         throw new InvalidOperationException($"User already has the '{role.Name}' role assigned");
       }
@@ -43,8 +41,8 @@ public static class AssignRole
       // Get current user ID for audit trail
       var currentUserEmail = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
       int? assignedByUserId = null;
-      
-      if (!string.IsNullOrEmpty(currentUserEmail))
+
+      if(!string.IsNullOrEmpty(currentUserEmail))
       {
         currentUserEmail = currentUserEmail.ToUpper();
 
@@ -55,8 +53,7 @@ public static class AssignRole
       }
 
       // Create assignment
-      var userRole = new UserRole
-      {
+      var userRole = new UserRole {
         UserId = request.UserId,
         RoleId = request.RoleId,
         AssignedAt = DateTime.UtcNow,
@@ -87,7 +84,7 @@ public static class AssignRole
           var result = await sender.Send(new Command(userId, roleId));
           return Results.Ok(result);
         }
-        catch (InvalidOperationException ex)
+        catch(InvalidOperationException ex)
         {
           return Results.BadRequest(new { error = ex.Message });
         }

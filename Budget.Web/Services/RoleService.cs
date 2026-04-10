@@ -28,7 +28,7 @@ public class RoleService(BudgetContext context, ILogger<RoleService> logger, Hyb
   public async Task<List<Role>> GetUserRolesByEmailAsync(string email, CancellationToken cancellationToken = default)
   {
     var user = await GetUserByEmailAsync(email, cancellationToken);
-    if (user == null)
+    if(user == null)
     {
       logger.LogWarning("User not found with email: {Email}", email);
       return [];
@@ -47,14 +47,13 @@ public class RoleService(BudgetContext context, ILogger<RoleService> logger, Hyb
     var exists = await context.UserRoles
       .AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId, cancellationToken);
 
-    if (exists)
+    if(exists)
     {
       logger.LogInformation("User {UserId} already has role {RoleId}", userId, roleId);
       return false;
     }
 
-    var userRole = new UserRole
-    {
+    var userRole = new UserRole {
       UserId = userId,
       RoleId = roleId,
       AssignedAt = DateTime.UtcNow,
@@ -81,7 +80,7 @@ public class RoleService(BudgetContext context, ILogger<RoleService> logger, Hyb
     var userRole = await context.UserRoles
       .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId, cancellationToken);
 
-    if (userRole == null)
+    if(userRole == null)
     {
       logger.LogWarning("UserRole not found for user {UserId} and role {RoleId}", userId, roleId);
       return false;

@@ -16,8 +16,7 @@ public static class CreateRole
   {
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
-      var role = new Role
-      {
+      var role = new Role {
         Name = request.Name,
         Description = request.Description,
         CreatedAt = DateTime.UtcNow

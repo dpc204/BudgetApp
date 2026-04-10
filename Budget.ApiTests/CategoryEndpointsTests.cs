@@ -1,13 +1,6 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using CategoryGetByEnvelopeId = Budget.Api.Features.Categories.GetByEnvelopeId;
 using Budget.Api.Features.Categories.CategoryMaint;
-using Budget.DB;
 using Budget.Shared.Enums;
-using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
+using CategoryGetByEnvelopeId = Budget.Api.Features.Categories.GetByEnvelopeId;
 
 namespace Budget.ApiTests;
 
@@ -26,21 +19,19 @@ public class CategoryEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category1 = new Category 
-    { 
-      CategoryId = "500", 
-      Name = "Food", 
+    var category1 = new Category {
+      CategoryId = "500",
+      Name = "Food",
       Description = "Food expenses",
       SortOrder = 1,
       FamilyId = 1,
       CategoryType = CatTypes.Income
     };
-    var category2 = new Category 
-    { 
-      CategoryId = "501", 
-      Name = "Transportation", 
+    var category2 = new Category {
+      CategoryId = "501",
+      Name = "Transportation",
       Description = "Transportation expenses",
       SortOrder = 2,
       FamilyId = 1,
@@ -72,12 +63,11 @@ public class CategoryEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "502", 
-      Name = "Test Category", 
+    var category = new Category {
+      CategoryId = "502",
+      Name = "Test Category",
       Description = "Test",
       SortOrder = 1,
       FamilyId = 1,
@@ -106,7 +96,7 @@ public class CategoryEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     context.Families.Add(family);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -139,12 +129,11 @@ public class CategoryEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "503", 
-      Name = "Original Name", 
+    var category = new Category {
+      CategoryId = "503",
+      Name = "Original Name",
       Description = "Original",
       SortOrder = 1,
       FamilyId = 1,
@@ -185,7 +174,7 @@ public class CategoryEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var handler = new UpdateCategory.Handler(context);
     var command = new UpdateCategory.Command(
       CategoryId: "999",
@@ -205,12 +194,11 @@ public class CategoryEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
-    var category = new Category 
-    { 
-      CategoryId = "505", 
-      Name = "To Delete", 
+    var category = new Category {
+      CategoryId = "505",
+      Name = "To Delete",
       Description = "Delete me",
       SortOrder = 1,
       FamilyId = 1,
@@ -240,7 +228,7 @@ public class CategoryEndpointsTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var handler = new RemoveCategory.Handler(context);
 
     // Act

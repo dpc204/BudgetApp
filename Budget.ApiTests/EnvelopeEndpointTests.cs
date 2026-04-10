@@ -1,15 +1,6 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using GetAllEnvelopes = Budget.Api.Features.Envelopes.EnvelopeMaint.GetAll;
-using Budget.Api.Features.Envelopes;
 using Budget.Api.Features.Envelopes.EnvelopeMaint;
-using Budget.DB;
 using Budget.Shared.Enums;
-using Budget.Shared.Models;
-using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
+using GetAllEnvelopes = Budget.Api.Features.Envelopes.EnvelopeMaint.GetAll;
 
 namespace Budget.ApiTests;
 
@@ -25,24 +16,22 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var envelope1 = new Envelope 
-    { 
-      Id = 400, 
-      Name = "Groceries", 
-      CategoryId = "1", 
+    var envelope1 = new Envelope {
+      Id = 400,
+      Name = "Groceries",
+      CategoryId = "1",
       Balance = 100m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
-    var envelope2 = new Envelope 
-    { 
-      Id = 401, 
-      Name = "Gas", 
-      CategoryId = "1", 
+    var envelope2 = new Envelope {
+      Id = 401,
+      Name = "Gas",
+      CategoryId = "1",
       Balance = 50m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -74,14 +63,13 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var envelope = new Envelope 
-    { 
-      Id = 402, 
-      Name = "Test Envelope", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 402,
+      Name = "Test Envelope",
+      CategoryId = "1",
       Balance = 200m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -113,10 +101,10 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -152,14 +140,13 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var envelope = new Envelope 
-    { 
-      Id = 403, 
-      Name = "Original Name", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 403,
+      Name = "Original Name",
+      CategoryId = "1",
       Balance = 100m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -172,8 +159,7 @@ public class EnvelopeEndpointTests
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateEnvelope.Handler(context);
-    var updateDto = new EnvelopeUpdateDto
-    {
+    var updateDto = new EnvelopeUpdateDto {
       Id = 403,
       Name = "Updated Name",
       Description = "Updated description",
@@ -206,10 +192,9 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var handler = new UpdateEnvelope.Handler(context);
-    var updateDto = new EnvelopeUpdateDto
-    {
+    var updateDto = new EnvelopeUpdateDto {
       Id = 999,
       Name = "Test",
       Description = "Test",
@@ -231,14 +216,13 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    var envelope = new Envelope 
-    { 
-      Id = 405, 
-      Name = "To Delete", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 405,
+      Name = "To Delete",
+      CategoryId = "1",
       Balance = 50m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -269,7 +253,7 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var handler = new RemoveEnvelope.Handler(context);
 
     // Act
@@ -284,15 +268,14 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var account = new BankAccount { Id = 406, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
-    var envelope = new Envelope 
-    { 
-      Id = 406, 
-      Name = "Test Envelope", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 406,
+      Name = "Test Envelope",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -305,35 +288,31 @@ public class EnvelopeEndpointTests
     context.Envelopes.Add(envelope);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-    var transaction1 = new Transaction 
-    { 
-      Id = 406, 
-      AccountId = account.Id, 
-      TotalAmount = 50m, 
+    var transaction1 = new Transaction {
+      Id = 406,
+      AccountId = account.Id,
+      TotalAmount = 50m,
       Date = DateTime.Now,
       FamilyId = 1
     };
-    var transaction2 = new Transaction 
-    { 
-      Id = 407, 
-      AccountId = account.Id, 
-      TotalAmount = 75m, 
+    var transaction2 = new Transaction {
+      Id = 407,
+      AccountId = account.Id,
+      TotalAmount = 75m,
       Date = DateTime.Now,
       FamilyId = 1
     };
 
-    var detail1 = new TransactionDetail 
-    { 
-      TransactionId = 406, 
-      LineId = 1, 
-      EnvelopeId = envelope.Id, 
+    var detail1 = new TransactionDetail {
+      TransactionId = 406,
+      LineId = 1,
+      EnvelopeId = envelope.Id,
       Amount = 50m
     };
-    var detail2 = new TransactionDetail 
-    { 
-      TransactionId = 407, 
-      LineId = 1, 
-      EnvelopeId = envelope.Id, 
+    var detail2 = new TransactionDetail {
+      TransactionId = 407,
+      LineId = 1,
+      EnvelopeId = envelope.Id,
       Amount = 75m
     };
 
@@ -357,10 +336,10 @@ public class EnvelopeEndpointTests
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test Category", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);

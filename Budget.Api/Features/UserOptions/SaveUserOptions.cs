@@ -1,5 +1,3 @@
-using Carter;
-using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace Budget.Api.Features.UserOptions;
@@ -30,14 +28,13 @@ public static class SaveUserOptions
 
       var existingOptions = await db.SavedUserOptions.FindAsync([request.UserId], cancellationToken);
 
-      if (existingOptions != null)
+      if(existingOptions != null)
       {
         existingOptions.JsonOptions = jsonOptions;
       }
       else
       {
-        db.SavedUserOptions.Add(new SavedUserOptions
-        {
+        db.SavedUserOptions.Add(new SavedUserOptions {
           UserId = request.UserId,
           JsonOptions = jsonOptions
         });

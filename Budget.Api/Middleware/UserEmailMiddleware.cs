@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Budget.Shared.Services;
 
 namespace Budget.Api.Middleware;
@@ -19,7 +18,7 @@ public sealed class UserEmailMiddleware(
     // - Static files (have extensions)
     // - Health checks
     // - OpenAPI/Swagger endpoints
-    if (!context.User.Identity?.IsAuthenticated ?? true ||
+    if(!context.User.Identity?.IsAuthenticated ?? true ||
         context.Request.Path.StartsWithSegments("/health") ||
         context.Request.Path.StartsWithSegments("/openapi") ||
         context.Request.Path.StartsWithSegments("/scalar") ||
@@ -34,21 +33,21 @@ public sealed class UserEmailMiddleware(
                 ?? context.User.FindFirst("preferred_username")?.Value
                 ?? context.User.FindFirst("upn")?.Value;
 
-    if (!string.IsNullOrEmpty(email))
+    if(!string.IsNullOrEmpty(email))
     {
       // Get scoped UserAndOptions service and set email for lazy loading
       var userAndOptions = context.RequestServices.GetService<IUserAndOptions>();
-      
-      if (userAndOptions != null)
+
+      if(userAndOptions != null)
       {
         userAndOptions.SetUserEmail(email);
         logger.LogDebug("Set user email for lazy loading: {Email}", email);
 
         // Check for UserId and FamilyId in custom headers (sent by Budget.Web)
-        if (context.Request.Headers.TryGetValue("X-UserId", out var userIdHeader) &&
+        if(context.Request.Headers.TryGetValue("X-UserId", out var userIdHeader) &&
             context.Request.Headers.TryGetValue("X-FamilyId", out var familyIdHeader))
         {
-          if (int.TryParse(userIdHeader.ToString(), out var userId) &&
+          if(int.TryParse(userIdHeader.ToString(), out var userId) &&
               int.TryParse(familyIdHeader.ToString(), out var familyId))
           {
             userAndOptions.SetUserIdAndFamilyId(userId, familyId);

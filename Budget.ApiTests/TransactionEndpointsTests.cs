@@ -1,14 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Budget.Api.Features.Transactions;
-using Budget.DB;
 using Budget.Shared.Enums;
-using Budget.Shared.Models;
-using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
-using Xunit;
 
 namespace Budget.ApiTests;
 
@@ -27,22 +17,21 @@ public class TransactionEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var account = new BankAccount { Id = 200, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
-    var envelope = new Envelope 
-    { 
-      Id = 200, 
-      Name = "Test Envelope", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 200,
+      Name = "Test Envelope",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.BankAccounts.Add(account);
@@ -50,8 +39,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.Users.Add(user);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-    var transactionDetail = new OneTransactionDetail
-    {
+    var transactionDetail = new OneTransactionDetail {
       AccountId = account.Id,
       Date = DateTime.UtcNow,
       Vendor = "Test Vendor",
@@ -68,11 +56,11 @@ public class TransactionEndpointsTests : IntegrationTestBase
         }
       ]
     };
-     
+
 
     var mockFamilyService = new TestCurrentFamilyService(1);
     var inserter = new InsertTransactions(context, mockFamilyService);
-    var handler = new AddNewTransaction.Handler( inserter);
+    var handler = new AddNewTransaction.Handler(inserter);
     var command = new AddNewTransaction.Command(transactionDetail);
 
     // Act
@@ -80,7 +68,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
 
     // Assert
     result.Should().NotBeNull();
-    
+
     context.ChangeTracker.Clear();
     BankAccount? updatedAccount = await context.BankAccounts.FindAsync([account.Id], TestContext.Current.CancellationToken);
     Envelope? updatedEnvelope = await context.Envelopes.FindAsync([envelope.Id], TestContext.Current.CancellationToken);
@@ -97,47 +85,44 @@ public class TransactionEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "-2", Name = "Unassigned", Description = "Unassigned", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.System };
     var account = new BankAccount { Id = 201, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
-    var unassignedEnvelope = new Envelope 
-    { 
-      Id = -2, 
-      Name = "Unassigned", 
-      CategoryId = "-2", 
+    var unassignedEnvelope = new Envelope {
+      Id = -2,
+      Name = "Unassigned",
+      CategoryId = "-2",
       Balance = 0m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Unassigned,
       SortOrder = 999
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.BankAccounts.Add(account);
     context.Envelopes.Add(unassignedEnvelope);
     context.Users.Add(user);
-    
-    var transaction = new Transaction 
-    { 
-      Id = 300, 
-      AccountId = 201, 
-      Vendor = "Unassigned Vendor", 
+
+    var transaction = new Transaction {
+      Id = 300,
+      AccountId = 201,
+      Vendor = "Unassigned Vendor",
       Date = DateTime.UtcNow,
       TotalAmount = 50m,
       UserId = 1,
       FamilyId = 1
     };
-    var detail = new TransactionDetail 
-    { 
-      TransactionId = 300, 
-      LineId = 1, 
-      EnvelopeId = -2, 
+    var detail = new TransactionDetail {
+      TransactionId = 300,
+      LineId = 1,
+      EnvelopeId = -2,
       Amount = 50m,
       Notes = "Unassigned"
     };
-    
+
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -160,47 +145,44 @@ public class TransactionEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var account = new BankAccount { Id = 202, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
-    var envelope = new Envelope 
-    { 
-      Id = 202, 
-      Name = "Groceries", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 202,
+      Name = "Groceries",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.BankAccounts.Add(account);
     context.Envelopes.Add(envelope);
     context.Users.Add(user);
-    
-    var transaction = new Transaction 
-    { 
-      Id = 400, 
-      AccountId = 202, 
-      Vendor = "Store", 
+
+    var transaction = new Transaction {
+      Id = 400,
+      AccountId = 202,
+      Vendor = "Store",
       Date = DateTime.UtcNow,
       TotalAmount = 75m,
       UserId = 1,
       FamilyId = 1
     };
-    var detail = new TransactionDetail 
-    { 
-      TransactionId = 400, 
-      LineId = 1, 
-      EnvelopeId = 202, 
+    var detail = new TransactionDetail {
+      TransactionId = 400,
+      LineId = 1,
+      EnvelopeId = 202,
       Amount = 75m,
       Notes = "Groceries"
     };
-    
+
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -223,47 +205,44 @@ public class TransactionEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var account = new BankAccount { Id = 203, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
-    var envelope = new Envelope 
-    { 
-      Id = 203, 
-      Name = "Test Envelope", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 203,
+      Name = "Test Envelope",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.BankAccounts.Add(account);
     context.Envelopes.Add(envelope);
     context.Users.Add(user);
-    
-    var transaction = new Transaction 
-    { 
-      Id = 500, 
-      AccountId = 203, 
-      Vendor = "Test Vendor", 
+
+    var transaction = new Transaction {
+      Id = 500,
+      AccountId = 203,
+      Vendor = "Test Vendor",
       Date = DateTime.UtcNow,
       TotalAmount = 100m,
       UserId = 1,
       FamilyId = 1
     };
-    var detail = new TransactionDetail 
-    { 
-      TransactionId = 500, 
-      LineId = 1, 
-      EnvelopeId = 203, 
+    var detail = new TransactionDetail {
+      TransactionId = 500,
+      LineId = 1,
+      EnvelopeId = 203,
       Amount = 100m,
       Notes = "Test"
     };
-    
+
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -275,7 +254,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
 
     // Assert
 
-      result.Should().NotBeNull();
+    result.Should().NotBeNull();
     if(result != null)
     {
       result?.Id.Should().Be(500);
@@ -291,58 +270,54 @@ public class TransactionEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var unallocatedCategory = new Category { CategoryId = "-1", Name = "UnAllocated", Description = "UnAllocated", SortOrder = 999, FamilyId = 1, CategoryType = CatTypes.System };
     var account = new BankAccount { Id = 204, Name = "Test Account", Balance = 1000m, AccountType = AccountTypes.Checking, FamilyId = 1 };
-    var envelope = new Envelope 
-    { 
-      Id = 204, 
-      Name = "Groceries", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 204,
+      Name = "Groceries",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
-    var unallocatedEnvelope = new Envelope 
-    { 
-      Id = -1, 
-      Name = "UnAllocated", 
-      CategoryId = "-1", 
+    var unallocatedEnvelope = new Envelope {
+      Id = -1,
+      Name = "UnAllocated",
+      CategoryId = "-1",
       Balance = 50m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Income,
       SortOrder = 999
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.AddRange(category, unallocatedCategory);
     context.BankAccounts.Add(account);
     context.Envelopes.AddRange(envelope, unallocatedEnvelope);
     context.Users.Add(user);
-    
-    var transaction = new Transaction 
-    { 
-      Id = 600, 
-      AccountId = 204, 
-      Vendor = "Store", 
+
+    var transaction = new Transaction {
+      Id = 600,
+      AccountId = 204,
+      Vendor = "Store",
       Date = DateTime.UtcNow,
       TotalAmount = 50m,
       UserId = 1,
       FamilyId = 1
     };
-    var detail = new TransactionDetail 
-    { 
-      TransactionId = 600, 
-      LineId = 1, 
-      EnvelopeId = -1, 
+    var detail = new TransactionDetail {
+      TransactionId = 600,
+      LineId = 1,
+      EnvelopeId = -1,
       Amount = 50m,
       Notes = "Unassigned"
     };
-    
+
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -367,54 +342,50 @@ public class TransactionEndpointsTests : IntegrationTestBase
   {
     // Arrange
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
-    
+
     var family = new Family { Id = 1, Name = "Test Family" };
     var category = new Category { CategoryId = "1", Name = "Test", Description = "Test", SortOrder = 1, FamilyId = 1, CategoryType = CatTypes.User };
     var account = new BankAccount { Id = 205, Name = "Test Account", Balance = 900m, AccountType = AccountTypes.Checking, FamilyId = 1 };
-    var envelope = new Envelope 
-    { 
-      Id = 205, 
-      Name = "Test Envelope", 
-      CategoryId = "1", 
+    var envelope = new Envelope {
+      Id = 205,
+      Name = "Test Envelope",
+      CategoryId = "1",
       Balance = -400m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
       SortOrder = 1
     };
     var user = new User { Id = 1, Email = "TEST@TEST.COM", FirstName = "Test", LastName = "User", FamilyId = 1 };
-    
+
     context.Families.Add(family);
     context.Categories.Add(category);
     context.BankAccounts.Add(account);
     context.Envelopes.Add(envelope);
     context.Users.Add(user);
-    
-    var transaction = new Transaction 
-    { 
-      Id = 700, 
-      AccountId = 205, 
-      Vendor = "Original Vendor", 
+
+    var transaction = new Transaction {
+      Id = 700,
+      AccountId = 205,
+      Vendor = "Original Vendor",
       Date = DateTime.UtcNow,
       TotalAmount = -100m,
       UserId = 1,
       FamilyId = 1
     };
-    var detail = new TransactionDetail 
-    { 
-      TransactionId = 700, 
-      LineId = 1, 
-      EnvelopeId = 205, 
+    var detail = new TransactionDetail {
+      TransactionId = 700,
+      LineId = 1,
+      EnvelopeId = 205,
       Amount = -100m,
       Notes = "Original"
     };
-    
+
     context.Transactions.Add(transaction);
     context.TransactionDetails.Add(detail);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var handler = new UpdateTransaction.Handler(context);
-    var updatedTransaction = new OneTransactionDetail
-    {
+    var updatedTransaction = new OneTransactionDetail {
       Id = 700,
       AccountId = 205,
       Date = DateTime.UtcNow,
@@ -432,7 +403,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
         }
       ]
     };
-    var command = new UpdateTransaction.Command( updatedTransaction);
+    var command = new UpdateTransaction.Command(updatedTransaction);
 
     // Act
     Result<List<EnvelopeUpdate>> result = await handler.Handle(command, CancellationToken.None);
@@ -441,7 +412,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     var testResult = result.Value.FirstOrDefault();
     testResult?.EnvelopeDelta.Should().Be(-50);
     testResult?.EnvelopeId.Should().Be(205);
-    
+
     context.ChangeTracker.Clear();
     Transaction? updatedTx = await context.Transactions.FindAsync([700], TestContext.Current.CancellationToken);
     updatedTx.Should().NotBeNull();
@@ -456,8 +427,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     var handler = new UpdateTransaction.Handler(context);
-    var transaction = new OneTransactionDetail
-    {
+    var transaction = new OneTransactionDetail {
       Id = 99999,
       AccountId = 1,
       Date = DateTime.UtcNow,
@@ -481,47 +451,42 @@ public class TransactionEndpointsTests : IntegrationTestBase
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     var family = new Family { Id = 1, Name = "Test Family" };
-    var unassignedCategory = new Category 
-    { 
-      CategoryId = "-2", 
-      Name = "Unassigned", 
-      Description = "Unassigned", 
-      SortOrder = 999, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.System 
+    var unassignedCategory = new Category {
+      CategoryId = "-2",
+      Name = "Unassigned",
+      Description = "Unassigned",
+      SortOrder = 999,
+      FamilyId = 1,
+      CategoryType = CatTypes.System
     };
-    var regularCategory = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Groceries", 
-      Description = "Groceries", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var regularCategory = new Category {
+      CategoryId = "1",
+      Name = "Groceries",
+      Description = "Groceries",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    var account = new BankAccount 
-    { 
-      Id = 800, 
-      Name = "Test Account", 
-      Balance = 1000m, 
-      AccountType = AccountTypes.Checking, 
-      FamilyId = 1 
+    var account = new BankAccount {
+      Id = 800,
+      Name = "Test Account",
+      Balance = 1000m,
+      AccountType = AccountTypes.Checking,
+      FamilyId = 1
     };
-    var unassignedEnvelope = new Envelope 
-    { 
-      Id = -2, 
-      Name = "Unassigned", 
-      CategoryId = "-2", 
+    var unassignedEnvelope = new Envelope {
+      Id = -2,
+      Name = "Unassigned",
+      CategoryId = "-2",
       Balance = 0m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Unassigned,
       SortOrder = 999
     };
-    var regularEnvelope = new Envelope 
-    { 
-      Id = 801, 
-      Name = "Groceries", 
-      CategoryId = "1", 
+    var regularEnvelope = new Envelope {
+      Id = 801,
+      Name = "Groceries",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -536,104 +501,94 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.Users.Add(user);
 
     // Create 3 hidden unassigned transactions
-    var hiddenUnassigned1 = new Transaction 
-    { 
-      Id = 801, 
-      AccountId = 800, 
-      Vendor = "Hidden Vendor 1", 
+    var hiddenUnassigned1 = new Transaction {
+      Id = 801,
+      AccountId = 800,
+      Vendor = "Hidden Vendor 1",
       Date = DateTime.UtcNow,
       TotalAmount = 50m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = true
     };
-    var detail1 = new TransactionDetail 
-    { 
-      TransactionId = 801, 
-      LineId = 1, 
-      EnvelopeId = -2, 
+    var detail1 = new TransactionDetail {
+      TransactionId = 801,
+      LineId = 1,
+      EnvelopeId = -2,
       Amount = 50m,
       Notes = "Hidden Unassigned 1"
     };
 
-    var hiddenUnassigned2 = new Transaction 
-    { 
-      Id = 802, 
-      AccountId = 800, 
-      Vendor = "Hidden Vendor 2", 
+    var hiddenUnassigned2 = new Transaction {
+      Id = 802,
+      AccountId = 800,
+      Vendor = "Hidden Vendor 2",
       Date = DateTime.UtcNow,
       TotalAmount = 75m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = true
     };
-    var detail2 = new TransactionDetail 
-    { 
-      TransactionId = 802, 
-      LineId = 1, 
-      EnvelopeId = -2, 
+    var detail2 = new TransactionDetail {
+      TransactionId = 802,
+      LineId = 1,
+      EnvelopeId = -2,
       Amount = 75m,
       Notes = "Hidden Unassigned 2"
     };
 
-    var hiddenUnassigned3 = new Transaction 
-    { 
-      Id = 803, 
-      AccountId = 800, 
-      Vendor = "Hidden Vendor 3", 
+    var hiddenUnassigned3 = new Transaction {
+      Id = 803,
+      AccountId = 800,
+      Vendor = "Hidden Vendor 3",
       Date = DateTime.UtcNow,
       TotalAmount = 100m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = true
     };
-    var detail3 = new TransactionDetail 
-    { 
-      TransactionId = 803, 
-      LineId = 1, 
-      EnvelopeId = -2, 
+    var detail3 = new TransactionDetail {
+      TransactionId = 803,
+      LineId = 1,
+      EnvelopeId = -2,
       Amount = 100m,
       Notes = "Hidden Unassigned 3"
     };
 
     // Create a visible unassigned transaction (should not be affected)
-    var visibleUnassigned = new Transaction 
-    { 
-      Id = 804, 
-      AccountId = 800, 
-      Vendor = "Visible Vendor", 
+    var visibleUnassigned = new Transaction {
+      Id = 804,
+      AccountId = 800,
+      Vendor = "Visible Vendor",
       Date = DateTime.UtcNow,
       TotalAmount = 25m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = false
     };
-    var detail4 = new TransactionDetail 
-    { 
-      TransactionId = 804, 
-      LineId = 1, 
-      EnvelopeId = -2, 
+    var detail4 = new TransactionDetail {
+      TransactionId = 804,
+      LineId = 1,
+      EnvelopeId = -2,
       Amount = 25m,
       Notes = "Visible Unassigned"
     };
 
     // Create a hidden assigned transaction (should not be affected)
-    var hiddenAssigned = new Transaction 
-    { 
-      Id = 805, 
-      AccountId = 800, 
-      Vendor = "Hidden Assigned", 
+    var hiddenAssigned = new Transaction {
+      Id = 805,
+      AccountId = 800,
+      Vendor = "Hidden Assigned",
       Date = DateTime.UtcNow,
       TotalAmount = 30m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = true
     };
-    var detail5 = new TransactionDetail 
-    { 
-      TransactionId = 805, 
-      LineId = 1, 
-      EnvelopeId = 801, 
+    var detail5 = new TransactionDetail {
+      TransactionId = 805,
+      LineId = 1,
+      EnvelopeId = 801,
       Amount = 30m,
       Notes = "Hidden but Assigned"
     };
@@ -681,28 +636,25 @@ public class TransactionEndpointsTests : IntegrationTestBase
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     var family = new Family { Id = 1, Name = "Test Family" };
-    var unassignedCategory = new Category 
-    { 
-      CategoryId = "-2", 
-      Name = "Unassigned", 
-      Description = "Unassigned", 
-      SortOrder = 999, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.System 
+    var unassignedCategory = new Category {
+      CategoryId = "-2",
+      Name = "Unassigned",
+      Description = "Unassigned",
+      SortOrder = 999,
+      FamilyId = 1,
+      CategoryType = CatTypes.System
     };
-    var account = new BankAccount 
-    { 
-      Id = 810, 
-      Name = "Test Account", 
-      Balance = 1000m, 
-      AccountType = AccountTypes.Checking, 
-      FamilyId = 1 
+    var account = new BankAccount {
+      Id = 810,
+      Name = "Test Account",
+      Balance = 1000m,
+      AccountType = AccountTypes.Checking,
+      FamilyId = 1
     };
-    var unassignedEnvelope = new Envelope 
-    { 
-      Id = -2, 
-      Name = "Unassigned", 
-      CategoryId = "-2", 
+    var unassignedEnvelope = new Envelope {
+      Id = -2,
+      Name = "Unassigned",
+      CategoryId = "-2",
       Balance = 0m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Unassigned,
@@ -717,42 +669,38 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.Users.Add(user);
 
     // Create visible unassigned transactions
-    var visibleUnassigned1 = new Transaction 
-    { 
-      Id = 811, 
-      AccountId = 810, 
-      Vendor = "Visible Vendor 1", 
+    var visibleUnassigned1 = new Transaction {
+      Id = 811,
+      AccountId = 810,
+      Vendor = "Visible Vendor 1",
       Date = DateTime.UtcNow,
       TotalAmount = 50m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = false
     };
-    var detail1 = new TransactionDetail 
-    { 
-      TransactionId = 811, 
-      LineId = 1, 
-      EnvelopeId = -2, 
+    var detail1 = new TransactionDetail {
+      TransactionId = 811,
+      LineId = 1,
+      EnvelopeId = -2,
       Amount = 50m,
       Notes = "Visible Unassigned"
     };
 
-    var visibleUnassigned2 = new Transaction 
-    { 
-      Id = 812, 
-      AccountId = 810, 
-      Vendor = "Visible Vendor 2", 
+    var visibleUnassigned2 = new Transaction {
+      Id = 812,
+      AccountId = 810,
+      Vendor = "Visible Vendor 2",
       Date = DateTime.UtcNow,
       TotalAmount = 75m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = false
     };
-    var detail2 = new TransactionDetail 
-    { 
-      TransactionId = 812, 
-      LineId = 1, 
-      EnvelopeId = -2, 
+    var detail2 = new TransactionDetail {
+      TransactionId = 812,
+      LineId = 1,
+      EnvelopeId = -2,
       Amount = 75m,
       Notes = "Visible Unassigned 2"
     };
@@ -788,47 +736,42 @@ public class TransactionEndpointsTests : IntegrationTestBase
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     var family = new Family { Id = 1, Name = "Test Family" };
-    var unassignedCategory = new Category 
-    { 
-      CategoryId = "-2", 
-      Name = "Unassigned", 
-      Description = "Unassigned", 
-      SortOrder = 999, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.System 
+    var unassignedCategory = new Category {
+      CategoryId = "-2",
+      Name = "Unassigned",
+      Description = "Unassigned",
+      SortOrder = 999,
+      FamilyId = 1,
+      CategoryType = CatTypes.System
     };
-    var regularCategory = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Groceries", 
-      Description = "Groceries", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var regularCategory = new Category {
+      CategoryId = "1",
+      Name = "Groceries",
+      Description = "Groceries",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    var account = new BankAccount 
-    { 
-      Id = 820, 
-      Name = "Test Account", 
-      Balance = 1000m, 
-      AccountType = AccountTypes.Checking, 
-      FamilyId = 1 
+    var account = new BankAccount {
+      Id = 820,
+      Name = "Test Account",
+      Balance = 1000m,
+      AccountType = AccountTypes.Checking,
+      FamilyId = 1
     };
-    var unassignedEnvelope = new Envelope 
-    { 
-      Id = -2, 
-      Name = "Unassigned", 
-      CategoryId = "-2", 
+    var unassignedEnvelope = new Envelope {
+      Id = -2,
+      Name = "Unassigned",
+      CategoryId = "-2",
       Balance = 0m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Unassigned,
       SortOrder = 999
     };
-    var regularEnvelope = new Envelope 
-    { 
-      Id = 821, 
-      Name = "Groceries", 
-      CategoryId = "1", 
+    var regularEnvelope = new Envelope {
+      Id = 821,
+      Name = "Groceries",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -843,42 +786,38 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.Users.Add(user);
 
     // Create hidden transactions assigned to regular envelope
-    var hiddenAssigned1 = new Transaction 
-    { 
-      Id = 822, 
-      AccountId = 820, 
-      Vendor = "Hidden Assigned 1", 
+    var hiddenAssigned1 = new Transaction {
+      Id = 822,
+      AccountId = 820,
+      Vendor = "Hidden Assigned 1",
       Date = DateTime.UtcNow,
       TotalAmount = 50m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = true
     };
-    var detail1 = new TransactionDetail 
-    { 
-      TransactionId = 822, 
-      LineId = 1, 
-      EnvelopeId = 821, 
+    var detail1 = new TransactionDetail {
+      TransactionId = 822,
+      LineId = 1,
+      EnvelopeId = 821,
       Amount = 50m,
       Notes = "Hidden but Assigned 1"
     };
 
-    var hiddenAssigned2 = new Transaction 
-    { 
-      Id = 823, 
-      AccountId = 820, 
-      Vendor = "Hidden Assigned 2", 
+    var hiddenAssigned2 = new Transaction {
+      Id = 823,
+      AccountId = 820,
+      Vendor = "Hidden Assigned 2",
       Date = DateTime.UtcNow,
       TotalAmount = 75m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = true
     };
-    var detail2 = new TransactionDetail 
-    { 
-      TransactionId = 823, 
-      LineId = 1, 
-      EnvelopeId = 821, 
+    var detail2 = new TransactionDetail {
+      TransactionId = 823,
+      LineId = 1,
+      EnvelopeId = 821,
       Amount = 75m,
       Notes = "Hidden but Assigned 2"
     };
@@ -914,28 +853,25 @@ public class TransactionEndpointsTests : IntegrationTestBase
     await using var context = new BudgetContext(CreateInMemoryOptions(), null);
 
     var family = new Family { Id = 1, Name = "Test Family" };
-    var regularCategory = new Category 
-    { 
-      CategoryId = "1", 
-      Name = "Groceries", 
-      Description = "Groceries", 
-      SortOrder = 1, 
-      FamilyId = 1, 
-      CategoryType = CatTypes.User 
+    var regularCategory = new Category {
+      CategoryId = "1",
+      Name = "Groceries",
+      Description = "Groceries",
+      SortOrder = 1,
+      FamilyId = 1,
+      CategoryType = CatTypes.User
     };
-    var account = new BankAccount 
-    { 
-      Id = 830, 
-      Name = "Test Account", 
-      Balance = 1000m, 
-      AccountType = AccountTypes.Checking, 
-      FamilyId = 1 
+    var account = new BankAccount {
+      Id = 830,
+      Name = "Test Account",
+      Balance = 1000m,
+      AccountType = AccountTypes.Checking,
+      FamilyId = 1
     };
-    var regularEnvelope = new Envelope 
-    { 
-      Id = 831, 
-      Name = "Groceries", 
-      CategoryId = "1", 
+    var regularEnvelope = new Envelope {
+      Id = 831,
+      Name = "Groceries",
+      CategoryId = "1",
       Balance = 500m,
       FamilyId = 1,
       EnvelopeType = EnvelopeTypes.Standard,
@@ -950,22 +886,20 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.Users.Add(user);
 
     // Create a hidden transaction (but no Unassigned envelope exists)
-    var hiddenTransaction = new Transaction 
-    { 
-      Id = 832, 
-      AccountId = 830, 
-      Vendor = "Hidden Vendor", 
+    var hiddenTransaction = new Transaction {
+      Id = 832,
+      AccountId = 830,
+      Vendor = "Hidden Vendor",
       Date = DateTime.UtcNow,
       TotalAmount = 50m,
       UserId = 1,
       FamilyId = 1,
       TransactionHiddenFromAssign = true
     };
-    var detail = new TransactionDetail 
-    { 
-      TransactionId = 832, 
-      LineId = 1, 
-      EnvelopeId = 831, 
+    var detail = new TransactionDetail {
+      TransactionId = 832,
+      LineId = 1,
+      EnvelopeId = 831,
       Amount = 50m,
       Notes = "Hidden transaction"
     };

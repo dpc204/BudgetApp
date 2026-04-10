@@ -17,14 +17,14 @@ public static class ExportCategories
     public async Task<string> Handle(Query request, CancellationToken cancellationToken)
     {
       log.LogInformation("Starting category export to CSV");
-      
+
       var categories = await db.Categories
         .OrderBy(c => c.SortOrder)
         .ThenBy(c => c.Name)
         .ToListAsync(cancellationToken);
-      
+
       var csv = CsvExportService.ExportToCsv(categories, log: log);
-      
+
       log.LogInformation("Exported {Count} categories to CSV", categories.Count);
       return csv;
     }

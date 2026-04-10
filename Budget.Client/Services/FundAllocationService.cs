@@ -14,13 +14,12 @@ public class FundAllocationService : IFundAllocationService
   /// <returns>The calculated fund amount, or null if no budget is set</returns>
   public decimal? CalculateFundAmount(decimal? budget, decimal currentBalance, FillAmounts fillType)
   {
-    if (!budget.HasValue)
+    if(!budget.HasValue)
       return null;
 
     var budgetAmount = budget.Value;
 
-    return fillType switch
-    {
+    return fillType switch {
       FillAmounts.OneHundredPercent => budgetAmount,
       FillAmounts.FiftyPercent => budgetAmount * 0.5m,
       FillAmounts.FillToBudget => CalculateFillToBudget(budgetAmount, currentBalance),
@@ -41,9 +40,9 @@ public class FundAllocationService : IFundAllocationService
   {
     var results = new Dictionary<int, decimal?>();
 
-    foreach (var envelope in envelopes)
+    foreach(var envelope in envelopes)
     {
-      if (envelope.Budget.HasValue)
+      if(envelope.Budget.HasValue)
       {
         results[envelope.EnvelopeId] = CalculateFundAmount(
           envelope.Budget,
@@ -61,7 +60,7 @@ public class FundAllocationService : IFundAllocationService
   private static decimal CalculateFillToBudget(decimal budget, decimal currentBalance)
   {
     // If current balance is already at or above budget, return 0
-    if (currentBalance >= budget)
+    if(currentBalance >= budget)
       return 0m;
 
     // Otherwise, return the difference needed to reach budget

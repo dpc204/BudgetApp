@@ -14,21 +14,19 @@ public static class GetOne
         .AsNoTracking()
         .Include(env => env.Category)
         .Where(a => a.Id == request.EnvelopeId)
-        .Select(env => new EnvelopeDto
-        {
+        .Select(env => new EnvelopeDto {
           Id = env.Id,
           Name = env.Name,
           FundAmount = env.FundAmount,
           Balance = env.Balance,
-          Category = new CategoryDto
-          {
+          Category = new CategoryDto {
             CategoryId = env.Category.CategoryId,
             Name = env.Category.Name
           }
         })
         .FirstOrDefaultAsync(cancellationToken);
 
-      if (envelope == null)
+      if(envelope == null)
         return new Response(null);
 
       return new Response(envelope);

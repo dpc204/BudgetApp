@@ -6,7 +6,7 @@ namespace Budget.Api.Features.Envelopes;
 public static class UpdateFundAmount
 {
   public sealed record Command(int EnvelopeId, decimal? FundAmount) : IRequest<Response>;
-  
+
   public sealed record Response(bool Success, string Message);
 
   /// <summary>
@@ -22,7 +22,7 @@ public static class UpdateFundAmount
           e => e.Id == request.EnvelopeId,
           cancellationToken);
 
-      if (envelope == null)
+      if(envelope == null)
       {
         return new Response(false, "Envelope not found");
       }

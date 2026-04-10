@@ -1,10 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Fantum.Mediator;
-using FluentResults;
-using static MudBlazor.Icons;
+﻿using Fantum.Mediator;
 
 namespace Budget.Shared.Models.Queries
 {
@@ -20,5 +14,5 @@ namespace Budget.Shared.Models.Queries
 
 
 
- 
+
 }

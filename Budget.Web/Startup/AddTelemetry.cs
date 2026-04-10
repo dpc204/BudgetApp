@@ -39,7 +39,7 @@ namespace Budget.Web.Startup
       builder.Services.AddServiceDiscovery();
       builder.Services.ConfigureHttpClientDefaults(http =>
       {
-        if (!builder.Environment.IsDevelopment())
+        if(!builder.Environment.IsDevelopment())
           http.AddStandardResilienceHandler();
         http.AddServiceDiscovery();
       });

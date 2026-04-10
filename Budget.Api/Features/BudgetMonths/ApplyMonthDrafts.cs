@@ -6,7 +6,7 @@ namespace Budget.Api.Features.BudgetMonths;
 public static class ApplyMonthDrafts
 {
   public sealed record Command(int AcctPeriod) : IRequest<Response>;
-  
+
   public sealed record Response(bool Success, string Message, int RecordsUpdated);
 
   /// <summary>
@@ -20,7 +20,7 @@ public static class ApplyMonthDrafts
       var year = request.AcctPeriod / 100;
       var month = request.AcctPeriod % 100;
 
-      if (month < 1 || month > 12 || year < 1900)
+      if(month < 1 || month > 12 || year < 1900)
       {
         return new Response(false, "Invalid accounting period format", 0);
       }
@@ -31,7 +31,7 @@ public static class ApplyMonthDrafts
         .ToListAsync(cancellationToken);
 
       // Apply draft values to budget and clear drafts (only for unlocked budgets)
-      foreach (var budget in budgetsWithDrafts.Where(a => !a.IsBudgetLocked))
+      foreach(var budget in budgetsWithDrafts.Where(a => !a.IsBudgetLocked))
       {
         budget.Budget = budget.BudgetDraft;
         budget.BudgetDraft = null;

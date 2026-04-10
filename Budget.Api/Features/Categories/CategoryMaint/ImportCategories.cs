@@ -31,7 +31,7 @@ public static class ImportCategories
         await db.SaveChangesAsync(cancellationToken);
         importedCount = categories.Count;
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         errors.Add($"Import failed: {ex.Message}");
       }
@@ -50,8 +50,8 @@ public static class ImportCategories
       app.MapPost("/categories/maint/import", async ([FromServices] ISender sender, [FromBody] ImportRequest request) =>
       {
         var result = await sender.Send(new Command(request.CsvContent));
-        
-        if (result.Errors.Count > 0)
+
+        if(result.Errors.Count > 0)
         {
           return Results.BadRequest(result);
         }

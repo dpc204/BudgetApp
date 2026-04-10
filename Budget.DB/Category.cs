@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Budget.Shared.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Budget.Shared.Enums;
 
 namespace Budget.DB
 {
@@ -29,11 +29,11 @@ namespace Budget.DB
           .HasForeignKey(c => c.FamilyId)
           .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasData(new Category() { CategoryId = "1", Name = "Frequent",SortOrder = 1, CategoryType = CatTypes.User, FamilyId = 1 },
-          new Category() { CategoryId = "2", Name = "Regular" , SortOrder = 2, CategoryType = CatTypes.User, FamilyId = 1 },
-          new Category() { CategoryId = "3", Name = "Infrequent", SortOrder = 3 , CategoryType = CatTypes.User, FamilyId = 1},
-          new Category() { CategoryId = "4", Name = "Income", SortOrder = 4, CategoryType = CatTypes.Income, FamilyId = 1},
-          new Category() {CategoryId = "-1",Name = "System", SortOrder = 0, CategoryType = CatTypes.System, FamilyId = 1}
+        entity.HasData(new Category() { CategoryId = "1", Name = "Frequent", SortOrder = 1, CategoryType = CatTypes.User, FamilyId = 1 },
+          new Category() { CategoryId = "2", Name = "Regular", SortOrder = 2, CategoryType = CatTypes.User, FamilyId = 1 },
+          new Category() { CategoryId = "3", Name = "Infrequent", SortOrder = 3, CategoryType = CatTypes.User, FamilyId = 1 },
+          new Category() { CategoryId = "4", Name = "Income", SortOrder = 4, CategoryType = CatTypes.Income, FamilyId = 1 },
+          new Category() { CategoryId = "-1", Name = "System", SortOrder = 0, CategoryType = CatTypes.System, FamilyId = 1 }
         );
       }
     }

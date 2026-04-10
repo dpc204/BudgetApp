@@ -42,17 +42,17 @@ public class BackupAzureSql(HttpClient httpClient, IConfiguration configuration,
     string storageKeyType = storageKey?.Contains("sig=", StringComparison.OrdinalIgnoreCase) == true || storageKey?.Contains("sv=", StringComparison.OrdinalIgnoreCase) == true
      ? "SharedAccessKey"
      : "StorageAccessKey";
-    if (storageKeyType == "SharedAccessKey" && storageKey != null && storageKey.StartsWith('?'))
+    if(storageKeyType == "SharedAccessKey" && storageKey != null && storageKey.StartsWith('?'))
     {
       storageKey = storageKey.TrimStart('?');
     }
     _logger.LogInformation("Using {KeyType} for storage auth.", storageKeyType);
 
     // Optional preflight: if SAS present and has read permission, HEAD the blob to confirm non-existence
-    if (storageKeyType == "SharedAccessKey")
+    if(storageKeyType == "SharedAccessKey")
     {
       var hasRead = storageKey != null && (storageKey.Contains("sp=", StringComparison.OrdinalIgnoreCase) && storageKey.Contains('r', StringComparison.Ordinal));
-      if (hasRead && !storageUri.Contains("sig=", StringComparison.OrdinalIgnoreCase))
+      if(hasRead && !storageUri.Contains("sig=", StringComparison.OrdinalIgnoreCase))
       {
         try
         {
@@ -61,7 +61,7 @@ public class BackupAzureSql(HttpClient httpClient, IConfiguration configuration,
           var headResp = await _httpClient.SendAsync(head, cancellationToken);
           _logger.LogInformation("Preflight HEAD status {Status} for {Uri}", (int)headResp.StatusCode, storageUri);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
           _logger.LogDebug(ex, "Preflight HEAD failed (continuing)");
         }
@@ -80,8 +80,7 @@ public class BackupAzureSql(HttpClient httpClient, IConfiguration configuration,
       administratorLoginPassword = dbPassword
     };
 
-    using var req = new HttpRequestMessage(HttpMethod.Post, requestUri)
-    {
+    using var req = new HttpRequestMessage(HttpMethod.Post, requestUri) {
       Content = JsonContent.Create(body)
     };
     req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
@@ -89,19 +88,19 @@ public class BackupAzureSql(HttpClient httpClient, IConfiguration configuration,
     _logger.LogInformation("Starting Azure SQL export to {StorageUri} for DB {Database} on server {Server}", storageUri, databaseName, serverName);
 
     using var resp = await _httpClient.SendAsync(req, cancellationToken);
-    if (!resp.IsSuccessStatusCode)
+    if(!resp.IsSuccessStatusCode)
     {
       var respBody = await resp.Content.ReadAsStringAsync(cancellationToken);
       resp.Headers.TryGetValues("x-ms-request-id", out var reqIds);
       resp.Headers.TryGetValues("x-ms-correlation-request-id", out var corrIds);
       var reqId = reqIds is not null ? string.Join(",", reqIds) : null;
       var corrId = corrIds is not null ? string.Join(",", corrIds) : null;
-      var snippet = respBody?.Length >4000 ? respBody[..4000] + "..." : respBody;
+      var snippet = respBody?.Length > 4000 ? respBody[..4000] + "..." : respBody;
       _logger.LogWarning("ARM export failed {Status} {Reason} requestId={RequestId} correlationId={CorrelationId} body={Body}", (int)resp.StatusCode, resp.ReasonPhrase, reqId, corrId, snippet);
       throw new HttpRequestException($"ARM export failed {(int)resp.StatusCode} {resp.ReasonPhrase}\nrequestUri: {requestUri}\nx-ms-request-id: {reqId}\nx-ms-correlation-request-id: {corrId}\nbody: {snippet}");
     }
 
-    if (resp.Headers.Location is not null)
+    if(resp.Headers.Location is not null)
     {
       var loc = resp.Headers.Location.ToString();
       _logger.LogInformation("Azure SQL export accepted. Operation location: {Location}", loc);
@@ -118,10 +117,10 @@ public class BackupAzureSql(HttpClient httpClient, IConfiguration configuration,
     var tenantId = _configuration["AzureAdTenantId"];
     var clientId = _configuration["AzureAdClientId"];
     var clientSecret = _configuration["AzureAdClientSecret"];
-    if (!string.IsNullOrWhiteSpace(tenantId) && !string.IsNullOrWhiteSpace(clientId) &&
+    if(!string.IsNullOrWhiteSpace(tenantId) && !string.IsNullOrWhiteSpace(clientId) &&
         !string.IsNullOrWhiteSpace(clientSecret))
     {
-      _logger.LogInformation("Using ClientSecretCredential for AAD auth (clientId ending {Suffix})", clientId?.Length >4 ? clientId[^4..] : clientId);
+      _logger.LogInformation("Using ClientSecretCredential for AAD auth (clientId ending {Suffix})", clientId?.Length > 4 ? clientId[^4..] : clientId);
       return new ClientSecretCredential(tenantId, clientId, clientSecret);
     }
 

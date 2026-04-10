@@ -7,26 +7,26 @@ public static class EfFilterExtensions
 {
   public static IQueryable<T> ApplyFilters<T>(this IQueryable<T> query, List<FilterItem>? filters)
   {
-    if (filters == null || filters.Count == 0) return query;
+    if(filters == null || filters.Count == 0) return query;
 
     var parameter = Expression.Parameter(typeof(T), "x");
 
-    foreach (var filter in filters)
+    foreach(var filter in filters)
     {
-      if (string.IsNullOrWhiteSpace(filter.Column) || string.IsNullOrWhiteSpace(filter.Value))
+      if(string.IsNullOrWhiteSpace(filter.Column) || string.IsNullOrWhiteSpace(filter.Value))
         continue;
 
-// Find property
+      // Find property
       var property = typeof(T).GetProperty(filter.Column);
-      if (property == null) continue;
+      if(property == null) continue;
 
-// Convert string value to property type
+      // Convert string value to property type
       var convertedValue = Convert.ChangeType(filter.Value, property.PropertyType);
 
-// Build expression: x.Property
+      // Build expression: x.Property
       var left = Expression.Property(parameter, property);
 
-// Build constant expression
+      // Build constant expression
       var right = Expression.Constant(convertedValue);
 
       Expression? predicate = null;
@@ -47,7 +47,7 @@ public static class EfFilterExtensions
 
       var lambda = Expression.Lambda<Func<T, bool>>(predicate!, parameter);
 
-// Apply to query
+      // Apply to query
       query = query.Where(lambda);
     }
 

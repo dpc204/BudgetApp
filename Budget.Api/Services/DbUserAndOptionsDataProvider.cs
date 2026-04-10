@@ -1,5 +1,4 @@
 using Budget.Shared.Services;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using SharedUserOptions = Budget.Shared.Services.UserOptions;
 
@@ -12,7 +11,7 @@ public sealed class DbUserAndOptionsDataProvider(BudgetContext db, ILogger<DbUse
 {
   public async Task<UserDetailDto?> LoadUserByIdAsync(int id, CancellationToken cancellationToken = default)
   {
-  
+
     var user = await db.Users
       .IgnoreQueryFilters()
       .Where(u => u.Id == id)
@@ -38,7 +37,7 @@ public sealed class DbUserAndOptionsDataProvider(BudgetContext db, ILogger<DbUse
       .AsNoTracking()
       .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
 
-    if (savedOptions == null || string.IsNullOrEmpty(savedOptions.JsonOptions))
+    if(savedOptions == null || string.IsNullOrEmpty(savedOptions.JsonOptions))
     {
       return null;
     }
@@ -48,7 +47,7 @@ public sealed class DbUserAndOptionsDataProvider(BudgetContext db, ILogger<DbUse
       var options = JsonSerializer.Deserialize<SharedUserOptions>(savedOptions.JsonOptions);
       return options;
     }
-    catch (JsonException ex)
+    catch(JsonException ex)
     {
       logger.LogError(ex, "Failed to deserialize user options for user {UserId}", userId);
       return null;
@@ -64,10 +63,9 @@ public sealed class DbUserAndOptionsDataProvider(BudgetContext db, ILogger<DbUse
 
       var jsonOptions = JsonSerializer.Serialize(options);
 
-      if (savedOptions == null)
+      if(savedOptions == null)
       {
-        savedOptions = new DB.SavedUserOptions
-        {
+        savedOptions = new DB.SavedUserOptions {
           UserId = userId,
           JsonOptions = jsonOptions
         };
@@ -81,7 +79,7 @@ public sealed class DbUserAndOptionsDataProvider(BudgetContext db, ILogger<DbUse
       await db.SaveChangesAsync(cancellationToken);
       return true;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed to save user options for user {UserId}", userId);
       return false;

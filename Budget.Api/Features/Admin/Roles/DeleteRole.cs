@@ -21,13 +21,13 @@ public static class DeleteRole
         .Include(r => r.UserRoles)
         .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken);
 
-      if (role == null)
+      if(role == null)
       {
         return new Response(false, "Role not found");
       }
 
       // Don't allow deletion if users are assigned to this role
-      if (role.UserRoles.Count > 0)
+      if(role.UserRoles.Count > 0)
       {
         return new Response(false, $"Cannot delete role '{role.Name}' because it has {role.UserRoles.Count} user(s) assigned to it.");
       }
@@ -49,10 +49,10 @@ public static class DeleteRole
       app.MapDelete("/api/admin/roles/{id:int}", async ([FromRoute] int id, [FromServices] ISender sender) =>
       {
         var result = await sender.Send(new Command(id));
-        
-        if (!result.Success)
+
+        if(!result.Success)
         {
-          return result.ErrorMessage == "Role not found" 
+          return result.ErrorMessage == "Role not found"
             ? Results.NotFound(new { error = result.ErrorMessage })
             : Results.BadRequest(new { error = result.ErrorMessage });
         }

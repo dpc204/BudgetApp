@@ -17,7 +17,7 @@ public static class UpdateRole
     public async Task<Response?> Handle(Command request, CancellationToken cancellationToken)
     {
       var role = await db.Roles.FindAsync([request.Id], cancellationToken);
-      if (role == null)
+      if(role == null)
       {
         return null;
       }
@@ -44,7 +44,7 @@ public static class UpdateRole
         [FromBody] Command command,
         [FromServices] ISender sender) =>
       {
-        if (id != command.Id)
+        if(id != command.Id)
         {
           return Results.BadRequest("ID mismatch");
         }

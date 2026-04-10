@@ -1,6 +1,4 @@
 using Budget.Shared.Utilities;
-using FluentResults;
-using NetTopologySuite.GeometriesGraph;
 
 namespace Budget.Api.Features.Transactions;
 
@@ -20,7 +18,7 @@ public static class UpdateTransaction
         .Include(t => t.Details)
         .FirstOrDefaultAsync(t => t.Id == request.Trans.Id, cancellationToken);
 
-      if (existingTrans is null)
+      if(existingTrans is null)
       {
         return Result.Fail($"Transaction with Id {request.Trans.Id} not found.");
       }
@@ -45,10 +43,9 @@ public static class UpdateTransaction
 
       // Add new details
       var lineId = 1;
-      foreach (var detail in request.Trans.Details)
+      foreach(var detail in request.Trans.Details)
       {
-        var dtl = new TransactionDetail
-        {
+        var dtl = new TransactionDetail {
           TransactionId = existingTrans.Id,
           LineId = lineId++,
           Amount = detail.Amount,
@@ -86,7 +83,7 @@ public static class UpdateTransaction
       var allEnvelopeIds = origAmounts.Keys.Union(newAmounts.Keys);
 
       // Calculate delta for each envelope
-      foreach (var envelopeId in allEnvelopeIds)
+      foreach(var envelopeId in allEnvelopeIds)
       {
         var origAmount = origAmounts.GetValueOrDefault(envelopeId, 0m);
         var newAmount = newAmounts.GetValueOrDefault(envelopeId, 0m);
@@ -100,10 +97,10 @@ public static class UpdateTransaction
     private async Task BackoutTransactionFromEnvelopeBalances(Transaction trans)
     {
       var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
-      foreach (var grp in grouped)
+      foreach(var grp in grouped)
       {
         var env = await db.Envelopes.FindAsync([grp.Key]);
-        if (env is null) continue;
+        if(env is null) continue;
         _priorBalances[env.Id] = env.Balance; // Store prior balance for delta update later
         var oldEnvAmount = grp.Sum(d => d.Amount);
         env.Balance = env.Balance - oldEnvAmount; // Add back the amounts
@@ -113,7 +110,7 @@ public static class UpdateTransaction
     private async Task BackoutTransactionFromAccountBalances(Transaction trans)
     {
       var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
-      if (acct is null) return;
+      if(acct is null) return;
       acct.Balance = acct.Balance - trans.TotalAmount; // Add back the amount
     }
 
@@ -122,10 +119,10 @@ public static class UpdateTransaction
       var rslt = new List<EnvelopeDto>();
 
       var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
-      foreach (var grp in grouped)
+      foreach(var grp in grouped)
       {
         var env = await db.Envelopes.FindAsync([grp.Key]);
-        if (env is null) continue;
+        if(env is null) continue;
         env.LastTransactionDate = DateTime.UtcNow;
         var lastDtl = grp.OrderByDescending(d => d.LineId).First();
         env.LastTransactionDetail = lastDtl;
@@ -135,8 +132,7 @@ public static class UpdateTransaction
         env.Balance += delta;
 
 
-        rslt.Add(new EnvelopeDto
-        {
+        rslt.Add(new EnvelopeDto {
           Id = env.Id,
           CategoryId = env.CategoryId,
           Name = env.Name,
@@ -153,7 +149,7 @@ public static class UpdateTransaction
     private async Task UpdateAccountAsync(Transaction trans)
     {
       var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
-      if (acct is null) return;
+      if(acct is null) return;
       acct.LastTransactionDate = DateTime.UtcNow;
       acct.LastTransaction = trans;
       acct.Balance -= trans.TotalAmount;
@@ -167,7 +163,7 @@ public static class UpdateTransaction
       app.MapPut("/Transaction/Update", async (ISender sender, Command command) =>
       {
         var result = await sender.Send(command);
-        
+
         return result.IsSuccess
           ? Results.Ok(result.Value)
           : Results.NotFound(new { error = result.Errors });

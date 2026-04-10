@@ -9,7 +9,7 @@ public static class RemoveAccount
     public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
     {
       var entity = await db.BankAccounts.FindAsync([request.Id], cancellationToken);
-      if (entity is null)
+      if(entity is null)
       {
         return false;
       }

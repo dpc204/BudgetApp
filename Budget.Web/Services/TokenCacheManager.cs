@@ -1,8 +1,7 @@
 ﻿namespace Budget.Web.Services;
 
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Caching.Distributed;
 using Budget.Shared.Services;
+using Microsoft.Data.SqlClient;
 
 /// <summary>
 /// Manages token cache operations including detection and clearing of stale tokens
@@ -23,7 +22,7 @@ public sealed class TokenCacheManager(
     try
     {
       // Prevent rapid consecutive clears
-      if (_lastClearTime.HasValue && DateTime.UtcNow - _lastClearTime.Value < _minTimeBetweenClears)
+      if(_lastClearTime.HasValue && DateTime.UtcNow - _lastClearTime.Value < _minTimeBetweenClears)
       {
         logger.LogInformation("Skipping token cache clear - cleared {SecondsAgo} seconds ago",
           (DateTime.UtcNow - _lastClearTime.Value).TotalSeconds);
@@ -34,7 +33,7 @@ public sealed class TokenCacheManager(
       try
       {
         // Double-check after acquiring lock
-        if (_lastClearTime.HasValue && DateTime.UtcNow - _lastClearTime.Value < _minTimeBetweenClears)
+        if(_lastClearTime.HasValue && DateTime.UtcNow - _lastClearTime.Value < _minTimeBetweenClears)
         {
           return false;
         }
@@ -42,8 +41,8 @@ public sealed class TokenCacheManager(
         logger.LogWarning("Detected stale token for user {UserId} - clearing token cache", userId);
 
         var cleared = await ClearTokenCacheAsync(cancellationToken);
-        
-        if (cleared)
+
+        if(cleared)
         {
           _lastClearTime = DateTime.UtcNow;
           logger.LogInformation("Token cache cleared successfully at {Time}", _lastClearTime);
@@ -60,7 +59,7 @@ public sealed class TokenCacheManager(
         _clearLock.Release();
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       // Never let exceptions escape - this is a best-effort operation
       logger.LogError(ex, "Unexpected error in HandleStaleTokenAsync - suppressing exception");
@@ -77,8 +76,8 @@ public sealed class TokenCacheManager(
     {
       // Get connection string from the provider
       var sqlConnection = connectionStringProvider.BudgetConnectionString;
-      
-      if (!string.IsNullOrEmpty(sqlConnection))
+
+      if(!string.IsNullOrEmpty(sqlConnection))
       {
         logger.LogInformation("Clearing SQL Server token cache");
         return await ClearSqlServerCacheAsync(sqlConnection, cancellationToken);
@@ -88,7 +87,7 @@ public sealed class TokenCacheManager(
       logger.LogWarning("No SQL connection string available - cannot clear token cache");
       return false;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed to clear token cache: {Message}", ex.Message);
       return false;
@@ -110,22 +109,22 @@ public sealed class TokenCacheManager(
       command.CommandTimeout = 30;
 
       var rowsDeleted = await command.ExecuteNonQueryAsync(cancellationToken);
-      
+
       logger.LogInformation("Cleared {RowCount} entries from SQL Server SessionCache", rowsDeleted);
       return true;
     }
-    catch (SqlException ex)
+    catch(SqlException ex)
     {
-      logger.LogError(ex, "SQL error clearing cache (SqlError {ErrorNumber}): {Message}", 
+      logger.LogError(ex, "SQL error clearing cache (SqlError {ErrorNumber}): {Message}",
         ex.Number, ex.Message);
       return false;
     }
-    catch (InvalidOperationException ex) when (ex.Message.Contains("pooling"))
+    catch(InvalidOperationException ex) when(ex.Message.Contains("pooling"))
     {
       logger.LogError(ex, "Connection pool issue clearing cache - will retry on next request");
       return false;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Failed to clear SQL Server cache: {Message}", ex.Message);
       return false;
@@ -138,8 +137,7 @@ public sealed class TokenCacheManager(
   public bool ShouldClearCache(string errorCode, string reasonPhrase)
   {
     // Clear cache for these specific scenarios
-    return errorCode switch
-    {
+    return errorCode switch {
       "interaction_required" => true,
       "invalid_grant" => true,
       "consent_required" => true,
@@ -150,5 +148,5 @@ public sealed class TokenCacheManager(
     };
   }
 
- 
+
 }

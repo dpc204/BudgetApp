@@ -20,27 +20,26 @@ public sealed class UserInfoEndpoints : ICarterModule
     // Avoid resolving scoped services from the root provider
     using var scope = app.ServiceProvider.CreateScope();
     var canResolve = scope.ServiceProvider.GetService<UserManager<BudgetUser>>() is not null;
-    if (!canResolve)
+    if(!canResolve)
       return;
 
     var group = app.MapGroup("/api/auth").WithTags("Auth");
 
     group.MapGet("userinfo", async (ClaimsPrincipal user, UserManager<BudgetUser> userManager) =>
     {
-      if (user?.Identity?.IsAuthenticated != true)
+      if(user?.Identity?.IsAuthenticated != true)
         return Results.Unauthorized();
 
       var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-      if (string.IsNullOrEmpty(userId))
+      if(string.IsNullOrEmpty(userId))
         return Results.Unauthorized();
 
       var identityUser = await userManager.FindByIdAsync(userId);
-      if (identityUser is null)
+      if(identityUser is null)
         return Results.Unauthorized();
 
       var roles = await userManager.GetRolesAsync(identityUser);
-      var dto = new IdentityUserInfoDto
-      {
+      var dto = new IdentityUserInfoDto {
         Id = identityUser.Id,
         Email = identityUser.Email,
         Name = identityUser.UserName,

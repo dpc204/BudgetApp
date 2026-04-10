@@ -1,3 +1,6 @@
+using Budget.DB;
+using Microsoft.EntityFrameworkCore;
+
 namespace Budget.Client.Components.Maintenance.BacpacHistory;
 
 using Budget.Client.Components.Maintenance.BackupRestore;
@@ -13,7 +16,7 @@ public partial class BacpacHistoryIndex : IDisposable
   [Inject] private IJSRuntime JS { get; set; } = default!;
   [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
   [Inject] private ILogger<BacpacHistoryIndex> Logger { get; set; } = default!;
-
+  [Inject] public required BudgetContext DB { get; set; }
   private List<BacpacBackupDto>? _backups;
 
   protected bool IsAdmin { get; private set; }
@@ -37,13 +40,13 @@ public partial class BacpacHistoryIndex : IDisposable
       _backups = [.. (await ApiClient.GetBacpacHistoryAsync())];
       Logger.LogInformation("Loaded {Count} BACPAC backup records", _backups.Count);
     }
-    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+    catch(HttpRequestException ex) when(ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
     {
       Logger.LogError(ex, "Unauthorized loading BACPAC history");
       Snackbar.Add("Authentication required. Please sign out and sign back in.", Severity.Warning);
       _backups = [];
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error loading BACPAC history");
       Snackbar.Add($"Error loading BACPAC history: {ex.Message}", Severity.Error);
@@ -53,9 +56,15 @@ public partial class BacpacHistoryIndex : IDisposable
 
   protected async Task TriggerBackupAsync()
   {
-    if (!IsAdmin)
+    if(!IsAdmin)
     {
       Snackbar.Add("Admin privileges required for this operation", Severity.Error);
+      return;
+    }
+
+    if(!DB.Database.GetDbConnection().ConnectionString.Contains("database.windows.net", StringComparison.CurrentCultureIgnoreCase))
+    {
+      Snackbar.Add("BacPac backups cannot only be run against Azure databases", Severity.Warning);
       return;
     }
 
@@ -74,7 +83,7 @@ public partial class BacpacHistoryIndex : IDisposable
 
       await LoadHistoryAsync();
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Status = $"Backup failed: {ex.Message}";
       StatusSeverity = Severity.Error;
@@ -101,7 +110,7 @@ public partial class BacpacHistoryIndex : IDisposable
 
       Snackbar.Add($"Downloaded {fileDownload.FileName}", Severity.Success);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error downloading BACPAC backup {RowKey}", backup.RowKey);
       Snackbar.Add($"Download failed: {ex.Message}", Severity.Error);
@@ -110,8 +119,7 @@ public partial class BacpacHistoryIndex : IDisposable
 
   private async Task DeleteBackupAsync(BacpacBackupDto backup)
   {
-    var parameters = new DialogParameters
-    {
+    var parameters = new DialogParameters {
       ["ContentText"] = $"Are you sure you want to delete the backup from {backup.CreatedAt:yyyy-MM-dd HH:mm:ss}? This cannot be undone.",
       ["ButtonText"] = "Delete",
       ["Color"] = Color.Error
@@ -121,7 +129,7 @@ public partial class BacpacHistoryIndex : IDisposable
     var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Delete", parameters, options);
     var result = await dialog.Result;
 
-    if (result is { Canceled: true })
+    if(result is { Canceled: true })
       return;
 
     try
@@ -129,7 +137,7 @@ public partial class BacpacHistoryIndex : IDisposable
       Logger.LogInformation("Deleting BACPAC backup: {RowKey}", backup.RowKey);
       var success = await ApiClient.DeleteBacpacBackupAsync(backup.RowKey);
 
-      if (success)
+      if(success)
       {
         Snackbar.Add("Backup deleted successfully.", Severity.Success);
         await LoadHistoryAsync();
@@ -139,7 +147,7 @@ public partial class BacpacHistoryIndex : IDisposable
         Snackbar.Add("Backup not found or already deleted.", Severity.Warning);
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Logger.LogError(ex, "Error deleting BACPAC backup {RowKey}", backup.RowKey);
       Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error);
@@ -151,7 +159,7 @@ public partial class BacpacHistoryIndex : IDisposable
     string[] sizes = ["B", "KB", "MB", "GB"];
     double len = bytes;
     int order = 0;
-    while (len >= 1024 && order < sizes.Length - 1)
+    while(len >= 1024 && order < sizes.Length - 1)
     {
       order++;
       len /= 1024;

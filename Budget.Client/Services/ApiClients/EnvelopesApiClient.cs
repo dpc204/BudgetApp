@@ -27,16 +27,16 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
   {
     using var response = await http.PostAsync("envelopes/fund", null, cancellationToken);
 
-    if (!response.IsSuccessStatusCode)
+    if(!response.IsSuccessStatusCode)
     {
       logger.LogWarning("FundEnvelopes failed with status {Status}", response.StatusCode);
-      return FBResult<int>.Failure( "Failed to fund envelopes");
+      return FBResult<int>.Failure("Failed to fund envelopes");
     }
 
     try
     {
       var successResponse = await response.Content.ReadFromJsonAsync<FundSuccessResponse>(cancellationToken);
-      if (successResponse?.FundedCount != null)
+      if(successResponse?.FundedCount != null)
       {
         return FBResult<int>.Success(successResponse.FundedCount);
       }
@@ -51,9 +51,9 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
       //logger.LogWarning("FundEnvelopes returned unexpected response format");
       //return new FundEnvelopesResponse(false, "Unexpected response format", 0);
 
-      throw new ArgumentException("");	
+      throw new ArgumentException("");
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "Error deserializing FundEnvelopes response");
       return FBResult<int>.Failure(ex.Message); //new FundEnvelopesResponse(false, ex.Message, 0);
@@ -71,7 +71,7 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
 
     var result = await response.Content.ReadFromJsonAsync<UpdateFundAmountResponse>(cancellationToken: cancellationToken);
 
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for UpdateFundAmountResponse from envelopes/fundamount");
       throw new InvalidOperationException("Expected non-null UpdateFundAmountResponse from 'envelopes/fundamount'.");
@@ -87,7 +87,7 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
 
     var result = await response.Content.ReadFromJsonAsync<ClearAllFundAmountsResponse>(cancellationToken: cancellationToken);
 
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for ClearAllFundAmountsResponse from envelopes/clearallfundamounts");
       throw new InvalidOperationException("Expected non-null ClearAllFundAmountsResponse from 'envelopes/clearallfundamounts'.");
@@ -128,7 +128,7 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
   public async Task<bool> RemoveEnvelopeAsync(int id, CancellationToken cancellationToken = default)
   {
     using var resp = await http.DeleteAsync($"envelopes/maint/{id}", cancellationToken);
-    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
+    if(resp.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
     resp.EnsureSuccessStatusCode();
     return true;
   }
@@ -163,7 +163,7 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
   private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct)
   {
     var result = await http.GetFromJsonAsync<T>(relativeUrl, cancellationToken: ct);
-    if (result == null)
+    if(result == null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(T).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(T).Name} from '{relativeUrl}'.");
@@ -177,7 +177,7 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
     using var resp = await http.PostAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");
@@ -190,7 +190,7 @@ public sealed class EnvelopesApiClient(HttpClient http, ILogger<EnvelopesApiClie
     using var resp = await http.PutAsJsonAsync(relativeUrl, payload, ct);
     resp.EnsureSuccessStatusCode();
     var result = await resp.Content.ReadFromJsonAsync<TResponse>(cancellationToken: ct);
-    if (result is null)
+    if(result is null)
     {
       logger.LogDebug("Null response for {Type} from {Url}", typeof(TResponse).Name, relativeUrl);
       throw new InvalidOperationException($"Expected non-null {typeof(TResponse).Name} from '{relativeUrl}'.");

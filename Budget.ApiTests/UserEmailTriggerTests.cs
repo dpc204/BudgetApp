@@ -14,19 +14,19 @@
 //{
 //  private readonly BudgetContext _context;
 //  private readonly string _testDbName;
-  
+
 //  public UserEmailTriggerTests()
 //  {
 //    // Use a unique database name for each test run
 //    _testDbName = $"BudgetTest_{Guid.NewGuid():N}";
-    
+
 //    // Get connection string from environment or use LocalDB as fallback
 //    var connectionString = GetConnectionString();
-    
+
 //    var options = new DbContextOptionsBuilder<BudgetContext>()
 //      .UseSqlServer(connectionString)
 //      .Options;
-      
+
 //    _context = new BudgetContext(options);
 
 
@@ -36,13 +36,13 @@
 //    // Create database and run migrations
 //    _context.Database.Migrate();
 //  }
-  
+
 //  private string GetConnectionString()
 //  {
 //    // Check for CI/CD environment variables first
 //    var ciConnectionString = Environment.GetEnvironmentVariable("LocalBudgetConnection") 
 //                             ?? Environment.GetEnvironmentVariable("BudgetConnection");
-    
+
 //    if (!string.IsNullOrEmpty(ciConnectionString))
 //    {
 //      // Replace database name in CI connection string
@@ -52,15 +52,15 @@
 //      };
 //      return builder.ConnectionString;
 //    }
-    
+
 //    // Fallback to LocalDB for local development
 //    return $"Server=(localdb)\\mssqllocaldb;Database={_testDbName};Trusted_Connection=True;TrustServerCertificate=True;";
 //  }
-  
+
 //  [Fact]
 //  public async Task Insert_User_WithLowercaseEmail_ConvertsToUppercase()
 //  {
-    
+
 //    // Arrange
 //    var user = new User
 //    {
@@ -69,20 +69,20 @@
 //      LastName = "User",
 //      FamilyId = 1
 //    };
-    
+
 //    // Act
 //    _context.Users.Add(user);
 //    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
-    
+
 //    // Assert - Read back from database
 //    var savedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(savedUser);
 //    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
 //  }
-  
+
 //  [Fact]
 //  public async Task Update_User_WithLowercaseEmail_ConvertsToUppercase()
 //  {
@@ -96,20 +96,20 @@
 //    };
 //    _context.Users.Add(user);
 //    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
 //    // Act - Update to lowercase
 //    user.Email = "updated@example.com";
 //    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
-    
+
 //    // Assert - Read back from database
 //    var updatedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(updatedUser);
 //    Assert.Equal("UPDATED@EXAMPLE.COM", updatedUser.Email);
 //  }
-  
+
 //  [Fact]
 //  public async Task Insert_User_WithUppercaseEmail_RemainsUppercase()
 //  {
@@ -121,20 +121,20 @@
 //      LastName = "User",
 //      FamilyId = 1
 //    };
-    
+
 //    // Act
 //    _context.Users.Add(user);
 //    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
-    
+
 //    // Assert
 //    var savedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(savedUser);
 //    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
 //  }
-  
+
 //  [Fact]
 //  public async Task Insert_User_WithMixedCaseEmail_ConvertsToUppercase()
 //  {
@@ -146,20 +146,20 @@
 //      LastName = "User",
 //      FamilyId = 1
 //    };
-    
+
 //    // Act
 //    _context.Users.Add(user);
 //    await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-    
+
 //    // Detach to force a fresh read from database
 //    _context.Entry(user).State = EntityState.Detached;
-    
+
 //    // Assert
 //    var savedUser = await _context.Users.FindAsync(new object[] { user.Id }, TestContext.Current.CancellationToken);
 //    Assert.NotNull(savedUser);
 //    Assert.Equal("TEST@EXAMPLE.COM", savedUser.Email);
 //  }
-    
+
 //  public void Dispose()
 //  {
 //    // Clean up test database

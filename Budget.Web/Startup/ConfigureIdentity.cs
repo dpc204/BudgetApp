@@ -1,9 +1,6 @@
 using Budget.Web.Authorization;
 using Budget.Web.Components.Account;
-using Budget.Web.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Identity.Client;
 
 namespace Budget.Web.Startup;
 
@@ -21,34 +18,34 @@ public static class ConfigureIdentity
     var logger = loggerFactory.CreateLogger("ConfigureIdentity");
 
     // Check for test mode - skip Entra ID authentication for Playwright tests
-    var useTestAuth = builder.Configuration.GetValue<bool>("UseTestAuthentication") 
+    var useTestAuth = builder.Configuration.GetValue<bool>("UseTestAuthentication")
                       || Environment.GetEnvironmentVariable("USE_TEST_AUTH") == "true";
-    
-    if (useTestAuth)
+
+    if(useTestAuth)
     {
       logger.LogWarning("?? TEST MODE: Using mock authentication instead of Entra ID");
       builder.Services.AddAuthentication(Budget.Web.Authentication.TestAuthenticationHandler.AuthenticationScheme)
         .AddScheme<AuthenticationSchemeOptions, Budget.Web.Authentication.TestAuthenticationHandler>(
-          Budget.Web.Authentication.TestAuthenticationHandler.AuthenticationScheme, 
+          Budget.Web.Authentication.TestAuthenticationHandler.AuthenticationScheme,
           options => { });
-      
+
       // Still need to register controllers for the app to work
       builder.Services.AddControllersWithViews();
-      
+
       logger.LogInformation("? Test mode authentication configured with controllers");
       return;
     }
 
     // DIAGNOSTIC: Log all AzureAd configuration values to verify ClientSecret is loaded
     var azureAdSection = builder.Configuration.GetSection("AzureAd");
-    
+
     logger.LogInformation("=== AzureAd Configuration at Authentication Setup ===");
     logger.LogInformation("Instance: {Instance}", azureAdSection["Instance"]);
     logger.LogInformation("Domain: {Domain}", azureAdSection["Domain"]);
     logger.LogInformation("TenantId: {TenantId}", azureAdSection["TenantId"]);
     logger.LogInformation("ClientId: {ClientId}", azureAdSection["ClientId"]);
     logger.LogInformation("ClientSecret present: {HasSecret}", !string.IsNullOrEmpty(azureAdSection["ClientSecret"]));
-    if (!string.IsNullOrEmpty(azureAdSection["ClientSecret"]))
+    if(!string.IsNullOrEmpty(azureAdSection["ClientSecret"]))
     {
       logger.LogInformation("ClientSecret length: {Length}", azureAdSection["ClientSecret"]?.Length ?? 0);
     }
@@ -59,10 +56,10 @@ public static class ConfigureIdentity
     }
     logger.LogInformation("CallbackPath: {CallbackPath}", azureAdSection["CallbackPath"]);
     logger.LogInformation("SignedOutCallbackPath: {SignedOutCallbackPath}", azureAdSection["SignedOutCallbackPath"]);
-    
+
     // Verify distributed cache is registered
     var cacheRegistration = builder.Services.FirstOrDefault(s => s.ServiceType == typeof(Microsoft.Extensions.Caching.Distributed.IDistributedCache));
-    if (cacheRegistration != null)
+    if(cacheRegistration != null)
     {
       logger.LogInformation("Distributed cache is registered: {Implementation}", cacheRegistration.ImplementationType?.Name ?? "Unknown");
     }
@@ -70,69 +67,69 @@ public static class ConfigureIdentity
     {
       logger.LogWarning("NO DISTRIBUTED CACHE FOUND! Tokens will not persist!");
     }
-    
+
     // Configure Microsoft Entra ID authentication with token acquisition
     // Budget.Api accepts Entra ID JWT tokens, so we need to acquire access tokens
     // Tokens are cached in SQL Server distributed cache for persistence across app restarts
-    
+
     // Get the API scope before configuring authentication
     var apiClientId = azureAdSection["ClientId"];
     var apiScope = !string.IsNullOrEmpty(apiClientId) ? $"api://{apiClientId}/access_as_user" : "";
-    
+
     builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
       .AddMicrosoftIdentityWebApp(options =>
       {
         azureAdSection.Bind(options);
-        
+
         // Configure OpenIdConnect events to ensure proper token caching
         options.Events ??= new Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectEvents();
-        
+
         var existingOnTokenValidated = options.Events.OnTokenValidated;
         options.Events.OnTokenValidated = async context =>
         {
           // Call existing handler if any
-          if (existingOnTokenValidated != null)
+          if(existingOnTokenValidated != null)
           {
             await existingOnTokenValidated(context);
           }
-          
+
           // Clear any failed session state from TokenCacheValidationMiddleware
           // This ensures a fresh start after successful re-authentication
-          var sessionId = context.Principal?.FindFirst("sid")?.Value ?? 
+          var sessionId = context.Principal?.FindFirst("sid")?.Value ??
                           context.Principal?.FindFirst("oid")?.Value ??
                           context.Principal?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
-          
-          if (!string.IsNullOrEmpty(sessionId))
+
+          if(!string.IsNullOrEmpty(sessionId))
           {
             Budget.Web.Middleware.TokenCacheValidationMiddleware.ClearSessionValidation(sessionId);
             logger.LogInformation("Cleared session validation state for {SessionId} after successful token validation", sessionId);
           }
-          
-          logger.LogInformation("? Token validated for user {User}. Tokens will be cached by Microsoft.Identity.Web.", 
+
+          logger.LogInformation("? Token validated for user {User}. Tokens will be cached by Microsoft.Identity.Web.",
             context.Principal?.Identity?.Name ?? "unknown");
         };
-        
+
         var existingOnAuthorizationCodeReceived = options.Events.OnAuthorizationCodeReceived;
         options.Events.OnAuthorizationCodeReceived = async context =>
         {
           // Call existing handler if any
-          if (existingOnAuthorizationCodeReceived != null)
+          if(existingOnAuthorizationCodeReceived != null)
           {
             await existingOnAuthorizationCodeReceived(context);
           }
-          
+
           logger.LogInformation("? Authorization code received - Microsoft.Identity.Web will exchange for tokens and cache them");
         };
-        
+
         var existingOnTokenResponseReceived = options.Events.OnTokenResponseReceived;
         options.Events.OnTokenResponseReceived = async context =>
         {
           // Call existing handler if any
-          if (existingOnTokenResponseReceived != null)
+          if(existingOnTokenResponseReceived != null)
           {
             await existingOnTokenResponseReceived(context);
           }
-          
+
           logger.LogInformation("? Token response received - tokens are now cached in distributed cache");
         };
       })
@@ -140,14 +137,14 @@ public static class ConfigureIdentity
         [apiScope] // Automatically acquires and caches API token during sign-in
       )
       .AddDistributedTokenCaches(); // Uses SQL Server distributed cache configured in ConfigureServices
-    
+
     logger.LogInformation("? Configured authentication with automatic token acquisition for scope: {ApiScope}", apiScope);
     logger.LogInformation("Default authentication scheme: {Scheme}", OpenIdConnectDefaults.AuthenticationScheme);
     logger.LogInformation("Cookie authentication scheme: {CookieScheme}", CookieAuthenticationDefaults.AuthenticationScheme);
-    
+
     logger.LogInformation("Token caching configured with distributed cache");
-    
-    if (!string.IsNullOrEmpty(apiScope))
+
+    if(!string.IsNullOrEmpty(apiScope))
     {
       logger.LogInformation("Configured API scope: {ApiScope}", apiScope);
     }
@@ -155,7 +152,7 @@ public static class ConfigureIdentity
     {
       logger.LogWarning("API scope not configured - token caching may not work properly");
     }
-    
+
     logger.LogInformation("Microsoft Entra ID authentication with token acquisition configured successfully");
     loggerFactory.Dispose();
 
@@ -173,7 +170,7 @@ public static class ConfigureIdentity
       options.LoginPath = "/MicrosoftIdentity/Account/SignIn"; // Redirect here if not authenticated
       options.LogoutPath = "/MicrosoftIdentity/Account/SignOut";
       options.AccessDeniedPath = "/Account/AccessDenied";
-      
+
       // NOTE: OnValidatePrincipal was causing infinite redirect loops because:
       // 1. Token acquisition requires account info in the principal
       // 2. The principal from the cookie doesn't have enough info for MSAL to find the cached token
@@ -182,7 +179,7 @@ public static class ConfigureIdentity
       //
       // Solution: Let the token expire naturally, and handle refresh in ForwardAuthCookiesHandler
       // Microsoft.Identity.Web automatically handles token refresh during API calls
-      
+
       logger.LogInformation("Cookie authentication options configured (no aggressive validation)");
     });
 
@@ -198,10 +195,10 @@ public static class ConfigureIdentity
   {
     // Register claims transformation to load database roles after Entra ID authentication
     builder.Services.AddScoped<IClaimsTransformation, DatabaseClaimsTransformation>();
-    
+
     // Register authorization handler for database roles
     builder.Services.AddSingleton<IAuthorizationHandler, DatabaseRoleHandler>();
-    
+
     // Configure authorization policies using database roles
     builder.Services.AddAuthorizationBuilder()
       .AddPolicy("Admin", policy =>
@@ -226,11 +223,11 @@ public static class ConfigureIdentity
     // TEMPORARY: Identity Core services are being phased out in favor of Entra ID
     // These services are kept for backward compatibility during the migration phase
     // They will be completely removed in Phase 4 after all users are migrated to Entra ID
-    
+
     // Scoped services for Identity (still needed by some components during migration)
     builder.Services.AddScoped<IdentityUserAccessor>();
     builder.Services.AddScoped<IdentityRedirectManager>();
-    
+
     // Replace the default authentication state provider with Entra-aware version
     builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 

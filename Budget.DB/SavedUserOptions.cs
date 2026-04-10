@@ -1,7 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Budget.Shared.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Budget.DB
 {

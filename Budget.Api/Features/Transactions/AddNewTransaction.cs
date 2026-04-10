@@ -5,7 +5,7 @@ public static class AddNewTransaction
   public sealed record Command(OneTransactionDetail Trans) : IRequest<EnvelopeDeltas>;
 
 
-  public class Handler( IInsertTransactions inserter) : IRequestHandler<Command, EnvelopeDeltas>
+  public class Handler(IInsertTransactions inserter) : IRequestHandler<Command, EnvelopeDeltas>
   {
     public async Task<EnvelopeDeltas> Handle(Command request, CancellationToken cancellationToken)
     {

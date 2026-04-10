@@ -1,5 +1,3 @@
-using FluentResults;
-
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -20,11 +18,11 @@ public static class VoidTransaction
         .Include(t => t.Details)
         .FirstOrDefaultAsync(t => t.Id == request.TransactionId, cancellationToken);
 
-      if (existingTrans is null)
+      if(existingTrans is null)
       {
         return Result.Fail($"Transaction with Id {request.TransactionId} not found.");
       }
-     
+
       if(existingTrans.IsVoided)
       {
         return Result.Fail($"Transaction {request.TransactionId} is already voided.");
@@ -46,8 +44,8 @@ public static class VoidTransaction
     private async Task<Result> ReverseAccountBalanceAsync(Transaction trans)
     {
       var acct = await db.BankAccounts.FindAsync([trans.AccountId]);
-      if (acct is null) return Result.Fail("Account not found");
-      
+      if(acct is null) return Result.Fail("Account not found");
+
       // Add the amount back (reverses the original subtraction)
       acct.Balance += trans.TotalAmount;
       return Result.Ok();
@@ -58,15 +56,14 @@ public static class VoidTransaction
       var rslt = new List<EnvelopeDto>();
 
       var grouped = trans.Details.GroupBy(d => d.EnvelopeId);
-      foreach (var grp in grouped)
+      foreach(var grp in grouped)
       {
         var env = await db.Envelopes.FindAsync([grp.Key]);
-        if (env is null) return Result.Fail("Transaction to void does not exist");
+        if(env is null) return Result.Fail("Transaction to void does not exist");
         // Add the sum of amounts back (reverses the original subtraction)
         env.Balance += grp.Sum(d => d.Amount);
 
-        rslt.Add(new EnvelopeDto
-        {
+        rslt.Add(new EnvelopeDto {
           Id = env.Id,
           CategoryId = env.CategoryId,
           Name = env.Name,
@@ -91,8 +88,8 @@ public static class VoidTransaction
       app.MapPost("/Transaction/Void", async (ISender sender, Command command) =>
       {
         var result = await sender.Send(command);
-        
-        if (!result.IsSuccess)
+
+        if(!result.IsSuccess)
         {
           // Return 409 Conflict for already voided, 404 for not found
           var errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
@@ -100,7 +97,7 @@ public static class VoidTransaction
             ? Results.Conflict(new { error = result.Errors })
             : Results.NotFound(new { error = result.Errors });
         }
-        
+
         return Results.Ok(result.Value);
       }).RequireAuthorization();
     }

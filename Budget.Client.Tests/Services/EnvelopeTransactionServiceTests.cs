@@ -39,7 +39,7 @@ public class EnvelopeTransactionServiceTests
     };
 
     _mockApi
-      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId,0,0, It.IsAny<CancellationToken>()))
+      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId, 0, 0, It.IsAny<CancellationToken>()))
       .ReturnsAsync(transactions);
 
     // Act
@@ -57,7 +57,7 @@ public class EnvelopeTransactionServiceTests
     // Arrange
     var envelopeId = 1;
     _mockApi
-      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId,0,0, It.IsAny<CancellationToken>()))
+      .Setup(a => a.GetTransactionsByEnvelopeAsync(envelopeId, 0, 0, It.IsAny<CancellationToken>()))
       .ThrowsAsync(new Exception("API error"));
 
     // Act
@@ -72,8 +72,7 @@ public class EnvelopeTransactionServiceTests
   {
     // Arrange
     var transactionId = 1;
-    var transactionDetail = new OneTransactionDetail
-    {
+    var transactionDetail = new OneTransactionDetail {
       Id = transactionId,
       Vendor = "Store A",
       TotalAmount = 50m
@@ -107,7 +106,7 @@ public class EnvelopeTransactionServiceTests
     // Assert
     result.Should().NotBeNull();
     result!.WasEdited.Should().BeTrue();
-    result.Deltas.Should().HaveCount(1);  
+    result.Deltas.Should().HaveCount(1);
     result.Deltas[0].EnvelopeId.Should().Be(1);
   }
 
@@ -116,8 +115,7 @@ public class EnvelopeTransactionServiceTests
   {
     // Arrange
     var transactionId = 1;
-    var transactionDetail = new OneTransactionDetail
-    {
+    var transactionDetail = new OneTransactionDetail {
       Id = transactionId,
       Vendor = "Store A",
       TotalAmount = 50m
@@ -152,8 +150,7 @@ public class EnvelopeTransactionServiceTests
   {
     // Arrange
     var transactionId = 1;
-    var transactionDetail = new OneTransactionDetail
-    {
+    var transactionDetail = new OneTransactionDetail {
       Id = transactionId,
       Vendor = "Store A",
       TotalAmount = 50m

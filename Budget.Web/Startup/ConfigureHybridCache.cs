@@ -8,8 +8,7 @@ public static class ConfigureHybridCache
   {
     builder.Services.AddHybridCache(options =>
     {
-      options.DefaultEntryOptions = new HybridCacheEntryOptions()
-      {
+      options.DefaultEntryOptions = new HybridCacheEntryOptions() {
         Expiration = TimeSpan.FromMinutes(10),
         Flags = HybridCacheEntryFlags.DisableDistributedCache
       };

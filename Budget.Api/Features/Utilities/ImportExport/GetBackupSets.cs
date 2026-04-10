@@ -1,7 +1,4 @@
 using Azure.Data.Tables;
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Features.Utilities.ImportExport;
 
@@ -36,28 +33,28 @@ public static class GetBackupSets
         log.LogInformation("Retrieving backup sets from Azure Table Storage");
 
         var tableClient = tableServiceClient.GetTableClient(TableName);
-      
-      // Ensure table exists
-      try
-      {
-        await tableClient.CreateIfNotExistsAsync(cancellationToken);
-      }
-      catch (Exception ex)
-      {
-        log.LogWarning(ex, "Azure Table Storage not available - backup functionality disabled. Configure AZURE_STORAGE_TABLE_ENDPOINT to enable.");
-        return new Response([]);
-      }
+
+        // Ensure table exists
+        try
+        {
+          await tableClient.CreateIfNotExistsAsync(cancellationToken);
+        }
+        catch(Exception ex)
+        {
+          log.LogWarning(ex, "Azure Table Storage not available - backup functionality disabled. Configure AZURE_STORAGE_TABLE_ENDPOINT to enable.");
+          return new Response([]);
+        }
 
         // Query all entities and group by PartitionKey
         var backupSets = new Dictionary<string, (DateTime BackupDate, int TableCount, long TotalSize)>();
 
-        await foreach (var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
+        await foreach(var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
         {
           var partitionKey = entity.PartitionKey;
           var sizeBytes = entity.GetInt32("SizeBytes") ?? 0;
           var exportedAt = entity.GetDateTime("ExportedAt") ?? DateTime.MinValue;
 
-          if (!backupSets.TryGetValue(partitionKey, out (DateTime BackupDate, int TableCount, long TotalSize) current))
+          if(!backupSets.TryGetValue(partitionKey, out (DateTime BackupDate, int TableCount, long TotalSize) current))
           {
             current = (exportedAt, 0, 0);
             backupSets[partitionKey] = current;
@@ -79,7 +76,7 @@ public static class GetBackupSets
         log.LogInformation("Found {Count} backup sets", result.Count);
         return new Response(result);
       }
-      catch (Exception e)
+      catch(Exception e)
       {
         log.LogError("Exception!!:{exception}", e.Message);
         throw;
@@ -102,9 +99,9 @@ public static class GetBackupSets
           var result = await sender.Send(new Query());
           return Results.Ok(result.BackupSets);
         }
-        catch (Exception e)
+        catch(Exception e)
         {
-          Console.WriteLine("EXCEPTION:!!!!!!!"+e.Message);
+          Console.WriteLine("EXCEPTION:!!!!!!!" + e.Message);
           throw;
         }
       })

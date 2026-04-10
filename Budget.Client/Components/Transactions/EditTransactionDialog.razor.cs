@@ -20,12 +20,12 @@ public partial class EditTransactionDialog
   //  {
   //    if (!IsEditMode)
   //      return false;
-      
+
   //    UserOptions.IsAdminUser() == false || IsEditMode;
   //  }
   //}
 
-  
+
 
   /// <summary>
   /// Stores the transaction ID when editing
@@ -73,21 +73,21 @@ public partial class EditTransactionDialog
 
   protected override async Task OnInitializedAsync()
   {
-    if (Envelopes.Count == 0)
+    if(Envelopes.Count == 0)
     {
       Envelopes = await EnvelopesApi.GetEnvelopesAsync();
     }
 
-    if (Accounts.Count == 0)
+    if(Accounts.Count == 0)
     {
       Accounts = await AccountsApi.GetAccountsAsync();
       _header.AccountId = Accounts.Min(e => e.Id);
     }
 
-  //  NotAdmin = !UserOptions.IsAdminUser();
-    
+    //  NotAdmin = !UserOptions.IsAdminUser();
+
     // If editing an existing transaction, pre-populate the form
-    if (ExistingTransaction is not null)
+    if(ExistingTransaction is not null)
     {
       _transactionId = ExistingTransaction.Id; // Store the transaction ID
       _header.AccountId = ExistingTransaction.AccountId;
@@ -96,10 +96,9 @@ public partial class EditTransactionDialog
       _header.Date = ExistingTransaction.Date;
       _header.TotalAmount = ExistingTransaction.TotalAmount * -1;
 
-      foreach (var detail in ExistingTransaction.Details)
+      foreach(var detail in ExistingTransaction.Details)
       {
-        _lines.Add(new TransactionDto
-        {
+        _lines.Add(new TransactionDto {
           EnvelopeId = detail.EnvelopeId,
           Amount = detail.Amount * -1,
           Description = detail.Notes,
@@ -109,7 +108,7 @@ public partial class EditTransactionDialog
 
       Recalc();
     }
-    else if (_lines.Count == 0)
+    else if(_lines.Count == 0)
     {
       _lines.Add(new TransactionDto() { EnvelopeId = InitialEnvelopeId, Amount = 0 });
       Recalc();
@@ -122,7 +121,7 @@ public partial class EditTransactionDialog
     get => _header.Date;
     set
     {
-      if (value.HasValue)
+      if(value.HasValue)
         _header.Date = value.Value;
       StateHasChanged();
     }
@@ -144,7 +143,7 @@ public partial class EditTransactionDialog
   {
     // Clamp to >= 0 and round to 2 decimals
     var v = Math.Round(line.Amount < 0 ? 0 : line.Amount, 2, MidpointRounding.AwayFromZero);
-    if (v != line.Amount)
+    if(v != line.Amount)
       line.Amount = v;
     Recalc();
   }
@@ -163,10 +162,10 @@ public partial class EditTransactionDialog
 
   private async Task Save()
   {
-    if (_form is not null)
+    if(_form is not null)
     {
       await _form.ValidateAsync();
-      if (!_form.IsValid)
+      if(!_form.IsValid)
         return;
     }
 
@@ -176,13 +175,12 @@ public partial class EditTransactionDialog
 
   private async Task HandleSaveAsync()
   {
-    if (IsSaveDisabled) return;
+    if(IsSaveDisabled) return;
 
     IsBusy = true;
 
 
-    var result = new OneTransactionDetail()
-    {
+    var result = new OneTransactionDetail() {
       Id = _transactionId, // Use stored transaction ID for updates
       AccountId = _header.AccountId,
       Vendor = _header.Vendor.Trim(),
@@ -209,7 +207,7 @@ public partial class EditTransactionDialog
     // Call appropriate API based on whether we're adding or updating
     List<EnvelopeUpdate> envelopeUpdates;
 
-    if (IsEditMode)
+    if(IsEditMode)
     {
       envelopeUpdates = await TransactionApi.UpdateTransactionAsync(result);
     }
@@ -237,14 +235,14 @@ public partial class EditTransactionDialog
       yesText: "Yes, Void Transaction",
       cancelText: "Cancel");
 
-    if (result == true)
+    if(result == true)
     {
       try
       {
         var envelopes = await TransactionApi.VoidTransactionAsync(_transactionId);
         MudDialog.Close(DialogResult.Ok(envelopes));
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         await DialogService.ShowMessageBoxAsync(
           "Error",
@@ -269,7 +267,7 @@ public partial class EditTransactionDialog
 
   private static string? ValidateAmount(decimal value)
   {
-    if (value <= 0m)
+    if(value <= 0m)
       return "Amount must be greater than 0.";
     // allow at most 2 decimal places
     //if ((value * 100m) % 1m != 0m)

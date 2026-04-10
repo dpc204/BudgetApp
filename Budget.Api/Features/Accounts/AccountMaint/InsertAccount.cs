@@ -9,8 +9,7 @@ public static class InsertAccount
   {
     public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
-      var acct = new BankAccount
-      {
+      var acct = new BankAccount {
         Name = request.Name,
         Balance = request.Balance,
         AccountType = request.AccountType

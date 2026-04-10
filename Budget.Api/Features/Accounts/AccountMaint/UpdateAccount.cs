@@ -10,7 +10,7 @@ public static class UpdateAccount
     public async Task<Response?> Handle(Command request, CancellationToken cancellationToken)
     {
       var entity = await db.BankAccounts.FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
-      if (entity is null) return null;
+      if(entity is null) return null;
 
       entity.Name = request.Name;
       entity.Balance = request.Balance;
@@ -28,7 +28,7 @@ public static class UpdateAccount
     {
       app.MapPut("/accounts/maint/{id}", async (int id, [FromBody] CommandBody body, ISender sender) =>
       {
-        if (id != body.Id) return Results.BadRequest("Route id and payload id differ.");
+        if(id != body.Id) return Results.BadRequest("Route id and payload id differ.");
         var result = await sender.Send(new Command(body.Id, body.Name, body.Balance, body.AccountType));
         return result is null ? Results.NotFound() : Results.Ok(result);
       }).RequireAuthorization();

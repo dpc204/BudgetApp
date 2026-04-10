@@ -11,7 +11,7 @@ public class BudgetContextFactory : IDesignTimeDbContextFactory<BudgetContext>
   public BudgetContext CreateDbContext(string[] args)
   {
     var optionsBuilder = new DbContextOptionsBuilder<BudgetContext>();
-    
+
     // Use a default connection string for migrations
     optionsBuilder.UseSqlServer(
       "Data Source=(localdb)\\MSSQLLocalDB;Database=BudgetDB;Trusted_Connection=True;TrustServerCertificate=True",

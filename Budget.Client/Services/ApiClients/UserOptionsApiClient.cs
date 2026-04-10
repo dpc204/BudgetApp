@@ -18,7 +18,7 @@ public sealed class UserOptionsApiClient(HttpClient http, ILogger<UserOptionsApi
       logger.LogDebug("UserAndOptions:Received response for GetUserByIdAsync: {HasValue}", response?.User != null);
       return response?.User;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "UserAndOptions:Error in GetUserByIdAsync for Id: {Id}", id);
       return null;
@@ -34,7 +34,7 @@ public sealed class UserOptionsApiClient(HttpClient http, ILogger<UserOptionsApi
           cancellationToken: cancellationToken);
       return response?.Options;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogDebug(ex, "Failed to get user options for user {UserId}", userId);
       return null;
@@ -50,7 +50,7 @@ public sealed class UserOptionsApiClient(HttpClient http, ILogger<UserOptionsApi
       using var resp = await http.PostAsJsonAsync("/api/useroptions", command, cancellationToken);
       return resp.IsSuccessStatusCode;
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogWarning(ex, "Failed to save user options for user {UserId}", userId);
       return false;

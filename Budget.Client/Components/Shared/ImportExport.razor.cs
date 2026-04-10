@@ -38,12 +38,12 @@ public partial class ImportExport<T> : ComponentBase where T : class
     Status = string.Empty;
     SelectedFile = e.File;
 
-    if (SelectedFile is null)
+    if(SelectedFile is null)
     {
       return;
     }
 
-    if (!SelectedFile.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+    if(!SelectedFile.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
     {
       Errors.Add("Only .csv files are supported.");
       SelectedFile = null;
@@ -56,7 +56,7 @@ public partial class ImportExport<T> : ComponentBase where T : class
 
   protected async Task ImportAsync()
   {
-    if (SelectedFile is null)
+    if(SelectedFile is null)
     {
       return;
     }
@@ -78,7 +78,7 @@ public partial class ImportExport<T> : ComponentBase where T : class
 
       var (importedCount, errors) = await ImportFunc(csvContent, default);
 
-      if (errors.Count > 0)
+      if(errors.Count > 0)
       {
         Errors.AddRange(errors);
         Status = $"Import completed with errors. {importedCount} {EntityName} imported.";
@@ -89,7 +89,7 @@ public partial class ImportExport<T> : ComponentBase where T : class
         Status = $"Successfully imported {importedCount} {EntityName}.";
         StatusSeverity = Severity.Success;
         Snackbar.Add(Status, Severity.Success);
-        
+
         // Notify parent to refresh data
         await OnImportCompleted.InvokeAsync();
       }
@@ -97,7 +97,7 @@ public partial class ImportExport<T> : ComponentBase where T : class
       SelectedFile = null;
       _inputFileKey++; // Reset the input file
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Errors.Add($"Import failed: {ex.Message}");
       Status = "Import failed.";
@@ -122,7 +122,7 @@ public partial class ImportExport<T> : ComponentBase where T : class
     {
       var csv = await ExportFunc(default);
 
-      if (string.IsNullOrEmpty(csv))
+      if(string.IsNullOrEmpty(csv))
       {
         Status = $"No {EntityName} to export.";
         StatusSeverity = Severity.Warning;
@@ -134,15 +134,15 @@ public partial class ImportExport<T> : ComponentBase where T : class
         var fileName = $"{EntityName}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
         var bytes = Encoding.UTF8.GetBytes(csv);
         var base64 = Convert.ToBase64String(bytes);
-        
+
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName, "text/csv", base64);
-        
+
         Status = $"Successfully exported {EntityName}.";
         StatusSeverity = Severity.Success;
         Snackbar.Add(Status, Severity.Success);
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Errors.Add($"Export failed: {ex.Message}");
       Status = "Export failed.";

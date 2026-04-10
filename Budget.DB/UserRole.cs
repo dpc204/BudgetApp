@@ -44,14 +44,12 @@ public class UserRole
 
       // Seed initial admin role for user 1 (Patrick)
       entity.HasData(
-        new UserRole
-        {
+        new UserRole {
           UserId = 1,
           RoleId = 1, // Admin
           AssignedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         },
-        new UserRole
-        {
+        new UserRole {
           UserId = 2,
           RoleId = 3, // User
           AssignedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)

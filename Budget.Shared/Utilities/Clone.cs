@@ -14,8 +14,8 @@ public static class Clone
       throw new ArgumentNullException(nameof(source), "Source object cannot be null.");
 
     var deepConfig = new TypeAdapterConfig();
-    deepConfig.Default.PreserveReference(false); 
-    deepConfig.Default.ShallowCopyForSameType(false); 
+    deepConfig.Default.PreserveReference(false);
+    deepConfig.Default.ShallowCopyForSameType(false);
     return source.Adapt<T>(deepConfig);
   }
 

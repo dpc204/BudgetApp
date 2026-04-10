@@ -80,7 +80,7 @@ try
   var budgetConnectionString = Misc.GetConnectionString(builder, Misc.ConnectionStringType.Identity, logger);
   logger.LogInformation("Identity database connection string configured: {ConnectionString}", budgetConnectionString?[..Math.Min(50, budgetConnectionString?.Length ?? 0)] + "...");
 }
-catch (InvalidOperationException ex) when (ex.Message.Contains("Connection string"))
+catch(InvalidOperationException ex) when(ex.Message.Contains("Connection string"))
 {
   logger.LogWarning("Identity database connection string not configured. Continuing with Entra ID authentication only.");
 }

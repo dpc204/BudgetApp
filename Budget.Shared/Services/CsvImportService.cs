@@ -23,7 +23,7 @@ public static class CsvImportService
     ILogger? log = null) where T : class, new()
   {
     log?.LogInformation("Starting CSV import from file: {Filename}", filename);
-    if (!File.Exists(filename))
+    if(!File.Exists(filename))
     {
       throw new ArgumentException($"File not found: {filename}", nameof(filename));
     }
@@ -50,7 +50,7 @@ public static class CsvImportService
     ILogger? log = null) where T : class, new()
   {
     log?.LogInformation("Starting CSV import from {LineCount} lines", lines.Count);
-    if (lines.Count == 0)
+    if(lines.Count == 0)
     {
       throw new ArgumentException("CSV data is empty.", nameof(lines));
     }
@@ -66,15 +66,15 @@ public static class CsvImportService
 
     // Validate that all CSV headers match entity properties
     var propertyMapping = new List<(int ColumnIndex, PropertyInfo Property)>();
-    for (int i = 0; i < headers.Count; i++)
+    for(int i = 0; i < headers.Count; i++)
     {
       var header = headers[i].Trim();
-      if (string.IsNullOrWhiteSpace(header))
+      if(string.IsNullOrWhiteSpace(header))
       {
         continue;
       }
 
-      if (!properties.TryGetValue(header, out var property))
+      if(!properties.TryGetValue(header, out var property))
       {
         throw new InvalidOperationException(
           $"CSV column '{header}' does not match any property in entity type '{entityType.Name}'. " +
@@ -87,11 +87,11 @@ public static class CsvImportService
 
     // Parse data lines
     var entities = new List<T>();
-    for (int lineIndex = 1; lineIndex < lines.Count; lineIndex++)
+    for(int lineIndex = 1; lineIndex < lines.Count; lineIndex++)
     {
       var line = lines[lineIndex];
       log?.LogInformation("Processing line {LineIndex}: {LineContent}", lineIndex + 1, line);
-      if (string.IsNullOrWhiteSpace(line))
+      if(string.IsNullOrWhiteSpace(line))
       {
         continue;
       }
@@ -99,9 +99,9 @@ public static class CsvImportService
       var values = ParseCsvLine(line, separator);
       var entity = new T();
 
-      foreach (var (columnIndex, property) in propertyMapping)
+      foreach(var (columnIndex, property) in propertyMapping)
       {
-        if (columnIndex < values.Count)
+        if(columnIndex < values.Count)
         {
           var value = values[columnIndex];
           var convertedValue = ConvertValue(value, property.PropertyType, property.Name, lineIndex + 1);
@@ -134,13 +134,13 @@ public static class CsvImportService
     bool inQuotes = false;
     var sepChar = separator.Length > 0 ? separator[0] : ',';
 
-    for (int i = 0; i < line.Length; i++)
+    for(int i = 0; i < line.Length; i++)
     {
       char c = line[i];
 
-      if (c == '"')
+      if(c == '"')
       {
-        if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+        if(inQuotes && i + 1 < line.Length && line[i + 1] == '"')
         {
           // Escaped quote
           currentValue.Append('"');
@@ -152,7 +152,7 @@ public static class CsvImportService
           inQuotes = !inQuotes;
         }
       }
-      else if (c == sepChar && !inQuotes)
+      else if(c == sepChar && !inQuotes)
       {
         result.Add(currentValue.ToString());
         currentValue.Clear();
@@ -181,9 +181,9 @@ public static class CsvImportService
 
     // Handle empty/whitespace values
     var trimmedValue = value.Trim();
-    if (string.IsNullOrWhiteSpace(trimmedValue))
+    if(string.IsNullOrWhiteSpace(trimmedValue))
     {
-      if (isNullable || !actualType.IsValueType)
+      if(isNullable || !actualType.IsValueType)
       {
         return null;
       }
@@ -195,69 +195,69 @@ public static class CsvImportService
     try
     {
       // Handle common types
-      if (actualType == typeof(string))
+      if(actualType == typeof(string))
       {
         return trimmedValue;
       }
 
-      if (actualType == typeof(int))
+      if(actualType == typeof(int))
       {
         return int.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(long))
+      if(actualType == typeof(long))
       {
         return long.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(decimal))
+      if(actualType == typeof(decimal))
       {
         return decimal.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(double))
+      if(actualType == typeof(double))
       {
         return double.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(float))
+      if(actualType == typeof(float))
       {
         return float.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(bool))
+      if(actualType == typeof(bool))
       {
         return bool.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(DateTime))
+      if(actualType == typeof(DateTime))
       {
         return DateTime.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(DateOnly))
+      if(actualType == typeof(DateOnly))
       {
         return DateOnly.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(TimeOnly))
+      if(actualType == typeof(TimeOnly))
       {
         return TimeOnly.Parse(trimmedValue);
       }
 
-      if (actualType == typeof(Guid))
+      if(actualType == typeof(Guid))
       {
         return Guid.Parse(trimmedValue);
       }
 
-      if (actualType.IsEnum)
+      if(actualType.IsEnum)
       {
         return Enum.Parse(actualType, trimmedValue, ignoreCase: true);
       }
 
       // Fallback to TypeConverter
       var converter = System.ComponentModel.TypeDescriptor.GetConverter(actualType);
-      if (converter.CanConvertFrom(typeof(string)))
+      if(converter.CanConvertFrom(typeof(string)))
       {
         return converter.ConvertFromString(trimmedValue);
       }
@@ -265,7 +265,7 @@ public static class CsvImportService
       throw new InvalidOperationException(
         $"Cannot convert value '{trimmedValue}' to type '{actualType.Name}'.");
     }
-    catch (Exception ex) when (ex is not InvalidOperationException)
+    catch(Exception ex) when(ex is not InvalidOperationException)
     {
       throw new InvalidOperationException(
         $"Error converting value '{trimmedValue}' for property '{propertyName}' " +

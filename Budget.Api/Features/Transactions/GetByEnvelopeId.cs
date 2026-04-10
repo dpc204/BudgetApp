@@ -3,7 +3,7 @@
 public static class GetByEnvelopeId
 {
   public sealed record Query(int EnvelopeId) : IRequest<IEnumerable<Response>>;
-  public sealed record Response(int TransactionId, int LineId,string Vendor, string Description, decimal Amount, DateTime Date, bool IsVoided);
+  public sealed record Response(int TransactionId, int LineId, string Vendor, string Description, decimal Amount, DateTime Date, bool IsVoided);
 
   public class Handler(BudgetContext db) : IRequestHandler<Query, IEnumerable<Response>>
   {
@@ -18,9 +18,9 @@ public static class GetByEnvelopeId
       //  .ToListAsync(cancellationToken);
 
       var result = await (from td in db.TransactionDetails
-          join t in db.Transactions on td.TransactionId equals t.Id
-          where td.EnvelopeId == request.EnvelopeId
-          select new Response(t.Id, td.LineId, t.Vendor,td.Notes, td.Amount, t.Date, t.IsVoided))
+                          join t in db.Transactions on td.TransactionId equals t.Id
+                          where td.EnvelopeId == request.EnvelopeId
+                          select new Response(t.Id, td.LineId, t.Vendor, td.Notes, td.Amount, t.Date, t.IsVoided))
         .ToListAsync(cancellationToken);
 
       return result;

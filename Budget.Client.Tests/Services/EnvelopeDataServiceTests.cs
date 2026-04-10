@@ -1,13 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Budget.Client.Services;
-using Budget.Shared.Models;
-using Budget.Shared.Services;
-using FluentAssertions;
-using Moq;
-using Xunit;
 using TestContext = Xunit.TestContext;
 
 namespace Budget.Client.Tests.Services;

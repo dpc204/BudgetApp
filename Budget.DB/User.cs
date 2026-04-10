@@ -23,7 +23,7 @@ namespace Budget.DB
       {
         // Configure table to use triggers (prevents EF from using OUTPUT clause)
         entity.ToTable(tb => tb.HasTrigger("trg_User_Email_ToUpper"));
-        
+
         entity.Property(u => u.Email)
           .HasMaxLength(100);
         entity.Property(u => u.FirstName)

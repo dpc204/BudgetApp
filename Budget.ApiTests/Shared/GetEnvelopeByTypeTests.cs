@@ -28,8 +28,7 @@ namespace Budget.ApiTests.Shared
       // Arrange
       await using var context = new BudgetContext(CreateInMemoryOptions(), null);
       await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
-      var envelope = new Budget.DB.Envelope
-      {
+      var envelope = new Budget.DB.Envelope {
         Id = 100,
         Name = "Test Envelope",
         CategoryId = "1",
@@ -57,8 +56,7 @@ namespace Budget.ApiTests.Shared
       // Arrange
       await using var context = new BudgetContext(CreateInMemoryOptions(), null);
       await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
-      var envelope = new Budget.DB.Envelope
-      {
+      var envelope = new Budget.DB.Envelope {
         Id = envelopeId,
         Name = $"{envelopeType} Envelope",
         CategoryId = "1",
@@ -82,8 +80,7 @@ namespace Budget.ApiTests.Shared
       // Arrange
       await using var context = new BudgetContext(CreateInMemoryOptions(), null);
       await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
-      var envelope = new Budget.DB.Envelope
-      {
+      var envelope = new Budget.DB.Envelope {
         Id = envelopeId,
         Name = $"{envelopeType} Envelope",
         CategoryId = "1",
@@ -113,8 +110,7 @@ namespace Budget.ApiTests.Shared
       // Arrange
       await using var context = new BudgetContext(CreateInMemoryOptions(), null);
       await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
-      var envelope = new Budget.DB.Envelope
-      {
+      var envelope = new Budget.DB.Envelope {
         Id = 100,
         Name = "Test Envelope",
         CategoryId = "1",
@@ -130,7 +126,7 @@ namespace Budget.ApiTests.Shared
         await GetEnvelopeByType.Get(context, EnvelopeTypes.Unassigned, cancellationTokenSource.Token));
     }
 
-    
+
 
   }
 }

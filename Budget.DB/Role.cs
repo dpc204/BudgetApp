@@ -38,22 +38,19 @@ public class Role
 
       // Seed default roles
       entity.HasData(
-        new Role
-        {
+        new Role {
           Id = 1,
           Name = "Admin",
           Description = "Full system access including user and role management",
           CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         },
-        new Role
-        {
+        new Role {
           Id = 2,
           Name = "PowerUser",
           Description = "Advanced features including import and maintenance",
           CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         },
-        new Role
-        {
+        new Role {
           Id = 3,
           Name = "User",
           Description = "Standard user with budget management access",

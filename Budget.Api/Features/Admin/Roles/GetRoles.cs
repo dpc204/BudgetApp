@@ -24,10 +24,10 @@ public static class GetRoles
   {
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
-      var roles = await db.Roles.Include(a=> a.UserRoles)
+      var roles = await db.Roles.Include(a => a.UserRoles)
         .TagWithCallSite()
         .ToListAsync(cancellationToken);
-      
+
       var rolesDTO = roles.Adapt<List<RoleDto>>()
         .Select(r => r with { UserCount = roles.First(a => a.Id == r.Id).UserRoles.Count })
         .ToList();

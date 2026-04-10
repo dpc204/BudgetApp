@@ -31,13 +31,13 @@ public partial class Budget : ComponentBase
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    if (firstRender)
+    if(firstRender)
     {
       // Note: Screen size is only checked on initial render for simplicity.
       // To support runtime resizing, add a JavaScript resize event listener.
       var previousValue = _isSmallScreen;
       await CheckScreenSize();
-      if (previousValue != _isSmallScreen)
+      if(previousValue != _isSmallScreen)
       {
         StateHasChanged();
       }
@@ -60,12 +60,12 @@ public partial class Budget : ComponentBase
       var width = await JsRuntime.InvokeAsync<int>("windowUtils.getInnerWidth");
       _isSmallScreen = width < SmallScreenBreakpoint;
     }
-    catch (JSException)
+    catch(JSException)
     {
       // Default to false if JS interop fails
       _isSmallScreen = false;
     }
-    catch (JSDisconnectedException)
+    catch(JSDisconnectedException)
     {
       // Default to false if JS is disconnected
       _isSmallScreen = false;
@@ -88,14 +88,13 @@ public partial class Budget : ComponentBase
       _displayMonths = [.. Enumerable.Range(0, MonthsToShow).Select(i => currentDate.AddMonths(i))];
 
       // Check if there are any draft values
-      if (checkForDrafts)
+      if(checkForDrafts)
       {
         var hasDraftsResponse = await BudgetMonthlyApi.CheckDraftBudgetsAsync();
 
-        if (hasDraftsResponse.HasDrafts)
+        if(hasDraftsResponse.HasDrafts)
         {
-          var parameters = new DialogParameters
-          {
+          var parameters = new DialogParameters {
             ["Message"] =
               $"You have {hasDraftsResponse.DraftCount} unsaved draft budget values. Do you want to continue with these drafts or reset them?"
           };
@@ -105,7 +104,7 @@ public partial class Budget : ComponentBase
             await DialogService.ShowAsync<DraftConfirmationDialog>("Draft Budgets Found", parameters, options);
           var result = await dialog.Result;
 
-          if (result is { Canceled: false, Data: false } dialogResult)
+          if(result is { Canceled: false, Data: false } dialogResult)
           {
             await ClearDrafts();
           }
@@ -117,7 +116,7 @@ public partial class Budget : ComponentBase
       _processing = true;
       _totalMonths = _displayMonths.Count;
       _MonthProgress = 0;
-      foreach (var month in _displayMonths)
+      foreach(var month in _displayMonths)
       {
         _MonthProgress++;
         await LoadMonthDataAsync(month);
@@ -138,7 +137,7 @@ public partial class Budget : ComponentBase
     _summaryRows.Clear();
     _envelopeRows.Clear();
 
-    if (_budgetData == null || _budgetData.Count == 0)
+    if(_budgetData == null || _budgetData.Count == 0)
       return;
 
     // Get a sample month to extract envelope metadata
@@ -176,7 +175,7 @@ public partial class Budget : ComponentBase
     _displayRows.Add(netBudgetRow);
 
     // Add income envelopes to scrollable list
-    foreach (var envelope in incomeEnvelopes)
+    foreach(var envelope in incomeEnvelopes)
     {
       var row = CreateEnvelopeRow(envelope!);
       _envelopeRows.Add(row);
@@ -184,7 +183,7 @@ public partial class Budget : ComponentBase
     }
 
     // Add expense envelopes to scrollable list
-    foreach (var envelope in expenseEnvelopes)
+    foreach(var envelope in expenseEnvelopes)
     {
       var row = CreateEnvelopeRow(envelope!);
       _envelopeRows.Add(row);
@@ -194,8 +193,7 @@ public partial class Budget : ComponentBase
 
   private BudgetDisplayRow CreateEnvelopeRow(BudgetMonthData envelope)
   {
-    var row = new BudgetDisplayRow
-    {
+    var row = new BudgetDisplayRow {
       EnvelopeId = envelope.EnvelopeId,
       CategoryId = envelope.CategoryId,
       CategoryName = envelope.CategoryName,
@@ -204,13 +202,12 @@ public partial class Budget : ComponentBase
       MonthlyData = []
     };
 
-    foreach (var month in _displayMonths)
+    foreach(var month in _displayMonths)
     {
-      if (_budgetData!.TryGetValue(envelope.EnvelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
+      if(_budgetData!.TryGetValue(envelope.EnvelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
           value.TryGetValue(month, out BudgetMonthData? data))
       {
-        row.MonthlyData[month] = new MonthCellData
-        {
+        row.MonthlyData[month] = new MonthCellData {
           DraftValue = data.DraftValue,
           BudgetValue = data.BudgetValue,
           DraftDisplayValue = data.DraftValue?.ToString("C2") ?? string.Empty,
@@ -225,8 +222,7 @@ public partial class Budget : ComponentBase
   private BudgetDisplayRow CreateSummaryRow(string name,
     Func<DateTime, (decimal budget, decimal draft)> calculateTotals)
   {
-    var row = new BudgetDisplayRow
-    {
+    var row = new BudgetDisplayRow {
       EnvelopeId = 0,
       EnvelopeName = name,
       IsSummaryRow = true,
@@ -235,11 +231,10 @@ public partial class Budget : ComponentBase
       CategoryId = string.Empty
     };
 
-    foreach (var month in _displayMonths)
+    foreach(var month in _displayMonths)
     {
       var (budget, draft) = calculateTotals(month);
-      row.MonthlyData[month] = new MonthCellData
-      {
+      row.MonthlyData[month] = new MonthCellData {
         DraftValue = null,
         BudgetValue = budget,
         DraftDisplayValue = draft.ToString("C2")
@@ -254,9 +249,9 @@ public partial class Budget : ComponentBase
     decimal budgetTotal = 0;
     decimal draftTotal = 0;
 
-    foreach (var envelope in envelopes.Where(e => e != null))
+    foreach(var envelope in envelopes.Where(e => e != null))
     {
-      if (_budgetData!.ContainsKey(envelope!.EnvelopeId) &&
+      if(_budgetData!.ContainsKey(envelope!.EnvelopeId) &&
           _budgetData[envelope.EnvelopeId].TryGetValue(month, out BudgetMonthData? data))
       {
         budgetTotal += data.BudgetValue ?? 0;
@@ -279,10 +274,10 @@ public partial class Budget : ComponentBase
       var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
       var response = await BudgetMonthlyApi.UpdateBudgetDraftAsync(acctPeriod, envelopeId, draftValue);
 
-      if (response.Success)
+      if(response.Success)
       {
         // Update local data
-        if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
+        if(_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
             value.TryGetValue(month, out BudgetMonthData? value1))
         {
           value1.DraftValue = draftValue;
@@ -291,7 +286,7 @@ public partial class Budget : ComponentBase
         // Update the specific cell in the display rows instead of rebuilding everything
         // This preserves focus by not destroying and recreating the DOM
         var envelopeRow = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
-        if (envelopeRow != null && envelopeRow.MonthlyData.TryGetValue(month, out var cellData))
+        if(envelopeRow != null && envelopeRow.MonthlyData.TryGetValue(month, out var cellData))
         {
           cellData.DraftValue = draftValue;
           cellData.DraftDisplayValue = draftValue?.ToString("C2") ?? string.Empty;
@@ -316,7 +311,7 @@ public partial class Budget : ComponentBase
         await JsRuntime.InvokeVoidAsync("setValidationError", true);
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Snackbar.Add($"Error updating draft: {ex.Message}", Severity.Error);
 
@@ -331,7 +326,7 @@ public partial class Budget : ComponentBase
   /// </summary>
   private void UpdateSummaryRows()
   {
-    if (_budgetData == null || _budgetData.Count == 0 || _summaryRows.Count == 0)
+    if(_budgetData == null || _budgetData.Count == 0 || _summaryRows.Count == 0)
       return;
 
     // Get envelopes from the underlying data
@@ -345,12 +340,12 @@ public partial class Budget : ComponentBase
     var expenseEnvelopes = envelopes.Where(e => e!.CategoryType == CatTypes.User).ToList();
 
     // Update Total Income row (index 0)
-    if (_summaryRows.Count > 0)
+    if(_summaryRows.Count > 0)
     {
       var totalIncomeRow = _summaryRows[0];
-      foreach (var month in _displayMonths)
+      foreach(var month in _displayMonths)
       {
-        if (totalIncomeRow.MonthlyData.TryGetValue(month, out var cellData))
+        if(totalIncomeRow.MonthlyData.TryGetValue(month, out var cellData))
         {
           var (budget, draft) = CalculateTotals(incomeEnvelopes, month);
           cellData.DraftDisplayValue = draft.ToString("C2");
@@ -359,12 +354,12 @@ public partial class Budget : ComponentBase
     }
 
     // Update Total Expenses row (index 1)
-    if (_summaryRows.Count > 1)
+    if(_summaryRows.Count > 1)
     {
       var totalExpensesRow = _summaryRows[1];
-      foreach (var month in _displayMonths)
+      foreach(var month in _displayMonths)
       {
-        if (totalExpensesRow.MonthlyData.TryGetValue(month, out var cellData))
+        if(totalExpensesRow.MonthlyData.TryGetValue(month, out var cellData))
         {
           var (budget, draft) = CalculateTotals(expenseEnvelopes, month);
           cellData.DraftDisplayValue = draft.ToString("C2");
@@ -373,12 +368,12 @@ public partial class Budget : ComponentBase
     }
 
     // Update Net Budget row (index 2)
-    if (_summaryRows.Count > 2)
+    if(_summaryRows.Count > 2)
     {
       var netBudgetRow = _summaryRows[2];
-      foreach (var month in _displayMonths)
+      foreach(var month in _displayMonths)
       {
-        if (netBudgetRow.MonthlyData.TryGetValue(month, out var cellData))
+        if(netBudgetRow.MonthlyData.TryGetValue(month, out var cellData))
         {
           var (incomeBudget, incomeDraft) = CalculateTotals(incomeEnvelopes, month);
           var (expenseBudget, expenseDraft) = CalculateTotals(expenseEnvelopes, month);
@@ -391,7 +386,7 @@ public partial class Budget : ComponentBase
 
   private void ScrollLeft()
   {
-    if (_currentScrollPosition > 0)
+    if(_currentScrollPosition > 0)
     {
       _currentScrollPosition--;
       StateHasChanged();
@@ -405,7 +400,7 @@ public partial class Budget : ComponentBase
 
     // Load more months if needed
     var lastVisibleIndex = _currentScrollPosition + MonthsToShow - 1;
-    while (lastVisibleIndex >= _displayMonths.Count)
+    while(lastVisibleIndex >= _displayMonths.Count)
     {
       var lastMonth = _displayMonths.Last();
       var newMonth = lastMonth.AddMonths(1);
@@ -424,18 +419,17 @@ public partial class Budget : ComponentBase
     {
       var monthData = await BudgetMonthlyApi.GetBudgetMonthAsync(month.Year, month.Month);
 
-      if (_budgetData != null)
+      if(_budgetData != null)
       {
-        foreach (var item in monthData)
+        foreach(var item in monthData)
         {
-          if (!_budgetData.TryGetValue(item.EnvelopeId, out Dictionary<DateTime, BudgetMonthData>? value))
+          if(!_budgetData.TryGetValue(item.EnvelopeId, out Dictionary<DateTime, BudgetMonthData>? value))
           {
             value = [];
             _budgetData[item.EnvelopeId] = value;
           }
 
-          value[month] = new BudgetMonthData
-          {
+          value[month] = new BudgetMonthData {
             EnvelopeId = item.EnvelopeId,
             EnvelopeName = item.EnvelopeName,
             CategoryId = item.CategoryId,
@@ -453,7 +447,7 @@ public partial class Budget : ComponentBase
         await InvokeAsync(StateHasChanged);
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Snackbar.Add($"Error loading month data: {ex.Message}", Severity.Error);
     }
@@ -467,8 +461,7 @@ public partial class Budget : ComponentBase
   /// </remarks>
   private async Task ClearDrafts()
   {
-    var parameters = new DialogParameters
-    {
+    var parameters = new DialogParameters {
       ["Message"] = "Are you sure you want to clear all draft budgets? This action cannot be undone."
     };
 
@@ -476,7 +469,7 @@ public partial class Budget : ComponentBase
     var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Drafts", parameters, options);
     var result = await dialog.Result;
 
-    if (result is { Canceled: false, Data: true })
+    if(result is { Canceled: false, Data: true })
     {
       try
       {
@@ -485,13 +478,13 @@ public partial class Budget : ComponentBase
 
         var response = await BudgetMonthlyApi.ClearDraftBudgetsAsync();
 
-        if (response.Success)
+        if(response.Success)
         {
           Snackbar.Add("Draft budgets cleared successfully", Severity.Success);
           await LoadBudgetData(false);
         }
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         Snackbar.Add($"Error clearing drafts: {ex.Message}", Severity.Error);
       }
@@ -513,8 +506,7 @@ public partial class Budget : ComponentBase
   /// </remarks>
   private async Task ApplyDrafts()
   {
-    var parameters = new DialogParameters
-    {
+    var parameters = new DialogParameters {
       ["Message"] = "Are you sure you want to apply all draft budgets? This will update all budget values."
     };
 
@@ -522,7 +514,7 @@ public partial class Budget : ComponentBase
     var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Apply Budgets", parameters, options);
     var result = await dialog.Result;
 
-    if (result is { Canceled: false, Data: true })
+    if(result is { Canceled: false, Data: true })
     {
       try
       {
@@ -531,13 +523,13 @@ public partial class Budget : ComponentBase
 
         var response = await BudgetMonthlyApi.ApplyDraftValuesToBudgetAsync();
 
-        if (response.Success)
+        if(response.Success)
         {
           Snackbar.Add("Draft budgets applied successfully", Severity.Success);
           await LoadBudgetData(false);
         }
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         Snackbar.Add($"Error applying drafts: {ex.Message}", Severity.Error);
       }
@@ -564,7 +556,7 @@ public partial class Budget : ComponentBase
     {
       _processing = true;
       // Bounds check
-      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      if(monthIndex < 0 || monthIndex >= _displayMonths.Count)
       {
         Snackbar.Add("Invalid month index", Severity.Error);
         return;
@@ -577,10 +569,9 @@ public partial class Budget : ComponentBase
       var response = await BudgetMonthlyApi.CopyBudgetToNextMonthAsync(sourceAcctPeriod, copyFromDraft);
 
       // If there's data to overwrite, show confirmation
-      if (response is { Success: false, WouldOverwriteData: true })
+      if(response is { Success: false, WouldOverwriteData: true })
       {
-        var parameters = new DialogParameters
-        {
+        var parameters = new DialogParameters {
           ["Message"] =
             "This action will overwrite data in the next month. Press Continue if this is what you want to do, otherwise press cancel.",
           ["ConfirmButtonText"] = "Continue"
@@ -590,7 +581,7 @@ public partial class Budget : ComponentBase
         var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Overwrite", parameters, options);
         var dialogResult = await dialog.Result;
 
-        if (dialogResult == null || dialogResult.Canceled ||
+        if(dialogResult == null || dialogResult.Canceled ||
             dialogResult.Data is false)
         {
           return;
@@ -601,7 +592,7 @@ public partial class Budget : ComponentBase
           confirmOverwrite: true);
       }
 
-      if (!response.Success)
+      if(!response.Success)
       {
         Snackbar.Add($"Error: {response.Message}", Severity.Error);
         return;
@@ -610,7 +601,7 @@ public partial class Budget : ComponentBase
       Snackbar.Add(response.Message, Severity.Success);
       await LoadBudgetData(false);
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Snackbar.Add($"Error copying to next month: {ex.Message}", Severity.Error);
     }
@@ -629,7 +620,7 @@ public partial class Budget : ComponentBase
   {
     // Find the row in envelope rows (not summary rows)
     var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
-    if (row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
+    if(row != null && row.MonthlyData.TryGetValue(month, out MonthCellData? cellData))
     {
       var newLockState = !cellData.IsLocked;
 
@@ -638,10 +629,10 @@ public partial class Budget : ComponentBase
         var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
 
         // If locking and there's a draft value, clear it first
-        if (newLockState && cellData.DraftValue.HasValue)
+        if(newLockState && cellData.DraftValue.HasValue)
         {
           var clearDraftResponse = await BudgetMonthlyApi.UpdateBudgetDraftAsync(acctPeriod, envelopeId, null);
-          if (!clearDraftResponse.Success)
+          if(!clearDraftResponse.Success)
           {
             Snackbar.Add($"Error clearing draft: {clearDraftResponse.Message}", Severity.Error);
             return;
@@ -650,24 +641,24 @@ public partial class Budget : ComponentBase
 
         var response = await BudgetMonthlyApi.UpdateBudgetLockAsync(acctPeriod, envelopeId, newLockState);
 
-        if (response.Success)
+        if(response.Success)
         {
           // Update local state
           cellData.IsLocked = newLockState;
 
           // If we just locked, also clear the draft value locally
-          if (newLockState)
+          if(newLockState)
           {
             cellData.DraftValue = null;
             cellData.DraftDisplayValue = string.Empty;
           }
 
           // Also update the underlying data
-          if (_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
+          if(_budgetData!.TryGetValue(envelopeId, out Dictionary<DateTime, BudgetMonthData>? value) &&
               value.TryGetValue(month, out BudgetMonthData? data))
           {
             data.IsBudgetLocked = newLockState;
-            if (newLockState)
+            if(newLockState)
             {
               data.DraftValue = null;
             }
@@ -680,7 +671,7 @@ public partial class Budget : ComponentBase
           Snackbar.Add($"Error updating lock: {response.Message}", Severity.Error);
         }
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         Snackbar.Add($"Error updating lock: {ex.Message}", Severity.Error);
       }
@@ -726,7 +717,7 @@ public partial class Budget : ComponentBase
     try
     {
       // Bounds check
-      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      if(monthIndex < 0 || monthIndex >= _displayMonths.Count)
       {
         Snackbar.Add("Invalid month index", Severity.Error);
         return;
@@ -737,8 +728,7 @@ public partial class Budget : ComponentBase
 
       var itemType = clearBudget ? "budgets" : "drafts";
       var itemTypeCapitalized = clearBudget ? "Budgets" : "Drafts";
-      var parameters = new DialogParameters
-      {
+      var parameters = new DialogParameters {
         ["Message"] =
           $"Are you sure you want to clear all {itemType} for {month:MMMM yyyy}? This action cannot be undone."
       };
@@ -748,15 +738,15 @@ public partial class Budget : ComponentBase
         await DialogService.ShowAsync<ConfirmationDialog>($"Confirm Clear {itemTypeCapitalized}", parameters, options);
       var result = await dialog.Result;
 
-      if (result is { Canceled: false, Data: true })
+      if(result is { Canceled: false, Data: true })
       {
         _processing = true;
         StateHasChanged();
 
-        if (clearBudget)
+        if(clearBudget)
         {
           var response = await BudgetMonthlyApi.ClearMonthBudgetsAsync(acctPeriod);
-          if (response.Success)
+          if(response.Success)
           {
             Snackbar.Add(response.Message, Severity.Success);
             await LoadBudgetData();
@@ -769,7 +759,7 @@ public partial class Budget : ComponentBase
         else
         {
           var response = await BudgetMonthlyApi.ClearMonthDraftsAsync(acctPeriod);
-          if (response.Success)
+          if(response.Success)
           {
             Snackbar.Add(response.Message, Severity.Success);
             await LoadBudgetData();
@@ -784,7 +774,7 @@ public partial class Budget : ComponentBase
         StateHasChanged();
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       var itemType = clearBudget ? "budgets" : "drafts";
       Snackbar.Add($"Error clearing {itemType}: {ex.Message}", Severity.Error);
@@ -798,7 +788,7 @@ public partial class Budget : ComponentBase
     try
     {
       // Bounds check
-      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      if(monthIndex < 0 || monthIndex >= _displayMonths.Count)
       {
         Snackbar.Add("Invalid month index", Severity.Error);
         return;
@@ -807,8 +797,7 @@ public partial class Budget : ComponentBase
       var month = _displayMonths[monthIndex];
       var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
 
-      var parameters = new DialogParameters
-      {
+      var parameters = new DialogParameters {
         ["Message"] =
           $"Are you sure you want to clear all budgets and drafts for {month:MMMM yyyy}? This action cannot be undone."
       };
@@ -817,14 +806,14 @@ public partial class Budget : ComponentBase
       var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Both", parameters, options);
       var result = await dialog.Result;
 
-      if (result is { Canceled: false, Data: true })
+      if(result is { Canceled: false, Data: true })
       {
         _processing = true;
         StateHasChanged();
 
         var response = await BudgetMonthlyApi.ClearMonthBothAsync(acctPeriod);
 
-        if (response.Success)
+        if(response.Success)
         {
           Snackbar.Add(response.Message, Severity.Success);
           await LoadBudgetData();
@@ -838,7 +827,7 @@ public partial class Budget : ComponentBase
         StateHasChanged();
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Snackbar.Add($"Error clearing budgets and drafts: {ex.Message}", Severity.Error);
       _processing = false;
@@ -851,7 +840,7 @@ public partial class Budget : ComponentBase
     try
     {
       // Bounds check
-      if (monthIndex < 0 || monthIndex >= _displayMonths.Count)
+      if(monthIndex < 0 || monthIndex >= _displayMonths.Count)
       {
         Snackbar.Add("Invalid month index", Severity.Error);
         return;
@@ -860,8 +849,7 @@ public partial class Budget : ComponentBase
       var month = _displayMonths[monthIndex];
       var acctPeriod = AcctPeriodHelper.DateToAcctPeriod(month);
 
-      var parameters = new DialogParameters
-      {
+      var parameters = new DialogParameters {
         ["Message"] =
           $"Are you sure you want to copy all draft values to budgets for {month:MMMM yyyy}? This will update budget values."
       };
@@ -871,14 +859,14 @@ public partial class Budget : ComponentBase
         await DialogService.ShowAsync<ConfirmationDialog>("Confirm Copy Drafts To Budgets", parameters, options);
       var result = await dialog.Result;
 
-      if (result is { Canceled: false, Data: true })
+      if(result is { Canceled: false, Data: true })
       {
         _processing = true;
         StateHasChanged();
 
         var response = await BudgetMonthlyApi.ApplyMonthDraftsAsync(acctPeriod);
 
-        if (response.Success)
+        if(response.Success)
         {
           Snackbar.Add(response.Message, Severity.Success);
           await LoadBudgetData();
@@ -892,7 +880,7 @@ public partial class Budget : ComponentBase
         StateHasChanged();
       }
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       Snackbar.Add($"Error applying drafts to budgets: {ex.Message}", Severity.Error);
       _processing = false;

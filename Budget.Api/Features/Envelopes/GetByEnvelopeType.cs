@@ -8,7 +8,7 @@ public static class GetByEnvelopeType
   {
     public async Task<EnvelopeDto?> Handle(Query request, CancellationToken cancellationToken)
     {
-        return await GetEnvelopeByType.Get(db, request.EnvType, cancellationToken);
+      return await GetEnvelopeByType.Get(db, request.EnvType, cancellationToken);
     }
   }
 
@@ -21,7 +21,7 @@ public static class GetByEnvelopeType
         {
           var envelope = await sender.Send(new Query(envelopeType));
 
-          if (envelope == null)
+          if(envelope == null)
             return Results.NotFound();
 
           return Results.Ok(envelope);

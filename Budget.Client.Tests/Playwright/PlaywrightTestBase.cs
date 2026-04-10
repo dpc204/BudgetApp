@@ -20,7 +20,7 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
     // TODO: For now, start Budget.Web or Budget.AppHost separately
     // and set the URL here. WebApplicationFactory integration can be completed later.
     BaseUrl = Environment.GetEnvironmentVariable("PLAYWRIGHT_TEST_URL") ?? "https://localhost:7141";
-    
+
     // Uncomment when WebApplicationFactory is fully configured:
     // Factory = new TestWebApplicationFactory();
     // var client = Factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -31,15 +31,13 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
     PlaywrightInstance = await Microsoft.Playwright.Playwright.CreateAsync();
 
     // Launch browser in headless mode
-    Browser = await PlaywrightInstance.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-    {
+    Browser = await PlaywrightInstance.Chromium.LaunchAsync(new BrowserTypeLaunchOptions {
       Headless = false,
       SlowMo = 200 // Set to > 0 for debugging (milliseconds delay between actions)
     });
 
     // Create a new browser context
-    Context = await Browser.NewContextAsync(new BrowserNewContextOptions
-    {
+    Context = await Browser.NewContextAsync(new BrowserNewContextOptions {
       IgnoreHTTPSErrors = true,
       BaseURL = BaseUrl
     });
@@ -53,20 +51,20 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
   /// </summary>
   public virtual async ValueTask DisposeAsync()
   {
-    if (Page != null)
+    if(Page != null)
       await Page.CloseAsync();
 
-    if (Context != null)
+    if(Context != null)
       await Context.CloseAsync();
 
-    if (Browser != null)
+    if(Browser != null)
       await Browser.CloseAsync();
 
     PlaywrightInstance?.Dispose();
 
-    if (Factory != null)
+    if(Factory != null)
       await Factory.DisposeAsync();
-    
+
     GC.SuppressFinalize(this);
   }
 
@@ -86,8 +84,7 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
   /// <param name="name">Name of the screenshot file</param>
   protected async Task TakeScreenshotAsync(string name)
   {
-    await Page.ScreenshotAsync(new PageScreenshotOptions
-    {
+    await Page.ScreenshotAsync(new PageScreenshotOptions {
       Path = $"screenshots/{name}.png",
       FullPage = true
     });

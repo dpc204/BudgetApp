@@ -1,7 +1,4 @@
 using Budget.Client.Components.Dialogs;
-using Budget.Client.Services;
-using Budget.Shared.Utilities;
-using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace Budget.Client.Pages;
@@ -49,7 +46,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    if (firstRender)
+    if(firstRender)
     {
       // Initialize fund field auto-select on focus
       await JsRuntime.InvokeVoidAsync("initializeFundFieldAutoSelect");
@@ -78,7 +75,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
       _originalAvailableToFund = _availableToFund;
       _envelopeRows.Clear();
       _envelopeRows.AddRange(fundDataService.BuildDisplayRows(_fundData));
-      
+
       UpdateFundTotals();
     }
     finally
@@ -137,12 +134,12 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
   /// </remarks>
   private async Task AllocateFill()
   {
-    if (_fundData == null) return;
+    if(_fundData == null) return;
 
     var envelopesWithBudget = _fundData.Values.Where(e => e.Budget.HasValue).ToList();
     var calculations = allocationService.CalculateFundAmounts(envelopesWithBudget, _selectedFillType);
 
-    foreach (var (envelopeId, amount) in calculations)
+    foreach(var (envelopeId, amount) in calculations)
     {
       await UpdateFundAmountAsync(envelopeId, amount);
     }
@@ -153,10 +150,10 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
 
   private async Task AllocateOneEnvelope(int envelopeId, FillAmounts fillType)
   {
-    if (_fundData == null || !_fundData.TryGetValue(envelopeId, out var envelope))
+    if(_fundData == null || !_fundData.TryGetValue(envelopeId, out var envelope))
       return;
 
-    if (!envelope.Budget.HasValue)
+    if(!envelope.Budget.HasValue)
       return;
 
     var amount = allocationService.CalculateFundAmount(envelope.Budget, envelope.CurrentBalance, fillType);
@@ -170,25 +167,25 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
   /// <param name="fundAmount">New fund amount to assign, or null to clear the pending amount.</param>
   private async Task UpdateFundAmountAsync(int envelopeId, decimal? fundAmount)
   {
-    if (_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
+    if(_fundData != null && _fundData.TryGetValue(envelopeId, out FundEnvelopeData? envelope))
     {
       try
       {
         _availableToFund += envelope.FundAmount ?? 0; // Reclaim previous amount
         var response = await api.UpdateFundAmountAsync(envelopeId, fundAmount);
 
-        if (response.Success)
+        if(response.Success)
         {
           // Update local data
           envelope.FundAmount = fundAmount;
-          if (fundAmount != null)
+          if(fundAmount != null)
           {
             _availableToFund -= fundAmount.Value;
           }
 
           // Update the display row data without rebuilding entire table (prevents focus stealing)
           var row = _envelopeRows.FirstOrDefault(r => r.EnvelopeId == envelopeId);
-          if (row != null)
+          if(row != null)
           {
             row.FundAmount = fundAmount;
             row.UpdateCounter++; // Force MudNumericField recreation for proper formatting
@@ -202,7 +199,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
           await InvokeAsync(() => { Snackbar.Add(response.Message ?? "Validation error", Severity.Warning); });
         }
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         Snackbar.Add($"Error updating fund amount: {ex.Message}", Severity.Error);
       }
@@ -217,7 +214,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
 
   private void UpdateFundTotals()
   {
-    foreach (var env in _envelopeRows)
+    foreach(var env in _envelopeRows)
     {
       _totalToFund += env.FundAmount ?? 0;
       _availableToFund -= env.FundAmount ?? 0;
@@ -249,8 +246,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
   /// </remarks>
   private async Task ClearFundAmounts()
   {
-    var parameters = new DialogParameters
-    {
+    var parameters = new DialogParameters {
       ["Message"] = "Are you sure you want to clear all fund amounts? This action will reset all fund values to zero."
     };
 
@@ -258,7 +254,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
     var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Clear Fund Amounts", parameters, options);
     var result = await dialog.Result;
 
-    if (result is { Canceled: false, Data: true })
+    if(result is { Canceled: false, Data: true })
     {
       try
       {
@@ -267,9 +263,9 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
 
         // Calculate total to return to available funds
         decimal totalToReturn = 0m;
-        if (_fundData != null)
+        if(_fundData != null)
         {
-          foreach (var envelope in _fundData.Values)
+          foreach(var envelope in _fundData.Values)
           {
             totalToReturn += envelope.FundAmount ?? 0m;
             envelope.FundAmount = 0m;
@@ -280,7 +276,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
         }
 
         // Update display rows
-        foreach (var row in _envelopeRows)
+        foreach(var row in _envelopeRows)
         {
           row.FundAmount = 0m;
           row.UpdateCounter++;
@@ -291,7 +287,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
         // Call API to persist changes
         var response = await api.ClearAllFundAmountsAsync();
 
-        if (response.Success)
+        if(response.Success)
         {
           Snackbar.Add($"Cleared {response.RecordsUpdated} fund amounts successfully", Severity.Success);
         }
@@ -302,7 +298,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
           await LoadFundDataAsync();
         }
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         Snackbar.Add($"Error clearing fund amounts: {ex.Message}", Severity.Error);
         // Reload page to restore prior values
@@ -320,7 +316,7 @@ public partial class Fund(IFundDataService fundDataService, IFundAllocationServi
   private async Task FundEnvelopes(MouseEventArgs arg)
   {
     var response = await fundDataService.FundEnvelopesAsync(CancellationToken.None);
-    if (response.Success)
+    if(response.Success)
     {
       Snackbar.Add($"{response.FundedEnvelopeCount} Envelopes funded successfully", Severity.Success);
     }

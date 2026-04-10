@@ -1,5 +1,3 @@
-using Budget.Shared.Services;
-
 namespace Budget.Client.Services;
 
 /// <summary>
@@ -15,7 +13,7 @@ public sealed class ApiUserAndOptionsDataProvider(IUserOptionsApiClient apiClien
     // Add logging for potential issues
     logger.LogDebug("UsersAndOptions:ApiDataProvider:Attempting to load user by id: {UserId}", id);
     var rslt = await apiClient.GetUserByIdAsync(id, cancellationToken);
-    if (rslt is null)
+    if(rslt is null)
     {
       logger.LogDebug("UsersAndOptions:ApiDataProvider:User with id {UserId} not found.", id);
       return null;
@@ -28,10 +26,11 @@ public sealed class ApiUserAndOptionsDataProvider(IUserOptionsApiClient apiClien
   }
 
   public async Task<UserOptions?> LoadUserOptionsAsync(int userId, CancellationToken cancellationToken = default)
-  {logger.LogDebug("UsersAndOptions:ApiDataProvider:Loading options for User ID: {UserId}", userId);
-    var rslt =await apiClient.GetUserOptionsAsync(userId, cancellationToken);
+  {
+    logger.LogDebug("UsersAndOptions:ApiDataProvider:Loading options for User ID: {UserId}", userId);
+    var rslt = await apiClient.GetUserOptionsAsync(userId, cancellationToken);
     logger.LogDebug("UsersAndOptions:ApiDataProvider:Options for User ID: {UserId} loaded successfully.", userId);
-  return rslt;
+    return rslt;
   }
 
   public async Task<bool> SaveUserOptionsAsync(int userId, UserOptions options,

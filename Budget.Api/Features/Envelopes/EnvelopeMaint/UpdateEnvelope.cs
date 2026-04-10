@@ -12,7 +12,7 @@ public static class UpdateEnvelope
       try
       {
         var entity = await db.Envelopes.FirstOrDefaultAsync(e => e.Id == request.Envelope.Id, cancellationToken);
-        if (entity is null) return null;
+        if(entity is null) return null;
 
 
         request.Envelope.Adapt(entity);
@@ -21,7 +21,7 @@ public static class UpdateEnvelope
 
         return new Response(entity.Adapt<EnvelopeUpdateDto>());
       }
-      catch (Exception e)
+      catch(Exception e)
       {
         Console.WriteLine(e);
         throw;
@@ -35,7 +35,7 @@ public static class UpdateEnvelope
     {
       app.MapPut("/envelopes/maint/{id}", async (int id, [FromBody] EnvelopeUpdateDto body, ISender sender) =>
       {
-        if (id != body.Id) return Results.BadRequest("Route id and payload id differ.");
+        if(id != body.Id) return Results.BadRequest("Route id and payload id differ.");
         var result = await sender.Send(new Command(body));
         return result is null ? Results.NotFound() : Results.Ok(result);
       }).RequireAuthorization();

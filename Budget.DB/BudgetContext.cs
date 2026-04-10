@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Budget.DB
 {
@@ -27,7 +26,7 @@ namespace Budget.DB
     }
 
 
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
 
@@ -49,7 +48,7 @@ namespace Budget.DB
 
       // Apply global query filters for multi-tenancy by FamilyId
       // Only filter when ICurrentFamilyService is available (not in migrations or seeding)
-      if (_currentFamilyService != null)
+      if(_currentFamilyService != null)
       {
         // CRITICAL: Use lambda expression so FamilyId is evaluated at query execution time, not at model creation time
         // This ensures the filter uses the current HttpContext's FamilyId for each query
@@ -72,11 +71,11 @@ namespace Budget.DB
 
 #if DEBUG
       var envelopeType = modelBuilder.Model.FindEntityType(typeof(Envelope));
-      if (envelopeType != null)
+      if(envelopeType != null)
       {
         var seeds = envelopeType.GetSeedData();
-            Console.WriteLine($"DEBUG Envelope seed count = {seeds.Count()}");
-        foreach (var row in seeds)
+        Console.WriteLine($"DEBUG Envelope seed count = {seeds.Count()}");
+        foreach(var row in seeds)
         {
           Console.WriteLine("DEBUG Seed -> " + string.Join(", ", row.Select(kv => kv.Key + "=" + kv.Value)));
         }

@@ -14,14 +14,13 @@ public static class ConfigureMiddleware
   /// </summary>
   public static void ConfigureStaticFiles(WebApplication app)
   {
-    if (app.Environment.IsDevelopment())
+    if(app.Environment.IsDevelopment())
     {
       // Disable CSS Hot Reload to avoid Edge CSS rule limit issues
-      app.UseStaticFiles(new StaticFileOptions
-      {
+      app.UseStaticFiles(new StaticFileOptions {
         OnPrepareResponse = ctx =>
         {
-          if (ctx.File.Name.EndsWith(".css"))
+          if(ctx.File.Name.EndsWith(".css"))
           {
             ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
           }
@@ -39,7 +38,7 @@ public static class ConfigureMiddleware
   /// </summary>
   public static void ConfigureExceptionHandling(WebApplication app)
   {
-    if (app.Environment.IsDevelopment())
+    if(app.Environment.IsDevelopment())
     {
       app.UseDeveloperExceptionPage();
       app.UseMigrationsEndPoint();
@@ -59,23 +58,23 @@ public static class ConfigureMiddleware
   {
     // Apply request localization middleware for culture-specific formatting
     app.UseRequestLocalization();
-    
+
     app.UseStatusCodePagesWithReExecute("/not-found");
     app.UseHttpsRedirection();
     app.UseAuthentication();
-    
+
     // Only use TokenCacheValidationMiddleware when NOT in test mode
     // In test mode, we don't have ITokenAcquisition available
-    var useTestAuth = app.Configuration.GetValue<bool>("UseTestAuthentication") 
+    var useTestAuth = app.Configuration.GetValue<bool>("UseTestAuthentication")
                       || Environment.GetEnvironmentVariable("USE_TEST_AUTH") == "true";
-    
-    if (!useTestAuth)
+
+    if(!useTestAuth)
     {
       // Validate token cache after authentication but before authorization
       // This prevents 401 errors when app restarts but browser cookie remains valid
       app.UseMiddleware<TokenCacheValidationMiddleware>();
     }
-    
+
     app.UseAuthorization();
     app.UseAntiforgery();
   }
@@ -97,7 +96,7 @@ public static class ConfigureMiddleware
     app.MapAdditionalIdentityEndpoints();
 
     // Health endpoints (development only for security)
-    if (app.Environment.IsDevelopment())
+    if(app.Environment.IsDevelopment())
     {
       app.MapHealthChecks("/health");
       app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });

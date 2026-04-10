@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Validation;
-
-namespace Budget.Shared.Services;
+﻿namespace Budget.Shared.Services;
 
 public class UserAndOptions : IUserAndOptions
 {

@@ -33,7 +33,7 @@ public static class DownloadBackup
         logger.LogInformation("Starting DacFx export of {Database} to {File}", databaseName, tempPath);
         await Task.Run(() => dac.ExportBacpac(tempPath, databaseName), cancellationToken);
 
-        if (!File.Exists(tempPath))
+        if(!File.Exists(tempPath))
         {
           logger.LogError("DacFx reported success but file not found: {File}", tempPath);
           return Results.Problem("Export failed: output file missing.", statusCode: 500);
@@ -41,9 +41,9 @@ public static class DownloadBackup
 
         logger.LogInformation("Export complete. Streaming {FileName} ({Size} bytes)", fileName,
           new FileInfo(tempPath).Length);
-        
+
         byte[] fileBytes;
-        using (var stream = File.OpenRead(tempPath))
+        using(var stream = File.OpenRead(tempPath))
         {
           fileBytes = new byte[stream.Length];
           await stream.ReadExactlyAsync(fileBytes, 0, (int)stream.Length, cancellationToken);
@@ -51,7 +51,7 @@ public static class DownloadBackup
 
         return Results.File(fileBytes, "application/octet-stream", fileName);
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         logger.LogError(ex, "Error running DacFx export");
         return Results.Problem(ex.ToString(), statusCode: 500);
@@ -64,7 +64,7 @@ public static class DownloadBackup
           try
           {
             await Task.Delay(TimeSpan.FromMinutes(5));
-            if (File.Exists(tempPath)) File.Delete(tempPath);
+            if(File.Exists(tempPath)) File.Delete(tempPath);
           }
           catch
           {
@@ -87,7 +87,7 @@ public static class DownloadBackup
         var result = await sender.Send(new Query(name));
         return result;
       })
-      
+
       .WithName("DownloadBackup")
       .WithTags("Maintenance")
       .RequireAuthorization("Admin");

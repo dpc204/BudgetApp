@@ -25,12 +25,12 @@ public static class GetUnassigned
       if(unassignedEnvelope is null)
         return Result.FailIf(unassignedEnvelope == null, "System Error: UnassignedEnvelope not defined");
 
-      
+
       var result = await (from td in db.TransactionDetails
-          join t in db.Transactions on td.TransactionId equals t.Id
-          join e in db.Envelopes on td.EnvelopeId equals e.Id
+                          join t in db.Transactions on td.TransactionId equals t.Id
+                          join e in db.Envelopes on td.EnvelopeId equals e.Id
                           where td.EnvelopeId == unassignedEnvelope.Id
-          select new Response(t.Id, td.LineId, e.Id, e.Name, t.Vendor,td.Notes, td.Amount, t.Date, t.PostingStatus))
+                          select new Response(t.Id, td.LineId, e.Id, e.Name, t.Vendor, td.Notes, td.Amount, t.Date, t.PostingStatus))
         .ToListAsync(cancellationToken);
 
       return Result.Ok<IEnumerable<Response>>(result);
@@ -44,8 +44,8 @@ public static class GetUnassigned
       app.MapGet("transactions/unassigned", async ([FromServices] ISender sender) =>
       {
         var result = await sender.Send(new Query());
-        return result.IsSuccess 
-          ? Results.Ok(result.Value) 
+        return result.IsSuccess
+          ? Results.Ok(result.Value)
           : Results.BadRequest(result.Errors);
       }).RequireAuthorization();
     }

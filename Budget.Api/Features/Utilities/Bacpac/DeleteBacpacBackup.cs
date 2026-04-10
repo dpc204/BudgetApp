@@ -38,7 +38,7 @@ public static class DeleteBacpacBackup
             databaseName, request.RowKey, cancellationToken: cancellationToken);
           entity = response.Value;
         }
-        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        catch(Azure.RequestFailedException ex) when(ex.Status == 404)
         {
           logger.LogWarning("BACPAC history entry not found: {RowKey}", request.RowKey);
           return false;
@@ -46,7 +46,7 @@ public static class DeleteBacpacBackup
 
         // Delete the blob
         var blobName = entity.GetString("BlobName") ?? string.Empty;
-        if (!string.IsNullOrWhiteSpace(blobName))
+        if(!string.IsNullOrWhiteSpace(blobName))
         {
           var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
           var blobClient = containerClient.GetBlobClient(blobName);
@@ -60,7 +60,7 @@ public static class DeleteBacpacBackup
 
         return true;
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
         logger.LogError(ex, "Error deleting BACPAC backup {RowKey}", request.RowKey);
         throw;

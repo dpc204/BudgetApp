@@ -19,7 +19,7 @@ public class BacpacTimerFunction(
   {
     logger.LogInformation("BacpacDailyBackup timer trigger fired at {Time} UTC", DateTime.UtcNow);
 
-    if (timerInfo.IsPastDue)
+    if(timerInfo.IsPastDue)
     {
       logger.LogWarning("Timer is running late. Previous schedule was overdue.");
     }
@@ -29,7 +29,7 @@ public class BacpacTimerFunction(
       await backupService.RunBackupAsync();
       logger.LogInformation("BacpacDailyBackup completed successfully.");
     }
-    catch (Exception ex)
+    catch(Exception ex)
     {
       logger.LogError(ex, "BacpacDailyBackup failed with error: {Message}", ex.Message);
       throw;

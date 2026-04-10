@@ -1,7 +1,3 @@
-using Carter;
-using Fantum.Mediator;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Budget.Api.Features.Transactions;
 
 /// <summary>
@@ -20,8 +16,7 @@ public static class ImportTransactionsToStaging
     {
       var familyId = currentFamilyService.GetCurrentFamilyId();
 
-      var entities = request.Transactions.Select(dto => new TransactionImport
-      {
+      var entities = request.Transactions.Select(dto => new TransactionImport {
         Date = dto.Date,
         PostingStatus = dto.PostingStatus,
         Vendor = dto.Vendor,
@@ -47,13 +42,13 @@ public static class ImportTransactionsToStaging
       await CheckForClearedPending(entities, cancellationToken);
 
       await db.SaveChangesAsync(cancellationToken);
-      
+
       return entities.Count;
     }
 
     private static string RemoveConsecutiveSpaces(string description)
     {
-      if (string.IsNullOrWhiteSpace(description))
+      if(string.IsNullOrWhiteSpace(description))
         return string.Empty;
 
       return string.Join(" ", description.Split(' ', StringSplitOptions.RemoveEmptyEntries));
@@ -61,18 +56,18 @@ public static class ImportTransactionsToStaging
 
     private static void SetVendor(List<TransactionImport> entities)
     {
-      foreach (var dto in entities)
+      foreach(var dto in entities)
       {
-        if (!string.IsNullOrWhiteSpace(dto.Vendor))
+        if(!string.IsNullOrWhiteSpace(dto.Vendor))
           continue;
 
         // if dto.Description starts with "POS DEBIT " or "POS CREDIT", remove it from description and set PostingStatus to Pending.  Otherwise, leave description alone and set posting status to Posted
-        if (dto.Description.StartsWith("POS DEBIT ", StringComparison.OrdinalIgnoreCase))
+        if(dto.Description.StartsWith("POS DEBIT ", StringComparison.OrdinalIgnoreCase))
         {
           dto.Description = dto.Description[10..]; // Remove "POS DEBIT "
           dto.PostingStatus = PostingStatuses.Pending;
         }
-        else if (dto.Description.StartsWith("POS CREDIT ", StringComparison.OrdinalIgnoreCase))
+        else if(dto.Description.StartsWith("POS CREDIT ", StringComparison.OrdinalIgnoreCase))
         {
           dto.Description = dto.Description[11..]; // Remove "POS CREDIT "
           dto.PostingStatus = PostingStatuses.Pending;
@@ -83,11 +78,11 @@ public static class ImportTransactionsToStaging
         }
 
         var idx = dto.Description.IndexOf(' ');
-        if (idx < 6 && dto.Description.Length > 10)
+        if(idx < 6 && dto.Description.Length > 10)
           idx = dto.Description.IndexOf(' ', idx + 1);
 
 
-        if (idx == -1)
+        if(idx == -1)
         {
           dto.Vendor = dto.Description;
           dto.Description = string.Empty;
@@ -109,9 +104,9 @@ public static class ImportTransactionsToStaging
         .ToListAsync(cancellationToken);
 
       // Mark imports as duplicates if they match existing transactions+
-      foreach (var import in imports)
+      foreach(var import in imports)
       {
-          
+
         var isClearedPending = existingTransactions.Any(t =>
           t.PostingStatus == PostingStatuses.Pending &&
           Math.Abs((t.Date - import.Date).Days) < 8 &&
@@ -119,8 +114,8 @@ public static class ImportTransactionsToStaging
           t.TotalAmount == import.Amount);
         // how am I supposed to handle splitting the tips when they come after the initial transaction how are tips handled?
         // Do oa comparison of an export from Transactions with the Cvs file
-        
-        if (isClearedPending)
+
+        if(isClearedPending)
         {
           import.Duplicate = false;
           import.PostingStatus = PostingStatuses.ToBeCleared;
@@ -138,14 +133,14 @@ public static class ImportTransactionsToStaging
         .ToListAsync(cancellationToken);
 
       // Mark imports as duplicates if they match existing transactions
-      foreach (var import in imports)
+      foreach(var import in imports)
       {
         var isDuplicate = existingTransactions.Any(t =>
           t.Date.Date == import.Date.Date &&
           t.Vendor.Equals(import.Vendor, StringComparison.OrdinalIgnoreCase) &&
           t.TotalAmount == import.Amount);
 
-        if (isDuplicate)
+        if(isDuplicate)
         {
           import.Duplicate = true;
         }

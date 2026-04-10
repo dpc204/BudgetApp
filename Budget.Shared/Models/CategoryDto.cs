@@ -10,6 +10,6 @@ namespace Budget.Shared.Models
     public List<EnvelopeDto> Envelopes { get; set; } = [];
     public CatTypes CatType { get; set; }
 
-  
+
   }
 }
