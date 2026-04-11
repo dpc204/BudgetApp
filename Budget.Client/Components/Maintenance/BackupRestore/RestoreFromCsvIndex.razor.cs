@@ -1,3 +1,5 @@
+using Budget.Web.Services;
+
 namespace Budget.Client.Components.Maintenance.BackupRestore;
 
 public partial class RestoreFromCsvIndex : IDisposable
@@ -7,6 +9,7 @@ public partial class RestoreFromCsvIndex : IDisposable
   [Inject] private IDialogService DialogService { get; set; } = null!;
   [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
   [Inject] private ILogger<RestoreFromCsvIndex> Logger { get; set; } = null!;
+  [Inject] private DatabaseEnvironmentService BudgetEnvironment { get; set; } = null!;
 
   private List<BackupSetDto>? _backupSets;
   private List<BackupTableDto>? _backupTables;
@@ -38,9 +41,7 @@ public partial class RestoreFromCsvIndex : IDisposable
 
     try
     {
-      var systemInfo = await MaintApiClient.GetSystemInfoAsync();
-      _isDevelopment = systemInfo.IsDevelopment;
-      if(!_isDevelopment)
+      if(BudgetEnvironment.IsAzureDatabase)
         _targetDatabase = "azure";
     }
     catch(Exception ex)
