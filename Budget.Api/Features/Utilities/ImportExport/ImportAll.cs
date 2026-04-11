@@ -189,16 +189,15 @@ public static class ImportAll
 
       try
       {
-        // Disable all FK constraints
+        // Disable all FK constraints, logging each table
         progressService.AppendLog(restoreId, "Disabling foreign key constraints...");
-        await ExecuteNonQueryAsync(connection, transaction, @"
-          DECLARE @sql NVARCHAR(MAX) = N'';
-          SELECT @sql += 'ALTER TABLE budget.[' + t.TABLE_NAME + '] NOCHECK CONSTRAINT ALL;' + CHAR(13)
-          FROM INFORMATION_SCHEMA.TABLES t
-          WHERE t.TABLE_SCHEMA = 'budget'
-            AND t.TABLE_TYPE = 'BASE TABLE'
-            AND t.TABLE_NAME != '__EFMigrationsHistory';
-          EXEC sp_executesql @sql;", cancellationToken);
+        foreach(var tableName in existingTables)
+        {
+          progressService.AppendLog(restoreId, $"  Disabling constraints on {tableName}...");
+          await ExecuteNonQueryAsync(connection, transaction,
+            $"ALTER TABLE budget.[{tableName}] NOCHECK CONSTRAINT ALL", cancellationToken);
+        }
+        progressService.AppendLog(restoreId, "All foreign key constraints disabled.");
 
         // Delete existing records
         progressService.AppendLog(restoreId, "Deleting existing records...");
@@ -236,16 +235,15 @@ public static class ImportAll
           return;
         }
 
-        // Re-enable FK constraints with validation
+        // Re-enable FK constraints with validation, logging each table
         progressService.AppendLog(restoreId, "Re-enabling and validating foreign key constraints...");
-        await ExecuteNonQueryAsync(connection, transaction, @"
-          DECLARE @sql NVARCHAR(MAX) = N'';
-          SELECT @sql += 'ALTER TABLE budget.[' + t.TABLE_NAME + '] WITH CHECK CHECK CONSTRAINT ALL;' + CHAR(13)
-          FROM INFORMATION_SCHEMA.TABLES t
-          WHERE t.TABLE_SCHEMA = 'budget'
-            AND t.TABLE_TYPE = 'BASE TABLE'
-            AND t.TABLE_NAME != '__EFMigrationsHistory';
-          EXEC sp_executesql @sql;", cancellationToken);
+        foreach(var tableName in existingTables)
+        {
+          progressService.AppendLog(restoreId, $"  Re-enabling constraints on {tableName}...");
+          await ExecuteNonQueryAsync(connection, transaction,
+            $"ALTER TABLE budget.[{tableName}] WITH CHECK CHECK CONSTRAINT ALL", cancellationToken);
+        }
+        progressService.AppendLog(restoreId, "All foreign key constraints re-enabled and validated.");
 
         transaction.Commit();
 
