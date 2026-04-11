@@ -1,5 +1,6 @@
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
+using Budget.Api.Services;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -12,7 +13,11 @@ public static class ImportAll
 {
   public sealed record Command(string PartitionKey, string TargetDatabase) : IRequest<Response>;
 
-  public sealed record Response(bool Success, string Message, int TablesRestored, int TablesFailed, List<string> Errors);
+  /// <summary>
+  /// Returned immediately — the actual restore runs in the background.
+  /// Use the RestoreId to poll /utilities/restore-status/{restoreId}
+  /// </summary>
+  public sealed record Response(string RestoreId, string Message);
 
   /// <summary>
   /// Handles full database restore from an Azure Storage backup set
@@ -21,23 +26,57 @@ public static class ImportAll
     BlobServiceClient blobServiceClient,
     TableServiceClient tableServiceClient,
     IConfiguration configuration,
+    IRestoreProgressService progressService,
     ILogger<Handler> log) : IRequestHandler<Command, Response>
   {
     private const string ContainerName = "backups";
     private const string TableStorageName = "TableBackups";
 
-    public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
+    public Task<Response> Handle(Command request, CancellationToken cancellationToken)
     {
-      log.LogInformation("Starting ImportAll for PartitionKey: {PartitionKey}, TargetDatabase: {TargetDatabase}",
-        request.PartitionKey, request.TargetDatabase);
+      var restoreId = progressService.StartRestore();
+      progressService.AppendLog(restoreId, $"Restore started for backup set: {request.PartitionKey} → target: {request.TargetDatabase}");
 
-      // Get all table backup entries for this partition key from Azure Table Storage
-      var tableClient = tableServiceClient.GetTableClient(TableStorageName);
+      log.LogInformation("Starting ImportAll background task. RestoreId: {RestoreId}, PartitionKey: {PartitionKey}",
+        restoreId, request.PartitionKey);
+
+      // Start background task — use CancellationToken.None so it survives after the HTTP response returns
+      _ = Task.Run(async () =>
+      {
+        try
+        {
+          await ExecuteRestoreAsync(restoreId, request.PartitionKey, request.TargetDatabase, CancellationToken.None);
+        }
+        catch(Exception ex)
+        {
+          log.LogError(ex, "Unhandled error in restore background task. RestoreId: {RestoreId}", restoreId);
+          progressService.AppendLog(restoreId, $"ERROR: Unhandled error — {ex.Message}");
+          progressService.Fail(restoreId, ex.Message);
+        }
+      });
+
+      return Task.FromResult(new Response(restoreId, "Restore started successfully"));
+    }
+
+    private async Task ExecuteRestoreAsync(string restoreId, string partitionKey, string targetDatabase, CancellationToken cancellationToken)
+    {
+      // Step 1: Resolve target connection string
+      var connectionString = GetTargetConnectionString(targetDatabase);
+      if(string.IsNullOrEmpty(connectionString))
+      {
+        progressService.AppendLog(restoreId, $"ERROR: Could not resolve connection string for target database: {targetDatabase}");
+        progressService.Fail(restoreId, $"Invalid target database: {targetDatabase}");
+        return;
+      }
+
+      // Step 2: Read backup metadata from Azure Table Storage
+      progressService.AppendLog(restoreId, "Reading backup metadata from Azure Table Storage...");
       var tableEntries = new List<(string TableName, string BlobName)>();
 
       try
       {
-        var filter = $"PartitionKey eq '{request.PartitionKey}'";
+        var tableClient = tableServiceClient.GetTableClient(TableStorageName);
+        var filter = $"PartitionKey eq '{partitionKey}'";
         await foreach(var entity in tableClient.QueryAsync<TableEntity>(filter, cancellationToken: cancellationToken))
         {
           var tableName = entity.RowKey;
@@ -48,16 +87,24 @@ public static class ImportAll
       }
       catch(Exception ex)
       {
-        log.LogError(ex, "Failed to retrieve backup set entries from Azure Table Storage");
-        return new Response(false, $"Failed to retrieve backup set: {ex.Message}", 0, 0, [$"Failed to retrieve backup set: {ex.Message}"]);
+        log.LogError(ex, "Failed to read backup metadata. RestoreId: {RestoreId}", restoreId);
+        progressService.AppendLog(restoreId, $"ERROR: Failed to read backup metadata — {ex.Message}");
+        progressService.Fail(restoreId, ex.Message);
+        return;
       }
 
       if(tableEntries.Count == 0)
-        return new Response(false, "No tables found in the specified backup set", 0, 0, ["No tables found in backup set"]);
+      {
+        progressService.AppendLog(restoreId, "ERROR: No tables found in the specified backup set.");
+        progressService.Fail(restoreId, "No tables found in backup set");
+        return;
+      }
 
-      log.LogInformation("Found {Count} tables to restore", tableEntries.Count);
+      progressService.AppendLog(restoreId, $"Found {tableEntries.Count} tables in backup set.");
+      progressService.SetTotal(restoreId, tableEntries.Count);
 
-      // Download all CSV data from blob storage
+      // Step 3: Download all CSV data from blob storage
+      progressService.AppendLog(restoreId, "Downloading CSV data from Azure Blob Storage...");
       var tableData = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
       var blobContainerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
 
@@ -65,56 +112,85 @@ public static class ImportAll
       {
         try
         {
+          progressService.AppendLog(restoreId, $"Downloading {tableName}.csv...");
           var blobClient = blobContainerClient.GetBlobClient(blobName);
           var downloadResponse = await blobClient.DownloadContentAsync(cancellationToken);
           tableData[tableName] = downloadResponse.Value.Content.ToString();
-          log.LogInformation("Downloaded CSV for table: {TableName}", tableName);
         }
         catch(Exception ex)
         {
           log.LogError(ex, "Failed to download CSV for table: {TableName}", tableName);
-          return new Response(false, $"Failed to download backup for table {tableName}: {ex.Message}", 0, tableEntries.Count, [$"Failed to download {tableName}: {ex.Message}"]);
+          progressService.AppendLog(restoreId, $"ERROR: Failed to download {tableName}.csv — {ex.Message}");
+          progressService.Fail(restoreId, $"Failed to download {tableName}: {ex.Message}");
+          return;
         }
       }
 
-      // Resolve the target connection string
-      var connectionString = GetTargetConnectionString(request.TargetDatabase);
-      if(string.IsNullOrEmpty(connectionString))
-        return new Response(false, $"Could not determine connection string for target database: {request.TargetDatabase}", 0, 0, [$"Invalid target database: {request.TargetDatabase}"]);
+      progressService.AppendLog(restoreId, "All CSV files downloaded successfully.");
 
-      return await RestoreTablesAsync(tableData, connectionString, cancellationToken);
+      // Step 4: Execute the restore in a single SQL transaction
+      await RestoreTablesAsync(restoreId, tableData, connectionString, cancellationToken);
     }
 
     private string GetTargetConnectionString(string targetDatabase)
     {
-      var rslt = String.Empty;
-      if(targetDatabase.Equals("azure", StringComparison.OrdinalIgnoreCase))
-        rslt =configuration["BudgetConnection"] ?? string.Empty;
-      else
-      rslt = configuration["LocalBudgetConnection"] ?? string.Empty;
+      var rslt = targetDatabase.Equals("azure", StringComparison.OrdinalIgnoreCase)
+        ? configuration["BudgetConnection"] ?? string.Empty
+        : configuration["LocalBudgetConnection"] ?? string.Empty;
 
-      var builder = new SqlConnectionStringBuilder(rslt) {
-        MultipleActiveResultSets = true
-      };
+      if(string.IsNullOrEmpty(rslt)) return string.Empty;
+
+      var builder = new SqlConnectionStringBuilder(rslt) { MultipleActiveResultSets = true };
       return builder.ConnectionString;
-
     }
 
-    private async Task<Response> RestoreTablesAsync(Dictionary<string, string> tableData, string connectionString, CancellationToken cancellationToken)
+    private async Task RestoreTablesAsync(string restoreId, Dictionary<string, string> tableData, string connectionString, CancellationToken cancellationToken)
     {
-      var errors = new List<string>();
-      int tablesRestored = 0;
-      int tablesFailed = 0;
-
       using var connection = new SqlConnection(connectionString);
-      await connection.OpenAsync(cancellationToken);
+
+      try
+      {
+        await connection.OpenAsync(cancellationToken);
+        progressService.AppendLog(restoreId, "Connected to target database.");
+      }
+      catch(Exception ex)
+      {
+        log.LogError(ex, "Failed to connect to target database. RestoreId: {RestoreId}", restoreId);
+        progressService.AppendLog(restoreId, $"ERROR: Failed to connect to target database — {ex.Message}");
+        progressService.Fail(restoreId, ex.Message);
+        return;
+      }
+
+      // Determine which tables actually exist in the target database
+      var existingTables = await GetExistingTablesAsync(connection, cancellationToken);
+
+      // Filter tableData to only include tables that exist in the target
+      var tablesToRestore = tableData
+        .Where(kvp => existingTables.Contains(kvp.Key, StringComparer.OrdinalIgnoreCase))
+        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
+
+      foreach(var tableName in tableData.Keys.Where(t => !existingTables.Contains(t, StringComparer.OrdinalIgnoreCase)))
+      {
+        progressService.AppendLog(restoreId, $"SKIPPED: Table '{tableName}' does not exist in target database.");
+        progressService.IncrementFailed(restoreId);
+      }
+
+      if(tablesToRestore.Count == 0)
+      {
+        progressService.AppendLog(restoreId, "ERROR: No matching tables found in target database. Aborting restore.");
+        progressService.Fail(restoreId, "No matching tables found in target database");
+        return;
+      }
+
+      progressService.SetTotal(restoreId, tablesToRestore.Count);
+      progressService.AppendLog(restoreId, $"Restoring {tablesToRestore.Count} tables...");
 
       using var transaction = connection.BeginTransaction();
 
       try
       {
-        // Step 1: Disable all FK constraints on budget schema tables
-        log.LogInformation("Disabling foreign key constraints");
+        // Disable all FK constraints
+        progressService.AppendLog(restoreId, "Disabling foreign key constraints...");
         await ExecuteNonQueryAsync(connection, transaction, @"
           DECLARE @sql NVARCHAR(MAX) = N'';
           SELECT @sql += 'ALTER TABLE budget.[' + t.TABLE_NAME + '] NOCHECK CONSTRAINT ALL;' + CHAR(13)
@@ -124,39 +200,44 @@ public static class ImportAll
             AND t.TABLE_NAME != '__EFMigrationsHistory';
           EXEC sp_executesql @sql;", cancellationToken);
 
-        // Step 2: Delete all records from each table
-        log.LogInformation("Deleting existing records from {Count} tables", tableData.Count);
-        foreach(var tableName in tableData.Keys)
+        // Delete existing records
+        progressService.AppendLog(restoreId, "Deleting existing records...");
+        foreach(var tableName in tablesToRestore.Keys)
         {
+          progressService.AppendLog(restoreId, $"Deleting records from {tableName}...");
           await ExecuteNonQueryAsync(connection, transaction, $"DELETE FROM budget.[{tableName}]", cancellationToken);
-          log.LogInformation("Deleted records from: {TableName}", tableName);
         }
 
-        // Step 3: Import records from CSV into each table
-        foreach(var (tableName, csvContent) in tableData)
+        // Import records from each CSV
+        var anyFailed = false;
+        foreach(var (tableName, csvContent) in tablesToRestore)
         {
           try
           {
+            progressService.AppendLog(restoreId, $"Importing {tableName} table...");
             var rowsImported = await ImportTableFromCsvAsync(connection, transaction, tableName, csvContent, cancellationToken);
-            tablesRestored++;
-            log.LogInformation("Imported {RowCount} rows into table: {TableName}", rowsImported, tableName);
+            progressService.IncrementCompleted(restoreId);
+            progressService.AppendLog(restoreId, $"Imported {rowsImported} record(s) to {tableName} table.");
           }
           catch(Exception ex)
           {
             log.LogError(ex, "Failed to import table: {TableName}", tableName);
-            errors.Add($"Failed to import {tableName}: {ex.Message}");
-            tablesFailed++;
+            progressService.AppendLog(restoreId, $"ERROR: Failed to import {tableName} — {ex.Message}");
+            progressService.IncrementFailed(restoreId);
+            anyFailed = true;
           }
         }
 
-        if(tablesFailed > 0)
+        if(anyFailed)
         {
           transaction.Rollback();
-          return new Response(false, $"Restore failed: {tablesFailed} table(s) had errors. Transaction rolled back.", tablesRestored, tablesFailed, errors);
+          progressService.AppendLog(restoreId, "ERROR: One or more tables failed to import. Transaction rolled back.");
+          progressService.Fail(restoreId, "One or more tables failed to import. Transaction rolled back.");
+          return;
         }
 
-        // Step 4: Re-enable all FK constraints with validation
-        log.LogInformation("Re-enabling foreign key constraints");
+        // Re-enable FK constraints with validation
+        progressService.AppendLog(restoreId, "Re-enabling and validating foreign key constraints...");
         await ExecuteNonQueryAsync(connection, transaction, @"
           DECLARE @sql NVARCHAR(MAX) = N'';
           SELECT @sql += 'ALTER TABLE budget.[' + t.TABLE_NAME + '] WITH CHECK CHECK CONSTRAINT ALL;' + CHAR(13)
@@ -167,15 +248,36 @@ public static class ImportAll
           EXEC sp_executesql @sql;", cancellationToken);
 
         transaction.Commit();
-        log.LogInformation("ImportAll completed successfully. Tables restored: {Count}", tablesRestored);
-        return new Response(true, $"Successfully restored {tablesRestored} tables", tablesRestored, 0, []);
+
+        progressService.AppendLog(restoreId, $"Restore completed successfully. {tablesToRestore.Count} table(s) restored.");
+        progressService.Complete(restoreId);
+        log.LogInformation("ImportAll completed. RestoreId: {RestoreId}, Tables: {Count}", restoreId, tablesToRestore.Count);
       }
       catch(Exception ex)
       {
-        log.LogError(ex, "Fatal error during restore, rolling back transaction");
+        log.LogError(ex, "Fatal error during restore. RestoreId: {RestoreId}", restoreId);
         try { transaction.Rollback(); } catch(Exception rbEx) { log.LogError(rbEx, "Error during rollback"); }
-        return new Response(false, $"Restore failed: {ex.Message}", tablesRestored, tablesFailed + 1, [.. errors, $"Fatal error: {ex.Message}"]);
+        progressService.AppendLog(restoreId, $"FATAL ERROR: {ex.Message}. Transaction rolled back.");
+        progressService.Fail(restoreId, ex.Message);
       }
+    }
+
+    private static async Task<HashSet<string>> GetExistingTablesAsync(SqlConnection connection, CancellationToken cancellationToken)
+    {
+      var tables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+      using var cmd = connection.CreateCommand();
+      cmd.CommandText = @"
+        SELECT TABLE_NAME
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'budget'
+          AND TABLE_TYPE = 'BASE TABLE'
+          AND TABLE_NAME != '__EFMigrationsHistory'";
+
+      using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+      while(await reader.ReadAsync(cancellationToken))
+        tables.Add(reader.GetString(0));
+
+      return tables;
     }
 
     private static async Task ExecuteNonQueryAsync(SqlConnection connection, SqlTransaction transaction, string sql, CancellationToken cancellationToken)
@@ -213,9 +315,7 @@ public static class ImportAll
       // Build a DataTable from the CSV data.
       // Note: The ExportAll format does not distinguish between NULL and empty string —
       // both are exported as an empty CSV field.  We treat empty fields as NULL here,
-      // which matches the original NULL values.  Any columns that legitimately stored
-      // empty strings will be restored as NULL; this is an inherent limitation of the
-      // current CSV backup format.
+      // which matches the original NULL values.
       var dataTable = new DataTable();
       foreach(var col in columns)
         dataTable.Columns.Add(col, typeof(string));
@@ -319,7 +419,7 @@ public static class ImportAll
         CancellationToken cancellationToken) =>
       {
         var result = await sender.Send(new Command(request.PartitionKey, request.TargetDatabase), cancellationToken);
-        return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        return Results.Ok(result);
       }).RequireAuthorization("Admin");
     }
   }

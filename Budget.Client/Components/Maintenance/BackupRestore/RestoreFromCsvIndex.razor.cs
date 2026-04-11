@@ -16,6 +16,10 @@ public partial class RestoreFromCsvIndex : IDisposable
   private bool IsAdmin { get; set; }
   private bool RestoreBusy { get; set; }
 
+  private string? _currentRestoreId;
+  private readonly List<string> _logMessages = [];
+  private System.Timers.Timer? _pollTimer;
+
   private static readonly List<(string Value, string Label)> DatabaseOptions =
   [
     ("local", "Local DB"),
@@ -95,33 +99,105 @@ public partial class RestoreFromCsvIndex : IDisposable
     if(result is { Canceled: true })
       return;
 
+    // Reset log and start restore
+    _logMessages.Clear();
     RestoreBusy = true;
     StateHasChanged();
 
     try
     {
-      Logger.LogInformation("Restoring backup set: {PartitionKey} to {TargetDatabase}", backupSet.PartitionKey, _targetDatabase);
+      Logger.LogInformation("Starting restore for backup set: {PartitionKey} to {TargetDatabase}", backupSet.PartitionKey, _targetDatabase);
       var response = await MaintApiClient.ImportAllAsync(backupSet.PartitionKey, _targetDatabase);
+      _currentRestoreId = response.RestoreId;
+      AddLogMessage(response.Message);
 
-      if(response.Success)
-      {
-        Snackbar.Add($"Successfully restored {response.TablesRestored} tables to {targetLabel}", Severity.Success);
-      }
-      else
-      {
-        var errorDetails = response.Errors.Count > 0 ? string.Join("; ", response.Errors) : response.Message;
-        Snackbar.Add($"Restore failed: {errorDetails}", Severity.Error);
-      }
+      Snackbar.Add("Restore started. Progress shown below.", Severity.Info);
+      StartStatusPolling();
     }
     catch(Exception ex)
     {
-      Logger.LogError(ex, "Error during restore");
-      Snackbar.Add($"Error during restore: {ex.Message}", Severity.Error);
-    }
-    finally
-    {
+      Logger.LogError(ex, "Error starting restore");
+      AddLogMessage($"ERROR: {ex.Message}");
+      Snackbar.Add($"Error starting restore: {ex.Message}", Severity.Error);
       RestoreBusy = false;
       StateHasChanged();
+    }
+  }
+
+  private void AddLogMessage(string message)
+  {
+    _logMessages.Add(message);
+  }
+
+  private void StartStatusPolling()
+  {
+    _pollTimer = new System.Timers.Timer(2000); // Poll every 2 seconds
+    _pollTimer.Elapsed += async (_, _) =>
+    {
+      try
+      {
+        await PollRestoreStatusAsync();
+      }
+      catch(Exception ex)
+      {
+        Logger.LogError(ex, "Error polling restore status");
+        StopStatusPolling();
+      }
+    };
+    _pollTimer.AutoReset = true;
+    _pollTimer.Start();
+  }
+
+  private async Task PollRestoreStatusAsync()
+  {
+    if(string.IsNullOrEmpty(_currentRestoreId))
+      return;
+
+    try
+    {
+      var status = await MaintApiClient.GetRestoreStatusAsync(_currentRestoreId);
+      if(status == null)
+      {
+        AddLogMessage("Restore status not found.");
+        StopStatusPolling();
+        return;
+      }
+
+      // Append any new log messages that arrived since last poll
+      var currentCount = _logMessages.Count;
+      var allMessages = status.LogMessages;
+      for(int i = currentCount; i < allMessages.Count; i++)
+        _logMessages.Add(allMessages[i]);
+
+      if(status.IsComplete)
+      {
+        StopStatusPolling();
+        RestoreBusy = false;
+
+        if(!string.IsNullOrEmpty(status.ErrorMessage))
+          Snackbar.Add($"Restore failed: {status.ErrorMessage}", Severity.Error);
+        else
+          Snackbar.Add($"Restore completed: {status.CompletedTables} table(s) restored.", Severity.Success);
+      }
+
+      await InvokeAsync(StateHasChanged);
+    }
+    catch(Exception ex)
+    {
+      Logger.LogError(ex, "Error checking restore status");
+      StopStatusPolling();
+      RestoreBusy = false;
+      await InvokeAsync(StateHasChanged);
+    }
+  }
+
+  private void StopStatusPolling()
+  {
+    if(_pollTimer != null)
+    {
+      _pollTimer.Stop();
+      _pollTimer.Dispose();
+      _pollTimer = null;
     }
   }
 
@@ -140,6 +216,7 @@ public partial class RestoreFromCsvIndex : IDisposable
 
   void IDisposable.Dispose()
   {
+    StopStatusPolling();
     GC.SuppressFinalize(this);
   }
 }

@@ -18,6 +18,7 @@ public interface IUtilitiesApiClient
   Task<bool> DeleteBackupSetAsync(string partitionKey, CancellationToken cancellationToken = default);
   Task<FileDownloadDto> DownloadBackupCsvAsync(string blobName, CancellationToken cancellationToken = default);
   Task<ImportAllResponse> ImportAllAsync(string partitionKey, string targetDatabase, CancellationToken cancellationToken = default);
+  Task<RestoreStatusDto?> GetRestoreStatusAsync(string restoreId, CancellationToken cancellationToken = default);
 
   // BACPAC history operations
   Task<IEnumerable<BacpacBackupDto>> GetBacpacHistoryAsync(CancellationToken cancellationToken = default);

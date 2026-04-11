@@ -4,7 +4,7 @@
 {
     <MudStack Row="false" Spacing="2" Class="mb-4">
         <MudText Typo="Typo.subtitle2">Target Database</MudText>
-        <MudSelect T="string" @bind-Value="_targetDatabase" Label="Restore To" Variant="Variant.Outlined" Style="max-width: 220px;">
+        <MudSelect T="string" @bind-Value="_targetDatabase" Label="Restore To" Variant="Variant.Outlined" Style="max-width: 220px;" Disabled="@RestoreBusy">
             @foreach (var option in DatabaseOptions)
             {
                 <MudSelectItem Value="@option.Value">@option.Label</MudSelectItem>
@@ -90,10 +90,43 @@ else
     }
 }
 
-@if (RestoreBusy)
+@if (_logMessages.Count > 0 || RestoreBusy)
 {
-    <MudStack Row="true" Spacing="2" Class="mt-4" AlignItems="AlignItems.Center">
-        <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Warning" />
-        <MudText>Restoring tables... Please wait.</MudText>
+    <MudDivider Class="my-4" />
+
+    <MudStack Row="true" Spacing="2" Class="mb-2" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.subtitle1">Restore Progress</MudText>
+        @if (RestoreBusy)
+        {
+            <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Warning" />
+        }
     </MudStack>
+
+    <MudPaper Elevation="1" Class="pa-3" Style="background-color: #1e1e1e; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
+        @foreach (var msg in _logMessages)
+        {
+            <div style="@GetLogLineStyle(msg)">@msg</div>
+        }
+        @if (RestoreBusy)
+        {
+            <div style="color: #569cd6;">...</div>
+        }
+    </MudPaper>
+}
+
+@code {
+    private static string GetLogLineStyle(string msg)
+    {
+        if (msg.StartsWith("[") && msg.Contains("] ERROR:"))
+            return "color: #f44747;";
+        if (msg.StartsWith("[") && msg.Contains("] FATAL"))
+            return "color: #f44747; font-weight: bold;";
+        if (msg.StartsWith("[") && msg.Contains("] SKIPPED:"))
+            return "color: #ce9178;";
+        if (msg.StartsWith("[") && msg.Contains("] Imported "))
+            return "color: #4ec9b0;";
+        if (msg.StartsWith("[") && msg.Contains("completed successfully"))
+            return "color: #4ec9b0; font-weight: bold;";
+        return "color: #d4d4d4;";
+    }
 }
