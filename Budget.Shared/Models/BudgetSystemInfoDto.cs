@@ -5,4 +5,5 @@ namespace Budget.Shared.Models;
 /// </summary>
 public sealed record BudgetSystemInfoDto(
   bool UseAzureDB,
-  string DatabaseEnvironment);
+  string DatabaseEnvironment,
+  bool IsDevelopment = false);

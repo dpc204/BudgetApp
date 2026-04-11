@@ -11,7 +11,8 @@ public partial class RestoreFromCsvIndex : IDisposable
   private List<BackupSetDto>? _backupSets;
   private List<BackupTableDto>? _backupTables;
   private BackupSetDto? _selectedBackupSet;
-  private string _targetDatabase = "local";
+  private string _targetDatabase = "azure";
+  private bool _isDevelopment;
 
   private bool IsAdmin { get; set; }
   private bool RestoreBusy { get; set; }
@@ -20,17 +21,32 @@ public partial class RestoreFromCsvIndex : IDisposable
   private readonly List<string> _logMessages = [];
   private System.Timers.Timer? _pollTimer;
 
-  private static readonly List<(string Value, string Label)> DatabaseOptions =
+  private static readonly List<(string Value, string Label)> AllDatabaseOptions =
   [
     ("local", "Local DB"),
     ("azure", "Azure DB")
   ];
+
+  private IEnumerable<(string Value, string Label)> DatabaseOptions =>
+    _isDevelopment ? AllDatabaseOptions : AllDatabaseOptions.Where(o => o.Value != "local");
 
   protected override async Task OnInitializedAsync()
   {
     var authState = await AuthStateProvider.GetAuthenticationStateAsync();
     var user = authState.User;
     IsAdmin = user.IsInRole("Admin");
+
+    try
+    {
+      var systemInfo = await MaintApiClient.GetSystemInfoAsync();
+      _isDevelopment = systemInfo.IsDevelopment;
+      if(!_isDevelopment)
+        _targetDatabase = "azure";
+    }
+    catch(Exception ex)
+    {
+      Logger.LogError(ex, "Error loading system info for restore options");
+    }
 
     await LoadBackupSetsAsync();
   }
