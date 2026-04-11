@@ -359,6 +359,9 @@ builder.Services.AddHttpClient<BackupAzureSql>();
 // Register BackupProgressService for tracking background backup jobs
 builder.Services.AddSingleton<IBackupProgressService, BackupProgressService>();
 
+// Register RestoreProgressService for tracking background restore jobs
+builder.Services.AddSingleton<IRestoreProgressService, RestoreProgressService>();
+
 // Configure Azure Storage (Blob and Table) for backup functionality
 var aspireBlobConnectionString = builder.Configuration.GetConnectionString("blobs");
 var aspireTableConnectionString = builder.Configuration.GetConnectionString("tables");

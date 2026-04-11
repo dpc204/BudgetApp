@@ -14,7 +14,7 @@ public static class GetSystemInfo
   /// <summary>
   /// Handles retrieving system information including database environment
   /// </summary>
-  public class Handler(IConfiguration configuration, ILogger<Handler> logger) : IRequestHandler<Query, Response>
+  public class Handler(IConfiguration configuration, IHostEnvironment hostEnvironment, ILogger<Handler> logger) : IRequestHandler<Query, Response>
   {
     public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
     {
@@ -23,7 +23,8 @@ public static class GetSystemInfo
 
       var systemInfo = new BudgetSystemInfoDto(
         UseAzureDB: useAzureDb,
-        DatabaseEnvironment: databaseEnvironment);
+        DatabaseEnvironment: databaseEnvironment,
+        IsDevelopment: hostEnvironment.IsDevelopment());
 
       return await Task.FromResult(new Response(systemInfo));
     }
