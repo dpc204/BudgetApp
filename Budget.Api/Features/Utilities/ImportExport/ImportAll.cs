@@ -87,10 +87,17 @@ public static class ImportAll
 
     private string GetTargetConnectionString(string targetDatabase)
     {
+      var rslt = String.Empty;
       if(targetDatabase.Equals("azure", StringComparison.OrdinalIgnoreCase))
-        return configuration["BudgetConnection"] ?? string.Empty;
+        rslt =configuration["BudgetConnection"] ?? string.Empty;
+      else
+      rslt = configuration["LocalBudgetConnection"] ?? string.Empty;
 
-      return configuration["LocalBudgetConnection"] ?? string.Empty;
+      var builder = new SqlConnectionStringBuilder(rslt) {
+        MultipleActiveResultSets = true
+      };
+      return builder.ConnectionString;
+
     }
 
     private async Task<Response> RestoreTablesAsync(Dictionary<string, string> tableData, string connectionString, CancellationToken cancellationToken)
@@ -171,13 +178,13 @@ public static class ImportAll
       }
     }
 
-    private static Task ExecuteNonQueryAsync(SqlConnection connection, SqlTransaction transaction, string sql, CancellationToken cancellationToken)
+    private static async Task ExecuteNonQueryAsync(SqlConnection connection, SqlTransaction transaction, string sql, CancellationToken cancellationToken)
     {
       using var cmd = connection.CreateCommand();
       cmd.Transaction = transaction;
       cmd.CommandText = sql;
       cmd.CommandTimeout = 300;
-      return cmd.ExecuteNonQueryAsync(cancellationToken);
+      await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
     private async Task<int> ImportTableFromCsvAsync(
