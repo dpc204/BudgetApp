@@ -198,7 +198,7 @@ public partial class GetBudgetMonthTests
     response.CategoryId.Should().Be("CAT1");
     response.CategoryName.Should().Be("Test Category");
     response.CategoryType.Should().Be(CatTypes.User);
-    response.SortOrder.Should().Be(1);
+    response.CategorySortOrder.Should().Be(1);
     response.Budget.Should().Be(500.00m);
     response.BudgetDraft.Should().Be(550.00m);
     response.IsBudgetLocked.Should().BeTrue();
@@ -385,11 +385,11 @@ public partial class GetBudgetMonthTests
 
     List<GetBudgetMonth.Response> resultList = [.. result];
     resultList[0].EnvelopeName.Should().Be("Envelope A");
-    resultList[0].SortOrder.Should().Be(1);
+    resultList[0].CategorySortOrder.Should().Be(1);
     resultList[1].EnvelopeName.Should().Be("Envelope B");
-    resultList[1].SortOrder.Should().Be(2);
+    resultList[1].CategorySortOrder.Should().Be(2);
     resultList[2].EnvelopeName.Should().Be("Envelope C");
-    resultList[2].SortOrder.Should().Be(3);
+    resultList[2].CategorySortOrder.Should().Be(3);
   }
 
   /// <summary>

@@ -64,12 +64,13 @@ else
           <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Filterable="false" Title="Category" HeaderStyle="min-width: 16rem;"/>
           <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
           <PropertyColumn Property="x => x != null ? x.Balance : 0" Format="#,0.00" Title="Balance" Filterable="false" HeaderStyle="min-width: 16rem; text-align: right;"
-                          CellStyle="text-align: right;"/>
+                          CellStyle="text-align: right;" AggregateDefinition="@_sumAggregateDefinition">
+            </PropertyColumn>
         </Columns >
-        <ChildRowContent Context="context">
+        <ChildRowContent Context="rowContext">
           <MudDataGrid @key="@_childGridRefreshKey"
                        T="EnvelopeTransactionListItem"
-                       VirtualizeServerData="@(async (state, token) => await ServerDataForEnvelopeVirtualized(context.Item, state, token))"
+                       VirtualizeServerData="@(async (state, token) => await ServerDataForEnvelopeVirtualized(rowContext.Item, state, token))"
                        Virtualize="false"
                        Filterable
                        FixedHeader
