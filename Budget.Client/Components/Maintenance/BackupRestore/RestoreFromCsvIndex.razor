@@ -35,6 +35,7 @@ else
                     @FormatBytes(context.Item.TotalSizeBytes)
                 </CellTemplate>
             </PropertyColumn>
+            <PropertyColumn Property="x => x.Note" Title="Note" />
             <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
                 <CellTemplate>
                     <MudStack Row="true" Spacing="1">

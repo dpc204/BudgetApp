@@ -17,7 +17,8 @@ public partial class BackupRestoreIndex : IDisposable
   private bool BackupAllBusy { get; set; }
   private string BackupAllButtonText { get; set; } = "Backup All Tables";
   private string? BackupAllStatus { get; set; }
-  private string? CurrentBackupId { get; set; }
+  private string CurrentBackupId { get; set; } = string.Empty;
+  private string _backupNote = string.Empty;
 
   private System.Timers.Timer? _pollTimer;
 
@@ -153,7 +154,7 @@ public partial class BackupRestoreIndex : IDisposable
 
     try
     {
-      var response = await MaintApiClient.ExportAllTablesAsync();
+      var response = await MaintApiClient.ExportAllTablesAsync(_backupNote);
       CurrentBackupId = response.BackupId;
       BackupAllStatus = response.Message;
       Snackbar.Add("Backup started successfully. Progress will be displayed below.", Severity.Success);

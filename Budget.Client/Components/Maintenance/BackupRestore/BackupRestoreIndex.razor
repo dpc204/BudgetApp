@@ -3,6 +3,7 @@
 @if (IsAdmin)
 {
     <MudStack Row="true" Spacing="2" Class="mb-4" AlignItems="AlignItems.Center">
+        <MudTextField @bind-Value="_backupNote" Label="Note (optional)" Variant="Variant.Outlined" Style="max-width: 400px;" Disabled="@BackupAllBusy" />
         <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="TriggerBackupAllTablesAsync" Disabled="@BackupAllBusy">
             @BackupAllButtonText
         </MudButton>
@@ -40,6 +41,7 @@ else
                     @FormatBytes(context.Item.TotalSizeBytes)
                 </CellTemplate>
             </PropertyColumn>
+            <PropertyColumn Property="x => x.Note" Title="Note" />
             <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
                 <CellTemplate>
                     <MudStack Row="true" Spacing="1">
