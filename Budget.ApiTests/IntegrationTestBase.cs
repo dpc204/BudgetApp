@@ -110,7 +110,7 @@ public class IntegrationTestBase
 
   protected UserAndOptions MakeUserAndOptions()
   {
-    var userAndOpts = new UserAndOptions(null);
+    var userAndOpts = new UserAndOptions();
     userAndOpts.User = new UserInfoDto { Id = 1, FamilyId = 1 };
     return userAndOpts;
   }

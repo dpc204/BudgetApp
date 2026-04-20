@@ -32,6 +32,7 @@ else
 {
     <MudDataGrid T="BackupSetDto" Items="_backupSets" Dense="true" Class="mb-4" Style="width: auto; max-width: fit-content;">
         <Columns>
+            <PropertyColumn Property="x => x.PartitionKey" Title="Backup Name" />
             <PropertyColumn Property="x => x.BackupDate" Title="Backup Date" Format="yyyy-MM-dd HH:mm:ss" />
             <PropertyColumn Property="x => x.TableCount" Title="Tables" />
             <PropertyColumn Property="x => x.TotalSizeBytes" Title="Size">
@@ -78,6 +79,7 @@ else
         <MudDataGrid T="BackupTableDto" Items="_backupTables" Dense="true" Style="width: auto; max-width: fit-content;">
             <Columns>
                 <PropertyColumn Property="x => x.TableName" Title="Table Name" />
+                <PropertyColumn Property="x => x.BlobName" Title="Blob Name" />
                 <PropertyColumn Property="x => x.SizeBytes" Title="Size">
                     <CellTemplate>
                         @FormatBytes(context.Item.SizeBytes)

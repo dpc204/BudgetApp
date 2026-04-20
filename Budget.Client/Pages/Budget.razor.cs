@@ -435,7 +435,7 @@ public partial class Budget : ComponentBase
             CategoryId = item.CategoryId,
             CategoryName = item.CategoryName,
             CategoryType = item.CategoryType,
-            SortOrder = item.SortOrder,
+            SortOrder = item.CategorySortOrder,
             BudgetValue = item.Budget,
             DraftValue = item.BudgetDraft,
             IsBudgetLocked = item.IsBudgetLocked,

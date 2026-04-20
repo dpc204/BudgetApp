@@ -1,3 +1,5 @@
+using AggregateType = MudBlazor.AggregateType;
+
 namespace Budget.Client.Pages;
 
 public partial class EnvelopePage(
@@ -32,6 +34,12 @@ public partial class EnvelopePage(
 
   // Counter to force child grids to refresh by changing their @key
   private int _childGridRefreshKey;
+
+  private readonly AggregateDefinition<EnvelopeResult> _sumAggregateDefinition = new()
+  {
+    Type = AggregateType.Custom,
+    CustomAggregate = items => "Category Balance: " + items.Sum(x => x?.Balance ?? 0).ToString("#,0.00")
+  };
 
 
 
@@ -96,8 +104,8 @@ public partial class EnvelopePage(
     SelectedEnvelopeData = [.. dataService.ApplyCategoryFilter(
       AllEnvelopeData,
       CategoriesForSelect,
-      SelectedCategoryId)
-      .Where(a=> a.EnvelopeType == EnvelopeTypes.Standard)];
+      SelectedCategoryId) ];
+      //.Where(a=> a.EnvelopeType == EnvelopeTypes.Standard || a.EnvelopeType == )];
 
     if(_selectedEnvelope is not null && SelectedEnvelopeData.All(e => e.EnvelopeId != _selectedEnvelope.EnvelopeId))
     {

@@ -94,6 +94,23 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
     return new FileDownloadDto(content, fileName, "text/csv");
   }
 
+  public async Task<ImportAllResponse> ImportAllAsync(string partitionKey, string targetDatabase, CancellationToken cancellationToken = default)
+  {
+    var payload = new { PartitionKey = partitionKey, TargetDatabase = targetDatabase };
+    var result = await PostAsync<object, ImportAllResponse>("utilities/import-all", payload, cancellationToken);
+    return result;
+  }
+
+  public async Task<RestoreStatusDto?> GetRestoreStatusAsync(string restoreId, CancellationToken cancellationToken = default)
+  {
+    using var resp = await http.GetAsync($"utilities/restore-status/{restoreId}", cancellationToken);
+    if(resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+      return null;
+
+    resp.EnsureSuccessStatusCode();
+    return await resp.Content.ReadFromJsonAsync<RestoreStatusDto>(cancellationToken: cancellationToken);
+  }
+
   // BACPAC history operations
   public async Task<IEnumerable<BacpacBackupDto>> GetBacpacHistoryAsync(CancellationToken cancellationToken = default)
   {

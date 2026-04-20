@@ -14,7 +14,7 @@ public static class GetBudgetMonth
     string CategoryId,
     string CategoryName,
     CatTypes CategoryType,
-    int SortOrder,
+    int CategorySortOrder,
     decimal? Budget,
     decimal? BudgetDraft,
     bool IsBudgetLocked,
@@ -56,7 +56,7 @@ public static class GetBudgetMonth
           envelope.CategoryId,
           envelope.Category.Name,
           envelope.Category.CategoryType,
-          envelope.Category.SortOrder * 1000 + envelope.SortOrder,
+          envelope.Category.SortOrder ,
           budgetData?.Budget,
           budgetData?.BudgetDraft,
           budgetData?.IsBudgetLocked ?? false,
@@ -65,7 +65,7 @@ public static class GetBudgetMonth
         ));
       }
 
-      return results;
+      return results.OrderBy(a=> a.CategorySortOrder).ThenBy(a=> a.EnvelopeName);
     }
   }
 

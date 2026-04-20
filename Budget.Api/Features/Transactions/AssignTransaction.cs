@@ -29,7 +29,7 @@ public static class AssignTransaction
 
       // Update TransactionDetail properties
       transactionDetail.EnvelopeId = request.EnvelopeId;
-      transactionDetail.Notes = request.Notes;
+      transactionDetail.Notes = $"From: {unassignedEnvelope?.Name ?? "Unassigned"}";
 
       // Update Transaction properties (Vendor and Description)
       transactionDetail.Transaction.Vendor = request.Vendor;

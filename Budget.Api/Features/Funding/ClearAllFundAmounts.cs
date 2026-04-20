@@ -1,4 +1,4 @@
-namespace Budget.Api.Features.Envelopes;
+namespace Budget.Api.Features.Funding;
 
 /// <summary>
 /// Clears all fund amounts across all envelopes

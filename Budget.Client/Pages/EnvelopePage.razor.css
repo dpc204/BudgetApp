@@ -71,7 +71,58 @@
 }
 
 ::deep .envelopes-page-table .mud-table {
-  height: auto;
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Make the explicit column widths match the nth-child selectors to enforce size */
+::deep .envelopes-page-table .mud-table-head th,
+::deep .envelopes-page-table .mud-table-body td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+::deep .envelopes-page-table .mud-table-head th:nth-child(1),
+::deep .envelopes-page-table .mud-table-body td:nth-child(1) {
+  width: 60px !important;
+  min-width: 60px !important;
+  max-width: 60px !important;
+}
+
+::deep .envelopes-page-table .mud-table-head th:nth-child(2),
+::deep .envelopes-page-table .mud-table-body td:nth-child(2) {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+}
+
+::deep .envelopes-page-table .mud-table-head th:nth-child(3),
+::deep .envelopes-page-table .mud-table-body td:nth-child(3) {
+  width: 16rem !important;
+  min-width: 16rem !important;
+  max-width: 16rem !important;
+}
+
+::deep .envelopes-page-table .mud-table-head th:nth-child(4),
+::deep .envelopes-page-table .mud-table-body td:nth-child(4) {
+  width: 16rem !important;
+  min-width: 16rem !important;
+  max-width: 16rem !important;
+}
+
+::deep .envelopes-page-table .mud-table-head th:nth-child(5),
+::deep .envelopes-page-table .mud-table-body td:nth-child(5) {
+  width: 16rem !important;
+  min-width: 16rem !important;
+  max-width: 16rem !important;
+  text-align: right !important;
+}
+
+/* Ensure any internal flex containers in the Balance header are pushed to the right */
+::deep .envelopes-page-table .mud-table-head th:nth-child(5) .mud-table-sort-label,
+::deep .envelopes-page-table .mud-table-head th:nth-child(5) .mud-data-grid-header-cell {
+  justify-content: flex-end !important;
 }
 
 /* Keep row selection highlight, remove per-cell focus box */

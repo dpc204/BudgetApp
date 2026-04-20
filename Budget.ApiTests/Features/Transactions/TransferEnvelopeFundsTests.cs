@@ -56,12 +56,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Test Transfer", 10, 20, 100m);
 
     // Act
@@ -71,16 +71,15 @@ public partial class TransferEnvelopeFundsTests
     result.IsSuccess.Should().BeTrue();
     result.Value.Should().NotBeNull();
 
-    var savedTransaction = await context.Transactions.FirstOrDefaultAsync();
+    var savedTransaction = await context.Transactions.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     savedTransaction.Should().NotBeNull();
     savedTransaction!.Description.Should().Be("Test Transfer");
     savedTransaction.TotalAmount.Should().Be(100m);
     savedTransaction.Vendor.Should().Be("Transfer");
 
-    var updatedFromEnvelope = await context.Envelopes.FindAsync(10);
+    var updatedFromEnvelope = await context.Envelopes.FindAsync([10], TestContext.Current.CancellationToken);
     updatedFromEnvelope!.Balance.Should().Be(900m);
-
-    var updatedToEnvelope = await context.Envelopes.FindAsync(20);
+    var updatedToEnvelope = await context.Envelopes.FindAsync([20], TestContext.Current.CancellationToken);
     updatedToEnvelope!.Balance.Should().Be(600m);
   }
 
@@ -98,7 +97,7 @@ public partial class TransferEnvelopeFundsTests
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Test Transfer", 10, 20, 100m);
 
     // Act
@@ -128,12 +127,12 @@ public partial class TransferEnvelopeFundsTests
     };
 
     context.BankAccounts.Add(transferAccount);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Test Transfer", 999, 888, 100m);
 
     // Act
@@ -180,12 +179,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Zero Transfer", 10, 20, 0m);
 
     // Act
@@ -194,10 +193,10 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var updatedFromEnvelope = await context.Envelopes.FindAsync(10);
+    var updatedFromEnvelope = await context.Envelopes.FindAsync([10], TestContext.Current.CancellationToken);
     updatedFromEnvelope!.Balance.Should().Be(1000m);
 
-    var updatedToEnvelope = await context.Envelopes.FindAsync(20);
+    var updatedToEnvelope = await context.Envelopes.FindAsync([20], TestContext.Current.CancellationToken);
     updatedToEnvelope!.Balance.Should().Be(500m);
   }
 
@@ -237,12 +236,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Negative Transfer", 10, 20, -50m);
 
     // Act
@@ -251,10 +250,10 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var updatedFromEnvelope = await context.Envelopes.FindAsync(10);
+    var updatedFromEnvelope = await context.Envelopes.FindAsync([10], TestContext.Current.CancellationToken);
     updatedFromEnvelope!.Balance.Should().Be(1050m);
 
-    var updatedToEnvelope = await context.Envelopes.FindAsync(20);
+    var updatedToEnvelope = await context.Envelopes.FindAsync([20], TestContext.Current.CancellationToken);
     updatedToEnvelope!.Balance.Should().Be(450m);
   }
 
@@ -294,12 +293,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Large Transfer", 10, 20, 999999999999.99m);
 
     // Act
@@ -308,7 +307,7 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var savedTransaction = await context.Transactions.FirstOrDefaultAsync();
+    var savedTransaction = await context.Transactions.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     savedTransaction!.TotalAmount.Should().Be(999999999999.99m);
   }
 
@@ -340,12 +339,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.Add(envelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Same Envelope Transfer", 10, 10, 100m);
 
     // Act
@@ -354,7 +353,7 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var updatedEnvelope = await context.Envelopes.FindAsync(10);
+    var updatedEnvelope = await context.Envelopes.FindAsync([10], TestContext.Current.CancellationToken);
     updatedEnvelope!.Balance.Should().Be(1000m);
   }
 
@@ -394,12 +393,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command(string.Empty, 10, 20, 100m);
 
     // Act
@@ -408,7 +407,7 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var savedTransaction = await context.Transactions.FirstOrDefaultAsync();
+    var savedTransaction = await context.Transactions.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     savedTransaction!.Description.Should().BeEmpty();
   }
 
@@ -448,12 +447,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("   ", 10, 20, 100m);
 
     // Act
@@ -462,7 +461,7 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var savedTransaction = await context.Transactions.FirstOrDefaultAsync();
+    var savedTransaction = await context.Transactions.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     savedTransaction!.Description.Should().Be("   ");
   }
 
@@ -502,12 +501,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var longReason = new string('A', 1000);
     var command = new Command(longReason, 10, 20, 100m);
 
@@ -517,7 +516,7 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var savedTransaction = await context.Transactions.FirstOrDefaultAsync();
+    var savedTransaction = await context.Transactions.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     savedTransaction!.Description.Should().Be(longReason);
   }
 
@@ -557,12 +556,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Test!@#$%^&*()_+-={}[]|:;<>,.?/~`", 10, 20, 100m);
 
     // Act
@@ -571,7 +570,7 @@ public partial class TransferEnvelopeFundsTests
     // Assert
     result.IsSuccess.Should().BeTrue();
 
-    var savedTransaction = await context.Transactions.FirstOrDefaultAsync();
+    var savedTransaction = await context.Transactions.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     savedTransaction!.Description.Should().Be("Test!@#$%^&*()_+-={}[]|:;<>,.?/~`");
   }
 
@@ -594,12 +593,12 @@ public partial class TransferEnvelopeFundsTests
     };
 
     context.BankAccounts.Add(transferAccount);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Negative IDs", -1, -2, 100m);
 
     // Act
@@ -629,12 +628,12 @@ public partial class TransferEnvelopeFundsTests
     };
 
     context.BankAccounts.Add(transferAccount);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Large IDs", int.MaxValue - 1, int.MaxValue, 100m);
 
     // Act
@@ -681,12 +680,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Moving to vacation", 10, 20, 100m);
 
     // Act
@@ -697,7 +696,7 @@ public partial class TransferEnvelopeFundsTests
 
     var savedTransaction = await context.Transactions
         .Include(t => t.Details)
-        .FirstOrDefaultAsync();
+        .FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
     savedTransaction.Should().NotBeNull();
     savedTransaction!.Details.Should().HaveCount(2);
@@ -751,12 +750,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 42 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Test Transfer", 10, 20, 100m);
     var beforeTime = DateTime.UtcNow;
 
@@ -767,7 +766,7 @@ public partial class TransferEnvelopeFundsTests
     var afterTime = DateTime.UtcNow;
     result.IsSuccess.Should().BeTrue();
 
-    var savedTransaction = await context.Transactions.FirstOrDefaultAsync();
+    var savedTransaction = await context.Transactions.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
     savedTransaction.Should().NotBeNull();
     savedTransaction!.Vendor.Should().Be("Transfer");
     savedTransaction.UserId.Should().Be(42);
@@ -794,12 +793,12 @@ public partial class TransferEnvelopeFundsTests
     };
 
     context.BankAccounts.Add(transferAccount);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Zero IDs", 0, 0, 100m);
 
     // Act
@@ -846,12 +845,12 @@ public partial class TransferEnvelopeFundsTests
 
     context.BankAccounts.Add(transferAccount);
     context.Envelopes.AddRange(fromEnvelope, toEnvelope);
-    await context.SaveChangesAsync();
+    await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
     var mockUserAndOptions = new Mock<IUserAndOptions>();
     mockUserAndOptions.Setup(x => x.User).Returns(new UserInfoDto { Id = 1 });
 
-    var handler = new Handler(context, mockUserAndOptions.Object, null!);
+    var handler = new Handler(context, mockUserAndOptions.Object);
     var command = new Command("Test Transfer", 10, 20, 100m);
 
     // Act
@@ -862,7 +861,7 @@ public partial class TransferEnvelopeFundsTests
 
     var savedTransaction = await context.Transactions
         .Include(t => t.Details)
-        .FirstOrDefaultAsync();
+        .FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
     savedTransaction.Should().NotBeNull();
 

@@ -1,4 +1,5 @@
 ﻿using Budget.Api.Features.Envelopes;
+using Budget.Api.Features.Funding;
 
 namespace Budget.ApiTests.Features.Envelopes;
 

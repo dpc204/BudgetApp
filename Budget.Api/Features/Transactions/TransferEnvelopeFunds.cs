@@ -6,7 +6,7 @@ namespace Budget.Api.Features.Transactions;
 public sealed record Command(string Reason, int FromEnvelopeId, int ToEnvelopeId, decimal Amount) : IRequest<Result<EnvelopeDeltas>>;
 
 
-public class Handler(BudgetContext db, IUserAndOptions userAndOptions, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, Result<EnvelopeDeltas>>
+public class Handler(BudgetContext db, IUserAndOptions userAndOptions) : IRequestHandler<Command, Result<EnvelopeDeltas>>
 {
   //public async Task TransferEnvelopeFundsAsync(string reason, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
   //{

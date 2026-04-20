@@ -89,7 +89,7 @@ public record BudgetMonthResponse(
   string CategoryId,
   string CategoryName,
   CatTypes CategoryType,
-  int SortOrder,
+  int CategorySortOrder,
   decimal? Budget,
   decimal? BudgetDraft,
   bool IsBudgetLocked,

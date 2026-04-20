@@ -1,4 +1,5 @@
 using Bunit;
+using MudBlazor.Extensions;
 using TestContext = Bunit.TestContext;
 
 namespace Budget.Client.Tests.Components.Forms;
@@ -6,7 +7,7 @@ namespace Budget.Client.Tests.Components.Forms;
 /// <summary>
 /// Tests for EnvelopePicker component
 /// </summary>
-public class EnvelopePickerTests : TestContext
+public class EnvelopePickerTests : BunitContext
 {
   private readonly Mock<IEnvelopesApiClient> _mockEnvelopesClient;
   private readonly Mock<ICategoriesApiClient> _mockCategoriesClient;
@@ -115,7 +116,7 @@ public class EnvelopePickerTests : TestContext
 
     // Act
     var cut = Render<EnvelopePicker>((Action<ComponentParameterCollectionBuilder<EnvelopePicker>>?)null);
-    await Task.Delay(100); // Allow async initialization
+    await Task.Delay(100 , Xunit.TestContext.Current.CancellationToken); // Allow async initialization
 
     // Assert
     _mockEnvelopesClient.Verify(x => x.GetEnvelopesAsync(It.IsAny<EnvelopeTypes>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -209,7 +210,7 @@ public class EnvelopePickerTests : TestContext
 
     // Assert
     var autocomplete = cut.FindComponent<MudAutocomplete<EnvelopeIdName>>();
-    autocomplete.Instance.Value.Should().BeNull();
+    autocomplete.Instance. GetState(x=> x.Value.Should().BeNull());
   }
 
   [Fact]
@@ -225,7 +226,7 @@ public class EnvelopePickerTests : TestContext
 
     // Assert
     var autocomplete = cut.FindComponent<MudAutocomplete<EnvelopeIdName>>();
-    autocomplete.Instance.Value.Should().Be(envelope);
+    autocomplete.Instance.GetState(x=> x.Value.Should().Be(envelope));
   }
 
   [Fact]
@@ -273,7 +274,7 @@ public class EnvelopePickerTests : TestContext
       .ReturnsAsync(categories);
 
     var cut = Render<EnvelopePicker>((Action<ComponentParameterCollectionBuilder<EnvelopePicker>>?)null);
-    await Task.Delay(100);
+    await Task.Delay(100, Xunit.TestContext.Current.CancellationToken);
 
     // Act
     var autocomplete = cut.FindComponent<MudAutocomplete<EnvelopeIdName>>();
@@ -281,7 +282,7 @@ public class EnvelopePickerTests : TestContext
 
     // Assert
     searchResults.Should().NotBeNull();
-    searchResults.Should().HaveCountGreaterThan(0);
+    searchResults!.Should().HaveCountGreaterThan(0);
   }
 
   [Fact]
@@ -314,7 +315,7 @@ public class EnvelopePickerTests : TestContext
 
     // Assert
     searchResults.Should().NotBeNull();
-    var resultsList = searchResults.ToList();
+    var resultsList = searchResults!.ToList();
     resultsList.Should().ContainSingle();
     resultsList.First().EnvelopeName.Should().Be("Groceries");
   }
@@ -347,7 +348,7 @@ public class EnvelopePickerTests : TestContext
 
     // Assert
     searchResults.Should().NotBeNull();
-    searchResults.Should().ContainSingle();
+    searchResults!.Should().ContainSingle();
   }
 
   [Fact]

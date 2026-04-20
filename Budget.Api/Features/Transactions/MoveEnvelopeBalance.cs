@@ -8,7 +8,7 @@ public interface IMoveEnvelopeBalance
 }
 
 
-public class MoveEnvelopeBalance(IUserAndOptions userAndOptions) : IMoveEnvelopeBalance
+public class MoveEnvelopeBalance : IMoveEnvelopeBalance
 {
   public async Task MoveBalance(BudgetContext db, int fromEnvelopeId, int toEnvelopeId, decimal amountToMove)
   {

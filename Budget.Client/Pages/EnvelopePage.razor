@@ -33,7 +33,7 @@ else
         </MudSelect >
       </MudStack >
     </MudPaper >
-    <div style="flex: 1; min-height: 0; overflow: hidden; width: fit-content;">
+    <div style="flex: 1; min-height: 0; overflow: hidden; width: 100%;">
       <MudDataGrid Items="@SelectedEnvelopeData"
                    Hover="true"
 
@@ -47,29 +47,40 @@ else
                    FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
                    ExpandSingleRow="true"
                    Class="envelopes-page-table"
-                   Style="height: 100%; overflow: auto; width: auto;">
+                   Style="height: 100%; overflow: auto; width: 100%;">
+
+          <ColGroup>
+              <col style="width: 60px;" />
+              <col style="width: 80px;" />
+              <col style="width: 16rem;" />
+              <col style="width: 16rem;" />
+              <col style="width: 16rem;" />
+          </ColGroup>
+
         <Columns >
-          <HierarchyColumn T="EnvelopeResult"/>
+          <HierarchyColumn T="EnvelopeResult" HeaderStyle="width: 60px; min-width: 60px; max-width: 60px;"/>
 
           <TemplateColumn Title=""
-                          Filterable="false">
+                          Filterable="false"
+                          HeaderStyle="width: 80px; min-width: 80px; max-width: 80px;">
             <CellTemplate Context="ctx">
               <MudIconButton Icon="@Icons.Material.Filled.Add"
                              Size="Size.Small"
                              Variant="Variant.Outlined"
                              Color="Color.Primary"
-                             OnClick="@(() => NewTransactionAsync(ctx.Item))"/>
+                             OnClick="@(() => NewTransactionAsync(ctx.Item))"/>                                                                                                               
             </CellTemplate >
           </TemplateColumn >
-          <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Filterable="false" Title="Category" HeaderStyle="min-width: 16rem;"/>
-          <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem;"/>
-          <PropertyColumn Property="x => x != null ? x.Balance : 0" Format="#,0.00" Title="Balance" Filterable="false" HeaderStyle="min-width: 16rem; text-align: right;"
-                          CellStyle="text-align: right;"/>
+          <PropertyColumn Property="x => x != null ? x.CategoryName : string.Empty" Filterable="false" Title="Category" HeaderStyle="min-width: 16rem; width: 16rem;"/>
+          <PropertyColumn Property="x => x != null ? x.EnvelopeName : string.Empty" Title="Envelope" HeaderStyle="min-width: 16rem; width: 16rem;"/>
+          <PropertyColumn Property="x => x != null ? x.Balance : 0" Format="#,0.00" Title="Balance" Filterable="false" HeaderStyle="min-width: 16rem; width: 16rem; text-align: right;"
+                          CellStyle="text-align: right;" AggregateDefinition="@_sumAggregateDefinition">
+            </PropertyColumn>
         </Columns >
-        <ChildRowContent Context="context">
+        <ChildRowContent Context="rowContext">
           <MudDataGrid @key="@_childGridRefreshKey"
                        T="EnvelopeTransactionListItem"
-                       VirtualizeServerData="@(async (state, token) => await ServerDataForEnvelopeVirtualized(context.Item, state, token))"
+                       VirtualizeServerData="@(async (state, token) => await ServerDataForEnvelopeVirtualized(rowContext.Item, state, token))"
                        Virtualize="false"
                        Filterable
                        FixedHeader

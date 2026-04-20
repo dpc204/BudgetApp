@@ -30,7 +30,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
         CategoryId = item.CategoryId,
         CategoryName = item.CategoryName,
         CategoryType = item.CategoryType,
-        SortOrder = item.SortOrder,
+        SortOrder = item.CategorySortOrder,
         Budget = item.Budget,
         CurrentBalance = item.Balance,
         FundAmount = item.FundAmount
@@ -83,6 +83,7 @@ public class FundDataService(IBudgetMonthlyApiClient apiClient, ILogger<FundData
         EnvelopeId = envelope.EnvelopeId,
         EnvelopeName = envelope.EnvelopeName,
         CurrentBalance = envelope.CurrentBalance,
+        CategoryName= envelope.CategoryName,
         Budget = envelope.Budget,
         FundAmount = envelope.FundAmount,
         UpdateCounter = 0
@@ -147,6 +148,8 @@ public class FundEnvelopeData : IFundableEnvelope
 public class FundDisplayRow
 {
   public int EnvelopeId { get; set; }
+  public string CategoryName { get; set; } = string.Empty;
+  public int CategorySortOrder { get; set; }
   public string EnvelopeName { get; set; } = string.Empty;
   public decimal CurrentBalance { get; set; }
   public decimal? Budget { get; set; }

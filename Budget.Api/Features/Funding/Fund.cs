@@ -1,7 +1,7 @@
 ﻿using Budget.Api.Features.Transactions;
 using Budget.Shared.Services;
 
-namespace Budget.Api.Features.Envelopes;
+namespace Budget.Api.Features.Funding;
 
 /// <summary>
 /// Funds all envelopes based on Envelope.Fund which has previously been set by the user
@@ -61,6 +61,7 @@ public static class Fund
         {
           var assignTran = MakeAssignTransaction(toEnvelope, incomeEnvelope, fundingAccount);
           _newAssignTransactions.Add(assignTran);
+          toEnvelope.FundAmount = 0;
         }
 
         // add the new assign transactions using the AddMultipleTransactions handler
