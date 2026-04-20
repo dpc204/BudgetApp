@@ -15,7 +15,6 @@ public partial class RestoreFromCsvIndex : IDisposable
   private List<BackupTableDto>? _backupTables;
   private BackupSetDto? _selectedBackupSet;
   private string _targetDatabase = "azure";
-  private bool _isDevelopment;
 
   private bool IsAdmin { get; set; }
   private bool RestoreBusy { get; set; }
@@ -31,7 +30,7 @@ public partial class RestoreFromCsvIndex : IDisposable
   ];
 
   private IEnumerable<(string Value, string Label)> DatabaseOptions =>
-    _isDevelopment ? AllDatabaseOptions : AllDatabaseOptions.Where(o => o.Value != "local");
+    !BudgetEnvironment.IsAzureDatabase ? AllDatabaseOptions : AllDatabaseOptions.Where(o => o.Value != "local");
 
   protected override async Task OnInitializedAsync()
   {
