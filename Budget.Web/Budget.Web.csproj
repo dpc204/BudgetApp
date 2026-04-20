@@ -31,6 +31,9 @@
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.3" />
     <PackageReference Include="Microsoft.Identity.Web.TokenCache" Version="4.3.0" />
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="170.3.93" />
+    <PackageReference Include="NuGet.Packaging" Version="7.3.1" />
+    <PackageReference Include="NuGet.Protocol" Version="7.3.1" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.6" />
     <ProjectReference Include="..\Budget.Shared\Budget.Shared.csproj" />
     <ProjectReference Include="..\Budget.DB\Budget.DB.csproj" />
     <!--<ProjectReference Include="..\Budget.Client\Budget.Client.csproj" ReferenceOutputAssembly="true" SkipGetTargetFrameworkProperties="true" />-->
