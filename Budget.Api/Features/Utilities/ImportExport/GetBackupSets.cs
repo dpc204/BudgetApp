@@ -54,12 +54,12 @@ public static class GetBackupSets
           var partitionKey = entity.PartitionKey;
           var sizeBytes = entity.GetInt32("SizeBytes") ?? 0;
           var exportedAt = entity.GetDateTime("ExportedAt") ?? DateTime.MinValue;
-          var note = entity.GetString("Note") ?? string.Empty;
 
           if(!backupSets.TryGetValue(partitionKey, out (DateTime BackupDate, int TableCount, long TotalSize, string Note) current))
           {
+            // Capture note from the first entity encountered for this partition
+            var note = entity.GetString("Note") ?? string.Empty;
             current = (exportedAt, 0, 0, note);
-            backupSets[partitionKey] = current;
           }
 
           backupSets[partitionKey] = (current.BackupDate, current.TableCount + 1, current.TotalSize + sizeBytes, current.Note);
