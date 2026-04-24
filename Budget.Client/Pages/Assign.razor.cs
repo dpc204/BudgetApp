@@ -43,6 +43,8 @@ public partial class Assign : ComponentBase
 
   protected override async Task OnInitializedAsync()
   {
+    _loading = false;
+    Busy = false;
     try
     {
       var result = await Api.GetTransactionsUnassignedAsync();
@@ -296,8 +298,19 @@ public partial class Assign : ComponentBase
       }
 
       // Clear selection after assignment
-      _selectedTransactions.Clear();
+      _selectedTransactions = [];
       _bulkEnvelope = null;
+
+      var result = await Api.GetTransactionsUnassignedAsync();
+      if(result.IsSuccess)
+      {
+        Transactions = result.Value;
+      }
+      else
+      {
+        _loadError = string.Join(", ", result.Errors.Select(e => e.Message));
+        Logger.LogError("Failed to load unassigned transactions: {Errors}", _loadError);
+      }
       await Grid.ReloadServerData();
       StateHasChanged();
     }
@@ -305,7 +318,7 @@ public partial class Assign : ComponentBase
     {
       Busy = false;
     }
-  }
+   }
 
   //private int _selectedCount;
   //private HashSet<TransactionImportDto> _selectedItems = [];
