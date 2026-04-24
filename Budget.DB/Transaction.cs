@@ -13,12 +13,11 @@ namespace Budget.DB
 
     public TransactionTypes TransactionType { get; set; }
     public string Vendor { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     [ForeignKey("Account")]
     public int AccountId { get; set; }
     public BankAccount Account { get; set; } = null!;
-    public string UserName { get; set; } = string.Empty;
     [ForeignKey("User")] public int UserId { get; set; }
     public User User { get; set; } = null!;
     public bool IsVoided { get; set; }
@@ -66,7 +65,7 @@ namespace Budget.DB
     public Transaction Transaction { get; set; } = null!;
     public int EnvelopeId { get; set; }
     public Envelope Envelope { get; set; } = null!;
-    public string Notes { get; set; } = string.Empty;
+    public string? Notes { get; set; } = string.Empty;
     public decimal Amount { get; set; }
 
     public class TransactionDetailConfiguration : IEntityTypeConfiguration<TransactionDetail>

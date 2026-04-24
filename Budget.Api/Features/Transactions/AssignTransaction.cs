@@ -6,7 +6,7 @@ public static class AssignTransaction
 {
   public sealed record Command(int TransactionId, int LineId, int EnvelopeId, string Vendor, string Description, string Notes, bool HiddenFromAssign = false) : IRequest<bool>;
 
-  public class Handler(BudgetContext db, IMoveEnvelopeBalance moveBalance) : IRequestHandler<Command, bool>
+  public class Handler(BudgetContext db, IMoveEnvelopeBalance moveBalance, ILogger<Handler> logger) : IRequestHandler<Command, bool>
   {
     public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
     {
@@ -45,6 +45,7 @@ public static class AssignTransaction
       // Now that the transaction detail is updated, we need to move the balance
       await moveBalance.MoveBalance(db, fromEnvelopeId, toEnvelopeId, transactionDetail.Amount);
       await db.SaveChangesAsync(cancellationToken);
+      logger.Log(LogLevel.Information, "Assigned Transaction# {TransactionId} for {TotalAmount} to envelope {EnvelopeId}", request.TransactionId, transactionDetail.Amount, transactionDetail.EnvelopeId);
       return true;
     }
   }

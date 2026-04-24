@@ -15,7 +15,7 @@
     <PackageReference Include="Mapster" Version="9.0.0-pre01" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="5.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
-    <PackageReference Include="MudBlazor" Version="9.1.0" />
+    <PackageReference Include="MudBlazor" Version="9.4.0" />
   </ItemGroup>
 
   <ItemGroup>

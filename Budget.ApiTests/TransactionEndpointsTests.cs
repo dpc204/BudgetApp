@@ -322,7 +322,7 @@ public class TransactionEndpointsTests : IntegrationTestBase
     context.TransactionDetails.Add(detail);
     await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-    var handler = new AssignTransaction.Handler(context, new MoveEnvelopeBalance());
+    var handler = new AssignTransaction.Handler(context, new MoveEnvelopeBalance(), NullLogger<AssignTransaction.Handler>.Instance);
     var command = new AssignTransaction.Command(600, 1, 204, "Updated Vendor", "Reassigned", "notes");
 
     // Act
