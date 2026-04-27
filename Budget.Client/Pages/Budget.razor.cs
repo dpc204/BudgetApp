@@ -405,7 +405,6 @@ public partial class Budget : ComponentBase
       var lastMonth = _displayMonths.Last();
       var newMonth = lastMonth.AddMonths(1);
       _displayMonths.Add(newMonth);
-      MonthsToShow++;
       // Load data for new month asynchronously
       _ = LoadMonthDataAsync(newMonth);
     }
@@ -457,7 +456,7 @@ public partial class Budget : ComponentBase
   /// Prompts the user to confirm clearing all draft budgets and, if confirmed, clears them and refreshes the budget data.
   /// </summary>
   /// <remarks>
-  /// When confirmed, calls the API to clear draft budgets, displays a success or error notification, and reloads budget data without re-checking for drafts. The method updates the component's processing state while the operation runs.
+  /// When confirmed, calls the API to clear draft budgets, displays a success or error notification, and reloads budget data without re-checking drafts. The method updates the component's processing state while the operation runs.
   /// </remarks>
   private async Task ClearDrafts()
   {
