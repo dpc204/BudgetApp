@@ -7,4 +7,5 @@ public sealed record BackupSetDto(
   string PartitionKey,
   DateTime BackupDate,
   int TableCount,
-  long TotalSizeBytes);
+  long TotalSizeBytes,
+  string Note = "");

@@ -9,7 +9,7 @@ namespace Budget.Api.Features.Utilities.ImportExport;
 /// </summary>
 public static class ExportAll
 {
-  public sealed record Command : IRequest<Response>;
+  public sealed record Command(string Note = "") : IRequest<Response>;
 
   public sealed record Response(string BackupId, string Message);
 
@@ -36,12 +36,12 @@ public static class ExportAll
         backupId, partitionKey);
 
       // Start background task
-      _ = Task.Run(async () => await ExecuteBackupAsync(backupId, partitionKey, cancellationToken), cancellationToken);
+      _ = Task.Run(async () => await ExecuteBackupAsync(backupId, partitionKey, request.Note, cancellationToken), cancellationToken);
 
       return new Response(backupId, "Backup started successfully");
     }
 
-    private async Task ExecuteBackupAsync(string backupId, string partitionKey, CancellationToken cancellationToken)
+    private async Task ExecuteBackupAsync(string backupId, string partitionKey, string note, CancellationToken cancellationToken)
     {
       try
       {
@@ -120,6 +120,7 @@ public static class ExportAll
             blobContainerClient,
             tableClient,
             partitionKey,
+            note,
             cancellationToken);
 
           if(success)
@@ -153,6 +154,7 @@ public static class ExportAll
       BlobContainerClient blobContainerClient,
       TableClient tableClient,
       string partitionKey,
+      string note,
       CancellationToken cancellationToken)
     {
       const int totalAttempts = 2; // Initial attempt + 1 retry
@@ -181,7 +183,8 @@ public static class ExportAll
             { "BlobName", blobName },
             { "SizeBytes", sizeInBytes },
             { "ExportedAt", DateTime.UtcNow },
-            { "Attempt", attempt }
+            { "Attempt", attempt },
+            { "Note", note }
           };
 
           await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
@@ -268,11 +271,14 @@ public static class ExportAll
   {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-      app.MapPost("/utilities/export-all", async ([FromServices] ISender sender) =>
+      app.MapPost("/utilities/export-all", async ([FromServices] ISender sender, [FromBody] ExportAllRequest? body) =>
       {
-        var result = await sender.Send(new Command());
+        var note = body?.Note ?? string.Empty;
+        var result = await sender.Send(new Command(note));
         return Results.Ok(result);
       }).RequireAuthorization("Admin");
     }
   }
+
+  public sealed record ExportAllRequest(string Note);
 }

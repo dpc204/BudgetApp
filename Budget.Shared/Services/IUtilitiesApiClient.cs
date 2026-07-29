@@ -11,7 +11,7 @@ public interface IUtilitiesApiClient
   Task<FileDownloadDto> DownloadDatabaseBackupAsync(string fileName, CancellationToken cancellationToken = default);
 
   // Import/Export operations
-  Task<ExportAllResponse> ExportAllTablesAsync(CancellationToken cancellationToken = default);
+  Task<ExportAllResponse> ExportAllTablesAsync(string note = "", CancellationToken cancellationToken = default);
   Task<BackupStatusDto?> GetBackupStatusAsync(string backupId, CancellationToken cancellationToken = default);
   Task<IEnumerable<BackupSetDto>> GetBackupSetsAsync(CancellationToken cancellationToken = default);
   Task<IEnumerable<BackupTableDto>> GetBackupSetDetailsAsync(string partitionKey, CancellationToken cancellationToken = default);

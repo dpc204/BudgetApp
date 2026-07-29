@@ -41,9 +41,9 @@ public sealed class UtilitiesApiClient(HttpClient http, ILogger<UtilitiesApiClie
   }
 
   // Import/Export operations
-  public async Task<ExportAllResponse> ExportAllTablesAsync(CancellationToken cancellationToken = default)
+  public async Task<ExportAllResponse> ExportAllTablesAsync(string note = "", CancellationToken cancellationToken = default)
   {
-    var result = await PostAsync<object, ExportAllResponse>("utilities/export-all", new { }, cancellationToken);
+    var result = await PostAsync<object, ExportAllResponse>("utilities/export-all", new { Note = note }, cancellationToken);
     return result;
   }
 

@@ -15,7 +15,8 @@ public static class GetBackupSets
     string PartitionKey,
     DateTime BackupDate,
     int TableCount,
-    long TotalSizeBytes);
+    long TotalSizeBytes,
+    string Note);
 
   /// <summary>
   /// Handles retrieval of backup sets
@@ -46,7 +47,7 @@ public static class GetBackupSets
         }
 
         // Query all entities and group by PartitionKey
-        var backupSets = new Dictionary<string, (DateTime BackupDate, int TableCount, long TotalSize)>();
+        var backupSets = new Dictionary<string, (DateTime BackupDate, int TableCount, long TotalSize, string Note)>();
 
         await foreach(var entity in tableClient.QueryAsync<TableEntity>(cancellationToken: cancellationToken))
         {
@@ -54,13 +55,14 @@ public static class GetBackupSets
           var sizeBytes = entity.GetInt32("SizeBytes") ?? 0;
           var exportedAt = entity.GetDateTime("ExportedAt") ?? DateTime.MinValue;
 
-          if(!backupSets.TryGetValue(partitionKey, out (DateTime BackupDate, int TableCount, long TotalSize) current))
+          if(!backupSets.TryGetValue(partitionKey, out (DateTime BackupDate, int TableCount, long TotalSize, string Note) current))
           {
-            current = (exportedAt, 0, 0);
-            backupSets[partitionKey] = current;
+            // Capture note from the first entity encountered for this partition
+            var note = entity.GetString("Note") ?? string.Empty;
+            current = (exportedAt, 0, 0, note);
           }
 
-          backupSets[partitionKey] = (current.BackupDate, current.TableCount + 1, current.TotalSize + sizeBytes);
+          backupSets[partitionKey] = (current.BackupDate, current.TableCount + 1, current.TotalSize + sizeBytes, current.Note);
         }
 
         // Convert to DTOs and sort by date descending (newest first)
@@ -69,7 +71,8 @@ public static class GetBackupSets
             kvp.Key,
             kvp.Value.BackupDate,
             kvp.Value.TableCount,
-            kvp.Value.TotalSize))
+            kvp.Value.TotalSize,
+            kvp.Value.Note))
           .OrderByDescending(x => x.BackupDate)
           .ToList();
 
