@@ -66,7 +66,7 @@
         <ToolBarContent >
            <MudButton OnClick="DeleteStagedTransactionsAsync" Class="border-solid border-2 mud-border-primary ma-4" Disabled="Busy || Preview.Count == 0">Delete Staged Transactions</MudButton>
           <MudButton OnClick="ImportAsync" Disabled="Busy || Preview.Count == 0  " Class="border-solid border-2 mud-border-primary ma-4">Import Transactions</MudButton>
-        </ToolbarContent>
+        </ToolBarContent>
         <Columns>
           <PropertyColumn Property="x => x.Date"
                           Title="Date"
